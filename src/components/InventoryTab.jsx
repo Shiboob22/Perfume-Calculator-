@@ -4,6 +4,7 @@ export function InventoryTab() {
   const [items, setItems] = useState([]);
   const [restockAmounts, setRestockAmounts] = useState({});
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchInventory = async () => {
     try {
@@ -36,12 +37,21 @@ export function InventoryTab() {
   };
 
   const handleDelete = async (id, name) => {
-    if (!confirm(`Delete ${name} from inventory?`)) return;
+    if (!window.confirm(`Are you sure you want to delete "${name}" from inventory?`)) return;
+    
+    setDeletingId(id);
     try {
-      await fetch(`/api/inventory?id=${id}`, { method: 'DELETE' });
-      setItems((prev) => prev.filter((item) => item.id !== id));
+      const res = await fetch(`/api/inventory?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setItems((prev) => prev.filter((item) => (item.id || item.fragrance_id) !== id));
+      } else {
+        alert('Failed to delete item from inventory.');
+      }
     } catch (err) {
-      console.error('Delete failed:', err);
+      console.error('Delete error:', err);
+      alert('An error occurred while deleting.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -51,7 +61,7 @@ export function InventoryTab() {
         <div>
           <h2 className="text-xl font-bold text-neutral-900">Inventory</h2>
           <p className="text-xs text-neutral-500">
-            Stock decrements automatically each time you log a batch on the Calculator tab.
+            Stock decrements automatically each time you log a batch on the Calculator tab. Restock manually below.
           </p>
         </div>
         <span className="text-xs font-mono bg-neutral-100 text-neutral-600 px-3 py-1 rounded border border-neutral-200">
@@ -63,52 +73,64 @@ export function InventoryTab() {
         <div className="text-center py-12 text-sm text-neutral-400 animate-pulse">
           Loading inventory...
         </div>
+      ) : items.length === 0 ? (
+        <div className="text-center py-12 text-sm text-neutral-400 border border-dashed border-neutral-200 rounded-lg">
+          No inventory items found.
+        </div>
       ) : (
         <div className="space-y-4">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="p-4 bg-white border border-neutral-200 rounded-lg shadow-sm space-y-3"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold text-neutral-900 text-base">{item.name}</h3>
-                  <span className="text-xs text-neutral-500">{item.tier}</span>
+          {items.map((item) => {
+            const itemId = item.id || item.fragrance_id;
+            return (
+              <div
+                key={itemId}
+                className="p-4 bg-white border border-neutral-200 rounded-lg shadow-sm space-y-3"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-neutral-900 text-base">{item.name}</h3>
+                    <span className="text-xs text-neutral-500">{item.tier}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-neutral-900">
+                      {Number(item.stock_g).toFixed(2)} g
+                    </div>
+                    <div className="text-[10px] text-neutral-400">
+                      threshold {Number(item.low_threshold_g || 10).toFixed(2)}g
+                    </div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-neutral-900">{Number(item.stock_g).toFixed(2)} g</div>
-                  <div className="text-[10px] text-neutral-400">threshold {Number(item.low_threshold_g || 10).toFixed(2)}g</div>
-                </div>
-              </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-neutral-100">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="number"
-                    placeholder="Restock amount (g)"
-                    value={restockAmounts[item.id] || ''}
-                    onChange={(e) =>
-                      setRestockAmounts({ ...restockAmounts, [item.id]: Number(e.target.value) })
-                    }
-                    className="px-3 py-1 text-xs border border-neutral-300 rounded focus:outline-none focus:ring-1 focus:ring-black w-40"
-                  />
+                <div className="flex items-center justify-between pt-3 border-t border-neutral-100">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      placeholder="Restock amount (g)"
+                      value={restockAmounts[itemId] || ''}
+                      onChange={(e) =>
+                        setRestockAmounts({ ...restockAmounts, [itemId]: Number(e.target.value) })
+                      }
+                      className="px-3 py-1 text-xs border border-neutral-300 rounded focus:outline-none focus:ring-1 focus:ring-black w-40"
+                    />
+                    <button
+                      onClick={() => handleRestock(itemId)}
+                      className="px-3 py-1 bg-neutral-900 text-white text-xs rounded hover:bg-neutral-800 transition-colors"
+                    >
+                      Add stock
+                    </button>
+                  </div>
+
                   <button
-                    onClick={() => handleRestock(item.id)}
-                    className="px-3 py-1 bg-neutral-900 text-white text-xs rounded hover:bg-neutral-800 transition-colors"
+                    onClick={() => handleDelete(itemId, item.name)}
+                    disabled={deletingId === itemId}
+                    className="px-2.5 py-1 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 rounded font-medium transition-colors border border-transparent hover:border-red-200 disabled:opacity-50"
                   >
-                    Add stock
+                    {deletingId === itemId ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
-
-                <button
-                  onClick={() => handleDelete(item.id, item.name)}
-                  className="text-xs text-red-600 hover:text-red-800 font-medium transition-colors"
-                >
-                  Delete
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
