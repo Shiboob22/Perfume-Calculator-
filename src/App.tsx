@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SearchTab } from './components/SearchTab';
 import { CalculatorTab } from './components/CalculatorTab';
+import Inventory from './components/Inventory';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'search' | 'calculator' | 'batches' | 'inventory'>('search');
@@ -39,9 +40,7 @@ export default function App() {
         {activeTab === 'batches' && (
           <div className="text-center py-12 text-neutral-500 text-sm">Batches view operational.</div>
         )}
-        {activeTab === 'inventory' && (
-          <div className="text-center py-12 text-neutral-500 text-sm">Inventory view operational.</div>
-        )}
+        {activeTab === 'inventory' && <Inventory />}
       </main>
     </div>
   );
