@@ -24,6 +24,7 @@ export function PerfumeSearch() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-w-5xl mx-auto">
+      {/* Search Input and Results Column */}
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">
@@ -73,24 +74,70 @@ export function PerfumeSearch() {
         )}
       </div>
 
-      <div className="p-6 bg-neutral-50 border border-neutral-200 rounded-md flex flex-col justify-center items-center text-center">
+      {/* Detail View Container: Pyramid & Accords */}
+      <div className="p-6 bg-white border border-neutral-200 rounded-md flex flex-col space-y-4 shadow-sm">
         {selectedPerfume ? (
-          <div className="w-full text-left space-y-3">
-            <h3 className="text-xl font-bold text-neutral-900">{selectedPerfume.name}</h3>
-            {selectedPerfume.tier && (
-              <div className="inline-block px-2.5 py-1 text-xs font-semibold uppercase tracking-wider bg-neutral-200 text-neutral-800 rounded">
-                Tier: {selectedPerfume.tier}
+          <div className="w-full space-y-5">
+            <div>
+              <h3 className="text-xl font-bold text-neutral-900">{selectedPerfume.name}</h3>
+              {selectedPerfume.tier && (
+                <div className="inline-block mt-1 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-neutral-100 text-neutral-800 rounded border border-neutral-200">
+                  TIER: {selectedPerfume.tier}
+                </div>
+              )}
+            </div>
+
+            {/* Main Accords */}
+            {selectedPerfume.accords && selectedPerfume.accords.length > 0 && (
+              <div className="space-y-1.5">
+                <span className="text-xs font-mono uppercase text-neutral-400 tracking-wider">Main Accords</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedPerfume.accords.map((acc, i) => (
+                    <span key={i} className="text-xs px-2 py-0.5 bg-amber-50 text-amber-900 border border-amber-200/60 rounded">
+                      {acc}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
-            <div className="pt-4 border-t border-neutral-200 text-xs text-neutral-500 space-y-1">
-              <p><span className="font-semibold text-neutral-700">Source:</span> {selectedPerfume.source || 'Database'}</p>
-              <p><span className="font-semibold text-neutral-700">ID:</span> {selectedPerfume.id}</p>
+
+            {/* Note Pyramid */}
+            <div className="space-y-3 pt-2 border-t border-neutral-100">
+              <span className="text-xs font-mono uppercase text-neutral-400 tracking-wider">Official Note Pyramid</span>
+
+              <div className="space-y-2 text-xs">
+                <div className="p-2.5 bg-neutral-50 rounded border border-neutral-100">
+                  <span className="font-semibold text-neutral-700 block mb-0.5">Top Notes</span>
+                  <span className="text-neutral-600">
+                    {selectedPerfume.top_notes?.join(', ') || 'Not specified'}
+                  </span>
+                </div>
+
+                <div className="p-2.5 bg-neutral-50 rounded border border-neutral-100">
+                  <span className="font-semibold text-neutral-700 block mb-0.5">Heart / Middle Notes</span>
+                  <span className="text-neutral-600">
+                    {selectedPerfume.middle_notes?.join(', ') || 'Not specified'}
+                  </span>
+                </div>
+
+                <div className="p-2.5 bg-neutral-50 rounded border border-neutral-100">
+                  <span className="font-semibold text-neutral-700 block mb-0.5">Base Notes</span>
+                  <span className="text-neutral-600">
+                    {selectedPerfume.base_notes?.join(', ') || 'Not specified'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 text-[10px] font-mono text-neutral-400 flex justify-between">
+              <span>Source: {selectedPerfume.source || 'Database'}</span>
+              <span>ID: {selectedPerfume.id.substring(0, 8)}...</span>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-neutral-500">
+          <div className="h-full flex items-center justify-center text-center text-sm text-neutral-400 py-12">
             Select a result to see its note pyramid and accords.
-          </p>
+          </div>
         )}
       </div>
     </div>

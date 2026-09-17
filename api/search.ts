@@ -7,23 +7,26 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const { q } = req.query;
+  const query = (req.query.q as string || '').trim().toLowerCase();
 
-  if (!q || typeof q !== 'string') {
-    return res.status(400).json({ error: 'Query parameter "q" is required' });
+  if (!query || query.length < 2) {
+    return res.status(200).json({ source: 'database', results: [] });
   }
 
   try {
     const { data, error } = await supabase
       .from('fragrances')
-      .select('*')
-      .ilike('name', `%${q}%`)
+      .select('id, name, tier, source, top_notes, middle_notes, base_notes, accords')
+      .ilike('name', `%${query}%`)
       .limit(10);
 
     if (error) throw error;
 
-    return res.status(200).json({ source: 'database', results: data || [] });
+    return res.status(200).json({
+      source: 'database',
+      results: data || []
+    });
   } catch (err: any) {
-    return res.status(500).json({ error: err.message || 'Internal server error' });
+    return res.status(500).json({ error: err.message || 'Database search failed' });
   }
 }
