@@ -14,29 +14,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // 1. Search local Supabase v2 schema ('fragrances' table) by name or brand
+    // Search local Supabase fragrances table by name
     const { data, error } = await supabase
       .from('fragrances')
       .select('*')
-      .or(`name.ilike.%${q}%,brand.ilike.%${q}%`)
+      .ilike('name', `%${q}%`)
       .limit(10);
 
     if (error) throw error;
 
-    if (data && data.length > 0) {
-      return res.status(200).json({ source: 'database', results: data });
-    }
-
-    // 2. Web fallback query if local database yields no matches
-    const webRes = await fetch(`https://api.parfumo.net/v1/search?q=${encodeURIComponent(q)}`);
-    if (webRes.ok) {
-      const webData = await webRes.json();
-      if (webData?.results?.length > 0) {
-        return res.status(200).json({ source: 'live', results: webData.results });
-      }
-    }
-
-    return res.status(200).json({ source: 'database', results: [] });
+    return res.status(200).json({ source: 'database', results: data || [] });
   } catch (err: any) {
     return res.status(500).json({ error: err.message || 'Internal server error' });
   }
