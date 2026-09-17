@@ -38,7 +38,7 @@ export function InventoryTab() {
 
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Are you sure you want to delete "${name}" from inventory?`)) return;
-    
+
     setDeletingId(id);
     try {
       const res = await fetch(`/api/inventory?id=${id}`, { method: 'DELETE' });
@@ -84,7 +84,7 @@ export function InventoryTab() {
             return (
               <div
                 key={itemId}
-                className="p-4 bg-white border border-neutral-200 rounded-lg shadow-sm space-y-3"
+                className="p-4 bg-white border border-neutral-200 rounded-lg shadow-sm space-y-4"
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -101,8 +101,8 @@ export function InventoryTab() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-neutral-100">
-                  <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-between gap-3 pt-3 border-t border-neutral-100">
+                  <div className="flex items-center space-x-2 flex-1">
                     <input
                       type="number"
                       placeholder="Restock amount (g)"
@@ -110,11 +110,11 @@ export function InventoryTab() {
                       onChange={(e) =>
                         setRestockAmounts({ ...restockAmounts, [itemId]: Number(e.target.value) })
                       }
-                      className="px-3 py-1 text-xs border border-neutral-300 rounded focus:outline-none focus:ring-1 focus:ring-black w-40"
+                      className="px-3 py-1.5 text-xs border border-neutral-300 rounded focus:outline-none focus:ring-1 focus:ring-black w-full max-w-[200px]"
                     />
                     <button
                       onClick={() => handleRestock(itemId)}
-                      className="px-3 py-1 bg-neutral-900 text-white text-xs rounded hover:bg-neutral-800 transition-colors"
+                      className="px-3 py-1.5 bg-neutral-900 text-white text-xs rounded hover:bg-neutral-800 transition-colors shrink-0"
                     >
                       Add stock
                     </button>
@@ -123,7 +123,7 @@ export function InventoryTab() {
                   <button
                     onClick={() => handleDelete(itemId, item.name)}
                     disabled={deletingId === itemId}
-                    className="px-2.5 py-1 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 rounded font-medium transition-colors border border-transparent hover:border-red-200 disabled:opacity-50"
+                    className="px-3 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 rounded font-medium transition-colors shrink-0 disabled:opacity-50"
                   >
                     {deletingId === itemId ? 'Deleting...' : 'Delete'}
                   </button>
