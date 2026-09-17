@@ -14,7 +14,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Search local Supabase fragrances table by name
     const { data, error } = await supabase
       .from('fragrances')
       .select('*')
