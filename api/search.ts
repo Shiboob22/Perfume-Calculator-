@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { data, error } = await supabase
       .from('fragrances')
-      .select('id, name, tier, source, top_notes, middle_notes, base_notes, accords')
+      .select('*')
       .ilike('name', `%${query}%`)
       .limit(10);
 
@@ -27,6 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       results: data || []
     });
   } catch (err: any) {
+    console.error('Search query error:', err.message);
     return res.status(500).json({ error: err.message || 'Database search failed' });
   }
 }
