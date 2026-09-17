@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           stock_g,
           low_stock_threshold_g,
           updated_at,
-          fragrances ( name, category, tier )
+          fragrances ( name, tier )
         `);
 
       if (error) throw error;
@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: item.fragrance_id,
         fragrance_id: item.fragrance_id,
         name: item.fragrances?.name || item.name || 'Unnamed Fragrance',
-        tier: item.fragrances?.category || item.fragrances?.tier || 'General',
+        tier: item.fragrances?.tier || 'General',
         stock_g: Number(item.stock_g || 0),
         low_threshold_g: Number(item.low_stock_threshold_g || 10),
       }));
