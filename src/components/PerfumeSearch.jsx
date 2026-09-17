@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { fetchFragranceSuggestions, SearchResult } from '../lib/searchApi';
+import { fetchFragranceSuggestions } from '../lib/searchApi';
 
-export function SearchTab() {
+export function PerfumeSearch() {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [selectedPerfume, setSelectedPerfume] = useState<SearchResult | null>(null);
+  const [results, setResults] = useState([]);
+  const [selectedPerfume, setSelectedPerfume] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -97,4 +97,4 @@ export function SearchTab() {
   );
 }
 
-export default SearchTab;
+export default PerfumeSearch;
