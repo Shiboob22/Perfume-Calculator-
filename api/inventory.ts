@@ -3,10 +3,27 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  let userId: string | null = null;
+  if (token) {
+    const { data: { user } } = await createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } }
+    }).auth.getUser();
+    
+    if (user) userId = user.id;
+  }
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
+  }
+
   if (req.method === 'GET') {
     try {
       const { data, error } = await supabase
@@ -17,14 +34,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           low_stock_threshold_g,
           updated_at,
           fragrances ( name, tier )
-        `);
+        `)
+        .eq('user_id', userId);
 
       if (error) throw error;
 
       const items = (data || []).map((item: any) => ({
         id: item.fragrance_id,
         fragrance_id: item.fragrance_id,
-        name: item.fragrances?.name || item.name || 'Unnamed Fragrance',
+        name: item.fragrances?.name || 'Unnamed Fragrance',
         tier: item.fragrances?.tier || 'General',
         stock_g: Number(item.stock_g || 0),
         low_threshold_g: Number(item.low_stock_threshold_g || 10),
@@ -49,6 +67,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from('inventory')
         .select('stock_g')
         .eq('fragrance_id', targetId)
+        .eq('user_id', userId)
         .single();
 
       const newStock = (current?.stock_g || 0) + restock_g;
@@ -57,6 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from('inventory')
         .update({ stock_g: newStock })
         .eq('fragrance_id', targetId)
+        .eq('user_id', userId)
         .select();
 
       if (error) throw error;
@@ -74,7 +94,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { error } = await supabase
         .from('inventory')
         .delete()
-        .eq('fragrance_id', id as string);
+        .eq('fragrance_id', id as string)
+        .eq('user_id', userId);
 
       if (error) throw error;
       return res.status(200).json({ success: true });
