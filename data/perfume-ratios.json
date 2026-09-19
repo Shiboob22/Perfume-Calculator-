@@ -1,0 +1,41 @@
+{
+  "targetEthanolGrade": "96% Denatured Ethanol (SDA-40B)",
+  "familyRatios": [
+    {
+      "familyName": "Citrus / Fresh / Hesperidic",
+      "recommendedConcentration": "15% - 18%",
+      "ethanolFraction": "82% - 85%",
+      "volatilityProfile": "High top-note ratio. Higher alcohol ratio ensures crisp evaporation."
+    },
+    {
+      "familyName": "Floral (Light / Soft / White)",
+      "recommendedConcentration": "18% - 22%",
+      "ethanolFraction": "78% - 82%",
+      "volatilityProfile": "Balanced heart structure. Ethanol flash-off lets petals diffuse cleanly."
+    },
+    {
+      "familyName": "Floral (Gourmand / Amber)",
+      "recommendedConcentration": "20% - 25%",
+      "ethanolFraction": "75% - 80%",
+      "volatilityProfile": "Heavy base anchor. Requires ethanol lift for optimal projection."
+    },
+    {
+      "familyName": "Woody / Chypre / Leather",
+      "recommendedConcentration": "20% - 24%",
+      "ethanolFraction": "76% - 80%",
+      "volatilityProfile": "Dense molecules. High ethanol ratio provides radiance to dry woods."
+    },
+    {
+      "familyName": "Amber / Oriental / Spice",
+      "recommendedConcentration": "22% - 28%",
+      "ethanolFraction": "72% - 78%",
+      "volatilityProfile": "Resin and balsam heavy. High oil capacity with excellent tenacity."
+    },
+    {
+      "familyName": "Gourmand / Vanilla",
+      "recommendedConcentration": "20% - 25%",
+      "ethanolFraction": "75% - 80%",
+      "volatilityProfile": "High sweetness. Requires alcohol to prevent heavy cloying viscosity."
+    }
+  ]
+}

@@ -3,10 +3,27 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  let userId: string | null = null;
+  if (token) {
+    const { data: { user } } = await createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } }
+    }).auth.getUser();
+    
+    if (user) userId = user.id;
+  }
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
+  }
+
   if (req.method === 'POST') {
     try {
       const { fragrance_name, total_volume, concentration, oil_amount, alcohol_amount } = req.body;
@@ -19,6 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from('batches')
         .insert([
           {
+            user_id: userId,
             fragrance_name,
             total_volume,
             concentration,
@@ -42,6 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data, error } = await supabase
         .from('batches')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(20);
 
