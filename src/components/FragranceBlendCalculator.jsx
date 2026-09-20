@@ -339,7 +339,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
 
           <Field label={`Target concentration — ${concPct}%`} hint={tier.defaultConc + "% is this family's typical default."}>
             <div className="flex gap-2 mb-3">
-              {[20, 25, 30].map((c) => (
+              {[20, 22, 25, 30].map((c) => (
                 <button
                   key={c}
                   type="button"
