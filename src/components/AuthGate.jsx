@@ -148,5 +148,8 @@ export default function AuthGate({ children }) {
     )
   }
 
-  return children
+  // App passes children as a render-prop function: <AuthGate>{(user) => ...}</AuthGate>.
+  // Call it with the authenticated user. Returning the function directly makes
+  // React try to render a function as a child (blank screen for logged-in users).
+  return typeof children === 'function' ? children(session.user) : children
 }
