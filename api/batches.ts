@@ -5,10 +5,27 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+// Reflect the request Origin only when it is one of the app's own domains.
+// Same-origin requests (the app calling its own /api) ignore CORS entirely, so
+// this does not affect the app — it just stops arbitrary cross-origin sites
+// from scripting these authenticated endpoints, which the previous `*` allowed.
+const ALLOWED_ORIGINS = [
+  'https://scent-handbook-app.vercel.app',
+  'https://scent-handbook-app-shiboob22s-projects.vercel.app',
+];
+
+function setCors(req: VercelRequest, res: VercelResponse) {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  setCors(req, res);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
