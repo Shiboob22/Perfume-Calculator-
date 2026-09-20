@@ -178,7 +178,20 @@ export function PerfumeSearch() {
                   style={{ background: `linear-gradient(135deg, ${tint(fam.color, 0.16)}, ${tint(fam.color, 0.04)})` }}
                 >
                   <div className="shrink-0 drop-shadow-sm">
-                    <BottleArt color={fam.color} initial={fam.initial} size={116} />
+                    {selectedPerfume.image_url ? (
+                      <img
+                        src={`${selectedPerfume.image_url}?width=320&aspect_ratio=1:1`}
+                        alt={selectedPerfume.name}
+                        width={96}
+                        height={96}
+                        loading="lazy"
+                        className="w-24 h-24 object-contain rounded-md bg-white/60"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'block'; }}
+                      />
+                    ) : null}
+                    <span style={{ display: selectedPerfume.image_url ? 'none' : 'block' }}>
+                      <BottleArt color={fam.color} initial={fam.initial} size={116} />
+                    </span>
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-xl font-bold text-neutral-900 leading-tight break-words">

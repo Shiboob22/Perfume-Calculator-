@@ -41,7 +41,7 @@ function isEmpty(v: any): boolean {
 // not mutate the classification of a row the caller did not create.
 function buildEnrichPatch(existing: any, scraped: any): Record<string, any> {
   const patch: Record<string, any> = {};
-  for (const col of ['top_notes', 'middle_notes', 'base_notes', 'accords']) {
+  for (const col of ['top_notes', 'middle_notes', 'base_notes', 'accords', 'image_url']) {
     if (isEmpty(existing[col]) && !isEmpty(scraped[col])) patch[col] = scraped[col];
   }
   return patch;
@@ -134,6 +134,13 @@ async function fetchParfumoData(query: string) {
       ).filter(Boolean).slice(0, 6);
     }
 
+    // Bottle photo: og:image is the padded social card; swap it to the clean
+    // square product image and drop the query string. Client sizes it.
+    const ogImage = detailHtml.match(/<meta property="og:image" content="([^"]+)"/i)?.[1];
+    const imageUrl = ogImage
+      ? ogImage.split('?')[0].replace('/perfume_social/', '/perfumes/')
+      : null;
+
     if (topNotes.length === 0 && middleNotes.length === 0 && baseNotes.length === 0) {
       return null;
     }
@@ -145,7 +152,8 @@ async function fetchParfumoData(query: string) {
       top_notes: topNotes,
       middle_notes: middleNotes,
       base_notes: baseNotes,
-      accords: accords
+      accords: accords,
+      image_url: imageUrl
     };
   } catch (err) {
     console.error('Parfumo fetch error:', err);

@@ -3,6 +3,7 @@ export interface SearchResult {
   name: string;
   tier?: string;
   source?: string;
+  image_url?: string | null;
 }
 
 import { supabase } from './supabaseClient';
