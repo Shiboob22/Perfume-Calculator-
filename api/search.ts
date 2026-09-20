@@ -3,8 +3,27 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// Verify the caller's Supabase session token. Returns the user id, or null
+// when no valid token is present. Used to gate DB writes: reads stay open so
+// anonymous search still works, but only authenticated callers may persist
+// scraped rows into the shared `fragrances` table.
+async function getUserId(req: VercelRequest): Promise<string | null> {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  if (!token) return null;
+  try {
+    const { data: { user } } = await createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } }
+    }).auth.getUser();
+    return user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
 
 function classifyTier(accords: string[]): string {
   const lowerAccords = accords.map(a => a.toLowerCase());
@@ -120,11 +139,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const scrapedData = await fetchParfumoData(query);
 
     if (scrapedData) {
-      // Upsert scraped result into Supabase for instant caching next time
-      const { data: savedRecord } = await supabase
-        .from('fragrances')
-        .upsert([scrapedData], { onConflict: 'name' })
-        .select();
+      // Only persist to the shared catalog for authenticated callers. Anonymous
+      // callers still get the live result, but cannot write to the DB — this
+      // closes the unauthenticated write path through the service-role client.
+      const userId = await getUserId(req);
+      let savedRecord: any[] | null = null;
+      if (userId) {
+        const { data } = await supabase
+          .from('fragrances')
+          .upsert([scrapedData], { onConflict: 'name' })
+          .select();
+        savedRecord = data;
+      }
 
       return res.status(200).json({
         source: 'Parfumo (Live Scraped)',
