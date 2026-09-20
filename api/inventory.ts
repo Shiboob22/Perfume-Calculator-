@@ -96,24 +96,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid payload' });
       }
 
-      const { data: current } = await supabase
-        .from('inventory')
-        .select('stock_g')
-        .eq('fragrance_id', targetId)
-        .eq('user_id', userId)
-        .single();
-
-      const newStock = (current?.stock_g || 0) + restock_g;
-
-      const { data, error } = await supabase
-        .from('inventory')
-        .update({ stock_g: newStock })
-        .eq('fragrance_id', targetId)
-        .eq('user_id', userId)
-        .select();
+      // Atomic increment via the restock_inventory() DB function: the add
+      // happens inside one UPDATE under a row lock, so concurrent restocks
+      // cannot lose each other's writes (the old read-modify-write here could).
+      const { data, error } = await supabase.rpc('restock_inventory', {
+        p_user_id: userId,
+        p_fragrance_id: targetId,
+        p_delta: restock_g,
+      });
 
       if (error) throw error;
-      return res.status(200).json({ item: data[0] });
+      if (!data) {
+        return res.status(404).json({ error: 'Inventory item not found' });
+      }
+      return res.status(200).json({ item: data });
     } catch (err: any) {
       return res.status(500).json({ error: err.message });
     }
