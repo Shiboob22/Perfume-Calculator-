@@ -25,6 +25,28 @@ async function getUserId(req: VercelRequest): Promise<string | null> {
   }
 }
 
+// A catalog column counts as "empty" (and therefore safe to fill from a scrape)
+// when it is null/undefined, an empty array, or an empty string.
+function isEmpty(v: any): boolean {
+  if (v === null || v === undefined) return true;
+  if (Array.isArray(v)) return v.length === 0;
+  if (typeof v === 'string') return v.trim() === '';
+  return false;
+}
+
+// Build an enrichment patch that fills ONLY the empty columns of an existing
+// curated row from scraped data. Populated (curated) values are never touched,
+// so curated data stays the source of truth — we only close the gaps.
+function buildEnrichPatch(existing: any, scraped: any): Record<string, any> {
+  const patch: Record<string, any> = {};
+  for (const col of ['top_notes', 'middle_notes', 'base_notes', 'accords']) {
+    if (isEmpty(existing[col]) && !isEmpty(scraped[col])) patch[col] = scraped[col];
+  }
+  // tier is required; only fill it when the existing row has none.
+  if (isEmpty(existing.tier) && !isEmpty(scraped.tier)) patch.tier = scraped.tier;
+  return patch;
+}
+
 function classifyTier(accords: string[]): string {
   const lowerAccords = accords.map(a => a.toLowerCase());
   if (lowerAccords.some(a => ['woody', 'earthy', 'mossy', 'aromatic'].some(t => a.includes(t)))) return 'woody';
@@ -145,15 +167,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const userId = await getUserId(req);
       let savedRecord: any[] | null = null;
       if (userId) {
-        // Insert-only: ignoreDuplicates means an existing row (curated OR
-        // previously cached) is never overwritten. This prevents any signed-in
-        // user from clobbering curated catalog rows via a scraper-derived name
-        // colliding on the unique `name` key. Only genuinely-new names cache.
-        const { data } = await supabase
-          .from('fragrances')
-          .upsert([scrapedData], { onConflict: 'name', ignoreDuplicates: true })
-          .select();
-        savedRecord = data;
+        // Find an existing catalog row this scrape can enrich: prefer an exact
+        // name match, else a matched row that is missing its notes.
+        const existing =
+          dbResults?.find(r => r.name?.toLowerCase() === scrapedData.name.toLowerCase()) ||
+          dbResults?.find(r => isEmpty(r.top_notes));
+
+        if (existing) {
+          // ENRICH in place: fill only the empty columns, never overwrite
+          // curated data. This keeps the catalog fresh over time while
+          // preserving curated values as the source of truth.
+          const patch = buildEnrichPatch(existing, scrapedData);
+          if (Object.keys(patch).length > 0) {
+            const { data } = await supabase
+              .from('fragrances')
+              .update(patch)
+              .eq('id', existing.id)
+              .select();
+            savedRecord = data;
+          } else {
+            savedRecord = [existing];
+          }
+        } else {
+          // No matching row: insert the genuinely-new name. ignoreDuplicates
+          // still guards the unique `name` key against a race.
+          const { data } = await supabase
+            .from('fragrances')
+            .upsert([scrapedData], { onConflict: 'name', ignoreDuplicates: true })
+            .select();
+          savedRecord = data;
+        }
       }
 
       return res.status(200).json({
