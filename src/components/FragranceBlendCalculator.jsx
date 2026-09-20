@@ -35,12 +35,12 @@ function useDebouncedValue(value, delay) {
 function Field({ label, hint, children }) {
   return (
     <div className="mb-5">
-      <label className="block text-xs font-semibold mb-2 tracking-wide" style={{ color: "#000"Soft }}>
+      <label className="block text-xs font-semibold mb-2 tracking-wide" style={{ color: "#000" }}>
         {label}
       </label>
       {children}
       {hint ? (
-        <p className="text-xs mt-1" style={{ color: "#000"Soft }}>
+        <p className="text-xs mt-1" style={{ color: "#000" }}>
           {hint}
         </p>
       ) : null}
@@ -97,14 +97,14 @@ function ReadoutRow({ label, weight, volume, bold }) {
         paddingTop: bold ? "14px" : "12px",
       }}
     >
-      <span className={`text-sm ${bold ? "font-semibold" : ""}`} style={{ color: bold ? "#000" : "#000"Soft }}>
+      <span className={`text-sm ${bold ? "font-semibold" : ""}`} style={{ color: "#000" }}>
         {label}
       </span>
       <span className="text-right">
         <span className={`block font-mono text-sm ${bold ? "font-semibold" : ""}`} style={{ color: "#000" }}>
           {round2(weight)} g&nbsp;&nbsp;/&nbsp;&nbsp;{round2(volume)} mL
         </span>
-        <span className="block font-mono text-xs mt-0.5" style={{ color: "#000"Soft }}>
+        <span className="block font-mono text-xs mt-0.5" style={{ color: "#000" }}>
           {round2(oz)} oz&nbsp;&nbsp;/&nbsp;&nbsp;{round2(flOz)} fl oz
         </span>
       </span>
@@ -254,12 +254,12 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
       {selectedPerfume && (
         <div className="mb-6 px-4 py-3 border flex items-center justify-between" style={{ borderColor: "#e5e7eb", backgroundColor: COLORS.card }}>
           <div>
-            <span className="text-xs font-semibold" style={{ color: "#000"Soft }}>From search</span>
+            <span className="text-xs font-semibold" style={{ color: "#000" }}>From search</span>
             <div className="text-sm font-serif" style={{ color: COLORS.forestDeep }}>
               {selectedPerfume.name}{selectedPerfume.brand ? ` — ${selectedPerfume.brand}` : ""}
             </div>
           </div>
-          <button type="button" onClick={onClearSelection} className="text-xs font-mono underline" style={{ color: "#000"Soft }}>
+          <button type="button" onClick={onClearSelection} className="text-xs font-mono underline" style={{ color: "#000" }}>
             Clear
           </button>
         </div>
@@ -282,19 +282,19 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
                       className="w-full text-left px-3 py-2 text-sm font-mono hover:opacity-70"
                       style={{ color: "#000" }}
                     >
-                      {s.name} <span style={{ color: "#000"Soft }}>— {TIERS[s.tier].label}</span>
+                      {s.name} <span style={{ color: "#000" }}>— {TIERS[s.tier].label}</span>
                     </button>
                   ))}
                 </div>
               )}
             </div>
             {matched && (
-              <p className="text-xs mt-1" style={{ color: "#000"Soft }}>
+              <p className="text-xs mt-1" style={{ color: "#000" }}>
                 Matched in database → {TIERS[matched.tier].label}
               </p>
             )}
             {!matched && fragName.trim() && (
-              <p className="text-xs mt-1" style={{ color: "#000"Soft }}>
+              <p className="text-xs mt-1" style={{ color: "#000" }}>
                 Not in database yet — logging a batch will add it as a custom entry.
               </p>
             )}
@@ -391,13 +391,13 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             <div className="grid grid-cols-2 gap-3 mt-3">
               {Object.keys(TIERS).map((key) => (
                 <div key={key}>
-                  <label className="block text-[11px] mb-1" style={{ color: "#000"Soft }}>{TIERS[key].label} (g/mL)</label>
+                  <label className="block text-[11px] mb-1" style={{ color: "#000" }}>{TIERS[key].label} (g/mL)</label>
                   <TextInput type="number" step="0.01" value={densities[key]}
                     onChange={(e) => setDensities({ ...densities, [key]: parseFloat(e.target.value) || 0 })} />
                 </div>
               ))}
               <div>
-                <label className="block text-[11px] mb-1" style={{ color: "#000"Soft }}>Ethanol 96% (g/mL)</label>
+                <label className="block text-[11px] mb-1" style={{ color: "#000" }}>Ethanol 96% (g/mL)</label>
                 <TextInput type="number" step="0.01" value={densities.ethanol}
                   onChange={(e) => setDensities({ ...densities, ethanol: parseFloat(e.target.value) || 0 })} />
               </div>
@@ -406,11 +406,11 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
 
           <div className="pt-1 border-t" style={{ borderColor: "#e5e7eb" }}>
             <h4 className="text-xs font-semibold mt-4 mb-3" style={{ color: COLORS.forestDeep }}>
-              Personal log <span className="font-normal" style={{ color: "#000"Soft }}>— synced to your Supabase project</span>
+              Personal log <span className="font-normal" style={{ color: "#000" }}>— synced to your Supabase project</span>
             </h4>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="block text-[11px] mb-1" style={{ color: "#000"Soft }}>Oil type / supplier</label>
+                <label className="block text-[11px] mb-1" style={{ color: "#000" }}>Oil type / supplier</label>
                 <input list="oilTypeOptions" value={oilType} onChange={(e) => setOilType(e.target.value)}
                   className="w-full px-3 py-2 font-mono text-sm border" style={{ borderColor: "#e5e7eb", backgroundColor: "#fff" }} />
                 <datalist id="oilTypeOptions">
@@ -418,11 +418,11 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
                 </datalist>
               </div>
               <div>
-                <label className="block text-[11px] mb-1" style={{ color: "#000"Soft }}>Price per gram</label>
+                <label className="block text-[11px] mb-1" style={{ color: "#000" }}>Price per gram</label>
                 <TextInput type="number" step="0.01" min="0" value={pricePerGram} onChange={(e) => setPricePerGram(e.target.value)} placeholder="0.00" />
               </div>
             </div>
-            <label className="block text-[11px] mb-1" style={{ color: "#000"Soft }}>Notes</label>
+            <label className="block text-[11px] mb-1" style={{ color: "#000" }}>Notes</label>
             <textarea
               value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
               className="w-full px-3 py-2 font-mono text-sm border resize-y"
@@ -440,20 +440,20 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
 
           {result.oilCost !== null && (
             <div className="flex items-center justify-between py-2 mt-2 text-sm font-mono">
-              <span style={{ color: "#000"Soft }}>Oil cost</span>
+              <span style={{ color: "#000" }}>Oil cost</span>
               <span style={{ color: "#000" }}>{round2(result.oilCost)} (at {round2(Number(pricePerGram))}/g)</span>
             </div>
           )}
 
-          <p className="text-sm italic mt-4" style={{ color: "#000"Soft }}>{tier.note}</p>
+          <p className="text-sm italic mt-4" style={{ color: "#000" }}>{tier.note}</p>
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] mb-1" style={{ color: "#000"Soft }}>Blended by</label>
+              <label className="block text-[11px] mb-1" style={{ color: "#000" }}>Blended by</label>
               <TextInput value={blendedBy} onChange={(e) => setBlendedBy(e.target.value)} />
             </div>
             <div>
-              <label className="block text-[11px] mb-1" style={{ color: "#000"Soft }}>Date</label>
+              <label className="block text-[11px] mb-1" style={{ color: "#000" }}>Date</label>
               <TextInput type="date" value={blendDate} onChange={(e) => setBlendDate(e.target.value)} />
             </div>
           </div>
