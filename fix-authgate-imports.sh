@@ -1,5 +1,8 @@
+#!/bin/bash
+echo "=== Updating AuthGate.jsx to correctly import from ../lib/auth ==="
+cat << 'GATE_EOF' > src/components/AuthGate.jsx
 import React, { useState, useEffect } from 'react'
-import { supabase, signInWithEmail, signInWithProvider } from '../lib/auth'
+import { supabase, getSession, onAuthStateChange, signInWithEmail, signInWithProvider } from '../lib/auth'
 
 export default function AuthGate({ children }) {
   const [session, setSession] = useState(null)
@@ -10,19 +13,21 @@ export default function AuthGate({ children }) {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    // Check active sessions
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    getSession().then((session) => {
+      setSession(session)
+      setLoading(false)
+    }).catch(() => setLoading(false))
+
+    const subscription = onAuthStateChange((_event, session) => {
       setSession(session)
       setLoading(false)
     })
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
+    return () => {
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe()
+      }
+    }
   }, [])
 
   const handleEmailSubmit = async (e) => {
@@ -60,11 +65,9 @@ export default function AuthGate({ children }) {
     return (
       <div className="min-h-screen bg-[#F9F6F0] text-[#2C2A29] flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md bg-white border border-[#E5E0D8] p-8 shadow-sm rounded-none">
-
-          {/* Header */}
+          
           <div className="text-center mb-8">
             <div className="inline-block p-3 bg-[#F9F6F0] border border-[#E5E0D8] mb-3">
-              {/* Flacon SVG Mark */}
               <svg className="w-6 h-6 text-[#1E3A2F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M10 2h4v3h-4zM9 5h6v4H9zM7 9h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9z" />
               </svg>
@@ -94,7 +97,6 @@ export default function AuthGate({ children }) {
             </div>
           ) : (
             <>
-              {/* OAuth Providers */}
               <div className="space-y-3 mb-6">
                 <button
                   onClick={() => handleOAuth('google')}
@@ -117,7 +119,6 @@ export default function AuthGate({ children }) {
                 <div className="flex-grow border-t border-[#E5E0D8]"></div>
               </div>
 
-              {/* Magic Link Form */}
               <form onSubmit={handleEmailSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-[#78716C] mb-1.5">
@@ -128,7 +129,7 @@ export default function AuthGate({ children }) {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="hisham@oravue.com"
+                    placeholder="name@example.com"
                     className="w-full px-3 py-2 bg-[#F9F6F0] border border-[#E5E0D8] text-sm text-[#2C2A29] focus:outline-none focus:border-[#1E3A2F]"
                   />
                 </div>
@@ -150,3 +151,8 @@ export default function AuthGate({ children }) {
 
   return children
 }
+GATE_EOF
+
+echo "✅ AuthGate successfully synced with auth helper functions."
+pkill -f "vite" 2>/dev/null || true
+npm run dev

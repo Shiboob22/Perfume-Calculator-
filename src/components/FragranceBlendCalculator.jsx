@@ -318,9 +318,43 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
               value={batchSize} onChange={setBatchSize} unit={batchUnit} onUnitChange={setBatchUnit}
               units={[{value:"ml",label:"mL"},{value:"floz",label:"fl oz"},{value:"g",label:"g"},{value:"oz",label:"oz"}]}
             />
+            <div className="flex flex-wrap gap-2 mt-3">
+              {[3, 5, 10, 20, 30, 50, 100, 200].map((amt) => (
+                <button
+                  key={amt}
+                  type="button"
+                  onClick={() => { setBatchSize(amt); setBatchUnit("ml"); }}
+                  className="px-2 py-1 text-[11px] font-mono border transition-opacity"
+                  style={{ 
+                    borderColor: Number(batchSize) === amt && batchUnit === "ml" ? COLORS.ink : COLORS.line, 
+                    color: Number(batchSize) === amt && batchUnit === "ml" ? "#fff" : COLORS.ink, 
+                    backgroundColor: Number(batchSize) === amt && batchUnit === "ml" ? COLORS.ink : "#fff" 
+                  }}
+                >
+                  {amt}mL
+                </button>
+              ))}
+            </div>
           </Field>
 
           <Field label={`Target concentration — ${concPct}%`} hint={tier.defaultConc + "% is this family's typical default."}>
+            <div className="flex gap-2 mb-3">
+              {[20, 25, 30].map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setConcPct(c)}
+                  className="px-3 py-1 text-[11px] font-mono border transition-opacity"
+                  style={{ 
+                    borderColor: Number(concPct) === c ? COLORS.ink : COLORS.line, 
+                    color: Number(concPct) === c ? "#fff" : COLORS.ink, 
+                    backgroundColor: Number(concPct) === c ? COLORS.ink : "#fff" 
+                  }}
+                >
+                  {c}%
+                </button>
+              ))}
+            </div>
             <input
               type="range" min="10" max="40" step="1" value={concPct}
               onChange={(e) => setConcPct(e.target.value)}

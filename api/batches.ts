@@ -6,6 +6,14 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
@@ -69,6 +77,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ batches: data || [] });
     } catch (err: any) {
       return res.status(500).json({ error: err.message || 'Failed to fetch batches' });
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    try {
+      const id = req.query.id || req.body?.id;
+      if (!id) return res.status(400).json({ error: 'Missing batch ID' });
+
+      const { error } = await supabase
+        .from('batches')
+        .delete()
+        .eq('id', id as string)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      return res.status(200).json({ success: true });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to delete batch' });
     }
   }
 

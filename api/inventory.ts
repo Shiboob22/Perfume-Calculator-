@@ -6,6 +6,14 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
@@ -49,6 +57,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }));
 
       return res.status(200).json({ items });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  if (req.method === 'POST') {
+    try {
+      const { fragrance_id, stock_g, low_stock_threshold_g } = req.body;
+      if (!fragrance_id || typeof stock_g !== 'number') {
+        return res.status(400).json({ error: 'Invalid payload' });
+      }
+
+      const { data, error } = await supabase
+        .from('inventory')
+        .upsert({
+          user_id: userId,
+          fragrance_id,
+          stock_g,
+          low_stock_threshold_g: low_stock_threshold_g || 10,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id, fragrance_id' })
+        .select();
+
+      if (error) throw error;
+      return res.status(200).json({ item: data[0] });
     } catch (err: any) {
       return res.status(500).json({ error: err.message });
     }

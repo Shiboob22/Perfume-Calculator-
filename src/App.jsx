@@ -5,6 +5,8 @@ import FragranceBlendCalculator from "./components/FragranceBlendCalculator";
 import Batches from "./components/Batches";
 import Inventory from "./components/Inventory";
 import { COLORS } from "./lib/theme";
+import AuthGate from "./components/AuthGate";
+import { signOut } from "./lib/auth";
 
 const TABS = [
   { id: "search", label: "Search" },
@@ -23,11 +25,13 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }}>
+    <AuthGate>
+      {(user) => (
+        <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }}>
       <header className="max-w-3xl mx-auto px-6 sm:px-8 pt-10 pb-4">
         <div className="flex items-center gap-4 mb-6">
           <FlaconMark size={32} />
-          <div>
+          <div className="flex-1">
             <h1
               className="text-2xl font-serif italic leading-tight"
               style={{ color: COLORS.forestDeep }}
@@ -37,6 +41,20 @@ export default function App() {
             <p className="text-xs font-mono tracking-wide mt-1" style={{ color: COLORS.inkSoft }}>
               Search · Calculator · Batches · Inventory
             </p>
+          </div>
+          <div className="text-right">
+            {user?.email && (
+              <div className="text-xs font-mono mb-1" style={{ color: COLORS.inkSoft }}>
+                {user.email}
+              </div>
+            )}
+            <button
+              onClick={() => signOut()}
+              className="text-xs font-mono hover:underline"
+              style={{ color: COLORS.inkSoft }}
+            >
+              Sign out
+            </button>
           </div>
         </div>
 
@@ -70,5 +88,7 @@ export default function App() {
         {activeTab === "inventory" && <Inventory />}
       </main>
     </div>
+      )}
+    </AuthGate>
   );
 }

@@ -1,44 +1,36 @@
-import { supabase } from "./supabaseClient";
+import { createClient } from '@supabase/supabase-js'
 
-export async function getSession() {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) throw error;
-  return data.session;
-}
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export function onAuthChange(callback) {
-  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-    callback(session);
-  });
-  return () => data.subscription.unsubscribe();
-}
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Magic link — no password to manage, Supabase emails a sign-in link.
+// Sign in with Email Magic Link
 export async function signInWithEmail(email) {
-  const { error } = await supabase.auth.signInWithOtp({
+  const { data, error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.origin },
-  });
-  if (error) throw error;
+    options: {
+      emailRedirectTo: window.location.origin,
+    },
+  })
+  if (error) throw error
+  return data
 }
 
-export async function signInWithGoogle() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: window.location.origin },
-  });
-  if (error) throw error;
+// Sign in with OAuth (Google or Apple)
+export async function signInWithProvider(provider) {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: window.location.origin,
+    },
+  })
+  if (error) throw error
+  return data
 }
 
-export async function signInWithApple() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "apple",
-    options: { redirectTo: window.location.origin },
-  });
-  if (error) throw error;
-}
-
+// Sign out
 export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
+  const { error } = await supabase.auth.signOut()
+  if (error) throw error
 }

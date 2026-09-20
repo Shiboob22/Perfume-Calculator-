@@ -6,6 +6,16 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+function classifyTier(accords: string[]): string {
+  const lowerAccords = accords.map(a => a.toLowerCase());
+  if (lowerAccords.some(a => ['woody', 'earthy', 'mossy', 'aromatic'].some(t => a.includes(t)))) return 'woody';
+  if (lowerAccords.some(a => ['citrus', 'fresh', 'green', 'aquatic', 'ozonic'].some(t => a.includes(t)))) return 'fresh';
+  if (lowerAccords.some(a => ['floral', 'powdery', 'rose', 'white floral'].some(t => a.includes(t)))) return 'floral';
+  if (lowerAccords.some(a => ['vanilla', 'sweet', 'gourmand', 'caramel', 'chocolate'].some(t => a.includes(t)))) return 'gourmand';
+  if (lowerAccords.some(a => ['amber', 'oriental', 'warm spicy', 'balsamic', 'resinous', 'oud'].some(t => a.includes(t)))) return 'oriental';
+  return 'fresh';
+}
+
 // Live Parfumo Scraper Helper
 async function fetchParfumoData(query: string) {
   try {
@@ -69,7 +79,7 @@ async function fetchParfumoData(query: string) {
 
     return {
       name: perfumeName,
-      tier: 'scraped',
+      tier: classifyTier(accords),
       source: 'Parfumo',
       top_notes: topNotes,
       middle_notes: middleNotes,

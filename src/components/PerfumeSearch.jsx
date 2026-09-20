@@ -1,11 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { fetchFragranceSuggestions } from '../lib/searchApi';
+import { setStock } from '../lib/fragranceApi';
 
 export function PerfumeSearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [selectedPerfume, setSelectedPerfume] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [addingToInventory, setAddingToInventory] = useState(false);
+  const [inventoryMsg, setInventoryMsg] = useState('');
+
+  async function handleAddToInventory() {
+    if (!selectedPerfume?.id) return;
+    setAddingToInventory(true);
+    setInventoryMsg('');
+    try {
+      await setStock(selectedPerfume.id, 0);
+      setInventoryMsg('Added to your inventory!');
+    } catch (err) {
+      setInventoryMsg(err.message || 'Could not add to inventory.');
+    } finally {
+      setAddingToInventory(false);
+    }
+  }
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -133,6 +150,21 @@ export function PerfumeSearch() {
               <span>Source: {selectedPerfume.source || 'Database'}</span>
               <span>ID: {selectedPerfume.id.substring(0, 8)}...</span>
             </div>
+
+            <button
+              type="button"
+              onClick={handleAddToInventory}
+              disabled={addingToInventory}
+              className="mt-3 w-full px-4 py-2 text-sm font-semibold disabled:opacity-50 transition-colors"
+              style={{ backgroundColor: '#2C3B2E', color: '#fff' }}
+            >
+              {addingToInventory ? 'Adding…' : '+ Add to Inventory'}
+            </button>
+            {inventoryMsg && (
+              <p className={`text-xs mt-1.5 ${inventoryMsg.includes('Added') ? 'text-green-700' : 'text-red-700'}`}>
+                {inventoryMsg}
+              </p>
+            )}
           </div>
         ) : (
           <div className="h-full flex items-center justify-center text-center text-sm text-neutral-400 py-12">
