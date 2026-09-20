@@ -129,7 +129,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   const debouncedName = useDebouncedValue(fragName, 200);
 
   const [tierKey, setTierKey] = useState("fresh");
-  const [batchSize, setBatchSize] = useState(30);
+  const [batchSize, setBatchSize] = useState(100);
   const [batchUnit, setBatchUnit] = useState("ml"); // ml | floz | g | oz
   const [concPct, setConcPct] = useState(20);
   const [densities, setDensities] = useState({
