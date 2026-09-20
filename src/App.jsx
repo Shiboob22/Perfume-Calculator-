@@ -16,6 +16,12 @@ const TABS = [
 ];
 
 export default function App() {
+  useEffect(() => {
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
+
   const [activeTab, setActiveTab] = useState("search");
   const [selectedPerfume, setSelectedPerfume] = useState(null);
 
