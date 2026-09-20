@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FlaconMark from "./components/FlaconMark";
 import PerfumeSearch from "./components/PerfumeSearch";
 import FragranceBlendCalculator from "./components/FragranceBlendCalculator";
