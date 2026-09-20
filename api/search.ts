@@ -47,13 +47,18 @@ function buildEnrichPatch(existing: any, scraped: any): Record<string, any> {
   return patch;
 }
 
+// Map main accords to one of the app's 5 families. Specific families are
+// checked before `fresh`, which is also the fallback — otherwise a sweet
+// gourmand that happens to list a "Citrus" accord (e.g. Naxos) misclassifies
+// as fresh.
 function classifyTier(accords: string[]): string {
-  const lowerAccords = accords.map(a => a.toLowerCase());
-  if (lowerAccords.some(a => ['woody', 'earthy', 'mossy', 'aromatic'].some(t => a.includes(t)))) return 'woody';
-  if (lowerAccords.some(a => ['citrus', 'fresh', 'green', 'aquatic', 'ozonic'].some(t => a.includes(t)))) return 'fresh';
-  if (lowerAccords.some(a => ['floral', 'powdery', 'rose', 'white floral'].some(t => a.includes(t)))) return 'floral';
-  if (lowerAccords.some(a => ['vanilla', 'sweet', 'gourmand', 'caramel', 'chocolate'].some(t => a.includes(t)))) return 'gourmand';
-  if (lowerAccords.some(a => ['amber', 'oriental', 'warm spicy', 'balsamic', 'resinous', 'oud'].some(t => a.includes(t)))) return 'oriental';
+  const a = accords.map(x => x.toLowerCase());
+  const has = (terms: string[]) => a.some(x => terms.some(t => x.includes(t)));
+  if (has(['vanilla', 'sweet', 'gourmand', 'caramel', 'chocolate', 'honey', 'praline', 'tobacco'])) return 'gourmand';
+  if (has(['amber', 'oriental', 'warm spicy', 'balsamic', 'resinous', 'oud', 'spicy'])) return 'oriental';
+  if (has(['floral', 'powdery', 'rose', 'white floral'])) return 'floral';
+  if (has(['woody', 'earthy', 'mossy', 'aromatic'])) return 'woody';
+  if (has(['citrus', 'fresh', 'green', 'aquatic', 'ozonic'])) return 'fresh';
   return 'fresh';
 }
 
@@ -71,11 +76,16 @@ async function fetchParfumoData(query: string) {
     if (!searchRes.ok) return null;
     const searchHtml = await searchRes.text();
 
-    // Extract first perfume detail URL
-    const linkMatch = searchHtml.match(/href="(\/Perfumes\/[^"]+)"/i);
+    // Extract the first perfume result's detail URL. Result cards wrap the
+    // link in `<div class="name"><a href="https://www.parfumo.com/Perfumes/
+    // <Brand>/<slug>">`. Anchoring on the name div avoids matching the site
+    // nav links (/Perfumes, /Perfumes/Tops/Women) the old regex caught.
+    const linkMatch =
+      searchHtml.match(/<div class="name">\s*<a href="(https:\/\/www\.parfumo\.com\/Perfumes\/[^"]+)"/i) ||
+      searchHtml.match(/class="image">\s*<a href="(https:\/\/www\.parfumo\.com\/Perfumes\/[^"]+)"/i);
     if (!linkMatch) return null;
 
-    const detailUrl = `https://www.parfumo.com${linkMatch[1]}`;
+    const detailUrl = linkMatch[1].replace(/&amp;/g, '&');
     const detailRes = await fetch(detailUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -86,33 +96,43 @@ async function fetchParfumoData(query: string) {
     if (!detailRes.ok) return null;
     const detailHtml = await detailRes.text();
 
-    // Extract Fragrance Name
-    const titleMatch = detailHtml.match(/<h1[^>]* itemprop="name"[^>]*>([^<]+)<\/h1>/i) || detailHtml.match(/<title>([^|-]+)/i);
-    const perfumeName = titleMatch ? titleMatch[1].trim() : query;
+    // Name: og:title is "<Name> by <Brand>". Store as "<Brand> <Name>" so it
+    // matches the app's curated rows (e.g. "Xerjoff Naxos").
+    const ogTitle = detailHtml.match(/<meta property="og:title" content="([^"]+)"/i)?.[1]?.trim();
+    let perfumeName = query;
+    if (ogTitle) {
+      const byMatch = ogTitle.match(/^(.+?)\s+by\s+(.+)$/i);
+      perfumeName = byMatch ? `${byMatch[2].trim()} ${byMatch[1].trim()}` : ogTitle;
+    }
 
-    // Helper regex to extract list items inside note blocks
-    const parseNoteBlock = (htmlSection: string): string[] => {
-      const matches = htmlSection.match(/<span[^>]*class="[^"]*note[^"]*"[^>]*>([^<]+)<\/span>/gi) ||
-                      htmlSection.match(/<a[^>]*href="\/Notes\/[^"]*"[^>]*>([^<]+)<\/a>/gi);
-      if (!matches) return [];
-      return Array.from(new Set(matches.map(m => m.replace(/<[^>]+>/g, '').trim()))).filter(Boolean);
-    };
+    // Notes: each note is a `<span ... data-nt="t|m|b|n" ...>` whose first inner
+    // <img> carries the note name in its alt attribute. t/m/b are the pyramid
+    // levels; `n` is a flat, un-tiered note list some perfumes use instead of a
+    // pyramid (e.g. Baccarat Rouge 540). Fold `n` into top so those notes still
+    // surface — the schema has only top/middle/base columns.
+    const noteRe = /data-nt="([tmbn])"[^>]*>\s*<span[^>]*>\s*<img[^>]*\salt="([^"]+)"/gi;
+    const grouped: Record<string, string[]> = { t: [], m: [], b: [], n: [] };
+    for (const match of Array.from(detailHtml.matchAll(noteRe))) {
+      const level = match[1].toLowerCase();
+      const note = match[2].trim();
+      if (note && !grouped[level].includes(note)) grouped[level].push(note);
+    }
+    const topNotes = Array.from(new Set([...grouped.t, ...grouped.n]));
+    const middleNotes = grouped.m;
+    const baseNotes = grouped.b;
 
-    // Extract Top, Middle, Base Notes
-    const topBlock = detailHtml.match(/Top Notes[\s\S]*?(?=Heart Notes|Base Notes|<div class="clear")/i)?.[0] || '';
-    const middleBlock = detailHtml.match(/Heart Notes[\s\S]*?(?=Base Notes|<div class="clear")/i)?.[0] || '';
-    const baseBlock = detailHtml.match(/Base Notes[\s\S]*?(?=<div class="clear"|Notes)/i)?.[0] || '';
-
-    const topNotes = parseNoteBlock(topBlock);
-    const middleNotes = parseNoteBlock(middleBlock);
-    const baseNotes = parseNoteBlock(baseBlock);
-
-    // Extract Accords
-    const accordMatches = detailHtml.match(/<span[^>]*class="[^"]*accord[^"]*"[^>]*>([^<]+)<\/span>/gi) ||
-                          detailHtml.match(/<div[^>]*class="[^"]*main-accords[^"]*"[\s\S]*?<\/div>/gi);
-    const accords = accordMatches 
-      ? Array.from(new Set(accordMatches.map(m => m.replace(/<[^>]+>/g, '').trim()))).slice(0, 6)
-      : [];
+    // Accords: the "Main accords" block lists each accord as
+    // `<div class="text-xs grey"><name></div>` inside s-circle containers.
+    let accords: string[] = [];
+    const accIdx = detailHtml.indexOf('Main accords');
+    if (accIdx >= 0) {
+      const accBlock = detailHtml.slice(accIdx, accIdx + 2000);
+      accords = Array.from(
+        new Set(
+          Array.from(accBlock.matchAll(/<div class="text-xs grey">([^<]+)<\/div>/gi)).map(m => m[1].trim())
+        )
+      ).filter(Boolean).slice(0, 6);
+    }
 
     if (topNotes.length === 0 && middleNotes.length === 0 && baseNotes.length === 0) {
       return null;
