@@ -51,25 +51,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'POST') {
     try {
-      const { fragrance_name, total_volume, concentration, oil_amount, alcohol_amount } = req.body;
+      const b = req.body || {};
 
-      if (!fragrance_name || !total_volume || !concentration) {
-        return res.status(400).json({ error: 'Missing required batch fields' });
+      // Required (NOT NULL) columns on the batches table.
+      const required = [
+        'fragrance_name', 'tier', 'blend_date', 'concentration_pct',
+        'oil_g', 'oil_ml', 'ethanol_g', 'ethanol_ml', 'total_g', 'total_ml',
+      ];
+      const missing = required.filter((k) => b[k] === undefined || b[k] === null || b[k] === '');
+      if (missing.length) {
+        return res.status(400).json({ error: `Missing required batch fields: ${missing.join(', ')}` });
       }
+
+      // Whitelist only real columns; user_id + created_at are server-set.
+      const row = {
+        user_id: userId,
+        fragrance_id: b.fragrance_id ?? null,
+        fragrance_name: b.fragrance_name,
+        tier: b.tier,
+        blend_date: b.blend_date,
+        concentration_pct: b.concentration_pct,
+        oil_g: b.oil_g,
+        oil_ml: b.oil_ml,
+        ethanol_g: b.ethanol_g,
+        ethanol_ml: b.ethanol_ml,
+        total_g: b.total_g,
+        total_ml: b.total_ml,
+        oil_type: b.oil_type ?? null,
+        price_per_gram: b.price_per_gram ?? null,
+        oil_cost: b.oil_cost ?? null,
+        notes: b.notes ?? null,
+        blended_by: b.blended_by ?? null,
+        created_at: new Date().toISOString(),
+      };
 
       const { data, error } = await supabase
         .from('batches')
-        .insert([
-          {
-            user_id: userId,
-            fragrance_name,
-            total_volume,
-            concentration,
-            oil_amount,
-            alcohol_amount,
-            created_at: new Date().toISOString()
-          }
-        ])
+        .insert([row])
         .select();
 
       if (error) throw error;
