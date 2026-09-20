@@ -323,6 +323,18 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
                 <button
                   key={amt}
                   type="button"
+                  onClick={() => setBatchSize(amt)}
+                  className="px-2 py-1 text-[11px] font-mono border rounded border-gray-300 hover:bg-gray-100 transition-colors"
+                >
+                  {amt}mL
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {[3, 5, 10, 20, 30, 50, 100, 200].map((amt) => (
+                <button
+                  key={amt}
+                  type="button"
                   onClick={() => { setBatchSize(amt); }}
                   className="px-2 py-1 text-[11px] font-mono border transition-opacity"
                   style={{ 
@@ -338,6 +350,18 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
           </Field>
 
           <Field label={`Target concentration — ${concPct}%`} hint={tier.defaultConc + "% is this family's typical default."}>
+            <div className="flex gap-2 mb-3">
+              {[20, 25, 30].map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setConcPct(c)}
+                  className="px-3 py-1 text-[11px] font-mono border rounded border-gray-300 hover:bg-gray-100 transition-colors"
+                >
+                  {c}%
+                </button>
+              ))}
+            </div>
             <div className="flex gap-2 mb-3">
               {[20, 25, 30].map((c) => (
                 <button
