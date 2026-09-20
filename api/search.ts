@@ -145,9 +145,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const userId = await getUserId(req);
       let savedRecord: any[] | null = null;
       if (userId) {
+        // Insert-only: ignoreDuplicates means an existing row (curated OR
+        // previously cached) is never overwritten. This prevents any signed-in
+        // user from clobbering curated catalog rows via a scraper-derived name
+        // colliding on the unique `name` key. Only genuinely-new names cache.
         const { data } = await supabase
           .from('fragrances')
-          .upsert([scrapedData], { onConflict: 'name' })
+          .upsert([scrapedData], { onConflict: 'name', ignoreDuplicates: true })
           .select();
         savedRecord = data;
       }
