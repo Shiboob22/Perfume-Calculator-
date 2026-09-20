@@ -34,16 +34,16 @@ function isEmpty(v: any): boolean {
   return false;
 }
 
-// Build an enrichment patch that fills ONLY the empty columns of an existing
-// curated row from scraped data. Populated (curated) values are never touched,
-// so curated data stays the source of truth — we only close the gaps.
+// Build an enrichment patch that fills ONLY the empty note/accord columns of an
+// existing row from scraped data. Populated values are never touched, so curated
+// data stays the source of truth — we only close the gaps. `tier` is deliberately
+// NOT enriched: classifyTier is a heuristic guess, so a user-triggered scrape may
+// not mutate the classification of a row the caller did not create.
 function buildEnrichPatch(existing: any, scraped: any): Record<string, any> {
   const patch: Record<string, any> = {};
   for (const col of ['top_notes', 'middle_notes', 'base_notes', 'accords']) {
     if (isEmpty(existing[col]) && !isEmpty(scraped[col])) patch[col] = scraped[col];
   }
-  // tier is required; only fill it when the existing row has none.
-  if (isEmpty(existing.tier) && !isEmpty(scraped.tier)) patch.tier = scraped.tier;
   return patch;
 }
 
@@ -167,11 +167,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const userId = await getUserId(req);
       let savedRecord: any[] | null = null;
       if (userId) {
-        // Find an existing catalog row this scrape can enrich: prefer an exact
-        // name match, else a matched row that is missing its notes.
-        const existing =
-          dbResults?.find(r => r.name?.toLowerCase() === scrapedData.name.toLowerCase()) ||
-          dbResults?.find(r => isEmpty(r.top_notes));
+        // Only enrich the row whose name EXACTLY matches the scraped perfume
+        // (case-insensitive). No "any row missing notes" fallback: that could
+        // fill an unrelated row (a different perfume that merely ilike-matched
+        // the query) with this scrape's data. Exact match guarantees we are
+        // filling the correct perfume's own gaps.
+        const existing = dbResults?.find(
+          r => r.name?.toLowerCase() === scrapedData.name.toLowerCase()
+        );
 
         if (existing) {
           // ENRICH in place: fill only the empty columns, never overwrite
