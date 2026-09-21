@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listBatches, deleteBatch } from "../lib/fragranceApi";
+import { downloadBatchCard } from "../lib/batchCard";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -68,14 +69,24 @@ export default function Batches() {
                   {b.blend_date} · {TIERS[b.tier]?.label || b.tier} · {b.concentration_pct}%
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => handleDelete(b.id)}
-                className="text-xs font-mono underline shrink-0 ml-3"
-                style={{ color: COLORS.inkSoft }}
-              >
-                Delete
-              </button>
+              <div className="flex items-center gap-3 shrink-0 ml-3">
+                <button
+                  type="button"
+                  onClick={() => downloadBatchCard(b)}
+                  className="text-xs font-mono underline"
+                  style={{ color: COLORS.forest }}
+                >
+                  Export card
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(b.id)}
+                  className="text-xs font-mono underline"
+                  style={{ color: COLORS.inkSoft }}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
             <div className="mt-2 text-sm font-mono" style={{ color: COLORS.ink }}>
               Oil {round2(b.oil_g)}g / {round2(b.oil_ml)}mL &nbsp;·&nbsp; Ethanol {round2(b.ethanol_g)}g / {round2(b.ethanol_ml)}mL
