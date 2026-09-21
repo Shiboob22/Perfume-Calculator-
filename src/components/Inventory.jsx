@@ -64,7 +64,7 @@ export default function Inventory() {
       </p>
 
       {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>Loading…</p>}
-      {error && <p className="text-sm font-mono" style={{ color: "#8C4A3A" }}>{error}</p>}
+      {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && rows.length === 0 && (
         <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>
           No inventory tracked yet — stock rows appear automatically once you log your first batch for a fragrance.
@@ -72,7 +72,7 @@ export default function Inventory() {
       )}
 
       {lowStock.length > 0 && (
-        <div className="mb-4 px-4 py-3 border text-sm font-mono" style={{ borderColor: "#8C4A3A", color: "#8C4A3A", backgroundColor: "#F7EDEA" }}>
+        <div className="mb-4 px-4 py-3 border rounded-lg text-sm font-mono" style={{ borderColor: COLORS.danger, color: COLORS.danger, backgroundColor: COLORS.dangerBg }}>
           {lowStock.length} oil{lowStock.length > 1 ? "s" : ""} at or below threshold: {lowStock.map((r) => r.fragrances?.name).join(", ")}
         </div>
       )}
@@ -81,7 +81,7 @@ export default function Inventory() {
         {rows.map((r) => {
           const low = r.stock_g <= r.low_stock_threshold_g;
           return (
-            <div key={r.fragrance_id} className="p-4 border" style={{ borderColor: low ? "#8C4A3A" : COLORS.line, backgroundColor: COLORS.card }}>
+            <div key={r.fragrance_id} className="p-4 border rounded-xl" style={{ borderColor: low ? COLORS.danger : COLORS.line, backgroundColor: COLORS.card }}>
               <div className="flex items-start justify-between">
                 <div>
                   <div className="text-sm font-serif font-semibold" style={{ color: COLORS.forestDeep }}>
@@ -92,7 +92,7 @@ export default function Inventory() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-mono font-semibold" style={{ color: low ? "#8C4A3A" : COLORS.ink }}>
+                  <div className="text-sm font-mono font-semibold" style={{ color: low ? COLORS.danger : COLORS.ink }}>
                     {round2(r.stock_g)} g
                   </div>
                   <div className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>
@@ -106,14 +106,14 @@ export default function Inventory() {
                   type="number" step="0.1" placeholder="Restock amount (g)"
                   value={restockAmounts[r.fragrance_id] || ""}
                   onChange={(e) => setRestockAmounts({ ...restockAmounts, [r.fragrance_id]: e.target.value })}
-                  className="flex-1 min-w-0 px-3 py-1.5 font-mono text-xs border"
-                  style={{ borderColor: COLORS.line, backgroundColor: "#fff" }}
+                  className="flex-1 min-w-0 px-3 py-1.5 font-mono text-xs border rounded"
+                  style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
                 />
                 <button
                   type="button"
                   onClick={() => handleRestock(r.fragrance_id)}
-                  className="px-3 py-1.5 text-xs font-semibold"
-                  style={{ backgroundColor: COLORS.forest, color: "#fff" }}
+                  className="px-3 py-1.5 text-xs font-semibold rounded"
+                  style={{ backgroundColor: COLORS.forest, color: COLORS.onAmber }}
                 >
                   Add stock
                 </button>
@@ -121,8 +121,8 @@ export default function Inventory() {
                   type="number" step="1" title="Low-stock threshold (g)"
                   defaultValue={r.low_stock_threshold_g}
                   onBlur={(e) => handleThresholdChange(r.fragrance_id, e.target.value)}
-                  className="w-20 px-2 py-1.5 font-mono text-xs border"
-                  style={{ borderColor: COLORS.line, backgroundColor: "#fff" }}
+                  className="w-20 px-2 py-1.5 font-mono text-xs border rounded"
+                  style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
                 />
               </div>
             </div>

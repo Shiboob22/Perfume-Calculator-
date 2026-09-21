@@ -52,7 +52,7 @@ export default function Batches() {
       </div>
 
       {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>Loading…</p>}
-      {error && <p className="text-sm font-mono" style={{ color: "#8C4A3A" }}>{error}</p>}
+      {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && batches.length === 0 && (
         <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>
           No batches logged yet — use "Log this batch" on the Calculator tab after computing a blend.

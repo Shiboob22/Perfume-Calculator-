@@ -70,7 +70,7 @@ export default function App() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className="px-4 py-2 text-sm font-semibold -mb-px border-b-2 transition-colors whitespace-nowrap"
+              className="px-4 py-2 text-xs font-mono uppercase tracking-wider -mb-px border-b-2 transition-colors whitespace-nowrap"
               style={{
                 borderColor: activeTab === tab.id ? COLORS.forest : "transparent",
                 color: activeTab === tab.id ? COLORS.forestDeep : COLORS.inkSoft,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase, signInWithEmail, signInWithProvider } from '../lib/auth'
+import { COLORS } from '../lib/theme'
 
 export default function AuthGate({ children }) {
   const [session, setSession] = useState(null)
@@ -48,46 +49,53 @@ export default function AuthGate({ children }) {
     }
   }
 
+  const oauthBtn = {
+    borderColor: COLORS.line,
+    color: COLORS.ink,
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F9F6F0] flex items-center justify-center text-[#2C2A29] font-mono text-sm">
-        Loading Scent Handbook...
+      <div className="min-h-screen flex items-center justify-center font-mono text-sm"
+        style={{ background: COLORS.paper, color: COLORS.inkSoft }}>
+        Loading The Scent Handbook…
       </div>
     )
   }
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-[#F9F6F0] text-[#2C2A29] flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white border border-[#E5E0D8] p-8 shadow-sm rounded-none">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ background: COLORS.paper }}>
+        <div className="w-full max-w-md p-8 rounded-2xl" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
 
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-block p-3 bg-[#F9F6F0] border border-[#E5E0D8] mb-3">
-              {/* Flacon SVG Mark */}
-              <svg className="w-6 h-6 text-[#1E3A2F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M10 2h4v3h-4zM9 5h6v4H9zM7 9h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9z" />
+            <div className="inline-flex items-center justify-center w-12 h-12 mb-4 rounded-full"
+              style={{ border: `1px solid ${COLORS.amberDeep}`, background: 'rgba(233,200,138,0.06)' }}>
+              <svg width="18" height="24" viewBox="0 0 72 100" fill="none" aria-hidden="true">
+                <path d="M15 23 C15 20 22 21 24 19 L48 19 C50 21 57 20 57 23 L60 85 C60 92.7 54.7 98 47 98 L25 98 C17.3 98 12 92.7 12 85 Z" fill="none" stroke={COLORS.amberDeep} strokeWidth="3" />
               </svg>
             </div>
-            <h1 className="font-serif text-2xl font-medium tracking-wide text-[#1E3A2F]">The Scent Handbook</h1>
-            <p className="text-xs font-mono uppercase tracking-widest text-[#78716C] mt-1">Authentication Required</p>
+            <h1 className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>The Scent Handbook</h1>
+            <p className="text-[11px] font-mono uppercase tracking-[0.28em] mt-2" style={{ color: COLORS.amberDeep }}>Atelier Noir · Sign in</p>
           </div>
 
           {errorMsg && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-mono">
+            <div className="mb-4 p-3 text-xs font-mono rounded-lg" style={{ border: `1px solid ${COLORS.danger}`, color: COLORS.danger, background: COLORS.dangerBg }}>
               {errorMsg}
             </div>
           )}
 
           {sentMagicLink ? (
             <div className="text-center py-6">
-              <p className="font-serif text-lg mb-2 text-[#1E3A2F]">Check your inbox</p>
-              <p className="text-xs text-[#78716C] font-mono mb-6">
-                We sent a magic sign-in link to <span className="text-[#2C2A29]">{email}</span>.
+              <p className="font-serif italic text-xl mb-2" style={{ color: COLORS.forestDeep }}>Check your inbox</p>
+              <p className="text-xs font-mono mb-6" style={{ color: COLORS.inkSoft }}>
+                We sent a magic sign-in link to <span style={{ color: COLORS.ink }}>{email}</span>.
               </p>
               <button
                 onClick={() => setSentMagicLink(false)}
-                className="text-xs font-mono text-[#1E3A2F] underline hover:text-black"
+                className="text-xs font-mono underline"
+                style={{ color: COLORS.amber }}
               >
                 Use a different email or method
               </button>
@@ -98,30 +106,31 @@ export default function AuthGate({ children }) {
               <div className="space-y-3 mb-6">
                 <button
                   onClick={() => handleOAuth('google')}
-                  className="w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-[#E5E0D8] bg-white hover:bg-[#F9F6F0] text-xs font-mono uppercase tracking-wider text-[#2C2A29] transition-colors"
+                  className="w-full py-2.5 px-4 border rounded-lg text-xs font-mono uppercase tracking-wider transition-colors"
+                  style={oauthBtn}
                 >
-                  <span>Continue with Google</span>
+                  Continue with Google
                 </button>
-
                 <button
                   onClick={() => handleOAuth('apple')}
-                  className="w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-[#E5E0D8] bg-white hover:bg-[#F9F6F0] text-xs font-mono uppercase tracking-wider text-[#2C2A29] transition-colors"
+                  className="w-full py-2.5 px-4 border rounded-lg text-xs font-mono uppercase tracking-wider transition-colors"
+                  style={oauthBtn}
                 >
-                  <span>Continue with Apple</span>
+                  Continue with Apple
                 </button>
               </div>
 
               <div className="flex items-center my-6">
-                <div className="flex-grow border-t border-[#E5E0D8]"></div>
-                <span className="px-3 text-xs font-mono text-[#78716C] uppercase">or magic link</span>
-                <div className="flex-grow border-t border-[#E5E0D8]"></div>
+                <div className="flex-grow border-t" style={{ borderColor: COLORS.line }}></div>
+                <span className="px-3 text-[11px] font-mono uppercase" style={{ color: COLORS.dim }}>or magic link</span>
+                <div className="flex-grow border-t" style={{ borderColor: COLORS.line }}></div>
               </div>
 
               {/* Magic Link Form */}
               <form onSubmit={handleEmailSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-mono uppercase tracking-wider text-[#78716C] mb-1.5">
-                    Email Address
+                  <label className="block text-[11px] font-mono uppercase tracking-wider mb-1.5" style={{ color: COLORS.inkSoft }}>
+                    Email address
                   </label>
                   <input
                     type="email"
@@ -129,15 +138,17 @@ export default function AuthGate({ children }) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="hisham@oravue.com"
-                    className="w-full px-3 py-2 bg-[#F9F6F0] border border-[#E5E0D8] text-sm text-[#2C2A29] focus:outline-none focus:border-[#1E3A2F]"
+                    className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+                    style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-2.5 px-4 bg-[#1E3A2F] hover:bg-[#162A22] text-white text-xs font-mono uppercase tracking-wider transition-colors disabled:opacity-50"
+                  className="w-full py-2.5 px-4 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors disabled:opacity-50"
+                  style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}
                 >
-                  {submitting ? 'Sending Link...' : 'Send Magic Link'}
+                  {submitting ? 'Sending link…' : 'Send magic link'}
                 </button>
               </form>
             </>
@@ -149,7 +160,5 @@ export default function AuthGate({ children }) {
   }
 
   // App passes children as a render-prop function: <AuthGate>{(user) => ...}</AuthGate>.
-  // Call it with the authenticated user. Returning the function directly makes
-  // React try to render a function as a child (blank screen for logged-in users).
   return typeof children === 'function' ? children(session.user) : children
 }
