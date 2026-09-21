@@ -87,7 +87,9 @@ export function renderBatchCard(batch) {
   ctx.lineTo(cx + 10, y - 46);
   ctx.stroke();
   ctx.restore();
-  y += 70;
+  // Clear the full height of the flacon (base sits ~48px below anchor) plus
+  // the name's cap height, so a wrapped 2-line title never collides with it.
+  y += 116;
 
   // Fragrance name (serif italic, wrapped, centred).
   ctx.fillStyle = COLORS.forestDeep;
