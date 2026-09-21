@@ -25,28 +25,6 @@ async function getUserId(req: VercelRequest): Promise<string | null> {
   }
 }
 
-// A catalog column counts as "empty" (and therefore safe to fill from a scrape)
-// when it is null/undefined, an empty array, or an empty string.
-function isEmpty(v: any): boolean {
-  if (v === null || v === undefined) return true;
-  if (Array.isArray(v)) return v.length === 0;
-  if (typeof v === 'string') return v.trim() === '';
-  return false;
-}
-
-// Build an enrichment patch that fills ONLY the empty note/accord columns of an
-// existing row from scraped data. Populated values are never touched, so curated
-// data stays the source of truth — we only close the gaps. `tier` is deliberately
-// NOT enriched: classifyTier is a heuristic guess, so a user-triggered scrape may
-// not mutate the classification of a row the caller did not create.
-function buildEnrichPatch(existing: any, scraped: any): Record<string, any> {
-  const patch: Record<string, any> = {};
-  for (const col of ['top_notes', 'middle_notes', 'base_notes', 'accords', 'image_url']) {
-    if (isEmpty(existing[col]) && !isEmpty(scraped[col])) patch[col] = scraped[col];
-  }
-  return patch;
-}
-
 // Map main accords to one of the app's 5 families. Specific families are
 // checked before `fresh`, which is also the fallback — otherwise a sweet
 // gourmand that happens to list a "Citrus" accord (e.g. Naxos) misclassifies
@@ -161,6 +139,18 @@ async function fetchParfumoData(query: string) {
   }
 }
 
+// Does a scraped perfume name actually relate to what the user searched?
+// Parfumo can answer a blocked/unknown query with a generic landing page whose
+// first result link is an unrelated perfume — which previously surfaced the
+// SAME perfume (Naxos) for every query. Require at least one query token to
+// appear in the scraped name before trusting it.
+function queryMatchesName(query: string, name: string): boolean {
+  const n = (name || '').toLowerCase();
+  const tokens = query.split(/\s+/).filter((t) => t.length >= 3);
+  if (tokens.length === 0) return n.includes(query);
+  return tokens.some((t) => n.includes(t));
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const query = (req.query.q as string || '').trim().toLowerCase();
 
@@ -169,7 +159,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // 1. Search database first
+    // 1. Search the curated catalog first, and PREFER it. Any name match wins —
+    //    a row without notes still yields a coherent detail page (the client
+    //    derives radar/character from the family), and returning the real match
+    //    stops a flaky scrape from replacing it with an unrelated perfume.
     const { data: dbResults, error } = await supabase
       .from('fragrances')
       .select('*')
@@ -178,69 +171,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (error) throw error;
 
-    // Check if we have a valid result with notes populated
-    const validDbResult = dbResults?.find(r => r.top_notes && r.top_notes.length > 0);
-
-    if (validDbResult) {
+    if (dbResults && dbResults.length > 0) {
       return res.status(200).json({ source: 'database', results: dbResults });
     }
 
-    // 2. Live fetch from Parfumo if missing or unpopulated
+    // 2. No catalog match → try a live Parfumo scrape, but only trust it when
+    //    the scraped name actually relates to the query (guards the generic /
+    //    blocked-page case that returned the same perfume for everything).
     const scrapedData = await fetchParfumoData(query);
 
-    if (scrapedData) {
-      // Only persist to the shared catalog for authenticated callers. Anonymous
-      // callers still get the live result, but cannot write to the DB — this
-      // closes the unauthenticated write path through the service-role client.
+    if (scrapedData && queryMatchesName(query, scrapedData.name)) {
+      // Persist to the shared catalog only for authenticated callers.
       const userId = await getUserId(req);
       let savedRecord: any[] | null = null;
       if (userId) {
-        // Only enrich the row whose name EXACTLY matches the scraped perfume
-        // (case-insensitive). No "any row missing notes" fallback: that could
-        // fill an unrelated row (a different perfume that merely ilike-matched
-        // the query) with this scrape's data. Exact match guarantees we are
-        // filling the correct perfume's own gaps.
-        const existing = dbResults?.find(
-          r => r.name?.toLowerCase() === scrapedData.name.toLowerCase()
-        );
-
-        if (existing) {
-          // ENRICH in place: fill only the empty columns, never overwrite
-          // curated data. This keeps the catalog fresh over time while
-          // preserving curated values as the source of truth.
-          const patch = buildEnrichPatch(existing, scrapedData);
-          if (Object.keys(patch).length > 0) {
-            const { data } = await supabase
-              .from('fragrances')
-              .update(patch)
-              .eq('id', existing.id)
-              .select();
-            savedRecord = data;
-          } else {
-            savedRecord = [existing];
-          }
-        } else {
-          // No matching row: insert the genuinely-new name. ignoreDuplicates
-          // still guards the unique `name` key against a race.
-          const { data } = await supabase
-            .from('fragrances')
-            .upsert([scrapedData], { onConflict: 'name', ignoreDuplicates: true })
-            .select();
-          savedRecord = data;
-        }
+        const { data } = await supabase
+          .from('fragrances')
+          .upsert([scrapedData], { onConflict: 'name', ignoreDuplicates: true })
+          .select();
+        savedRecord = data;
       }
-
       return res.status(200).json({
         source: 'Parfumo (Live Scraped)',
-        results: savedRecord && savedRecord.length > 0 ? savedRecord : [scrapedData]
+        results: savedRecord && savedRecord.length > 0 ? savedRecord : [scrapedData],
       });
     }
 
-    // Fallback to existing DB entries if scraper yielded no match
-    return res.status(200).json({
-      source: 'database',
-      results: dbResults || []
-    });
+    // Nothing relevant found.
+    return res.status(200).json({ source: 'database', results: [] });
   } catch (err: any) {
     return res.status(500).json({ error: err.message || 'Search execution failed' });
   }
