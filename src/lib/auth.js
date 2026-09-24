@@ -1,9 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from './supabaseClient'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Re-export the single shared client; a second createClient() here would spin up
+// a competing GoTrueClient on the same auth storage key.
+export { supabase }
 
 // Sign in with Email Magic Link
 export async function signInWithEmail(email) {
