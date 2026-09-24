@@ -5,7 +5,21 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Supabase calls must never hang a request: on 2026-09-24 some calls stalled
+// 18-153 s on the network path. Reads get 5 s per try (PostgREST retries GETs
+// on its own); writes get 15 s and are not retried.
+function timedFetch(input: Parameters<typeof fetch>[0], init: RequestInit = {}) {
+  const method = (init.method || 'GET').toUpperCase();
+  const ms = method === 'GET' || method === 'HEAD' ? 5_000 : 15_000;
+  // Nothing here passes its own abort signal; if something ever does, keep it.
+  return fetch(input, { ...init, signal: init.signal ?? AbortSignal.timeout(ms) });
+}
+
+function isTimeout(err: any) {
+  return /TimeoutError/.test(String(err?.message ?? ''));
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey, { global: { fetch: timedFetch } });
 
 // Verify the caller's Supabase session token. Returns the user id, or null
 // when no valid token is present. Used to gate DB writes: reads stay open so
@@ -17,7 +31,7 @@ async function getUserId(req: VercelRequest): Promise<string | null> {
   if (!token) return null;
   try {
     const { data: { user } } = await createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } }
+      global: { headers: { Authorization: `Bearer ${token}` }, fetch: timedFetch }
     }).auth.getUser();
     return user?.id ?? null;
   } catch {
@@ -45,6 +59,7 @@ async function fetchParfumoData(query: string) {
   try {
     const searchUrl = `https://www.parfumo.com/s_perfumes.php?lt=4&q=${encodeURIComponent(query)}`;
     const searchRes = await fetch(searchUrl, {
+      signal: AbortSignal.timeout(8_000),
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept-Language': 'en-US,en;q=0.9'
@@ -65,6 +80,7 @@ async function fetchParfumoData(query: string) {
 
     const detailUrl = linkMatch[1].replace(/&amp;/g, '&');
     const detailRes = await fetch(detailUrl, {
+      signal: AbortSignal.timeout(8_000),
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept-Language': 'en-US,en;q=0.9'
@@ -200,6 +216,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Nothing relevant found.
     return res.status(200).json({ source: 'database', results: [] });
   } catch (err: any) {
+    if (isTimeout(err)) return res.status(503).json({ error: 'Database is slow to respond — please try again.' });
     return res.status(500).json({ error: err.message || 'Search execution failed' });
   }
 }

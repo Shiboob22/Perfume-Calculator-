@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -17,6 +17,8 @@ const MAX_TURNS = 20;
 const MAX_TURN_CHARS = 2000;
 const MAX_NAME_CHARS = 120;
 const BATCH_CONTEXT_LIMIT = 30;
+// Flash models usually answer in seconds; anything past this is a stall.
+const GEMINI_TIMEOUT_MS = 60_000;
 
 const ALLOWED_ORIGINS = [
   'https://scent-handbook-app.vercel.app',
@@ -33,18 +35,32 @@ function setCors(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
 }
 
+// Supabase calls must never hang a request: on 2026-09-24 some calls stalled
+// 18-153 s on the network path. Reads get 5 s per try (PostgREST retries GETs
+// on its own); writes get 15 s and are not retried.
+function timedFetch(input: Parameters<typeof fetch>[0], init: RequestInit = {}) {
+  const method = (init.method || 'GET').toUpperCase();
+  const ms = method === 'GET' || method === 'HEAD' ? 5_000 : 15_000;
+  // Nothing here passes its own abort signal; if something ever does, keep it.
+  return fetch(input, { ...init, signal: init.signal ?? AbortSignal.timeout(ms) });
+}
+
+function isTimeout(err: any) {
+  return /TimeoutError/.test(String(err?.message ?? ''));
+}
+
+const SLOW_DB = 'Database is slow to respond — please try again.';
+
 async function getUserId(req: VercelRequest): Promise<string | null> {
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
   if (!token) return null;
-  try {
-    const { data: { user } } = await createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } }
-    }).auth.getUser();
-    return user?.id ?? null;
-  } catch {
-    return null;
-  }
+  const { data: { user }, error } = await createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` }, fetch: timedFetch }
+  }).auth.getUser();
+  // A network failure is not a bad token — don't report it as 401.
+  if (error && isAuthRetryableFetchError(error)) throw new AiError(503, SLOW_DB);
+  return user?.id ?? null;
 }
 
 // Mirrors src/lib/tiers.js (kept inline so this function stays
@@ -82,11 +98,17 @@ class AiError extends Error {
 type Content = { role: 'user' | 'model'; parts: { text: string }[] };
 
 async function callGemini(model: string, body: unknown): Promise<Response> {
-  return fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: 'POST',
-    headers: { 'x-goog-api-key': GEMINI_API_KEY!, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  try {
+    return await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: 'POST',
+      headers: { 'x-goog-api-key': GEMINI_API_KEY!, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
+    });
+  } catch (err: any) {
+    if (err?.name === 'TimeoutError') throw new AiError(504, 'Gemini took too long — try again.');
+    throw err;
+  }
 }
 
 // Worth retrying on the fallback model: rate limits, a retired model name,
@@ -158,6 +180,7 @@ async function health() {
     for (const model of new Set([PRIMARY_MODEL, FALLBACK_MODEL])) {
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}`, {
         headers: { 'x-goog-api-key': GEMINI_API_KEY },
+        signal: AbortSignal.timeout(5_000),
       }).catch(() => null);
       models[model] = r ? r.status : 0;
     }
@@ -170,7 +193,7 @@ async function health() {
 /* ---------------- Batch context ---------------- */
 
 async function loadBatches(userId: string) {
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const supabase = createClient(supabaseUrl, supabaseServiceKey, { global: { fetch: timedFetch } });
   const { data, error } = await supabase
     .from('batches')
     .select('blend_date, fragrance_name, tier, concentration_pct, total_ml, oil_g, oil_type, price_per_gram, oil_cost, notes')
@@ -324,13 +347,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const userId = await getUserId(req);
-  if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
-  }
-
   const b = req.body || {};
   try {
+    const userId = await getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
+    }
+
     switch (b.task) {
       case 'chat':
         return res.status(200).json({ text: await chat(userId, b.messages) });
@@ -345,6 +368,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (err: any) {
     if (err instanceof AiError) return res.status(err.status).json({ error: err.message });
+    if (isTimeout(err)) return res.status(503).json({ error: SLOW_DB });
     console.error('AI handler error:', err);
     return res.status(500).json({ error: 'AI request failed.' });
   }
