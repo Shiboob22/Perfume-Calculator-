@@ -29,7 +29,7 @@ function setCors(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
 }
 
@@ -142,6 +142,29 @@ async function generate(opts: { system: string; contents: Content[]; schema?: ob
 
 function userTurn(text: string): Content[] {
   return [{ role: 'user', parts: [{ text }] }];
+}
+
+/* ---------------- Health check ---------------- */
+
+// Unauthenticated GET: reports whether a key is set and whether each model
+// answers with it. Uses models.get (metadata, no generation quota) and
+// caches the answer so repeated hits don't fan out to Google.
+let healthCache: { at: number; body: object } | null = null;
+
+async function health() {
+  if (healthCache && Date.now() - healthCache.at < 60_000) return healthCache.body;
+  const models: Record<string, number> = {};
+  if (GEMINI_API_KEY) {
+    for (const model of new Set([PRIMARY_MODEL, FALLBACK_MODEL])) {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}`, {
+        headers: { 'x-goog-api-key': GEMINI_API_KEY },
+      }).catch(() => null);
+      models[model] = r ? r.status : 0;
+    }
+  }
+  const body = { configured: Boolean(GEMINI_API_KEY), models };
+  healthCache = { at: Date.now(), body };
+  return body;
 }
 
 /* ---------------- Batch context ---------------- */
@@ -293,6 +316,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+  if (req.method === 'GET') {
+    return res.status(200).json(await health());
   }
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
