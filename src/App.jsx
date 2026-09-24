@@ -4,6 +4,7 @@ import PerfumeSearch from "./components/PerfumeSearch";
 import FragranceBlendCalculator from "./components/FragranceBlendCalculator";
 import Batches from "./components/Batches";
 import Inventory from "./components/Inventory";
+import PerfumerChat from "./components/PerfumerChat";
 import { COLORS } from "./lib/theme";
 import AuthGate from "./components/AuthGate";
 import { signOut } from "./lib/auth";
@@ -13,6 +14,7 @@ const TABS = [
   { id: "calculator", label: "Calculator" },
   { id: "batches", label: "Batches" },
   { id: "inventory", label: "Inventory" },
+  { id: "ask", label: "Ask" },
 ];
 
 export default function App() {
@@ -45,7 +47,7 @@ export default function App() {
               The Scent Handbook
             </h1>
             <p className="text-xs font-mono tracking-wide mt-1" style={{ color: COLORS.inkSoft }}>
-              Search · Calculator · Batches · Inventory
+              Search · Calculator · Batches · Inventory · Ask
             </p>
           </div>
           <div className="text-right">
@@ -92,6 +94,10 @@ export default function App() {
         )}
         {activeTab === "batches" && <Batches />}
         {activeTab === "inventory" && <Inventory />}
+        {/* Kept mounted so the conversation survives switching tabs. */}
+        <div hidden={activeTab !== "ask"}>
+          <PerfumerChat />
+        </div>
       </main>
     </div>
       )}

@@ -68,6 +68,12 @@ in the move.
   manually with the "Add stock" field; a low-stock threshold (default
   10g, editable per fragrance) flags anything running low.
 
+- **Ask** *(new)* — chat with Gemini about blending. It knows the five
+  families and your last 30 batches. Search, Calculator and Batches also
+  gain Gemini buttons (look up an unknown perfume, advise on a blend,
+  summarise your batch log). All calls go through `api/ai.ts`; needs
+  `GEMINI_API_KEY` (see DEPLOYMENT.md step 5).
+
 ## A security note on Row Level Security
 
 `supabase-schema-v2.sql` grants the anon key full read/write on all

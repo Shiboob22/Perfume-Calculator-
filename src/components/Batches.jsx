@@ -3,6 +3,7 @@ import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listBatches, deleteBatch } from "../lib/fragranceApi";
 import { downloadBatchCard } from "../lib/batchCard";
+import { batchInsights } from "../lib/aiApi";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -13,6 +14,20 @@ export default function Batches() {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [insights, setInsights] = useState("");
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [insightsError, setInsightsError] = useState("");
+
+  async function handleInsights() {
+    setInsightsLoading(true); setInsightsError("");
+    try {
+      setInsights(await batchInsights());
+    } catch (e) {
+      setInsightsError(e.message || "Could not reach Gemini.");
+    } finally {
+      setInsightsLoading(false);
+    }
+  }
 
   async function refresh() {
     setLoading(true);
@@ -45,11 +60,35 @@ export default function Batches() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>Batch history</h2>
         {batches.length > 0 && (
-          <span className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>
-            {batches.length} batches · {round2(totalOilCost)} total oil cost
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>
+              {batches.length} batches · {round2(totalOilCost)} total oil cost
+            </span>
+            <button
+              type="button"
+              onClick={handleInsights}
+              disabled={insightsLoading}
+              className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider border rounded-lg disabled:opacity-50"
+              style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
+            >
+              {insightsLoading ? "Thinking…" : "AI insights"}
+            </button>
+          </div>
         )}
       </div>
+
+      {insightsError && <p className="text-sm font-mono mb-4" style={{ color: COLORS.danger }}>{insightsError}</p>}
+      {insights && (
+        <div className="mb-6 p-4 border rounded-lg whitespace-pre-wrap text-sm" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card, color: COLORS.ink }}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-mono uppercase tracking-wider" style={{ color: COLORS.amberDeep }}>Gemini · insights</span>
+            <button type="button" onClick={() => setInsights("")} className="text-xs font-mono underline" style={{ color: COLORS.inkSoft }}>
+              Hide
+            </button>
+          </div>
+          {insights}
+        </div>
+      )}
 
       {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>Loading…</p>}
       {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}

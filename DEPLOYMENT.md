@@ -112,6 +112,23 @@ live in Vercel's dashboard, not just your local `.env`.
 Reload your live URL — Search, Calculator, Batches, and Inventory
 should now all work for real, from anywhere, on any device.
 
+## 5. (Optional) Turn on Gemini AI — free
+
+The Ask tab, "Ask Gemini" in Search, "Advise me" in the Calculator and
+"AI insights" in Batches all use Google Gemini's free tier.
+
+1. Open [aistudio.google.com/apikey](https://aistudio.google.com/apikey),
+   sign in with a Google account, and click **Create API key**. No credit
+   card needed.
+2. In Vercel → your project → **Settings → Environment Variables**, add
+   `GEMINI_API_KEY` with that key. **No `VITE_` prefix** — the key must
+   stay on the server.
+3. Redeploy (`vercel --prod`, or push to `main`).
+
+Free-tier limits reset daily; when they run out the app says so and the
+rest of the app keeps working. On the free tier Google may use what you
+send to improve its products.
+
 ## After this: auto-deploy on every push
 
 Once the GitHub repo is connected (Vercel does this automatically

@@ -10,6 +10,7 @@ import {
   logBatch,
   adjustInventory,
 } from "../lib/fragranceApi";
+import { blendTips } from "../lib/aiApi";
 
 const OIL_TYPE_OPTIONS = ["Luzi fragrances / Tiba perfumes", "Golden Man / El Sharkasy"];
 
@@ -247,6 +248,31 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
     }
   }
 
+  const [tips, setTips] = useState("");
+  const [tipsLoading, setTipsLoading] = useState(false);
+  const [tipsError, setTipsError] = useState("");
+
+  // Advice is for one exact blend — drop it once the blend changes.
+  useEffect(() => {
+    setTips(""); setTipsError("");
+  }, [fragName, tierKey, concPct, result.totalMl]);
+
+  async function handleAdvise() {
+    setTipsLoading(true); setTipsError("");
+    try {
+      setTips(await blendTips({
+        name: fragName.trim(),
+        tier: tierKey,
+        concentration_pct: Number(concPct),
+        total_ml: result.totalMl,
+      }));
+    } catch (e) {
+      setTipsError(e.message || "Could not reach Gemini.");
+    } finally {
+      setTipsLoading(false);
+    }
+  }
+
   const tier = TIERS[tierKey] || TIERS.fresh;
 
   return (
@@ -422,6 +448,23 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
           )}
 
           <p className="text-sm italic mt-4" style={{ color: COLORS.ink }}>{tier.note}</p>
+
+          <button
+            type="button"
+            onClick={handleAdvise}
+            disabled={!fragName.trim() || tipsLoading}
+            className="mt-4 px-4 py-2 text-xs font-mono uppercase tracking-wider border rounded-lg disabled:opacity-50"
+            style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
+          >
+            {tipsLoading ? "Asking Gemini…" : "Advise me"}
+          </button>
+          {tips && (
+            <div className="mt-3 p-3 text-sm whitespace-pre-wrap border rounded-lg" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
+              {tips}
+              <div className="text-[10px] font-mono mt-2" style={{ color: COLORS.dim }}>Gemini · AI advice, may be wrong</div>
+            </div>
+          )}
+          {tipsError && <p className="text-xs mt-2" style={{ color: COLORS.danger }}>{tipsError}</p>}
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <div>

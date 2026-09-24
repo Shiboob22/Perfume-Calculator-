@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchFragranceSuggestions } from '../lib/searchApi';
-import { setStock } from '../lib/fragranceApi';
+import { setStock, saveAiFragrance } from '../lib/fragranceApi';
+import { lookupFragrance } from '../lib/aiApi';
 import { TIERS, TIER_COLORS, TIER_INITIAL } from '../lib/tiers';
 import { COLORS } from '../lib/theme';
 
@@ -190,6 +191,48 @@ export function PerfumeSearch({ onSelectPerfume }) {
   const [loading, setLoading] = useState(false);
   const [addingToInventory, setAddingToInventory] = useState(false);
   const [inventoryMsg, setInventoryMsg] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMsg, setAiMsg] = useState('');
+  const [savingAi, setSavingAi] = useState(false);
+  const [saveMsg, setSaveMsg] = useState('');
+
+  // Only on an explicit click — the debounced search fires per keystroke and
+  // would burn the free Gemini quota.
+  async function handleAskGemini() {
+    setAiLoading(true);
+    setAiMsg('');
+    try {
+      const estimate = await lookupFragrance(query.trim());
+      if (!estimate.known) {
+        setAiMsg(`Gemini doesn't recognise “${query.trim()}” either.`);
+        return;
+      }
+      // No id until saved: that's how the detail panel tells an estimate apart.
+      setSelectedPerfume({ ...estimate, id: null });
+      setSaveMsg('');
+      setInventoryMsg('');
+    } catch (err) {
+      setAiMsg(err.message || 'Could not reach Gemini.');
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  async function handleSaveEstimate() {
+    setSavingAi(true);
+    setSaveMsg('');
+    try {
+      const saved = await saveAiFragrance(selectedPerfume);
+      setSelectedPerfume(saved);
+      setSaveMsg(saved.source === selectedPerfume.source
+        ? 'Saved to your catalog.'
+        : 'Already in your catalog — showing the saved entry.');
+    } catch (err) {
+      setSaveMsg(err.message || 'Could not save to catalog.');
+    } finally {
+      setSavingAi(false);
+    }
+  }
 
   async function handleAddToInventory() {
     if (!selectedPerfume?.id) return;
@@ -206,6 +249,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
   }
 
   useEffect(() => {
+    setAiMsg('');
     const timer = setTimeout(async () => {
       if (query.trim().length >= 2) {
         setLoading(true);
@@ -249,7 +293,19 @@ export function PerfumeSearch({ onSelectPerfume }) {
         </div>
 
         {query.trim().length >= 2 && results.length === 0 && !loading && (
-          <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>No saved perfumes match “{query}”.</p>
+          <div className="space-y-3">
+            <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>No saved perfumes match “{query}”.</p>
+            <button
+              type="button"
+              onClick={handleAskGemini}
+              disabled={aiLoading}
+              className="w-full px-4 py-3 rounded-lg font-mono text-xs uppercase tracking-wider disabled:opacity-50"
+              style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber, background: 'rgba(233,200,138,0.06)' }}
+            >
+              {aiLoading ? 'Asking Gemini…' : `Ask Gemini about “${query.trim()}”`}
+            </button>
+            {aiMsg && <p className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>{aiMsg}</p>}
+          </div>
         )}
 
         {results.length > 0 && (
@@ -261,7 +317,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => setSelectedPerfume(item)}
+                  onClick={() => { setSelectedPerfume(item); setSaveMsg(''); }}
                   className="w-full text-left px-4 py-3 flex items-center gap-3 transition-colors"
                   style={{
                     background: active ? 'rgba(233,200,138,0.08)' : 'transparent',
@@ -334,16 +390,38 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 >
                   Blend this in the Calculator <span aria-hidden="true">→</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={handleAddToInventory}
-                  disabled={addingToInventory}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-[15px] disabled:opacity-50"
-                  style={{ background: 'transparent', border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}
-                >
-                  {addingToInventory ? 'Adding…' : '+ Add to Inventory'}
-                </button>
+                {selectedPerfume.id ? (
+                  <button
+                    type="button"
+                    onClick={handleAddToInventory}
+                    disabled={addingToInventory}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-[15px] disabled:opacity-50"
+                    style={{ background: 'transparent', border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}
+                  >
+                    {addingToInventory ? 'Adding…' : '+ Add to Inventory'}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSaveEstimate}
+                    disabled={savingAi}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-[15px] disabled:opacity-50"
+                    style={{ background: 'transparent', border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}
+                  >
+                    {savingAi ? 'Saving…' : 'Save to catalog'}
+                  </button>
+                )}
               </div>
+              {!selectedPerfume.id && (
+                <p className="text-xs font-mono mt-3" style={{ color: COLORS.inkSoft }}>
+                  AI estimate — notes and family come from Gemini and may be wrong. Check before saving.
+                </p>
+              )}
+              {saveMsg && (
+                <p className="text-xs font-mono mt-2" style={{ color: /^(Saved|Already)/.test(saveMsg) ? COLORS.amber : COLORS.danger }}>
+                  {saveMsg}
+                </p>
+              )}
               {inventoryMsg && (
                 <p className="text-xs font-mono mt-2" style={{ color: inventoryMsg.includes('Added') ? COLORS.amber : COLORS.danger }}>
                   {inventoryMsg}
@@ -404,7 +482,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
 
               <div className="pt-2 flex justify-between font-mono text-[10px] uppercase tracking-wider" style={{ color: COLORS.dim, borderTop: `1px solid ${COLORS.hair}` }}>
                 <span>Source · {selectedPerfume.source || 'Database'}</span>
-                <span>ID {String(selectedPerfume.id).substring(0, 8)}</span>
+                <span>{selectedPerfume.id ? `ID ${String(selectedPerfume.id).substring(0, 8)}` : 'Not saved'}</span>
               </div>
             </div>
           </div>

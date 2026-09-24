@@ -1,6 +1,6 @@
 import { supabase } from "./supabaseClient";
 
-async function authHeaders() {
+export async function authHeaders() {
   const { data } = await supabase.auth.getSession();
   const token = data?.session?.access_token;
   if (!token) throw new Error('Not authenticated');
@@ -42,6 +42,30 @@ export async function upsertFragrance(name, tier, source = "custom") {
     .single();
   if (error) throw error;
   return data;
+}
+
+// Save a Gemini estimate (from lookupFragrance) to the shared catalog.
+// ignoreDuplicates: never overwrite an existing curated/scraped row — if the
+// name is already there, return that row instead.
+export async function saveAiFragrance(estimate) {
+  const row = {
+    name: estimate.name.trim(),
+    tier: estimate.tier,
+    source: estimate.source,
+    top_notes: estimate.top_notes,
+    middle_notes: estimate.middle_notes,
+    base_notes: estimate.base_notes,
+    accords: estimate.accords,
+  };
+  const { data, error } = await supabase
+    .from("fragrances")
+    .upsert(row, { onConflict: "name", ignoreDuplicates: true })
+    .select();
+  if (error) throw error;
+  if (data && data.length > 0) return data[0];
+  const existing = await getFragranceByExactName(row.name);
+  if (!existing) throw new Error("Could not save to catalog.");
+  return existing;
 }
 
 /* ---------------- Personal notes ---------------- */
