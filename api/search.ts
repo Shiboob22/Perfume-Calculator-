@@ -179,10 +179,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     //    a row without notes still yields a coherent detail page (the client
     //    derives radar/character from the family), and returning the real match
     //    stops a flaky scrape from replacing it with an unrelated perfume.
+    //    The catalog holds ~80k rows, so rank the matches: rows the app or
+    //    user added first (priority), then by Fragrantica rating count.
     const { data: dbResults, error } = await supabase
       .from('fragrances')
       .select('*')
       .ilike('name', `%${query}%`)
+      .order('priority', { ascending: false })
+      .order('popularity', { ascending: false, nullsFirst: false })
       .limit(10);
 
     if (error) throw error;

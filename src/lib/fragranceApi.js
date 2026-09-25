@@ -18,6 +18,8 @@ export async function searchFragrances(query, limit = 8) {
     .from("fragrances")
     .select("*")
     .ilike("name", `%${query.trim()}%`)
+    .order("priority", { ascending: false })
+    .order("popularity", { ascending: false, nullsFirst: false })
     .limit(limit);
   if (error) throw error;
   return data || [];
