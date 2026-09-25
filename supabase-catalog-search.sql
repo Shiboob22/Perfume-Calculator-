@@ -47,3 +47,14 @@ as $$
            + 0.05 * log(1 + coalesce(f.popularity, 0)) desc
   limit least(greatest(lim, 1), 50)
 $$;
+
+-- ---------------------------------------------------------------------
+-- Browse by note: all three pyramid levels in one array, so "perfumes with
+-- Bergamot" is a single indexed containment query (all_notes @> '{Bergamot}').
+-- ---------------------------------------------------------------------
+alter table fragrances add column if not exists all_notes text[]
+  generated always as (
+    coalesce(top_notes, '{}') || coalesce(middle_notes, '{}') || coalesce(base_notes, '{}')
+  ) stored;
+
+create index if not exists fragrances_all_notes_idx on fragrances using gin (all_notes);

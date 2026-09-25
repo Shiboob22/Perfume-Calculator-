@@ -201,6 +201,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ source: 'database', results: data || [] });
     }
 
+    const offset = Math.min(Math.max(parseInt(String(req.query.offset || '0'), 10) || 0, 0), 1000);
+
+    // Browse like Fragrantica: perfumes with a note or accord, or a house's
+    // line-up. Array-literal syntax characters are stripped (never in names).
+    const clean = (v: unknown) => String(v || '').replace(/[{}"\\,]/g, '').trim().slice(0, 80);
+    const note = clean(req.query.note), accord = clean(req.query.accord), brand = clean(req.query.brand);
+    if (note || accord || brand) {
+      let browse = supabase.from('fragrances').select('*');
+      if (note) browse = browse.contains('all_notes', [note]);
+      if (accord) browse = browse.contains('accords', [accord]);
+      if (brand) browse = browse.eq('brand', brand);
+      const { data, error } = await browse
+        .order('priority', { ascending: false })
+        .order('popularity', { ascending: false, nullsFirst: false })
+        .range(offset, offset + RESULT_LIMIT - 1);
+      if (error) throw error;
+      res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+      const rows = data || [];
+      return res.status(200).json({ source: 'database', match: 'browse', results: rows, hasMore: rows.length === RESULT_LIMIT });
+    }
+
     if (!query || query.length < 2) {
       return res.status(200).json({ source: 'database', results: [] });
     }
@@ -221,12 +242,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { data: dbResults, error } = await search
       .order('priority', { ascending: false })
       .order('popularity', { ascending: false, nullsFirst: false })
-      .limit(RESULT_LIMIT);
+      .range(offset, offset + RESULT_LIMIT - 1);
 
     if (error) throw error;
 
     if (dbResults && dbResults.length > 0) {
-      return res.status(200).json({ source: 'database', match: 'exact', results: dbResults });
+      return res.status(200).json({
+        source: 'database', match: 'exact', results: dbResults, hasMore: dbResults.length === RESULT_LIMIT,
+      });
+    }
+    // Paging past the last exact match: stop, don't fall through to fuzzy/scrape.
+    if (offset > 0) {
+      return res.status(200).json({ source: 'database', match: 'exact', results: [], hasMore: false });
     }
 
     // 1b. Nothing contains every word → typo-tolerant match ("aventis",

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { searchCatalog, fetchPopular, fetchSimilar } from '../lib/searchApi';
+import { searchCatalog, browseCatalog, fetchPopular, fetchSimilar } from '../lib/searchApi';
 import { setStock, saveAiFragrance } from '../lib/fragranceApi';
 import { lookupFragrance } from '../lib/aiApi';
 import { TIERS, TIER_COLORS, TIER_INITIAL } from '../lib/tiers';
@@ -151,10 +151,12 @@ function ClassificationRadar({ radar }) {
 }
 
 // Fragrantica-style accord bar: the accord's own colour, name inside the bar.
-function AccordBar({ name, rank }) {
+function AccordBar({ name, rank, onBrowse }) {
   const bg = accordColor(name);
   return (
-    <div style={{ height: 30, borderRadius: 7, background: 'rgba(255,255,255,0.035)' }}>
+    <button type="button" onClick={() => onBrowse('accord', name)} title={`Perfumes with a ${String(name).toLowerCase()} accord`}
+      className="block w-full text-left transition-opacity hover:opacity-90"
+      style={{ height: 30, borderRadius: 7, background: 'rgba(255,255,255,0.035)' }}>
       <div className="flex items-center px-3" style={{
         width: `${accordWidth(rank)}%`, minWidth: 'max-content', height: '100%', borderRadius: 7, background: bg,
         boxShadow: `0 0 14px ${bg}33`,
@@ -163,15 +165,16 @@ function AccordBar({ name, rank }) {
           {String(name).toLowerCase()}
         </span>
       </div>
-    </div>
+    </button>
   );
 }
 
-function NoteToken({ note }) {
+function NoteToken({ note, onBrowse }) {
   const cat = NOTE_CATEGORIES[noteCategory(note)];
   const init = note.trim().charAt(0).toUpperCase();
   return (
-    <div className="flex flex-col items-center gap-2" style={{ width: 84 }} title={`${note} · ${cat.label}`}>
+    <button type="button" onClick={() => onBrowse('note', note)} title={`${note} · ${cat.label} — perfumes with this note`}
+      className="flex flex-col items-center gap-2 transition-transform hover:-translate-y-0.5" style={{ width: 84 }}>
       <span className="grid place-items-center" style={{
         width: 54, height: 54, borderRadius: 999,
         background: `radial-gradient(circle at 35% 30%, ${cat.color}, ${cat.color}AA 60%, ${cat.color}66)`,
@@ -180,16 +183,16 @@ function NoteToken({ note }) {
         <span className="font-serif" style={{ fontSize: 22, color: inkOn(cat.color) }}>{init}</span>
       </span>
       <span className="font-mono text-center leading-tight" style={{ fontSize: 11, color: '#CDBF9E' }}>{note}</span>
-    </div>
+    </button>
   );
 }
 
-function NoteLevel({ label, notes }) {
+function NoteLevel({ label, notes, onBrowse }) {
   return (
     <div className="grid gap-3 sm:gap-5 items-start" style={{ gridTemplateColumns: 'minmax(0,1fr)' }}>
       <span className="font-mono text-center" style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.amberDeep }}>{label}</span>
       <div className="flex flex-wrap justify-center gap-x-3 gap-y-5">
-        {notes.map((n, i) => <NoteToken key={`${n}-${i}`} note={n} />)}
+        {notes.map((n, i) => <NoteToken key={`${n}-${i}`} note={n} onBrowse={onBrowse} />)}
       </div>
     </div>
   );
@@ -317,7 +320,37 @@ export function PerfumeSearch({ onSelectPerfume }) {
   const [aiMsg, setAiMsg] = useState('');
   const [savingAi, setSavingAi] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+  // Browsing by note / accord / house instead of a typed query.
+  const [browse, setBrowse] = useState(null); // { kind: 'note'|'accord'|'brand', value }
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const detailRef = useRef(null);
+  const searchColRef = useRef(null);
+
+  function browseBy(kind, value) {
+    if (!value) return;
+    setQuery('');
+    setBrowse({ kind, value });
+    // On a phone the list sits above the detail: scroll back up to it.
+    requestAnimationFrame(() => {
+      const el = searchColRef.current;
+      if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  async function loadMore() {
+    setLoadingMore(true);
+    const offset = results.length;
+    const data = browse
+      ? await browseCatalog(browse.kind, browse.value, offset)
+      : await searchCatalog(query, offset);
+    setResults((prev) => {
+      const seen = new Set(prev.map((r) => r.id));
+      return [...prev, ...data.results.filter((r) => !seen.has(r.id))];
+    });
+    setHasMore(!!data.hasMore);
+    setLoadingMore(false);
+  }
 
   function selectPerfume(item) {
     setSelectedPerfume(item);
@@ -389,6 +422,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
 
   useEffect(() => {
     setAiMsg('');
+    if (browse) return; // the browse effect owns the list
     let cancelled = false;
     const timer = setTimeout(async () => {
       if (query.trim().length >= 2) {
@@ -397,13 +431,35 @@ export function PerfumeSearch({ onSelectPerfume }) {
         if (cancelled) return;
         setResults(data.results);
         setMatchKind(data.match || 'exact');
+        setHasMore(!!data.hasMore);
         setLoading(false);
       } else {
         setResults([]);
+        setHasMore(false);
       }
     }, 250);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [query]);
+  }, [query, browse]);
+
+  useEffect(() => {
+    if (!browse) return;
+    let cancelled = false;
+    setLoading(true);
+    browseCatalog(browse.kind, browse.value).then((data) => {
+      if (cancelled) return;
+      setResults(data.results);
+      setMatchKind('browse');
+      setHasMore(!!data.hasMore);
+      setLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [browse]);
+
+  const browseTitle = browse
+    ? browse.kind === 'note' ? `Perfumes with ${browse.value}`
+      : browse.kind === 'accord' ? `${browse.value} accord`
+        : `All from ${browse.value}`
+    : '';
 
   // Similar perfumes and the house's line-up for the selected fragrance.
   const selectedId = selectedPerfume?.id || null;
@@ -441,7 +497,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
     <div className="grid grid-cols-1 md:grid-cols-[340px_minmax(0,1fr)] gap-6 md:gap-8 px-4 sm:px-6 md:px-10 py-8 max-w-6xl mx-auto"
       style={{ colorScheme: 'dark' }}>
       {/* ---------------- Search column ---------------- */}
-      <div className="space-y-4 md:sticky md:top-4 md:self-start">
+      <div ref={searchColRef} className="space-y-4 md:sticky md:top-4 md:self-start scroll-mt-4">
         <label className="block font-mono text-[11px] uppercase tracking-[0.2em]" style={{ color: COLORS.amberDeep }}>
           Search the library
         </label>
@@ -449,7 +505,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
           <input
             type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); if (browse) setBrowse(null); }}
             placeholder="Search perfumes or houses…"
             className="w-full px-4 py-3 font-mono text-sm rounded-lg focus:outline-none"
             style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}
@@ -460,13 +516,28 @@ export function PerfumeSearch({ onSelectPerfume }) {
             </span>
           )}
         </div>
-        {query.trim().length < 2 && (
+        {browse && (
+          <div className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5"
+            style={{ border: `1px solid ${COLORS.amberDeep}`, background: 'rgba(233,200,138,0.06)' }}>
+            <span className="min-w-0">
+              <span className="block font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: COLORS.amberDeep }}>
+                Browsing · most rated first
+              </span>
+              <span className="block font-serif text-[17px] truncate" style={{ color: COLORS.forestDeep }}>{browseTitle}</span>
+            </span>
+            <button type="button" onClick={() => setBrowse(null)} className="shrink-0 font-mono text-[11px] uppercase tracking-wider px-2 py-1 rounded"
+              style={{ color: COLORS.amber, border: `1px solid ${COLORS.line}` }} aria-label="Clear browse">
+              ✕ Clear
+            </button>
+          </div>
+        )}
+        {!browse && query.trim().length < 2 && (
           <p className="text-xs font-mono leading-relaxed" style={{ color: COLORS.inkSoft }}>
-            Over 80,000 fragrances with notes, accords, ratings and bottle photos. Any word order works, accents optional.
+            Over 80,000 fragrances with notes, accords, ratings and bottle photos. Any word order works, accents optional. Tap a note, accord or house on a fragrance page to browse.
           </p>
         )}
 
-        {query.trim().length >= 2 && results.length === 0 && !loading && (
+        {!browse && query.trim().length >= 2 && results.length === 0 && !loading && (
           <div className="space-y-3">
             <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>No perfumes match “{query}”.</p>
             <button
@@ -491,8 +562,18 @@ export function PerfumeSearch({ onSelectPerfume }) {
               {results.map((item) => (
                 <ResultRow key={item.id} item={item} active={selectedPerfume?.id === item.id} onSelect={selectPerfume} />
               ))}
+              {hasMore && (
+                <button type="button" onClick={loadMore} disabled={loadingMore}
+                  className="w-full px-4 py-3 font-mono text-[11px] uppercase tracking-wider disabled:opacity-50"
+                  style={{ color: COLORS.amber, background: 'rgba(233,200,138,0.04)' }}>
+                  {loadingMore ? 'Loading…' : 'Show more'}
+                </button>
+              )}
             </div>
           </div>
+        )}
+        {browse && !loading && results.length === 0 && (
+          <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>Nothing found for {browseTitle.toLowerCase()}.</p>
         )}
       </div>
 
@@ -508,9 +589,17 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 </div>
                 <div className="min-w-0 flex-1">
                   {names.brand && (
-                    <div className="font-mono text-[12px] tracking-[0.24em] uppercase" style={{ color: COLORS.amberDeep }}>
-                      {names.brand}
-                    </div>
+                    p.brand ? (
+                      <button type="button" onClick={() => browseBy('brand', p.brand)} title={`All perfumes by ${p.brand}`}
+                        className="font-mono text-[12px] tracking-[0.24em] uppercase hover:underline underline-offset-4 text-left"
+                        style={{ color: COLORS.amberDeep }}>
+                        {names.brand}
+                      </button>
+                    ) : (
+                      <div className="font-mono text-[12px] tracking-[0.24em] uppercase" style={{ color: COLORS.amberDeep }}>
+                        {names.brand}
+                      </div>
+                    )
                   )}
                   <h3 className="font-serif italic leading-[0.95] break-words text-4xl sm:text-5xl mt-1" style={{ color: COLORS.forestDeep }}>
                     {names.title}
@@ -602,7 +691,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   <SectionLabel n="01">Main accords</SectionLabel>
                   <div className="mt-5 flex flex-col gap-2">
                     {accords.length > 0
-                      ? accords.slice(0, 10).map((a, i) => <AccordBar key={a} name={a} rank={i} />)
+                      ? accords.slice(0, 10).map((a, i) => <AccordBar key={a} name={a} rank={i} onBrowse={browseBy} />)
                       : <p className="font-serif italic" style={{ color: COLORS.dim }}>No accords recorded for this fragrance.</p>}
                   </div>
                 </div>
@@ -622,12 +711,12 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 ) : (
                   <div className="mt-6 flex flex-col gap-7">
                     {flatNotes ? (
-                      <NoteLevel label="Notes" notes={top} />
+                      <NoteLevel label="Notes" notes={top} onBrowse={browseBy} />
                     ) : (
                       <>
-                        {top.length > 0 && <NoteLevel label="Top notes" notes={top} />}
-                        {mid.length > 0 && <NoteLevel label="Middle notes" notes={mid} />}
-                        {bas.length > 0 && <NoteLevel label="Base notes" notes={bas} />}
+                        {top.length > 0 && <NoteLevel label="Top notes" notes={top} onBrowse={browseBy} />}
+                        {mid.length > 0 && <NoteLevel label="Middle notes" notes={mid} onBrowse={browseBy} />}
+                        {bas.length > 0 && <NoteLevel label="Base notes" notes={bas} onBrowse={browseBy} />}
                       </>
                     )}
                     <NoteLegend notes={allNotes} />
@@ -672,7 +761,16 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   </div>
                   {names.brand && (related.loading || related.sameBrand.length > 0) && (
                     <div>
-                      <SectionLabel n="05">More from {names.brand}</SectionLabel>
+                      <div className="flex items-center justify-between gap-3">
+                        <SectionLabel n="05">More from {names.brand}</SectionLabel>
+                        {p.brand && (
+                          <button type="button" onClick={() => browseBy('brand', p.brand)}
+                            className="shrink-0 font-mono text-[11px] uppercase tracking-wider hover:underline underline-offset-4"
+                            style={{ color: COLORS.amber }}>
+                            See all →
+                          </button>
+                        )}
+                      </div>
                       <div className="mt-5">
                         {related.loading ? <CardSkeleton /> : <CardGrid items={related.sameBrand} onSelect={selectPerfume} />}
                       </div>

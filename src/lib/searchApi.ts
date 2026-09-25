@@ -15,8 +15,12 @@ export interface SearchResult {
 export interface SearchResponse {
   results: SearchResult[];
   /** 'fuzzy' when no name contained every word and typo matching was used. */
-  match?: 'exact' | 'fuzzy';
+  match?: 'exact' | 'fuzzy' | 'browse';
+  /** A further page exists (request again with offset = results so far). */
+  hasMore?: boolean;
 }
+
+export type BrowseKind = 'note' | 'accord' | 'brand';
 
 export interface SimilarResponse {
   basis: 'accords' | 'family';
@@ -39,18 +43,31 @@ async function optionalAuthHeaders(): Promise<Record<string, string>> {
   }
 }
 
-export async function searchCatalog(query: string): Promise<SearchResponse> {
+export async function searchCatalog(query: string, offset = 0): Promise<SearchResponse> {
   if (!query || query.trim().length < 2) return { results: [] };
 
   try {
-    const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`, {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}&offset=${offset}`, {
       headers: await optionalAuthHeaders(),
     });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data = await res.json();
-    return { results: data.results || [], match: data.match };
+    return { results: data.results || [], match: data.match, hasMore: !!data.hasMore };
   } catch (error) {
     console.error('Search API error:', error);
+    return { results: [] };
+  }
+}
+
+/** Perfumes with a note or accord, or a house's line-up, most-rated first. */
+export async function browseCatalog(kind: BrowseKind, value: string, offset = 0): Promise<SearchResponse> {
+  try {
+    const res = await fetch(`/api/search?${kind}=${encodeURIComponent(value)}&offset=${offset}`);
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data = await res.json();
+    return { results: data.results || [], match: 'browse', hasMore: !!data.hasMore };
+  } catch (error) {
+    console.error('Browse API error:', error);
     return { results: [] };
   }
 }
