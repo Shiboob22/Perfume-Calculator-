@@ -12,12 +12,22 @@ export async function authHeaders() {
 
 /* ---------------- Fragrances (classification) ---------------- */
 
+// Every word must appear in the accent/apostrophe-folded `search_text`
+// column, in any order — same matching as /api/search.
 export async function searchFragrances(query, limit = 8) {
-  if (!query || !query.trim()) return [];
-  const { data, error } = await supabase
-    .from("fragrances")
-    .select("*")
-    .ilike("name", `%${query.trim()}%`)
+  const words = (query || "")
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/['’`]/g, "")
+    .replace(/[%_*,()\\]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 6);
+  if (words.length === 0) return [];
+  let q = supabase.from("fragrances").select("*");
+  for (const w of words) q = q.ilike("search_text", `%${w}%`);
+  const { data, error } = await q
     .order("priority", { ascending: false })
     .order("popularity", { ascending: false, nullsFirst: false })
     .limit(limit);

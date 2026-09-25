@@ -167,32 +167,77 @@ function queryMatchesName(query: string, name: string): boolean {
   return tokens.some((t) => n.includes(t));
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const query = (req.query.q as string || '').trim().toLowerCase();
+// Same folding as the `search_text` column (supabase-catalog-search.sql):
+// lowercase, accents and apostrophes removed. Characters that are wildcards or
+// PostgREST syntax are dropped rather than escaped — names never need them.
+function normalizeQuery(q: string): string {
+  return q
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/['’`]/g, '')
+    .replace(/[%_*,()\\]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
-  if (!query || query.length < 2) {
-    return res.status(200).json({ source: 'database', results: [] });
-  }
+const RESULT_LIMIT = 20;
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const rawQuery = (req.query.q as string || '').trim();
+  const query = rawQuery.toLowerCase();
 
   try {
-    // 1. Search the curated catalog first, and PREFER it. Any name match wins —
-    //    a row without notes still yields a coherent detail page (the client
-    //    derives radar/character from the family), and returning the real match
-    //    stops a flaky scrape from replacing it with an unrelated perfume.
-    //    The catalog holds ~80k rows, so rank the matches: rows the app or
-    //    user added first (priority), then by Fragrantica rating count.
-    const { data: dbResults, error } = await supabase
-      .from('fragrances')
-      .select('*')
-      .ilike('name', `%${query}%`)
+    // Empty-state shelf: the most-rated perfumes that have a bottle photo.
+    if (req.query.popular) {
+      const { data, error } = await supabase
+        .from('fragrances')
+        .select('*')
+        .not('image_url', 'is', null)
+        .order('popularity', { ascending: false, nullsFirst: false })
+        .limit(12);
+      if (error) throw error;
+      res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+      return res.status(200).json({ source: 'database', results: data || [] });
+    }
+
+    if (!query || query.length < 2) {
+      return res.status(200).json({ source: 'database', results: [] });
+    }
+
+    // 1. Search the catalog first, and PREFER it. Any name match wins — a row
+    //    without notes still yields a coherent detail page, and returning the
+    //    real match stops a flaky scrape from replacing it with an unrelated
+    //    perfume. Every word must appear, in any order and ignoring accents
+    //    ("sauvage dior", "lancome la vie"). With ~82k rows, rank the matches:
+    //    rows the app or user added first (priority), then by Fragrantica votes.
+    const normalized = normalizeQuery(rawQuery);
+    const words = normalized.split(' ').filter(Boolean).slice(0, 6);
+    if (words.length === 0) {
+      return res.status(200).json({ source: 'database', results: [] });
+    }
+    let search = supabase.from('fragrances').select('*');
+    for (const w of words) search = search.ilike('search_text', `%${w}%`);
+    const { data: dbResults, error } = await search
       .order('priority', { ascending: false })
       .order('popularity', { ascending: false, nullsFirst: false })
-      .limit(10);
+      .limit(RESULT_LIMIT);
 
     if (error) throw error;
 
     if (dbResults && dbResults.length > 0) {
-      return res.status(200).json({ source: 'database', results: dbResults });
+      return res.status(200).json({ source: 'database', match: 'exact', results: dbResults });
+    }
+
+    // 1b. Nothing contains every word → typo-tolerant match ("aventis",
+    //     "bacarat rouge") before resorting to a live scrape.
+    if (normalized.length >= 3) {
+      const { data: fuzzy, error: fuzzyErr } = await supabase
+        .rpc('search_fragrances_fuzzy', { q: normalized, lim: RESULT_LIMIT });
+      if (fuzzyErr) throw fuzzyErr;
+      if (fuzzy && fuzzy.length > 0) {
+        return res.status(200).json({ source: 'database', match: 'fuzzy', results: fuzzy });
+      }
     }
 
     // 2. No catalog match → try a live Parfumo scrape, but only trust it when
