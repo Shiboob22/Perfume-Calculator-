@@ -4,6 +4,7 @@
 // theme so the exported card reads as the same product as the app.
 import { COLORS } from "./theme";
 import { TIERS, TIER_COLORS } from "./tiers";
+import { batchStartedAt, batchReadyAt, formatExact } from "./batchTiming";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -127,6 +128,11 @@ export function renderBatchCard(batch) {
     ["Total", `${round2(batch.total_g)} g`],
   ];
   if (batch.oil_cost) rows.push(["Oil cost", round2(batch.oil_cost)]);
+  if (batch.price_per_gram) rows.push(["Price / g", round2(Number(batch.price_per_gram))]);
+  const started = batchStartedAt(batch);
+  const ready = batchReadyAt(batch);
+  if (started) rows.push(["Created", formatExact(started)]);
+  if (ready) rows.push(["Best from", formatExact(ready)]);
   if (batch.oil_type) rows.push(["Oil type", batch.oil_type]);
   if (batch.blended_by) rows.push(["Blended by", batch.blended_by]);
 

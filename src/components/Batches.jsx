@@ -4,10 +4,33 @@ import { TIERS } from "../lib/tiers";
 import { listBatches, deleteBatch } from "../lib/fragranceApi";
 import { downloadBatchCard } from "../lib/batchCard";
 import { batchInsights } from "../lib/aiApi";
+import { batchStartedAt, batchReadyAt, formatExact, readyCountdown } from "../lib/batchTiming";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
   return (Math.round(n * 100) / 100).toFixed(2);
+}
+
+function BatchTiming({ batch }) {
+  const started = batchStartedAt(batch);
+  const ready = batchReadyAt(batch);
+  if (!started) return null;
+  const isReady = ready && ready <= new Date();
+  return (
+    <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs font-mono">
+      <div>
+        <span style={{ color: COLORS.inkSoft }}>Created </span>
+        <span style={{ color: COLORS.ink }}>{formatExact(started)}</span>
+      </div>
+      {ready && (
+        <div>
+          <span style={{ color: COLORS.inkSoft }}>Best from </span>
+          <span style={{ color: COLORS.ink }}>{formatExact(ready)}</span>
+          <span style={{ color: isReady ? COLORS.forest : COLORS.amberDeep }}> · {readyCountdown(ready)}</span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function Batches() {
@@ -131,7 +154,9 @@ export default function Batches() {
               Oil {round2(b.oil_g)}g / {round2(b.oil_ml)}mL &nbsp;·&nbsp; Ethanol {round2(b.ethanol_g)}g / {round2(b.ethanol_ml)}mL
               &nbsp;·&nbsp; Total {round2(b.total_g)}g
               {b.oil_cost ? <> &nbsp;·&nbsp; Cost {round2(b.oil_cost)}</> : null}
+              {b.price_per_gram ? <> ({round2(Number(b.price_per_gram))}/g)</> : null}
             </div>
+            <BatchTiming batch={b} />
             {(b.oil_type || b.blended_by) && (
               <div className="text-xs font-mono mt-1" style={{ color: COLORS.inkSoft }}>
                 {b.oil_type}{b.oil_type && b.blended_by ? " · " : ""}{b.blended_by ? "by " + b.blended_by : ""}
