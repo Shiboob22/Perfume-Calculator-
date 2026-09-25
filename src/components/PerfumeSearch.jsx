@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { searchCatalog, browseCatalog, fetchPopular, fetchSimilar } from '../lib/searchApi';
-import { setStock, saveAiFragrance } from '../lib/fragranceApi';
+import { setStock, saveAiFragrance, addFragrancePhoto } from '../lib/fragranceApi';
 import { lookupFragrance } from '../lib/aiApi';
 import { TIERS, TIER_COLORS, TIER_INITIAL } from '../lib/tiers';
 import { COLORS } from '../lib/theme';
@@ -326,6 +326,23 @@ export function PerfumeSearch({ onSelectPerfume }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const detailRef = useRef(null);
   const searchColRef = useRef(null);
+  // "+ Add photo" for the few catalog rows no dataset had a bottle photo for.
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const [photoDraft, setPhotoDraft] = useState('');
+  const [photoMsg, setPhotoMsg] = useState('');
+
+  async function handleSavePhoto() {
+    setPhotoMsg('');
+    try {
+      const saved = await addFragrancePhoto(selectedPerfume.id, photoDraft);
+      setSelectedPerfume((cur) => (cur && cur.id === saved.id ? { ...cur, image_url: saved.image_url } : cur));
+      setResults((rs) => rs.map((r) => (r.id === saved.id ? { ...r, image_url: saved.image_url } : r)));
+      setPhotoOpen(false);
+      setPhotoDraft('');
+    } catch (err) {
+      setPhotoMsg(err.message || 'Could not save the photo.');
+    }
+  }
 
   function browseBy(kind, value) {
     if (!value) return;
@@ -356,6 +373,8 @@ export function PerfumeSearch({ onSelectPerfume }) {
     setSelectedPerfume(item);
     setSaveMsg('');
     setInventoryMsg('');
+    setPhotoOpen(false);
+    setPhotoMsg('');
     // On a phone the page is one column, and a card picked from "reminds me
     // of" sits far below the hero: bring the detail's top back into view.
     requestAnimationFrame(() => {
@@ -584,8 +603,33 @@ export function PerfumeSearch({ onSelectPerfume }) {
             {/* Hero */}
             <div className="relative px-5 sm:px-8 pt-8 sm:pt-10 pb-8" style={{ background: 'linear-gradient(180deg, rgba(233,200,138,0.08), rgba(16,14,10,0))' }}>
               <div className="relative flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-8">
-                <div className="self-center sm:self-auto">
+                <div className="self-center sm:self-auto flex flex-col items-center gap-2">
                   <BottlePhoto perfume={p} size="hero" />
+                  {p.id && !p.image_url && (
+                    photoOpen ? (
+                      <div className="flex flex-col gap-1.5" style={{ width: 200 }}>
+                        <input type="url" value={photoDraft} onChange={(e) => setPhotoDraft(e.target.value)}
+                          placeholder="https://… image link" autoFocus
+                          className="w-full px-2.5 py-1.5 font-mono text-[11px] rounded focus:outline-none"
+                          style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }} />
+                        <div className="flex gap-2">
+                          <button type="button" onClick={handleSavePhoto}
+                            className="flex-1 px-2 py-1 rounded font-mono text-[10px] uppercase tracking-wider"
+                            style={{ background: COLORS.amber, color: COLORS.onAmber }}>Save</button>
+                          <button type="button" onClick={() => { setPhotoOpen(false); setPhotoMsg(''); }}
+                            className="px-2 py-1 rounded font-mono text-[10px] uppercase tracking-wider"
+                            style={{ border: `1px solid ${COLORS.line}`, color: COLORS.inkSoft }}>Cancel</button>
+                        </div>
+                        {photoMsg && <p className="font-mono text-[10px]" style={{ color: COLORS.danger }}>{photoMsg}</p>}
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => setPhotoOpen(true)}
+                        className="font-mono text-[10px] uppercase tracking-wider hover:underline underline-offset-4"
+                        style={{ color: COLORS.inkSoft }}>
+                        + Add photo
+                      </button>
+                    )
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   {names.brand && (

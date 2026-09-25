@@ -80,6 +80,25 @@ export async function saveAiFragrance(estimate) {
   return existing;
 }
 
+// Attach a bottle photo to a catalog row that has none (the few perfumes no
+// dataset had a photo for). Only fills an empty image_url, never replaces one.
+export async function addFragrancePhoto(fragranceId, url) {
+  const clean = String(url || "").trim();
+  if (!/^https:\/\/\S+$/i.test(clean) || clean.length > 1000) {
+    throw new Error("Paste an image link starting with https://");
+  }
+  const { data, error } = await supabase
+    .from("fragrances")
+    .update({ image_url: clean })
+    .eq("id", fragranceId)
+    .is("image_url", null)
+    .select()
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error("This fragrance already has a photo.");
+  return data;
+}
+
 /* ---------------- Personal notes ---------------- */
 
 export async function getFragranceNotes(fragranceId) {
