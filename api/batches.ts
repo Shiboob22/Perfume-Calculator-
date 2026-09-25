@@ -123,12 +123,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'GET') {
     try {
+      // Honour ?limit= (the Batches page asks for 100), capped so one call
+      // can't pull an unbounded history; 20 when absent or not a number.
+      const requested = parseInt(String(req.query.limit ?? ''), 10);
+      const limit = Number.isFinite(requested) ? Math.min(Math.max(requested, 1), 500) : 20;
+
       const { data, error } = await supabase
         .from('batches')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(limit);
 
       if (error) throw error;
 
