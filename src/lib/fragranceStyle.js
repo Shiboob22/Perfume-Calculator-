@@ -82,7 +82,7 @@ const NOTE_RULES = [
   ['aquatic', ['sea', 'marine', 'water', 'aquatic', 'ozon', 'salt', 'seaweed', 'calone', 'rain', 'air', 'algae', 'mineral']],
   ['musk', ['musk', 'ambrette', 'civet', 'castoreum', 'powder', 'aldehyde', 'skin', 'cashmere', 'iso e', 'cotton']],
   ['spicy', ['pepper', 'cardamom', 'cinnamon', 'clove', 'nutmeg', 'saffron', 'ginger', 'cumin', 'coriander', 'anise', 'caraway', 'chili', 'spic', 'juniper', 'bay leaf', 'pimento', 'allspice']],
-  ['woody', ['cedar', 'sandalwood', 'vetiver', 'patchouli', 'oud', 'agarwood', 'guaiac', 'birch', 'cypress', 'pine', 'fir', 'oak', 'moss', 'wood', 'cashmeran', 'cypriol', 'papyrus', 'ebony', 'teak', 'hinoki', 'gaiac', 'akigalawood', 'larch']],
+  ['woody', ['cedar', 'sandalwood', 'vetiver', 'patchouli', 'oud', 'agarwood', 'guaiac', 'birch', 'cypress', 'pine', 'fir', 'oak', 'moss', 'wood', 'cashmeran', 'cypriol', 'papyrus', 'ebony', 'teak', 'hinoki', 'gaiac', 'akigalawood', 'larch', 'truffle', 'mushroom', 'earth', 'soil', 'root']],
   ['floral', ['rose', 'jasmin', 'iris', 'orris', 'violet', 'peony', 'lily', 'tuberose', 'gardenia', 'ylang', 'magnolia', 'freesia', 'geranium', 'heliotrope', 'orchid', 'mimosa', 'osmanthus', 'carnation', 'lotus', 'frangipani', 'champaca', 'honeysuckle', 'lilac', 'hyacinth', 'narcissus', 'daffodil', 'cyclamen', 'sakura', 'flower', 'floral', 'tiare', 'plumeria', 'wisteria', 'petal', 'blossom', 'violet', 'jonquil', 'broom', 'immortelle', 'chamomile']],
   ['green', ['lavender', 'lavandin', 'mint', 'basil', 'sage', 'rosemary', 'thyme', 'green', 'grass', 'fern', 'artemisia', 'tarragon', 'eucalyptus', 'ivy', 'cucumber', 'herb', 'leaf', 'leaves', 'angelica', 'clary', 'hay', 'davana', 'wormwood', 'absinth']],
 ];
