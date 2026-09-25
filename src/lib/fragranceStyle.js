@@ -112,12 +112,24 @@ export function photoUrl(url, size = 'full') {
 
 /* ---------------- Names ---------------- */
 // Catalog names are "Brand Perfume"; pages show the perfume large and the
-// house above it, like Fragrantica.
+// house above it, like Fragrantica. Curated names don't always spell the
+// house the way the dataset does ("Lancome …" vs "Lancôme", "Dolce Gabbana …"
+// vs "Dolce&Gabbana"), so the prefix is matched on folded words.
+const fold = (s) => s.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  .replace(/['’`]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+
 export function splitName(p) {
   const name = String(p?.name || '').trim();
   const brand = String(p?.brand || '').trim();
-  if (brand && name.toLowerCase().startsWith(brand.toLowerCase() + ' ')) {
-    return { brand, title: name.slice(brand.length + 1) };
+  const target = brand ? fold(brand) : '';
+  if (target) {
+    const words = name.split(/\s+/);
+    let prefix = '';
+    for (let i = 0; i < words.length - 1; i++) {
+      prefix = fold(`${prefix} ${words[i]}`);
+      if (prefix === target) return { brand, title: words.slice(i + 1).join(' ') };
+      if (!target.startsWith(prefix)) break;
+    }
   }
   return { brand: brand || null, title: name };
 }
@@ -221,7 +233,9 @@ export function describe(p) {
   const fam = p?.olfactory_family;
   const gender = GENDER_LABEL[p?.gender];
   const article = fam && /^[aeiou]/i.test(fam) ? 'an' : 'a';
-  if (brand) {
+  // "X by Y is a fragrance." says nothing; only open with it when there is a
+  // family or gender to state.
+  if (brand && (fam || gender)) {
     parts.push(`${title} by ${brand} is ${fam ? `${article} ${fam} ` : 'a '}fragrance${gender ? ` ${gender}` : ''}.`);
   }
   if (p?.year) parts.push(`${title} was launched in ${p.year}.`);

@@ -127,7 +127,7 @@ function ClassificationRadar({ radar }) {
   const fill = radar.map((v, i) => pt(i, v).map((n) => Math.round(n * 10) / 10).join(',')).join(' ');
   const verts = radar.map((v, i) => pt(i, v));
   return (
-    <svg width="100%" viewBox="-10 0 400 400" aria-hidden="true">
+    <svg width="100%" viewBox="-48 0 476 390" aria-hidden="true">
       {[10, 6.67, 3.33].map((v) => (
         <polygon key={v} points={ringPoints(v)} fill="none" stroke="rgba(233,200,138,0.13)" />
       ))}
@@ -156,10 +156,10 @@ function AccordBar({ name, rank }) {
   return (
     <div style={{ height: 30, borderRadius: 7, background: 'rgba(255,255,255,0.035)' }}>
       <div className="flex items-center px-3" style={{
-        width: `${accordWidth(rank)}%`, height: '100%', borderRadius: 7, background: bg,
+        width: `${accordWidth(rank)}%`, minWidth: 'max-content', height: '100%', borderRadius: 7, background: bg,
         boxShadow: `0 0 14px ${bg}33`,
       }}>
-        <span className="font-mono truncate" style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', color: inkOn(bg) }}>
+        <span className="font-mono whitespace-nowrap" style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', color: inkOn(bg) }}>
           {String(name).toLowerCase()}
         </span>
       </div>
@@ -438,7 +438,8 @@ export function PerfumeSearch({ onSelectPerfume }) {
   ].filter(Boolean) : [];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[340px_minmax(0,1fr)] gap-6 md:gap-8 px-4 sm:px-6 md:px-10 py-8 max-w-6xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-[340px_minmax(0,1fr)] gap-6 md:gap-8 px-4 sm:px-6 md:px-10 py-8 max-w-6xl mx-auto"
+      style={{ colorScheme: 'dark' }}>
       {/* ---------------- Search column ---------------- */}
       <div className="space-y-4 md:sticky md:top-4 md:self-start">
         <label className="block font-mono text-[11px] uppercase tracking-[0.2em]" style={{ color: COLORS.amberDeep }}>
@@ -449,7 +450,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Perfume or house — e.g. Sauvage, Lattafa…"
+            placeholder="Search perfumes or houses…"
             className="w-full px-4 py-3 font-mono text-sm rounded-lg focus:outline-none"
             style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}
           />
@@ -648,8 +649,8 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   ))}
                 </div>
                 <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <SegMeter label="Longevity" value={character.lon} caption={character.lon >= 8 ? 'Long lasting' : character.lon >= 6 ? 'Moderate' : character.lon >= 4 ? 'Weak' : 'Very weak'} />
-                  <SegMeter label="Sillage" value={character.sil} caption={character.sil >= 7.5 ? 'Strong' : character.sil >= 5.5 ? 'Moderate' : 'Intimate'} />
+                  <SegMeter label="Longevity" value={character.lon} caption={character.lon >= 8 ? 'Long lasting' : character.lon >= 5.5 ? 'Moderate' : character.lon >= 4 ? 'Weak' : 'Very weak'} />
+                  <SegMeter label="Sillage" value={character.sil} caption={character.sil >= 7 ? 'Strong' : character.sil >= 5 ? 'Moderate' : character.sil >= 3.5 ? 'Soft' : 'Intimate'} />
                 </div>
               </div>
 
