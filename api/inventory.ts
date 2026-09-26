@@ -104,20 +104,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'POST') {
     try {
-      const { fragrance_id, stock_g, low_stock_threshold_g } = req.body;
-      if (!fragrance_id || typeof stock_g !== 'number') {
+      const { fragrance_id, stock_g, low_stock_threshold_g } = req.body || {};
+      const isNum = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
+      if (!fragrance_id
+        || (stock_g !== undefined && !isNum(stock_g))
+        || (low_stock_threshold_g !== undefined && !isNum(low_stock_threshold_g))) {
         return res.status(400).json({ error: 'Invalid payload' });
       }
 
+      // Only the fields sent are written. On an existing row the others keep
+      // their values (PostgREST merges only the columns in the payload); a new
+      // row takes the column defaults. So "track this oil" (no fields) never
+      // resets stock, and a threshold edit never touches stock.
+      const row: Record<string, unknown> = {
+        user_id: userId,
+        fragrance_id,
+        updated_at: new Date().toISOString(),
+      };
+      if (stock_g !== undefined) row.stock_g = stock_g;
+      if (low_stock_threshold_g !== undefined) row.low_stock_threshold_g = low_stock_threshold_g;
+
       const { data, error } = await supabase
         .from('inventory')
-        .upsert({
-          user_id: userId,
-          fragrance_id,
-          stock_g,
-          low_stock_threshold_g: low_stock_threshold_g || 10,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id, fragrance_id' })
+        .upsert(row, { onConflict: 'user_id, fragrance_id' })
         .select();
 
       if (error) throw error;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { searchCatalog, browseCatalog, fetchPopular, fetchSimilar } from '../lib/searchApi';
-import { setStock, saveAiFragrance, addFragrancePhoto } from '../lib/fragranceApi';
+import { trackInventory, saveAiFragrance, addFragrancePhoto } from '../lib/fragranceApi';
 import { lookupFragrance } from '../lib/aiApi';
 import { TIERS, TIER_COLORS, TIER_INITIAL } from '../lib/tiers';
 import { COLORS } from '../lib/theme';
@@ -426,7 +426,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
     setAddingToInventory(true);
     setInventoryMsg('');
     try {
-      await setStock(selectedPerfume.id, 0);
+      await trackInventory(selectedPerfume.id);
       setInventoryMsg('Added to your inventory!');
     } catch (err) {
       setInventoryMsg(err.message || 'Could not add to inventory.');

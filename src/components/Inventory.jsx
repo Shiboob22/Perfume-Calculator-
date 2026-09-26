@@ -46,7 +46,9 @@ export default function Inventory() {
     try {
       await setLowStockThreshold(fragranceId, threshold);
       setRows((prev) => prev.map((r) => (r.fragrance_id === fragranceId ? { ...r, low_stock_threshold_g: threshold } : r)));
-    } catch (e) { /* non-critical, leave UI as typed */ }
+    } catch (e) {
+      setError(e.message || "Could not save the low-stock threshold.");
+    }
   }
 
   const lowStock = rows.filter((r) => r.stock_g <= r.low_stock_threshold_g);

@@ -202,12 +202,14 @@ export async function adjustInventory(fragranceId, deltaGrams) {
   return data.item;
 }
 
-export async function setStock(fragranceId, stockGrams) {
+// POST writes only the fields given: an existing row keeps the rest, a new
+// row starts from the column defaults (0 g stock, 10 g threshold).
+async function upsertInventory(fields) {
   const headers = await authHeaders();
   const res = await fetch('/api/inventory', {
     method: 'POST',
     headers,
-    body: JSON.stringify({ fragrance_id: fragranceId, stock_g: stockGrams }),
+    body: JSON.stringify(fields),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -217,17 +219,15 @@ export async function setStock(fragranceId, stockGrams) {
   return data.item;
 }
 
-export async function setLowStockThreshold(fragranceId, thresholdGrams) {
-  const headers = await authHeaders();
-  const res = await fetch('/api/inventory', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ fragrance_id: fragranceId, low_stock_threshold_g: thresholdGrams }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${res.status}`);
-  }
-  const data = await res.json();
-  return data.item;
+// Start tracking an oil. Leaves stock alone if it is already tracked.
+export function trackInventory(fragranceId) {
+  return upsertInventory({ fragrance_id: fragranceId });
+}
+
+export function setStock(fragranceId, stockGrams) {
+  return upsertInventory({ fragrance_id: fragranceId, stock_g: stockGrams });
+}
+
+export function setLowStockThreshold(fragranceId, thresholdGrams) {
+  return upsertInventory({ fragrance_id: fragranceId, low_stock_threshold_g: thresholdGrams });
 }
