@@ -4,6 +4,8 @@ import PerfumeSearch from "./components/PerfumeSearch";
 import { COLORS } from "./lib/theme";
 import AuthGate from "./components/AuthGate";
 import { signOut } from "./lib/auth";
+import { useI18n } from "./i18n/I18nProvider";
+import LanguageToggle from "./components/LanguageToggle";
 
 // Search is the landing tab and ships in the main bundle; the others load as
 // separate chunks, fetched while the browser is idle after first paint so a
@@ -25,15 +27,10 @@ function prefetchTabs() {
   else setTimeout(run, 1500);
 }
 
-const TABS = [
-  { id: "search", label: "Search" },
-  { id: "calculator", label: "Calculator" },
-  { id: "batches", label: "Batches" },
-  { id: "inventory", label: "Inventory" },
-  { id: "ask", label: "Ask" },
-];
+const TABS = ["search", "calculator", "batches", "inventory", "ask"];
 
 export default function App() {
+  const { t } = useI18n();
   useEffect(() => {
     if (window.location.hash && window.location.hash.includes('access_token')) {
       window.history.replaceState(null, '', window.location.pathname);
@@ -64,13 +61,13 @@ export default function App() {
               className="text-2xl font-serif italic leading-tight"
               style={{ color: COLORS.forestDeep }}
             >
-              The Scent Handbook
+              {t("brand")}
             </h1>
             <p className="text-xs font-mono tracking-wide mt-1" style={{ color: COLORS.inkSoft }}>
-              Search · Calculator · Batches · Inventory · Ask
+              {TABS.map((id) => t(`app.tabs.${id}`)).join(" · ")}
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-end">
             {user?.email && (
               <div className="text-xs font-mono mb-1" style={{ color: COLORS.inkSoft }}>
                 {user.email}
@@ -81,24 +78,25 @@ export default function App() {
               className="text-xs font-mono hover:underline"
               style={{ color: COLORS.inkSoft }}
             >
-              Sign out
+              {t("app.signOut")}
             </button>
+            <div><LanguageToggle /></div>
           </div>
         </div>
 
         <nav className="flex gap-2 border-b overflow-x-auto" style={{ borderColor: COLORS.line }}>
-          {TABS.map((tab) => (
+          {TABS.map((id) => (
             <button
-              key={tab.id}
+              key={id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className="px-4 py-2 text-xs font-mono uppercase tracking-wider -mb-px border-b-2 transition-colors whitespace-nowrap"
+              onClick={() => setActiveTab(id)}
+              className="px-4 py-2 text-xs font-mono uppercase tracking-wider rtl:tracking-normal -mb-px border-b-2 transition-colors whitespace-nowrap"
               style={{
-                borderColor: activeTab === tab.id ? COLORS.forest : "transparent",
-                color: activeTab === tab.id ? COLORS.forestDeep : COLORS.inkSoft,
+                borderColor: activeTab === id ? COLORS.forest : "transparent",
+                color: activeTab === id ? COLORS.forestDeep : COLORS.inkSoft,
               }}
             >
-              {tab.label}
+              {t(`app.tabs.${id}`)}
             </button>
           ))}
         </nav>
@@ -130,9 +128,10 @@ export default function App() {
 }
 
 function TabLoading() {
+  const { t } = useI18n();
   return (
     <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 text-xs font-mono" style={{ color: COLORS.inkSoft }}>
-      Loading…
+      {t("app.loading")}
     </div>
   );
 }

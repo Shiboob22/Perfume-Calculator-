@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { supabase, signInWithEmail, signInWithProvider } from '../lib/auth'
 import { AUTH_STORAGE_KEY } from '../lib/supabaseClient'
 import { COLORS } from '../lib/theme'
+import { useI18n } from '../i18n/I18nProvider'
+import LanguageToggle from './LanguageToggle'
 
 // The session saved by the last visit, read synchronously so a returning user
 // sees the app on first render. getSession() below still confirms it — and
@@ -17,6 +19,7 @@ function storedSession() {
 }
 
 export default function AuthGate({ children }) {
+  const { t } = useI18n()
   const [session, setSession] = useState(storedSession)
   const [loading, setLoading] = useState(() => !session)
   const [email, setEmail] = useState('')
@@ -48,7 +51,7 @@ export default function AuthGate({ children }) {
       await signInWithEmail(email)
       setSentMagicLink(true)
     } catch (err) {
-      setErrorMsg(err.message || 'Failed to send magic link.')
+      setErrorMsg(err.message || t('auth.sendFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -59,7 +62,7 @@ export default function AuthGate({ children }) {
     try {
       await signInWithProvider(provider)
     } catch (err) {
-      setErrorMsg(err.message || `Failed to sign in with ${provider}.`)
+      setErrorMsg(err.message || t('auth.oauthFailed', { provider }))
     }
   }
 
@@ -72,7 +75,7 @@ export default function AuthGate({ children }) {
     return (
       <div className="min-h-screen flex items-center justify-center font-mono text-sm"
         style={{ background: COLORS.paper, color: COLORS.inkSoft }}>
-        Loading The Scent Handbook…
+        {t('auth.loading')}
       </div>
     )
   }
@@ -90,8 +93,8 @@ export default function AuthGate({ children }) {
                 <path d="M15 23 C15 20 22 21 24 19 L48 19 C50 21 57 20 57 23 L60 85 C60 92.7 54.7 98 47 98 L25 98 C17.3 98 12 92.7 12 85 Z" fill="none" stroke={COLORS.amberDeep} strokeWidth="3" />
               </svg>
             </div>
-            <h1 className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>The Scent Handbook</h1>
-            <p className="text-[11px] font-mono uppercase tracking-[0.28em] mt-2" style={{ color: COLORS.amberDeep }}>Sign in</p>
+            <h1 className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>{t('brand')}</h1>
+            <p className="text-[11px] font-mono uppercase tracking-[0.28em] rtl:tracking-normal mt-2" style={{ color: COLORS.amberDeep }}>{t('auth.signIn')}</p>
           </div>
 
           {errorMsg && (
@@ -102,16 +105,16 @@ export default function AuthGate({ children }) {
 
           {sentMagicLink ? (
             <div className="text-center py-6">
-              <p className="font-serif italic text-xl mb-2" style={{ color: COLORS.forestDeep }}>Check your inbox</p>
+              <p className="font-serif italic rtl:not-italic text-xl mb-2" style={{ color: COLORS.forestDeep }}>{t('auth.checkInbox')}</p>
               <p className="text-xs font-mono mb-6" style={{ color: COLORS.inkSoft }}>
-                We sent a magic sign-in link to <span style={{ color: COLORS.ink }}>{email}</span>.
+                {t('auth.sentLinkTo')} <span dir="ltr" style={{ color: COLORS.ink }}>{email}</span>.
               </p>
               <button
                 onClick={() => setSentMagicLink(false)}
                 className="text-xs font-mono underline"
                 style={{ color: COLORS.amber }}
               >
-                Use a different email or method
+                {t('auth.useDifferent')}
               </button>
             </div>
           ) : (
@@ -120,38 +123,39 @@ export default function AuthGate({ children }) {
               <div className="space-y-3 mb-6">
                 <button
                   onClick={() => handleOAuth('google')}
-                  className="w-full py-2.5 px-4 border rounded-lg text-xs font-mono uppercase tracking-wider transition-colors"
+                  className="w-full py-2.5 px-4 border rounded-lg text-xs font-mono uppercase tracking-wider rtl:tracking-normal transition-colors"
                   style={oauthBtn}
                 >
-                  Continue with Google
+                  {t('auth.continueGoogle')}
                 </button>
                 <button
                   onClick={() => handleOAuth('apple')}
-                  className="w-full py-2.5 px-4 border rounded-lg text-xs font-mono uppercase tracking-wider transition-colors"
+                  className="w-full py-2.5 px-4 border rounded-lg text-xs font-mono uppercase tracking-wider rtl:tracking-normal transition-colors"
                   style={oauthBtn}
                 >
-                  Continue with Apple
+                  {t('auth.continueApple')}
                 </button>
               </div>
 
               <div className="flex items-center my-6">
                 <div className="flex-grow border-t" style={{ borderColor: COLORS.line }}></div>
-                <span className="px-3 text-[11px] font-mono uppercase" style={{ color: COLORS.dim }}>or magic link</span>
+                <span className="px-3 text-[11px] font-mono uppercase" style={{ color: COLORS.dim }}>{t('auth.orMagicLink')}</span>
                 <div className="flex-grow border-t" style={{ borderColor: COLORS.line }}></div>
               </div>
 
               {/* Magic Link Form */}
               <form onSubmit={handleEmailSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider mb-1.5" style={{ color: COLORS.inkSoft }}>
-                    Email address
+                  <label className="block text-[11px] font-mono uppercase tracking-wider rtl:tracking-normal mb-1.5" style={{ color: COLORS.inkSoft }}>
+                    {t('auth.emailLabel')}
                   </label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
+                    placeholder={t('auth.emailPlaceholder')}
+                    dir="ltr"
                     className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
                     style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}
                   />
@@ -159,16 +163,17 @@ export default function AuthGate({ children }) {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-2.5 px-4 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors disabled:opacity-50"
+                  className="w-full py-2.5 px-4 rounded-lg text-xs font-mono uppercase tracking-wider rtl:tracking-normal transition-colors disabled:opacity-50"
                   style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}
                 >
-                  {submitting ? 'Sending link…' : 'Send magic link'}
+                  {submitting ? t('auth.sendingLink') : t('auth.sendLink')}
                 </button>
               </form>
             </>
           )}
 
         </div>
+        <LanguageToggle className="mt-6" />
       </div>
     )
   }
