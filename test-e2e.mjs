@@ -1,24 +1,22 @@
-import { readFileSync } from 'fs';
+// Staging only: this script signs up throwaway users, so it must never run
+// against the production project. Pass the staging project explicitly —
+// nothing is read from .env, which holds production values.
+//
+//   E2E_SUPABASE_URL=… E2E_SUPABASE_ANON_KEY=… TEST_BASE_URL=… node test-e2e.mjs
+const PRODUCTION_REF = 'nhfpgjikyolrwmbmqrng';
 
-// Load env vars from .env file
-function loadEnv() {
-  try {
-    const content = readFileSync('.env', 'utf-8');
-    for (const line of content.split('\n')) {
-      const match = line.match(/^([^#=]+)=(.*)$/);
-      if (match) {
-        const key = match[1].trim();
-        const val = match[2].trim();
-        if (!process.env[key]) process.env[key] = val;
-      }
-    }
-  } catch {}
-}
-loadEnv();
-
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+const SUPABASE_URL = process.env.E2E_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.E2E_SUPABASE_ANON_KEY;
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:5173';
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Set E2E_SUPABASE_URL and E2E_SUPABASE_ANON_KEY to the staging project.');
+  process.exit(1);
+}
+if (SUPABASE_URL.includes(PRODUCTION_REF)) {
+  console.error('Refusing to run: E2E_SUPABASE_URL points at the production project.');
+  process.exit(1);
+}
 
 // Test configuration - use unique emails to avoid conflicts
 const TEST_USER_A = { email: `test-a-${Date.now()}@example.com`, password: 'TestPass123!' };
