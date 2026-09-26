@@ -91,7 +91,7 @@ export default function AuthGate({ children }) {
               </svg>
             </div>
             <h1 className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>The Scent Handbook</h1>
-            <p className="text-[11px] font-mono uppercase tracking-[0.28em] mt-2" style={{ color: COLORS.amberDeep }}>Atelier Noir · Sign in</p>
+            <p className="text-[11px] font-mono uppercase tracking-[0.28em] mt-2" style={{ color: COLORS.amberDeep }}>Sign in</p>
           </div>
 
           {errorMsg && (
