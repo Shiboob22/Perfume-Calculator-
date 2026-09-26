@@ -9,16 +9,27 @@ The product is **The Scent Handbook**. Use that name everywhere (titles, meta, e
 
 ## Current phase
 
-**Phase 0 — takeover review (done, awaiting approval).** Read the whole repo and all three handbooks, wrote this file, reported the codebase read, risks and disagreements. No feature code written. Next: owner answers the open questions below, approves a phase plan, then Phase 1 starts on its own branch.
+**Phase 1 — Foundations and safety (in progress, branch `phase-1-foundations`).** Phase 0 review done; phase plan approved 2026-09-27. Staging = a free second Supabase project (owner's choice).
 
-Open questions blocking Phase 1 (see "Content gaps" and "Decisions pending"):
-1. Family oil densities (0.87–1.02) and family default concentrations / rest days: not in any handbook. Keep as "house defaults", or drop to the handbook's single 0.95?
-2. Live Supabase schema: need a schema-only dump (or access) to write the baseline migration.
-3. Is a "Wardrobe" (choose-what-to-wear) feature in scope? It is not one of the four pillars.
-4. Catalog data licensing (Fragrantica dataset, HF `doevent/perfume`, live Parfumo scrape, hot-linked `fimgs.net` photos) for a commercial product.
-5. Hosting plans: Vercel Hobby is non-commercial; Supabase free tier has no backups.
+Open questions (answer before the phase that needs them):
+1. Phase 1 — live Supabase schema: need a schema-only dump (or access) to write the baseline migration. Which account hosts the staging project.
+2. Phase 2 — family oil densities (0.87–1.02) and family default concentrations / rest days are not in any handbook. Keep as "house defaults", or drop to the handbook's single 0.95 + measured density?
+3. Phase 3 — what Pro unlocks.
+4. Phase 7/8 — is a "Wardrobe" (choose-what-to-wear) feature in scope? Catalog data licensing (Fragrantica dataset, HF `doevent/perfume`, live Parfumo scrape, hot-linked `fimgs.net` photos). Hosting plans (Vercel Hobby is non-commercial; Supabase free has no backups).
 
 Update this section at the end of every phase.
+
+## Phase plan (approved 2026-09-27)
+
+Each phase: own branch `phase-N-<slug>`, PR, Vercel preview (previews point at the staging Supabase project), small commits. EN + AR strings ship together in every phase.
+
+1. **Foundations and safety** — staging Supabase project + Vercel Preview env; `0000_baseline.sql` from a live dump; RLS/ownership migrations (shown before running); Vitest, ESLint, `tsconfig` for `api/`, CI; in-house i18n layer (`Intl`-based, `dir="rtl"`, Tailwind logical utilities) on shell + auth + nav; product name everywhere; personal data out of the UI; inventory bugs; drop unused `pg`; `test-e2e.mjs` only against staging.
+2. **Calculator core** — `src/lib/blend/` pure module as the single source; Quick Reference + worked examples as golden tests; measured density per oil; batch stores basis + densities; mobile bench mode (handbook workflow, QC checklist, suggested label). Overshoot-rescale helper only if the owner approves.
+3. **Plans, entitlements, AI controls** — `plans`/`user_plans`, owner-only flip function, server-side `requireEntitlement()`; per-user AI quota, disclosure + opt-out; AI house rules rewritten from the handbooks.
+4. **Routing and marketing site** — React Router with `/en`, `/ar`, app under `/app`; prerendered landing + pricing; hreflang, sitemap, meta.
+5. **Techniques library** — handbook sections as structured content with evidence labels, public parts only; bottle-free Wardrobe rewrites approved by the owner; prerendered articles; build-time search.
+6. **Arabic edition complete** — library in AR after owner review; Arabic fonts in `theme.js`; RTL QA incl. batch card; digit style decision.
+7. **Launch hardening** — catalog licensing outcome; Vercel/Supabase paid plans + backups; monitoring; a11y/perf; legal pages (owner's lawyer writes the text); e2e on staging. Optional Phase 8: Wardrobe feature.
 
 ---
 
