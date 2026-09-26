@@ -151,7 +151,7 @@ export default function AuthGate({ children }) {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="hisham@oravue.com"
+                    placeholder="you@example.com"
                     className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
                     style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}
                   />

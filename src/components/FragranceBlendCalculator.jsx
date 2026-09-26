@@ -9,10 +9,9 @@ import {
   saveFragranceNotes,
   logBatch,
   adjustInventory,
+  listBatches,
 } from "../lib/fragranceApi";
 import { blendTips } from "../lib/aiApi";
-
-const OIL_TYPE_OPTIONS = ["Luzi fragrances / Tiba perfumes", "Golden Man / El Sharkasy"];
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -147,6 +146,20 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   const [blendDate, setBlendDate] = useState(todayISO());
 
   const [logStatus, setLogStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
+  // Suppliers this user has typed before, newest first, as input suggestions.
+  const [oilTypeOptions, setOilTypeOptions] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    listBatches(100)
+      .then((batches) => {
+        if (cancelled) return;
+        const seen = [...new Set(batches.map((b) => (b.oil_type || "").trim()).filter(Boolean))];
+        setOilTypeOptions(seen);
+      })
+      .catch(() => {}); // suggestions only — the field works without them
+    return () => { cancelled = true; };
+  }, []);
   const [logError, setLogError] = useState("");
 
   // Incoming selection from PerfumeSearch (scraped Fragrantica-style data)
@@ -439,7 +452,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
                 <input list="oilTypeOptions" value={oilType} onChange={(e) => setOilType(e.target.value)}
                   className="w-full px-3 py-2 font-mono text-sm border" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }} />
                 <datalist id="oilTypeOptions">
-                  {OIL_TYPE_OPTIONS.map((o) => <option key={o} value={o} />)}
+                  {oilTypeOptions.map((o) => <option key={o} value={o} />)}
                 </datalist>
               </div>
               <div>
