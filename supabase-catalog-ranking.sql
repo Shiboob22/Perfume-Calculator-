@@ -26,3 +26,9 @@ create index if not exists fragrances_name_trgm_idx
 
 create index if not exists fragrances_rank_idx
   on fragrances (priority desc, popularity desc nulls last);
+
+-- Popular shelf (/api/search?popular=1): most-rated perfumes with a photo.
+-- Without this the query sorts the whole catalog (~45 ms); with it, ~3 ms.
+create index if not exists fragrances_popular_photo_idx
+  on public.fragrances (popularity desc nulls last)
+  where image_url is not null;

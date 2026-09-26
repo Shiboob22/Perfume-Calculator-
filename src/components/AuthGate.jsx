@@ -1,10 +1,24 @@
 import React, { useState, useEffect } from 'react'
 import { supabase, signInWithEmail, signInWithProvider } from '../lib/auth'
+import { AUTH_STORAGE_KEY } from '../lib/supabaseClient'
 import { COLORS } from '../lib/theme'
 
+// The session saved by the last visit, read synchronously so a returning user
+// sees the app on first render. getSession() below still confirms it — and
+// refreshes an expired token, a network round trip we no longer wait on; if
+// the refresh fails, the auth listener signs the user out.
+function storedSession() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY))
+    return saved?.user && saved?.access_token ? saved : null
+  } catch {
+    return null
+  }
+}
+
 export default function AuthGate({ children }) {
-  const [session, setSession] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [session, setSession] = useState(storedSession)
+  const [loading, setLoading] = useState(() => !session)
   const [email, setEmail] = useState('')
   const [sentMagicLink, setSentMagicLink] = useState(false)
   const [errorMsg, setErrorMsg] = useState(null)

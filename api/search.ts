@@ -183,6 +183,12 @@ function normalizeQuery(q: string): string {
 
 const RESULT_LIMIT = 20;
 
+// Catalog answers are the same for everyone and change rarely: let the CDN
+// serve repeats. (Vercel never caches a request that carries Authorization,
+// which is why the client searches anonymously and sends its session only on
+// the live-lookup retry.)
+const CATALOG_CACHE = 'public, s-maxage=600, stale-while-revalidate=86400';
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const rawQuery = (req.query.q as string || '').trim();
   const query = rawQuery.toLowerCase();
@@ -217,7 +223,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .order('popularity', { ascending: false, nullsFirst: false })
         .range(offset, offset + RESULT_LIMIT - 1);
       if (error) throw error;
-      res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+      res.setHeader('Cache-Control', CATALOG_CACHE);
       const rows = data || [];
       return res.status(200).json({ source: 'database', match: 'browse', results: rows, hasMore: rows.length === RESULT_LIMIT });
     }
@@ -247,12 +253,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (error) throw error;
 
     if (dbResults && dbResults.length > 0) {
+      res.setHeader('Cache-Control', CATALOG_CACHE);
       return res.status(200).json({
         source: 'database', match: 'exact', results: dbResults, hasMore: dbResults.length === RESULT_LIMIT,
       });
     }
     // Paging past the last exact match: stop, don't fall through to fuzzy/scrape.
     if (offset > 0) {
+      res.setHeader('Cache-Control', CATALOG_CACHE);
       return res.status(200).json({ source: 'database', match: 'exact', results: [], hasMore: false });
     }
 
@@ -263,8 +271,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .rpc('search_fragrances_fuzzy', { q: normalized, lim: RESULT_LIMIT });
       if (fuzzyErr) throw fuzzyErr;
       if (fuzzy && fuzzy.length > 0) {
+        res.setHeader('Cache-Control', CATALOG_CACHE);
         return res.status(200).json({ source: 'database', match: 'fuzzy', results: fuzzy });
       }
+    }
+
+    // Not in the catalog. A live lookup is slow (two Parfumo pages), so only
+    // do it when asked: the client retries with live=1 and its session, so a
+    // found perfume is saved. A token alone also counts, for older clients.
+    // Not cached — the next request may find the row the lookup saved.
+    res.setHeader('Cache-Control', 'no-store');
+    if (req.query.live !== '1' && !req.headers.authorization) {
+      return res.status(200).json({ source: 'database', results: [], tryLive: true });
     }
 
     // 2. No catalog match → try a live Parfumo scrape, but only trust it when

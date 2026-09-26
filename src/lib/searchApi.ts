@@ -30,9 +30,10 @@ export interface SimilarResponse {
 
 import { supabase } from './supabaseClient';
 
-// Attach the user's session token when one exists, so the server may cache
-// scraped results. Search still works without it (server returns live results
-// without persisting), so a missing session is not an error here.
+// The session token goes only on the live-lookup retry, so the server may
+// save what the scrape finds. Everything else is sent without it: Vercel's
+// CDN skips any request that carries Authorization, and catalog answers are
+// the same for everyone.
 async function optionalAuthHeaders(): Promise<Record<string, string>> {
   try {
     const { data } = await supabase.auth.getSession();
@@ -43,15 +44,50 @@ async function optionalAuthHeaders(): Promise<Record<string, string>> {
   }
 }
 
+async function getJson(url: string, headers: Record<string, string> = {}) {
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// In-memory answers for this page view: retyping a query, backspacing, or
+// reopening a perfume shows the result instantly. Requests in flight are
+// shared; failures are dropped so the next try goes to the network.
+const MAX_CACHED = 200;
+const memo = new Map<string, Promise<any>>();
+function remember<T>(key: string, load: () => Promise<T>): Promise<T> {
+  const hit = memo.get(key);
+  if (hit) {
+    memo.delete(key); // re-insert: Map order doubles as least-recently-used
+    memo.set(key, hit);
+    return hit;
+  }
+  const p = load();
+  memo.set(key, p);
+  p.catch(() => memo.delete(key));
+  if (memo.size > MAX_CACHED) memo.delete(memo.keys().next().value!);
+  return p;
+}
+
+// Case and spacing don't change the answer; folding them here also makes
+// "Sauvage" and "sauvage " share one CDN entry.
+const normalize = (q: string) => q.trim().toLowerCase().replace(/\s+/g, ' ');
+
 export async function searchCatalog(query: string, offset = 0): Promise<SearchResponse> {
-  if (!query || query.trim().length < 2) return { results: [] };
+  const q = normalize(query || '');
+  if (q.length < 2) return { results: [] };
+  const url = `/api/search?q=${encodeURIComponent(q)}&offset=${offset}`;
 
   try {
-    const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}&offset=${offset}`, {
-      headers: await optionalAuthHeaders(),
+    const data = await remember(`q:${q}:${offset}`, async () => {
+      const first = await getJson(url);
+      // Not in the catalog: ask for a live lookup, as the signed-in user.
+      if (first.tryLive) return getJson(`${url}&live=1`, await optionalAuthHeaders());
+      return first;
     });
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    const data = await res.json();
     return { results: data.results || [], match: data.match, hasMore: !!data.hasMore };
   } catch (error) {
     console.error('Search API error:', error);
@@ -61,10 +97,9 @@ export async function searchCatalog(query: string, offset = 0): Promise<SearchRe
 
 /** Perfumes with a note or accord, or a house's line-up, most-rated first. */
 export async function browseCatalog(kind: BrowseKind, value: string, offset = 0): Promise<SearchResponse> {
+  const url = `/api/search?${kind}=${encodeURIComponent(value)}&offset=${offset}`;
   try {
-    const res = await fetch(`/api/search?${kind}=${encodeURIComponent(value)}&offset=${offset}`);
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    const data = await res.json();
+    const data = await remember(url, () => getJson(url));
     return { results: data.results || [], match: 'browse', hasMore: !!data.hasMore };
   } catch (error) {
     console.error('Browse API error:', error);
@@ -79,9 +114,7 @@ export async function fetchFragranceSuggestions(query: string): Promise<SearchRe
 /** Most-rated perfumes with a bottle photo, for the empty search state. */
 export async function fetchPopular(): Promise<SearchResult[]> {
   try {
-    const res = await fetch('/api/search?popular=1');
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    return (await res.json()).results || [];
+    return (await remember('popular', () => getJson('/api/search?popular=1'))).results || [];
   } catch (error) {
     console.error('Popular API error:', error);
     return [];
@@ -90,10 +123,6 @@ export async function fetchPopular(): Promise<SearchResult[]> {
 
 /** "Reminds me of" (other houses, by accords/notes) + "More from <brand>". */
 export async function fetchSimilar(id: string): Promise<SimilarResponse> {
-  const res = await fetch(`/api/similar?id=${encodeURIComponent(id)}`);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${res.status}`);
-  }
-  return res.json();
+  const url = `/api/similar?id=${encodeURIComponent(id)}`;
+  return remember(url, () => getJson(url));
 }

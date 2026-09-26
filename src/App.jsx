@@ -1,13 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import FlaconMark from "./components/FlaconMark";
 import PerfumeSearch from "./components/PerfumeSearch";
-import FragranceBlendCalculator from "./components/FragranceBlendCalculator";
-import Batches from "./components/Batches";
-import Inventory from "./components/Inventory";
-import PerfumerChat from "./components/PerfumerChat";
 import { COLORS } from "./lib/theme";
 import AuthGate from "./components/AuthGate";
 import { signOut } from "./lib/auth";
+
+// Search is the landing tab and ships in the main bundle; the others load as
+// separate chunks, fetched while the browser is idle after first paint so a
+// tab switch never waits on the network.
+const loaders = {
+  calculator: () => import("./components/FragranceBlendCalculator"),
+  batches: () => import("./components/Batches"),
+  inventory: () => import("./components/Inventory"),
+  ask: () => import("./components/PerfumerChat"),
+};
+const FragranceBlendCalculator = lazy(loaders.calculator);
+const Batches = lazy(loaders.batches);
+const Inventory = lazy(loaders.inventory);
+const PerfumerChat = lazy(loaders.ask);
+
+function prefetchTabs() {
+  const run = () => Object.values(loaders).forEach((load) => load());
+  if ("requestIdleCallback" in window) requestIdleCallback(run, { timeout: 3000 });
+  else setTimeout(run, 1500);
+}
 
 const TABS = [
   { id: "search", label: "Search" },
@@ -26,6 +42,10 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState("search");
   const [selectedPerfume, setSelectedPerfume] = useState(null);
+  // The chat stays mounted once opened, so it survives tab switches.
+  const [chatOpened, setChatOpened] = useState(false);
+  useEffect(() => { if (activeTab === "ask") setChatOpened(true); }, [activeTab]);
+  useEffect(prefetchTabs, []);
 
   function handleSelectPerfume(perfume) {
     setSelectedPerfume(perfume);
@@ -85,6 +105,7 @@ export default function App() {
       </header>
 
       <main className="pb-16">
+        <Suspense fallback={<TabLoading />}>
         {activeTab === "search" && <PerfumeSearch onSelectPerfume={handleSelectPerfume} />}
         {activeTab === "calculator" && (
           <FragranceBlendCalculator
@@ -95,12 +116,23 @@ export default function App() {
         {activeTab === "batches" && <Batches />}
         {activeTab === "inventory" && <Inventory />}
         {/* Kept mounted so the conversation survives switching tabs. */}
-        <div hidden={activeTab !== "ask"}>
-          <PerfumerChat />
-        </div>
+        {(chatOpened || activeTab === "ask") && (
+          <div hidden={activeTab !== "ask"}>
+            <PerfumerChat />
+          </div>
+        )}
+        </Suspense>
       </main>
     </div>
       )}
     </AuthGate>
+  );
+}
+
+function TabLoading() {
+  return (
+    <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 text-xs font-mono" style={{ color: COLORS.inkSoft }}>
+      Loading…
+    </div>
   );
 }
