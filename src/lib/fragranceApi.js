@@ -196,7 +196,8 @@ export async function adjustInventory(fragranceId, deltaGrams) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${res.status}`);
+    // err.code === 'not_tracked': this oil has no inventory row yet.
+    throw Object.assign(new Error(err.error || `HTTP ${res.status}`), { status: res.status, code: err.code });
   }
   const data = await res.json();
   return data.item;

@@ -156,8 +156,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
 
       if (error) throw error;
-      if (!data) {
-        return res.status(404).json({ error: 'Inventory item not found' });
+      // No row for this oil: depending on the PostgREST version the function's
+      // composite result arrives as null or as an object of nulls.
+      if (!data || data.fragrance_id == null) {
+        return res.status(404).json({ error: 'Inventory item not found', code: 'not_tracked' });
       }
       return res.status(200).json({ item: data });
     } catch (err: any) {
