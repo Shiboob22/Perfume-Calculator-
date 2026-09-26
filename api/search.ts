@@ -190,6 +190,13 @@ const RESULT_LIMIT = 20;
 const CATALOG_CACHE = 'public, s-maxage=600, stale-while-revalidate=86400';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Warm-up ping from the app on load (see warmUp in searchApi.ts): boot the
+  // function and open its connection to Supabase before the first real query.
+  if (req.query.warm) {
+    await supabase.from('fragrances').select('id').limit(1).then(() => {}, () => {});
+    return res.status(204).end();
+  }
+
   const rawQuery = (req.query.q as string || '').trim();
   const query = rawQuery.toLowerCase();
 

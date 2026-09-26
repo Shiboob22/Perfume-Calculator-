@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { fetchPopular } from "./lib/searchApi";
+import { fetchPopular, warmUp } from "./lib/searchApi";
 import "@fontsource/cormorant-garamond/latin-500.css";
 import "@fontsource/cormorant-garamond/latin-600.css";
 import "@fontsource/cormorant-garamond/latin-700.css";
@@ -17,6 +17,7 @@ import "./index.css";
 // Start the search tab's popular shelf now, in parallel with the session
 // check, instead of after sign-in resolves and the tab mounts.
 fetchPopular();
+warmUp();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

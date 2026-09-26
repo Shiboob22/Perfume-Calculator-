@@ -14,6 +14,13 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, { global: { fetch
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Warm-up ping from the app on load (see warmUp in searchApi.ts): boot the
+  // function and open its connection to Supabase before the first real query.
+  if (req.query.warm) {
+    await supabase.from('fragrances').select('id').limit(1).then(() => {}, () => {});
+    return res.status(204).end();
+  }
+
   const id = String(req.query.id || '');
   if (!UUID.test(id)) return res.status(400).json({ error: 'Missing or invalid id' });
 

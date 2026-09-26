@@ -126,3 +126,14 @@ export async function fetchSimilar(id: string): Promise<SimilarResponse> {
   const url = `/api/similar?id=${encodeURIComponent(id)}`;
   return remember(url, () => getJson(url));
 }
+
+/**
+ * Wake the catalog functions while the user is still reading the page, so the
+ * first search or perfume view doesn't pay a serverless cold start (~1-3 s).
+ * Cached answers come from the CDN and never wake a function on their own.
+ */
+export function warmUp() {
+  for (const url of ['/api/search?warm=1', '/api/similar?warm=1']) {
+    fetch(url, { cache: 'no-store' }).catch(() => {});
+  }
+}
