@@ -6,7 +6,7 @@ body {
   margin: 0;
   background: #100E0A;
   color: #F0E8D7;
-  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-family: "Space Grotesk", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
