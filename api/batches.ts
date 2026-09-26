@@ -104,6 +104,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         oil_cost: b.oil_cost ?? null,
         notes: b.notes ?? null,
         blended_by: b.blended_by ?? null,
+        actual_oil_g: b.actual_oil_g ?? null,
+        actual_ethanol_g: b.actual_ethanol_g ?? null,
         created_at: new Date().toISOString(),
       };
 

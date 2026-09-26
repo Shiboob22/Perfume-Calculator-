@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listBatches, deleteBatch } from "../lib/fragranceApi";
-import { downloadBatchCard } from "../lib/batchCard";
+import { downloadBatchCard, actualOilPct } from "../lib/batchCard";
 import { batchInsights } from "../lib/aiApi";
 import { batchStartedAt, batchReadyAt, formatExact, readyCountdown } from "../lib/batchTiming";
 
@@ -156,6 +156,12 @@ export default function Batches() {
               {b.oil_cost ? <> &nbsp;·&nbsp; Cost {round2(b.oil_cost)}</> : null}
               {b.price_per_gram ? <> ({round2(Number(b.price_per_gram))}/g)</> : null}
             </div>
+            {actualOilPct(b) !== null && (
+              <div className="text-xs font-mono mt-1" style={{ color: COLORS.ink }}>
+                Actual pour: oil {round2(Number(b.actual_oil_g))}g · ethanol {round2(Number(b.actual_ethanol_g))}g
+                &nbsp;→ {round2(actualOilPct(b))}% oil by volume (target {b.concentration_pct}%)
+              </div>
+            )}
             <BatchTiming batch={b} />
             {(b.oil_type || b.blended_by) && (
               <div className="text-xs font-mono mt-1" style={{ color: COLORS.inkSoft }}>

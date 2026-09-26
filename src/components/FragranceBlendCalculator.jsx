@@ -140,6 +140,9 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   const [oilType, setOilType] = useState("");
   const [pricePerGram, setPricePerGram] = useState("");
   const [notes, setNotes] = useState("");
+  // What was really poured on the scale — often off the target by a little.
+  const [actualOilG, setActualOilG] = useState("");
+  const [actualEthG, setActualEthG] = useState("");
   const [blendedBy, setBlendedBy] = useState("");
   const [blendDate, setBlendDate] = useState(todayISO());
 
@@ -210,10 +213,25 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
       oilMl = oilG / oilDensity; ethMl = ethG / ethDensity;
       totalMl = oilMl + ethMl;
     }
+    // Actual pour: share of oil in what was really weighed out, on the same
+    // basis as the target (by volume for mL / fl oz batches, by weight for
+    // g / oz), so it reads directly against the concentration slider.
+    const aOilG = Number(actualOilG) > 0 ? Number(actualOilG) : null;
+    const aEthG = Number(actualEthG) > 0 ? Number(actualEthG) : null;
+    let actual = null;
+    if (aOilG !== null && aEthG !== null) {
+      const byVolume = batchUnit === "ml" || batchUnit === "floz";
+      const oilPart = byVolume ? aOilG / oilDensity : aOilG;
+      const ethPart = byVolume ? aEthG / ethDensity : aEthG;
+      actual = { oilPct: (oilPart / (oilPart + ethPart)) * 100, byVolume };
+    }
+
+    // Cost and stock follow the oil actually used when it was recorded.
+    const usedOilG = aOilG ?? oilG;
     const price = Number(pricePerGram);
-    const oilCost = price > 0 ? oilG * price : null;
-    return { oilG, oilMl, ethG, ethMl, totalG, totalMl, oilCost, conc };
-  }, [batchSize, batchUnit, concPct, densities, tierKey, pricePerGram]);
+    const oilCost = price > 0 ? usedOilG * price : null;
+    return { oilG, oilMl, ethG, ethMl, totalG, totalMl, oilCost, conc, actual, usedOilG };
+  }, [batchSize, batchUnit, concPct, densities, tierKey, pricePerGram, actualOilG, actualEthG]);
 
   async function handleLogBatch() {
     if (!fragName.trim()) return;
@@ -239,8 +257,13 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         oil_cost: result.oilCost,
         notes: notes || null,
         blended_by: blendedBy || null,
+        actual_oil_g: Number(actualOilG) > 0 ? Number(actualOilG) : null,
+        actual_ethanol_g: Number(actualEthG) > 0 ? Number(actualEthG) : null,
       });
-      await adjustInventory(fragrance.id, -result.oilG);
+      await adjustInventory(fragrance.id, -result.usedOilG);
+      // Actual pours belong to this batch only — clear them so the next
+      // log doesn't silently reuse them.
+      setActualOilG(""); setActualEthG("");
       setLogStatus("saved");
     } catch (e) {
       setLogStatus("error");
@@ -345,7 +368,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
               units={[{value:"ml",label:"mL"},{value:"floz",label:"fl oz"},{value:"g",label:"g"},{value:"oz",label:"oz"}]}
             />
             <div className="flex flex-wrap gap-2 mt-3">
-              {[3, 5, 10, 20, 30, 50, 100, 200].map((amt) => (
+              {[3, 5, 10, 20, 30, 50, 100, 125, 200].map((amt) => (
                 <button
                   key={amt}
                   type="button"
@@ -424,6 +447,21 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
                 <TextInput type="number" step="0.01" min="0" value={pricePerGram} onChange={(e) => setPricePerGram(e.target.value)} placeholder="0.00" />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-3 mb-1">
+              <div>
+                <label className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>Actual oil poured (g)</label>
+                <TextInput type="number" step="0.01" min="0" value={actualOilG} onChange={(e) => setActualOilG(e.target.value)} placeholder={round2(result.oilG)} />
+              </div>
+              <div>
+                <label className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>Actual ethanol poured (g)</label>
+                <TextInput type="number" step="0.01" min="0" value={actualEthG} onChange={(e) => setActualEthG(e.target.value)} placeholder={round2(result.ethG)} />
+              </div>
+            </div>
+            <p className="text-xs mb-3 font-mono" style={{ color: COLORS.ink }}>
+              {result.actual
+                ? <>Actual ratio: {round2(result.actual.oilPct)}% oil / {round2(100 - result.actual.oilPct)}% ethanol {result.actual.byVolume ? "by volume" : "by weight"} (target {Number(concPct)}%)</>
+                : "Enter both to see the ratio you really made."}
+            </p>
             <label className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>Notes</label>
             <textarea
               value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}

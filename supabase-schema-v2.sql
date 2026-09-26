@@ -62,8 +62,14 @@ create table if not exists batches (
   oil_cost numeric,
   notes text,
   blended_by text,
+  actual_oil_g numeric,      -- what was really poured, when recorded
+  actual_ethanol_g numeric,
   created_at timestamptz not null default now()
 );
+
+-- For databases created before these columns existed.
+alter table batches add column if not exists actual_oil_g numeric;
+alter table batches add column if not exists actual_ethanol_g numeric;
 
 create index if not exists batches_date_idx on batches (blend_date desc);
 create index if not exists batches_fragrance_idx on batches (fragrance_id);
