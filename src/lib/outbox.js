@@ -33,10 +33,18 @@ export function isOffline(err) {
   return err instanceof TypeError || err?.name === "TypeError" || (typeof navigator !== "undefined" && navigator.onLine === false);
 }
 
+// "Not now" answers from the server: too many requests (429), or a
+// server-side failure (5xx, e.g. the database slow to respond). The batch
+// is fine; send it again later.
+export function isRetryable(err) {
+  return err?.status === 429 || err?.status >= 500;
+}
+
 /**
  * Send queued batches in order with `send(batch)`. Stops at the first
- * connection failure (and keeps the rest); drops a batch the server refuses,
- * so one bad entry can't block the queue forever. Returns counts.
+ * connection failure or "not now" answer (and keeps the rest); drops a batch
+ * the server refuses outright, so one bad entry can't block the queue
+ * forever. Returns counts.
  */
 export async function flush(send, storage = globalThis.localStorage) {
   let list = read(storage);
@@ -48,7 +56,7 @@ export async function flush(send, storage = globalThis.localStorage) {
       await send(item.batch);
       sent += 1;
     } catch (err) {
-      if (isOffline(err)) break;
+      if (isOffline(err) || isRetryable(err)) break;
       refused.push({ batch: item.batch, error: err?.message || String(err) });
     }
     list = rest;

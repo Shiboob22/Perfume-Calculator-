@@ -37,6 +37,15 @@ describe("outbox", () => {
     expect(r.left).toBe(0);
   });
 
+  it.each([429, 500, 503])("keeps the queue on a %i and tries again later", async (status) => {
+    const s = memory();
+    enqueue({ id: "a" }, s);
+    enqueue({ id: "b" }, s);
+    const r = await flush(async () => { throw Object.assign(new Error("later"), { status }); }, s);
+    expect(r).toEqual({ sent: 0, refused: [], left: 2 });
+    expect(pending(s).map((x) => x.batch.id)).toEqual(["a", "b"]);
+  });
+
   it("survives broken storage", async () => {
     const s = { getItem: () => "not json", setItem: () => { throw new Error("full"); } };
     expect(pending(s)).toEqual([]);
