@@ -12,6 +12,8 @@ import ProLocked from "./components/ProLocked";
 import { EntitlementsProvider, useEntitlements } from "./lib/useEntitlements";
 import { can } from "./lib/entitlements";
 import { fetchPopular, warmUp } from "./lib/searchApi";
+import { flush } from "./lib/outbox";
+import { logBatch } from "./lib/fragranceApi";
 
 // Search ships with the app shell; the other tabs load as separate chunks,
 // fetched while the browser is idle after first paint so a tab switch never
@@ -48,6 +50,15 @@ export default function App() {
   // Start the search tab's popular shelf and wake the catalog functions
   // while the session is being checked.
   useEffect(() => { fetchPopular(); warmUp(); }, []);
+
+  // Batches logged without a connection are sent when the app opens and
+  // whenever the connection returns.
+  useEffect(() => {
+    const send = () => flush(logBatch).catch(() => {});
+    send();
+    window.addEventListener("online", send);
+    return () => window.removeEventListener("online", send);
+  }, []);
   useEffect(() => {
     if (window.location.hash && window.location.hash.includes('access_token')) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);

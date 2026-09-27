@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { isAuthRetryableFetchError } from '@supabase/auth-js'
 import { supabase, signInWithEmail, signInWithProvider } from '../lib/auth'
 import { AUTH_STORAGE_KEY } from '../lib/supabaseClient'
 import { COLORS } from '../lib/theme'
@@ -30,7 +31,13 @@ export default function AuthGate({ children }) {
 
   useEffect(() => {
     // Check active sessions
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      // No connection (e.g. at the bench): keep the saved session instead of
+      // signing out; the token refreshes once the connection is back.
+      if (error && isAuthRetryableFetchError(error)) {
+        setLoading(false)
+        return
+      }
       setSession(session)
       setLoading(false)
     })
