@@ -1,8 +1,13 @@
 import { AuthClient } from '@supabase/auth-js'
 import { PostgrestClient } from '@supabase/postgrest-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://nhfpgjikyolrwmbmqrng.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_oEdeyNJFlNmLV5qLDdAJAw_e-dxc115'
+// No fallback: a build without these (e.g. a preview missing its env) must
+// fail loudly, not quietly talk to the production project.
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set (see .env.example).')
+}
 
 // The app only uses auth and table queries, so this wires those two clients
 // together the way createClient() does, without shipping realtime, storage
