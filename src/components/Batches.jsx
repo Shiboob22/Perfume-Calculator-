@@ -14,21 +14,25 @@ function round2(n) {
 }
 
 function BatchTiming({ batch }) {
+  const { t, locale } = useI18n();
   const started = batchStartedAt(batch);
   const ready = batchReadyAt(batch);
   if (!started) return null;
   const isReady = ready && ready <= new Date();
+  const countdown = readyCountdown(ready);
   return (
     <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs font-mono">
       <div>
-        <span style={{ color: COLORS.inkSoft }}>Created </span>
-        <span style={{ color: COLORS.ink }}>{formatExact(started)}</span>
+        <span style={{ color: COLORS.inkSoft }}>{t("batches.created")} </span>
+        <span style={{ color: COLORS.ink }}>{formatExact(started, locale)}</span>
       </div>
       {ready && (
         <div>
-          <span style={{ color: COLORS.inkSoft }}>Best from </span>
-          <span style={{ color: COLORS.ink }}>{formatExact(ready)}</span>
-          <span style={{ color: isReady ? COLORS.forest : COLORS.amberDeep }}> · {readyCountdown(ready)}</span>
+          <span style={{ color: COLORS.inkSoft }}>{t("batches.bestFrom")} </span>
+          <span style={{ color: COLORS.ink }}>{formatExact(ready, locale)}</span>
+          {countdown && (
+            <span style={{ color: isReady ? COLORS.forest : COLORS.amberDeep }}> · {t(`batches.countdown.${countdown.key}`, { count: countdown.count })}</span>
+          )}
         </div>
       )}
     </div>
@@ -51,7 +55,7 @@ export default function Batches() {
     try {
       setInsights(await batchInsights());
     } catch (e) {
-      setInsightsError(e.message || "Could not reach Gemini.");
+      setInsightsError(e.message || t("chat.unreachable"));
     } finally {
       setInsightsLoading(false);
     }
@@ -64,7 +68,7 @@ export default function Batches() {
       const data = await listBatches(100);
       setBatches(data);
     } catch (e) {
-      setError(e.message || "Could not load batch history.");
+      setError(e.message || t("batches.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -77,7 +81,7 @@ export default function Batches() {
       await deleteBatch(id);
       setBatches((prev) => prev.filter((b) => b.id !== id));
     } catch (e) {
-      setError(e.message || "Could not delete that batch.");
+      setError(e.message || t("batches.deleteFailed"));
     }
   }
 
@@ -86,20 +90,20 @@ export default function Batches() {
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>Batch history</h2>
+        <h2 className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>{t("batches.title")}</h2>
         {batches.length > 0 && (
           <div className="flex items-center gap-3">
             <span className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>
-              {batches.length} batches · {round2(totalOilCost)} total oil cost
+              {t("batches.summary", { count: batches.length, cost: round2(totalOilCost) })}
             </span>
             {entitlements.features?.includes("ai.ask") && <button
               type="button"
               onClick={handleInsights}
               disabled={insightsLoading}
-              className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider border rounded-lg disabled:opacity-50"
+              className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider rtl:tracking-normal border rounded-lg disabled:opacity-50"
               style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
             >
-              {insightsLoading ? "Thinking…" : "AI insights"}
+              {insightsLoading ? t("batches.thinking") : t("batches.insights")}
             </button>}
           </div>
         )}
@@ -116,20 +120,20 @@ export default function Batches() {
       {insights && (
         <div className="mb-6 p-4 border rounded-lg whitespace-pre-wrap text-sm" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card, color: COLORS.ink }}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono uppercase tracking-wider" style={{ color: COLORS.amberDeep }}>Gemini · insights</span>
+            <span className="text-[11px] font-mono uppercase tracking-wider rtl:tracking-normal" style={{ color: COLORS.amberDeep }}>{t("batches.insightsLabel")}</span>
             <button type="button" onClick={() => setInsights("")} className="text-xs font-mono underline" style={{ color: COLORS.inkSoft }}>
-              Hide
+              {t("batches.hide")}
             </button>
           </div>
           {insights}
         </div>
       )}
 
-      {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>Loading…</p>}
+      {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
       {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && batches.length === 0 && (
         <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>
-          No batches logged yet — use "Log this batch" on the Calculator tab after computing a blend.
+          {t("batches.empty")}
         </p>
       )}
 
@@ -140,17 +144,17 @@ export default function Batches() {
               <div>
                 <div className="text-sm font-serif font-semibold" style={{ color: COLORS.forestDeep }}>{b.fragrance_name}</div>
                 <div className="text-xs font-mono mt-0.5" style={{ color: COLORS.inkSoft }}>
-                  {b.blend_date} · {TIERS[b.tier]?.label || b.tier} · {b.concentration_pct}%
+                  {b.blend_date} · {TIERS[b.tier] ? t(`families.${b.tier}.label`) : b.tier} · {b.concentration_pct}%
                 </div>
               </div>
-              <div className="flex items-center gap-3 shrink-0 ml-3">
+              <div className="flex items-center gap-3 shrink-0 ms-3">
                 <button
                   type="button"
                   onClick={() => downloadBatchCard(b)}
                   className="text-xs font-mono underline"
                   style={{ color: COLORS.forest }}
                 >
-                  Export card
+                  {t("batches.exportCard")}
                 </button>
                 <button
                   type="button"
@@ -158,26 +162,25 @@ export default function Batches() {
                   className="text-xs font-mono underline"
                   style={{ color: COLORS.inkSoft }}
                 >
-                  Delete
+                  {t("batches.delete")}
                 </button>
               </div>
             </div>
             <div className="mt-2 text-sm font-mono" style={{ color: COLORS.ink }}>
-              Oil {round2(b.oil_g)}g / {round2(b.oil_ml)}mL &nbsp;·&nbsp; Ethanol {round2(b.ethanol_g)}g / {round2(b.ethanol_ml)}mL
-              &nbsp;·&nbsp; Total {round2(b.total_g)}g
-              {b.oil_cost ? <> &nbsp;·&nbsp; Cost {round2(b.oil_cost)}</> : null}
-              {b.price_per_gram ? <> ({round2(Number(b.price_per_gram))}/g)</> : null}
+              {t("batches.oil")} {round2(b.oil_g)} g / {round2(b.oil_ml)} mL &nbsp;·&nbsp; {t("batches.ethanol")} {round2(b.ethanol_g)} g / {round2(b.ethanol_ml)} mL
+              &nbsp;·&nbsp; {t("batches.total")} {round2(b.total_g)} g
+              {b.oil_cost ? <> &nbsp;·&nbsp; {t("batches.cost")} {round2(b.oil_cost)}</> : null}
+              {b.price_per_gram ? <> ({round2(Number(b.price_per_gram))}{t("batches.perGram")})</> : null}
             </div>
             {actualOilPct(b) !== null && (
               <div className="text-xs font-mono mt-1" style={{ color: COLORS.ink }}>
-                Actual pour: oil {round2(Number(b.actual_oil_g))}g · ethanol {round2(Number(b.actual_ethanol_g))}g
-                &nbsp;→ {round2(actualOilPct(b))}% oil by volume (target {b.concentration_pct}%)
+                {t("batches.actualPour", { oil: round2(Number(b.actual_oil_g)), ethanol: round2(Number(b.actual_ethanol_g)), pct: round2(actualOilPct(b)), target: b.concentration_pct })}
               </div>
             )}
             <BatchTiming batch={b} />
             {(b.oil_type || b.blended_by) && (
               <div className="text-xs font-mono mt-1" style={{ color: COLORS.inkSoft }}>
-                {b.oil_type}{b.oil_type && b.blended_by ? " · " : ""}{b.blended_by ? "by " + b.blended_by : ""}
+                {b.oil_type}{b.oil_type && b.blended_by ? " · " : ""}{b.blended_by ? t("batches.by", { name: b.blended_by }) : ""}
               </div>
             )}
             {b.notes && (

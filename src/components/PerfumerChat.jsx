@@ -1,15 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { COLORS } from "../lib/theme";
 import { askPerfumer } from "../lib/aiApi";
+import { useI18n } from "../i18n/I18nProvider";
 
-const STARTERS = [
-  "What concentration suits a gourmand extrait?",
-  "My blend smells sharp after a week — what should I do?",
-  "Which of my recent batches needs the longest rest?",
-];
+const STARTERS = ["gourmandExtrait", "sharpAfterWeek", "longestRest"];
 
 // Conversation lives in component state only — it resets on reload by design.
 export default function PerfumerChat() {
+  const { t } = useI18n();
   const [messages, setMessages] = useState([]); // [{ role: 'user' | 'model', text }]
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -35,7 +33,7 @@ export default function PerfumerChat() {
       // Drop the unanswered question and put it back in the box to retry.
       setMessages(messages);
       setDraft(question);
-      setError(e.message || "Could not reach Gemini.");
+      setError(e.message || t("chat.unreachable"));
     } finally {
       setSending(false);
     }
@@ -51,7 +49,7 @@ export default function PerfumerChat() {
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>Ask the perfumer</h2>
+        <h2 className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>{t("chat.title")}</h2>
         {messages.length > 0 && (
           <button
             type="button"
@@ -59,7 +57,7 @@ export default function PerfumerChat() {
             className="text-xs font-mono underline"
             style={{ color: COLORS.inkSoft }}
           >
-            New conversation
+            {t("chat.newConversation")}
           </button>
         )}
       </div>
@@ -67,19 +65,19 @@ export default function PerfumerChat() {
       {messages.length === 0 && (
         <div className="mb-6">
           <p className="text-sm font-mono mb-3" style={{ color: COLORS.inkSoft }}>
-            Gemini knows your five families and your recent batches. Try:
+            {t("chat.intro")}
           </p>
           <div className="flex flex-col gap-2">
-            {STARTERS.map((s) => (
+            {STARTERS.map((key) => (
               <button
-                key={s}
+                key={key}
                 type="button"
-                onClick={() => send(s)}
+                onClick={() => send(t(`chat.starters.${key}`))}
                 disabled={sending}
-                className="text-left px-4 py-2 text-sm font-serif italic border rounded-lg disabled:opacity-50"
+                className="text-start px-4 py-2 text-sm font-serif italic border rounded-lg disabled:opacity-50"
                 style={{ borderColor: COLORS.line, backgroundColor: COLORS.card, color: COLORS.ink }}
               >
-                {s}
+                {t(`chat.starters.${key}`)}
               </button>
             ))}
           </div>
@@ -93,15 +91,15 @@ export default function PerfumerChat() {
             className="px-4 py-3 text-sm rounded-lg whitespace-pre-wrap"
             style={
               m.role === "user"
-                ? { marginLeft: "15%", backgroundColor: COLORS.cardHi, border: `1px solid ${COLORS.amberDeep}`, color: COLORS.ink }
-                : { marginRight: "15%", backgroundColor: COLORS.card, border: `1px solid ${COLORS.line}`, color: COLORS.ink }
+                ? { marginInlineStart: "15%", backgroundColor: COLORS.cardHi, border: `1px solid ${COLORS.amberDeep}`, color: COLORS.ink }
+                : { marginInlineEnd: "15%", backgroundColor: COLORS.card, border: `1px solid ${COLORS.line}`, color: COLORS.ink }
             }
           >
             {m.text}
           </div>
         ))}
         {sending && (
-          <p className="text-xs font-mono animate-pulse" style={{ color: COLORS.inkSoft }}>Gemini is thinking…</p>
+          <p className="text-xs font-mono animate-pulse" style={{ color: COLORS.inkSoft }}>{t("chat.thinking")}</p>
         )}
         <div ref={endRef} />
       </div>
@@ -115,7 +113,8 @@ export default function PerfumerChat() {
           onKeyDown={handleKeyDown}
           rows={2}
           maxLength={2000}
-          placeholder="Ask about concentrations, maceration, substitutions…"
+          placeholder={t("chat.placeholder")}
+          aria-label={t("chat.placeholder")}
           className="flex-1 px-3 py-2 font-mono text-sm border rounded-lg resize-y focus:outline-none"
           style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
         />
@@ -126,11 +125,11 @@ export default function PerfumerChat() {
           className="px-5 py-3 text-sm font-semibold rounded-lg disabled:opacity-50"
           style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}
         >
-          Send
+          {t("chat.send")}
         </button>
       </div>
       <p className="text-[10px] font-mono mt-2" style={{ color: COLORS.dim }}>
-        Answers come from Gemini (free tier) and can be wrong. Enter to send, Shift+Enter for a new line.
+        {t("chat.footnote")}
       </p>
     </div>
   );

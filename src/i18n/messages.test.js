@@ -31,3 +31,12 @@ describe("message catalogs", () => {
     }
   });
 });
+
+describe("family texts", () => {
+  it("match the numbers module word for word in English", async () => {
+    const { FAMILIES } = await import("../lib/formulation");
+    for (const f of Object.values(FAMILIES)) {
+      expect(en.families[f.key]).toEqual({ label: f.label, sub: f.sub, note: f.note });
+    }
+  });
+});

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listInventory, adjustInventory, setLowStockThreshold } from "../lib/fragranceApi";
+import { useI18n } from "../i18n/I18nProvider";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -9,6 +10,7 @@ function round2(n) {
 }
 
 export default function Inventory() {
+  const { t } = useI18n();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,7 +22,7 @@ export default function Inventory() {
     try {
       setRows(await listInventory());
     } catch (e) {
-      setError(e.message || "Could not load inventory.");
+      setError(e.message || t("inventory.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -36,7 +38,7 @@ export default function Inventory() {
       setRestockAmounts({ ...restockAmounts, [fragranceId]: "" });
       refresh();
     } catch (e) {
-      setError(e.message || "Could not restock.");
+      setError(e.message || t("inventory.restockFailed"));
     }
   }
 
@@ -47,7 +49,7 @@ export default function Inventory() {
       await setLowStockThreshold(fragranceId, threshold);
       setRows((prev) => prev.map((r) => (r.fragrance_id === fragranceId ? { ...r, low_stock_threshold_g: threshold } : r)));
     } catch (e) {
-      setError(e.message || "Could not save the low-stock threshold.");
+      setError(e.message || t("inventory.thresholdFailed"));
     }
   }
 
@@ -56,26 +58,26 @@ export default function Inventory() {
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>Inventory</h2>
+        <h2 className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>{t("inventory.title")}</h2>
         {rows.length > 0 && (
-          <span className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>{rows.length} tracked oils</span>
+          <span className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>{t("inventory.tracked", { count: rows.length })}</span>
         )}
       </div>
       <p className="text-xs font-mono mb-6" style={{ color: COLORS.inkSoft }}>
-        Stock decrements automatically each time you log a batch on the Calculator tab. Restock manually below.
+        {t("inventory.intro")}
       </p>
 
-      {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>Loading…</p>}
+      {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
       {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && rows.length === 0 && (
         <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>
-          No inventory tracked yet — stock rows appear automatically once you log your first batch for a fragrance.
+          {t("inventory.empty")}
         </p>
       )}
 
       {lowStock.length > 0 && (
         <div className="mb-4 px-4 py-3 border rounded-lg text-sm font-mono" style={{ borderColor: COLORS.danger, color: COLORS.danger, backgroundColor: COLORS.dangerBg }}>
-          {lowStock.length} oil{lowStock.length > 1 ? "s" : ""} at or below threshold: {lowStock.map((r) => r.fragrances?.name).join(", ")}
+          {t("inventory.lowStock", { count: lowStock.length, names: lowStock.map((r) => r.fragrances?.name).join(", ") })}
         </div>
       )}
 
@@ -87,25 +89,26 @@ export default function Inventory() {
               <div className="flex items-start justify-between">
                 <div>
                   <div className="text-sm font-serif font-semibold" style={{ color: COLORS.forestDeep }}>
-                    {r.fragrances?.name || "Unknown fragrance"}
+                    {r.fragrances?.name || t("inventory.unknown")}
                   </div>
                   <div className="text-xs font-mono mt-0.5" style={{ color: COLORS.inkSoft }}>
                     {TIERS[r.fragrances?.tier]?.label || r.fragrances?.tier}
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-end">
                   <div className="text-sm font-mono font-semibold" style={{ color: low ? COLORS.danger : COLORS.ink }}>
                     {round2(r.stock_g)} g
                   </div>
                   <div className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>
-                    threshold {round2(r.low_stock_threshold_g)}g
+                    {t("inventory.threshold", { grams: round2(r.low_stock_threshold_g) })}
                   </div>
                 </div>
               </div>
 
               <div className="mt-3 flex gap-2 items-center">
                 <input
-                  type="number" step="0.1" placeholder="Restock amount (g)"
+                  type="number" step="0.1" placeholder={t("inventory.restockPlaceholder")}
+                  aria-label={t("inventory.restockLabel", { name: r.fragrances?.name || "" })}
                   value={restockAmounts[r.fragrance_id] || ""}
                   onChange={(e) => setRestockAmounts({ ...restockAmounts, [r.fragrance_id]: e.target.value })}
                   className="flex-1 min-w-0 px-3 py-1.5 font-mono text-xs border rounded"
@@ -117,10 +120,11 @@ export default function Inventory() {
                   className="px-3 py-1.5 text-xs font-semibold rounded"
                   style={{ backgroundColor: COLORS.forest, color: COLORS.onAmber }}
                 >
-                  Add stock
+                  {t("inventory.addStock")}
                 </button>
                 <input
-                  type="number" step="1" title="Low-stock threshold (g)"
+                  type="number" step="1" title={t("inventory.thresholdLabel")}
+                  aria-label={t("inventory.thresholdLabel")}
                   defaultValue={r.low_stock_threshold_g}
                   onBlur={(e) => handleThresholdChange(r.fragrance_id, e.target.value)}
                   className="w-20 px-2 py-1.5 font-mono text-xs border rounded"
