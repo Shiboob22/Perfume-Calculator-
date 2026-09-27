@@ -38,7 +38,8 @@ begin
   values (a, f_shared, 'A batch', 'fresh', 25, 23.75, 25, 60.75, 75, 84.5, 100),
          (b, f_shared, 'B batch', 'fresh', 20, 19, 20, 64.8, 80, 83.8, 100);
   insert into public.inventory (user_id, fragrance_id, stock_g) values (a, f_shared, 100), (b, f_shared, 50);
-  insert into public.fragrance_notes (user_id, fragrance_id, notes) values (a, f_shared, 'A secret'), (b, f_shared, 'B note');
+  insert into public.fragrance_notes (user_id, fragrance_id, notes, measured_density) values (a, f_shared, 'A secret', 0.97), (b, f_shared, 'B note', null);
+  insert into public.calc_presets (user_id, name, amount, unit, concentration_pct) values (a, 'A usual', 50, 'ml', 25);
 
   -- ------------------------------------------------------ act as user B
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
@@ -56,6 +57,16 @@ begin
   if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s notes'; end if; checks := checks + 1;
   select count(*) into n from public.fragrances where id = f_a_pending;
   if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s pending fragrance'; end if; checks := checks + 1;
+  select count(*) into n from public.calc_presets;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s presets'; end if; checks := checks + 1;
+  update public.calc_presets set name = 'tampered'; get diagnostics n = row_count;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B edited A''s presets'; end if; checks := checks + 1;
+  ok := false;
+  begin
+    insert into public.calc_presets (user_id, name, amount, unit, concentration_pct) values (a, 'forged', 10, 'ml', 20);
+  exception when insufficient_privilege then ok := true;
+  end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B added a preset as A'; end if; checks := checks + 1;
   select count(*) into n from public.fragrances where id = f_shared;
   if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B can''t read the shared catalog'; end if; checks := checks + 1;
 
