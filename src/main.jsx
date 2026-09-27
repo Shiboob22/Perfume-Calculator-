@@ -27,3 +27,8 @@ const tree = (
 const el = document.getElementById("root");
 if (el.hasChildNodes()) hydrateRoot(el, tree);
 else createRoot(el).render(tree);
+
+// Offline support (built by scripts/build-sw.mjs; production builds only).
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}
