@@ -170,3 +170,12 @@ export function familyGuide(): string {
     })
     .join("\n");
 }
+
+/**
+ * Densities outside these bounds get a warning (never a block). PROPOSED in
+ * the Phase 2 plan, pending the owner's approval: not from the handbook.
+ */
+export const PLAUSIBLE_DENSITY = {
+  oil: [0.8, 1.2] as const,
+  ethanol: [0.78, 0.83] as const,
+};

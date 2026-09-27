@@ -5,6 +5,7 @@ import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
 import { STRENGTHS } from "../lib/formulation";
 import MeasuredDensity from "./calc/MeasuredDensity";
 import Presets from "./calc/Presets";
+import Source from "./calc/Source";
 import { FromOil, Adjust, Run } from "./calc/Modes";
 import { COLORS } from "../lib/theme";
 import { TIERS, ETHANOL_DENSITY_DEFAULT } from "../lib/tiers";
@@ -157,6 +158,9 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   // the family's reference density (the handbook: a measured density wins).
   const [measuredDensityValue, setMeasuredDensity] = useState(null);
   const [mode, setMode] = useState("bottle"); // bottle | fromOil | adjust | run
+  const [ethanolPricePerL, setEthanolPricePerL] = useState("");
+  const [bottleCost, setBottleCost] = useState("");
+  const [bottles, setBottles] = useState("1");
   const [oilType, setOilType] = useState("");
   const [pricePerGram, setPricePerGram] = useState("");
   const [notes, setNotes] = useState("");
@@ -241,7 +245,10 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
     actualOilG,
     actualEthanolG: actualEthG,
     pricePerGram,
-  }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG]);
+    ethanolPricePerL,
+    bottleCost,
+    bottles,
+  }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG, ethanolPricePerL, bottleCost, bottles]);
 
   async function handleLogBatch() {
     if (!fragName.trim()) return;
@@ -456,7 +463,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             </div>
           </Field>
 
-          <Field label={t("calc.concentration", { pct: concPct })} hint={t("calc.familyDefault", { pct: tier.defaultConc })} htmlFor="calc-conc">
+          <Field label={<>{t("calc.concentration", { pct: concPct })}<Source id="strengths" /></>} hint={t("calc.familyDefault", { pct: tier.defaultConc })} htmlFor="calc-conc">
             <div className="flex gap-2 mb-3">
               {STRENGTHS.map(({ pct: c, name }) => (
                 <button
@@ -520,6 +527,22 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
                 <TextInput id="calc-price" type="number" step="0.01" min="0" value={pricePerGram} onChange={(e) => setPricePerGram(e.target.value)} placeholder="0.00" />
               </div>
             </div>
+            {can(entitlements, "calculator.advanced") && (
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                <div>
+                  <label htmlFor="calc-eth-price" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.ethanolPerL")}</label>
+                  <TextInput id="calc-eth-price" type="number" step="0.01" min="0" value={ethanolPricePerL} onChange={(e) => setEthanolPricePerL(e.target.value)} placeholder="0.00" />
+                </div>
+                <div>
+                  <label htmlFor="calc-bottle-cost" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.bottleEach")}</label>
+                  <TextInput id="calc-bottle-cost" type="number" step="0.01" min="0" value={bottleCost} onChange={(e) => setBottleCost(e.target.value)} placeholder="0.00" />
+                </div>
+                <div>
+                  <label htmlFor="calc-bottles" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.bottles")}</label>
+                  <TextInput id="calc-bottles" type="number" step="1" min="0" value={bottles} onChange={(e) => setBottles(e.target.value)} />
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3 mb-1">
               <div>
                 <label htmlFor="calc-actual-oil" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualOil")}</label>
@@ -558,11 +581,19 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             {" · "}
             {t(result.basis === "volume" ? "calc.otherBasisWeight" : "calc.otherBasisVolume", { pct: fmt2(result.otherBasisPct) })}
           </p>
-          <ReadoutRow label={t("calc.oil")} weight={result.shown.oilG} volume={result.shown.oilMl} />
-          <ReadoutRow label={t("calc.ethanol96")} weight={result.shown.ethanolG} volume={result.shown.ethanolMl} />
-          <ReadoutRow label={t("calc.total")} weight={result.shown.totalG} volume={result.shown.totalMl} bold />
+          <ReadoutRow label={<>{t("calc.oil")}<Source id="oil" /></>} weight={result.shown.oilG} volume={result.shown.oilMl} />
+          <ReadoutRow label={<>{t("calc.ethanol96")}<Source id="ethanol" /></>} weight={result.shown.ethanolG} volume={result.shown.ethanolMl} />
+          <ReadoutRow label={<>{t("calc.total")}<Source id="total" /></>} weight={result.shown.totalG} volume={result.shown.totalMl} bold />
+          {result.warnings.length > 0 && (
+            <ul role="status" className="mt-3 space-y-1">
+              {result.warnings.map((w) => (
+                <li key={w.code} className="text-xs" style={{ color: COLORS.danger }}>{t(`calc.warnings.${w.code}`, w)}</li>
+              ))}
+            </ul>
+          )}
           <p className="text-[11px] font-mono mt-2" style={{ color: COLORS.inkSoft }}>
             {t(measuredDensityValue != null ? "calc.densitiesUsedMeasured" : "calc.densitiesUsed", { oil: result.densities.oil, ethanol: result.densities.ethanol })}
+            <Source id="densities" />
           </p>
           <p className="text-[11px] mt-1" style={{ color: COLORS.dim }}>{t("calc.onAccuracy")}</p>
 
@@ -573,7 +604,15 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             </div>
           )}
 
-          <p className="text-sm italic mt-4" style={{ color: COLORS.ink }}>{t(`families.${tierKey}.note`)}</p>
+          {can(entitlements, "calculator.advanced") && result.cost.total > 0 && (
+            <div className="py-2 text-sm font-mono space-y-0.5" style={{ color: COLORS.ink }}>
+              <div>{t("calc.cost.total", { cost: fmt2(result.cost.total) })}</div>
+              {result.cost.perBottle != null && <div>{t("calc.cost.perBottle", { cost: fmt2(result.cost.perBottle) })}</div>}
+              {result.cost.perMl != null && <div>{t("calc.cost.perMl", { cost: result.cost.perMl.toFixed(3) })}</div>}
+            </div>
+          )}
+
+          <p className="text-sm italic mt-4" style={{ color: COLORS.ink }}>{t(`families.${tierKey}.note`)}<Source id="rest" /></p>
 
           {can(entitlements, "ai.ask") && <button
             type="button"

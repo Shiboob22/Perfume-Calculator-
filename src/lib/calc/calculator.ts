@@ -2,6 +2,9 @@ import type { Unit } from "./units";
 import { solveBottle } from "./solve";
 import { volumeToWeightFraction, weightToVolumeFraction } from "./basis";
 import { checkPour } from "./pour";
+import { checkInputs } from "./solve";
+import { batchCost, costPer } from "./cost";
+import { PLAUSIBLE_DENSITY } from "../formulation";
 
 // Everything the Calculator screen shows, from its raw form inputs. The
 // screen only renders this; no arithmetic lives in the component.
@@ -17,6 +20,11 @@ export interface CalculatorInput {
   pricePerGram?: number | string | null;
   /** Percentage points; null until the owner sets one. */
   tolerancePts?: number | null;
+  /** The family's recommended range, percent; null when none is set. */
+  range?: readonly [number, number] | null;
+  ethanolPricePerL?: number | string | null;
+  bottleCost?: number | string | null;
+  bottles?: number | string | null;
 }
 
 const positive = (v: unknown) => (Number(v) > 0 ? Number(v) : null);
@@ -42,5 +50,21 @@ export function calculate(input: CalculatorInput) {
   const price = Number(input.pricePerGram);
   const oilCost = price > 0 ? usedOilG * price : null;
 
-  return { ...solution, otherBasisPct, actual, usedOilG, oilCost };
+  const warnings = checkInputs(amount, Number(input.concPct) || 0, d, {
+    range: input.range ?? null,
+    oilDensity: PLAUSIBLE_DENSITY.oil,
+    ethanolDensity: PLAUSIBLE_DENSITY.ethanol,
+  });
+
+  // Full cost (Pro): oil actually used, ethanol by the litre, bottles.
+  const bottles = Math.max(Math.floor(Number(input.bottles) || 0), 0);
+  const ethanolMl = actualEthanolG !== null ? actualEthanolG / d.ethanol : solution.exact.ethanolMl;
+  const cost = batchCost(usedOilG, ethanolMl, bottles, {
+    oilPerG: price > 0 ? price : null,
+    ethanolPerL: Number(input.ethanolPricePerL) > 0 ? Number(input.ethanolPricePerL) : null,
+    bottleEach: Number(input.bottleCost) > 0 ? Number(input.bottleCost) : null,
+  });
+  const per = costPer(cost.total, bottles, solution.exact.totalMl);
+
+  return { ...solution, otherBasisPct, actual, usedOilG, oilCost, warnings, cost: { ...cost, ...per, bottles } };
 }
