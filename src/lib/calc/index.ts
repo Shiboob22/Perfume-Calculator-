@@ -7,3 +7,4 @@ export * from "./solve";
 export * from "./pour";
 export * from "./density";
 export * from "./cost";
+export * from "./calculator";

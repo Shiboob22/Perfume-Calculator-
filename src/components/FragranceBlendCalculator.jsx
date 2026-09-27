@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { UNIT_LABELS, prefillFromQuery } from "../lib/calcPrefill";
+import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
+import { STRENGTHS } from "../lib/formulation";
 import { COLORS } from "../lib/theme";
-import { TIERS, TIER_COLORS, ML_PER_FLOZ, G_PER_OZ, ETHANOL_DENSITY_DEFAULT } from "../lib/tiers";
+import { TIERS, ETHANOL_DENSITY_DEFAULT } from "../lib/tiers";
 import {
   searchFragrances,
   getFragranceByExactName,
@@ -18,11 +20,6 @@ import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import { can } from "../lib/entitlements";
 import { blendTips } from "../lib/aiApi";
-
-function round2(n) {
-  if (!Number.isFinite(n)) return "0.00";
-  return (Math.round(n * 100) / 100).toFixed(2);
-}
 
 function todayISO() {
   const d = new Date();
@@ -92,9 +89,10 @@ function AmountWithUnit({ id, unitLabel, value, onChange, unit, onUnitChange, un
   );
 }
 
+// weight / volume are the engine's displayed (already rounded) values.
 function ReadoutRow({ label, weight, volume, bold }) {
-  const oz = weight / G_PER_OZ;
-  const flOz = volume / ML_PER_FLOZ;
+  const oz = gToOz(weight);
+  const flOz = mlToFlOz(volume);
   return (
     <div
       className="flex items-start justify-between py-3"
@@ -110,10 +108,10 @@ function ReadoutRow({ label, weight, volume, bold }) {
       </span>
       <span className="text-end">
         <span className={`block font-mono text-sm ${bold ? "font-semibold" : ""}`} style={{ color: COLORS.ink }}>
-          {round2(weight)} g&nbsp;&nbsp;/&nbsp;&nbsp;{round2(volume)} mL
+          {fmt2(weight)} g&nbsp;&nbsp;/&nbsp;&nbsp;{fmt2(volume)} mL
         </span>
         <span className="block font-mono text-xs mt-0.5" style={{ color: COLORS.ink }}>
-          {round2(oz)} oz&nbsp;&nbsp;/&nbsp;&nbsp;{round2(flOz)} fl oz
+          {fmt2(oz)} oz&nbsp;&nbsp;/&nbsp;&nbsp;{fmt2(flOz)} fl oz
         </span>
       </span>
     </div>
@@ -223,43 +221,16 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedName]);
 
-  const result = useMemo(() => {
-    const amount = Number(batchSize) || 0;
-    const conc = Math.min(Math.max(Number(concPct) || 0, 0), 100) / 100;
-    const oilDensity = densities[tierKey] || 1;
-    const ethDensity = densities.ethanol || ETHANOL_DENSITY_DEFAULT;
-
-    let oilG, oilMl, ethG, ethMl, totalG, totalMl;
-    if (batchUnit === "ml" || batchUnit === "floz") {
-      totalMl = batchUnit === "floz" ? amount * ML_PER_FLOZ : amount;
-      oilMl = totalMl * conc; ethMl = totalMl * (1 - conc);
-      oilG = oilMl * oilDensity; ethG = ethMl * ethDensity;
-      totalG = oilG + ethG;
-    } else {
-      totalG = batchUnit === "oz" ? amount * G_PER_OZ : amount;
-      oilG = totalG * conc; ethG = totalG * (1 - conc);
-      oilMl = oilG / oilDensity; ethMl = ethG / ethDensity;
-      totalMl = oilMl + ethMl;
-    }
-    // Actual pour: share of oil in what was really weighed out, on the same
-    // basis as the target (by volume for mL / fl oz batches, by weight for
-    // g / oz), so it reads directly against the concentration slider.
-    const aOilG = Number(actualOilG) > 0 ? Number(actualOilG) : null;
-    const aEthG = Number(actualEthG) > 0 ? Number(actualEthG) : null;
-    let actual = null;
-    if (aOilG !== null && aEthG !== null) {
-      const byVolume = batchUnit === "ml" || batchUnit === "floz";
-      const oilPart = byVolume ? aOilG / oilDensity : aOilG;
-      const ethPart = byVolume ? aEthG / ethDensity : aEthG;
-      actual = { oilPct: (oilPart / (oilPart + ethPart)) * 100, byVolume };
-    }
-
-    // Cost and stock follow the oil actually used when it was recorded.
-    const usedOilG = aOilG ?? oilG;
-    const price = Number(pricePerGram);
-    const oilCost = price > 0 ? usedOilG * price : null;
-    return { oilG, oilMl, ethG, ethMl, totalG, totalMl, oilCost, conc, actual, usedOilG };
-  }, [batchSize, batchUnit, concPct, densities, tierKey, pricePerGram, actualOilG, actualEthG]);
+  const result = useMemo(() => calculate({
+    amount: batchSize,
+    unit: batchUnit,
+    concPct,
+    oilDensity: densities[tierKey],
+    ethanolDensity: densities.ethanol || ETHANOL_DENSITY_DEFAULT,
+    actualOilG,
+    actualEthanolG: actualEthG,
+    pricePerGram,
+  }), [batchSize, batchUnit, concPct, densities, tierKey, pricePerGram, actualOilG, actualEthG]);
 
   async function handleLogBatch() {
     if (!fragName.trim()) return;
@@ -277,9 +248,9 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         tier: tierKey,
         blend_date: blendDate,
         concentration_pct: Number(concPct),
-        oil_g: result.oilG, oil_ml: result.oilMl,
-        ethanol_g: result.ethG, ethanol_ml: result.ethMl,
-        total_g: result.totalG, total_ml: result.totalMl,
+        oil_g: result.exact.oilG, oil_ml: result.exact.oilMl,
+        ethanol_g: result.exact.ethanolG, ethanol_ml: result.exact.ethanolMl,
+        total_g: result.exact.totalG, total_ml: result.exact.totalMl,
         oil_type: oilType || null,
         price_per_gram: pricePerGram || null,
         oil_cost: result.oilCost,
@@ -326,7 +297,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   // Advice is for one exact blend — drop it once the blend changes.
   useEffect(() => {
     setTips(""); setTipsError("");
-  }, [fragName, tierKey, concPct, result.totalMl]);
+  }, [fragName, tierKey, concPct, result.exact.totalMl]);
 
   async function handleAdvise() {
     setTipsLoading(true); setTipsError("");
@@ -335,7 +306,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         name: fragName.trim(),
         tier: tierKey,
         concentration_pct: Number(concPct),
-        total_ml: result.totalMl,
+        total_ml: result.exact.totalMl,
       }));
     } catch (e) {
       setTipsError(errorText(t, e, "chat.unreachable"));
@@ -439,11 +410,12 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
 
           <Field label={t("calc.concentration", { pct: concPct })} hint={t("calc.familyDefault", { pct: tier.defaultConc })} htmlFor="calc-conc">
             <div className="flex gap-2 mb-3">
-              {[20, 22, 25, 30].map((c) => (
+              {STRENGTHS.map(({ pct: c, name }) => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setConcPct(c)}
+                  aria-pressed={Number(concPct) === c}
                   className="px-3 py-1 text-[11px] font-mono border transition-opacity"
                   style={{ 
                     borderColor: Number(concPct) === c ? COLORS.amber : COLORS.line,
@@ -451,7 +423,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
                     backgroundColor: Number(concPct) === c ? COLORS.amber : COLORS.cardHi
                   }}
                 >
-                  {c}%
+                  {c}% {name}
                 </button>
               ))}
             </div>
@@ -502,17 +474,22 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             <div className="grid grid-cols-2 gap-3 mb-1">
               <div>
                 <label htmlFor="calc-actual-oil" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualOil")}</label>
-                <TextInput id="calc-actual-oil" type="number" step="0.01" min="0" value={actualOilG} onChange={(e) => setActualOilG(e.target.value)} placeholder={round2(result.oilG)} />
+                <TextInput id="calc-actual-oil" type="number" step="0.01" min="0" value={actualOilG} onChange={(e) => setActualOilG(e.target.value)} placeholder={fmt2(result.shown.oilG)} />
               </div>
               <div>
                 <label htmlFor="calc-actual-ethanol" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualEthanol")}</label>
-                <TextInput id="calc-actual-ethanol" type="number" step="0.01" min="0" value={actualEthG} onChange={(e) => setActualEthG(e.target.value)} placeholder={round2(result.ethG)} />
+                <TextInput id="calc-actual-ethanol" type="number" step="0.01" min="0" value={actualEthG} onChange={(e) => setActualEthG(e.target.value)} placeholder={fmt2(result.shown.ethanolG)} />
               </div>
             </div>
             <p className="text-xs mb-3 font-mono" style={{ color: COLORS.ink }}>
               {result.actual
-                ? t(result.actual.byVolume ? "calc.actualRatioVolume" : "calc.actualRatioWeight", { oil: round2(result.actual.oilPct), ethanol: round2(100 - result.actual.oilPct), target: Number(concPct) })
+                ? t(result.basis === "volume" ? "calc.actualRatioVolume" : "calc.actualRatioWeight", { oil: fmt2(result.actual.actualPct), ethanol: fmt2(100 - result.actual.actualPct), target: Number(concPct) })
                 : t("calc.actualHint")}
+              {result.actual?.fix.material && Math.abs(result.actual.deviation) >= 0.005 && (
+                <span className="block mt-1" style={{ color: COLORS.amber }}>
+                  {t(result.actual.fix.material === "oil" ? "calc.fixAddOil" : "calc.fixAddEthanol", { grams: fmt2(result.actual.fix.grams), target: Number(concPct) })}
+                </span>
+              )}
             </p>
             <label htmlFor="calc-notes" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.notes")}</label>
             <textarea
@@ -527,14 +504,23 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         <div className="p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
           <h3 className="text-base font-serif font-semibold mb-5" style={{ color: COLORS.forestDeep }}>{t("calc.readout")}</h3>
 
-          <ReadoutRow label={t("calc.oil")} weight={result.oilG} volume={result.oilMl} />
-          <ReadoutRow label={t("calc.ethanol96")} weight={result.ethG} volume={result.ethMl} />
-          <ReadoutRow label={t("calc.total")} weight={result.totalG} volume={result.totalMl} bold />
+          <p className="text-xs font-mono mb-2" style={{ color: COLORS.inkSoft }}>
+            {t(result.basis === "volume" ? "calc.basisVolume" : "calc.basisWeight", { pct: Number(concPct) })}
+            {" · "}
+            {t(result.basis === "volume" ? "calc.otherBasisWeight" : "calc.otherBasisVolume", { pct: fmt2(result.otherBasisPct) })}
+          </p>
+          <ReadoutRow label={t("calc.oil")} weight={result.shown.oilG} volume={result.shown.oilMl} />
+          <ReadoutRow label={t("calc.ethanol96")} weight={result.shown.ethanolG} volume={result.shown.ethanolMl} />
+          <ReadoutRow label={t("calc.total")} weight={result.shown.totalG} volume={result.shown.totalMl} bold />
+          <p className="text-[11px] font-mono mt-2" style={{ color: COLORS.inkSoft }}>
+            {t("calc.densitiesUsed", { oil: result.densities.oil, ethanol: result.densities.ethanol })}
+          </p>
+          <p className="text-[11px] mt-1" style={{ color: COLORS.dim }}>{t("calc.onAccuracy")}</p>
 
           {result.oilCost !== null && (
             <div className="flex items-center justify-between py-2 mt-2 text-sm font-mono">
               <span style={{ color: COLORS.ink }}>{t("calc.oilCost")}</span>
-              <span style={{ color: COLORS.ink }}>{t("calc.oilCostValue", { cost: round2(result.oilCost), price: round2(Number(pricePerGram)) })}</span>
+              <span style={{ color: COLORS.ink }}>{t("calc.oilCostValue", { cost: fmt2(result.oilCost), price: fmt2(Number(pricePerGram)) })}</span>
             </div>
           )}
 
