@@ -27,4 +27,9 @@ export default [
     files: ["*.{js,cjs,mjs}", "scripts/**/*.{js,mjs}", "src/**/*.test.{js,jsx}"],
     languageOptions: { globals: { ...globals.node } },
   },
+  // Playwright specs run in Node but pass callbacks into the page.
+  {
+    files: ["e2e/**/*.js"],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
 ];

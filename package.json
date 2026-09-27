@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "typecheck": "tsc -p api/tsconfig.json && tsc -p tsconfig.src.json",
     "check:bundle": "node scripts/check-bundle.mjs",
-    "numbers:diff": "node scripts/numbers-diff.mjs"
+    "numbers:diff": "node scripts/numbers-diff.mjs",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@fontsource/amiri": "^5.3.0",
