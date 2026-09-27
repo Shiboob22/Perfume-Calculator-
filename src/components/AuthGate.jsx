@@ -154,10 +154,11 @@ export default function AuthGate({ children }) {
               {/* Magic Link Form */}
               <form onSubmit={handleEmailSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider rtl:tracking-normal mb-1.5" style={{ color: COLORS.inkSoft }}>
+                  <label htmlFor="auth-email" className="block text-[11px] font-mono uppercase tracking-wider rtl:tracking-normal mb-1.5" style={{ color: COLORS.inkSoft }}>
                     {t('auth.emailLabel')}
                   </label>
                   <input
+                    id="auth-email"
                     type="email"
                     required
                     value={email}
