@@ -9,6 +9,8 @@ The product is **The Scent Handbook**. Use that name everywhere (titles, meta, e
 
 ## Current phase
 
+**Phase 2 — Calculator: built, in review (branch `phase-2-calculator`, stacked on Phase 1).** Migrations 0004–0006 on staging only. Calculation core `src/lib/calc/` (100% covered, golden tests = Vol. III Quick Reference), four modes, measured density, presets, bench mode `/app/bench`, offline (service worker + outbox), warnings, sources, Pro cost. Open decisions specific to Phase 2: pour tolerance (none set; check shows deviation only), density bounds (proposed 0.80–1.20 / 0.78–0.83), whether measured density / by-weight are Pro, the density-measurement wording. Until the numbers table is decided, guide links (0.95) and calculator family densities (e.g. Fresh 0.87) give different grams.
+
 **Phase 1 — Foundations and safety: built, in review (branch `phase-1-foundations`, PR open).** Migrations 0001–0003 are applied to STAGING only; production gets them at merge, after the owner approves the SQL.
 
 Done in Phase 1: tooling + CI (lint, typecheck, Vitest, bundle secret check); baseline migration; catalog ownership + moderation (0001), user-data hardening (0002), plans + `can()` (0003); RLS isolation test (30 checks, staging); inventory/batch-log bugs; the numbers module (`src/lib/formulation.ts`, values unchanged); i18n on every screen (EN/AR, plurals, errors); Arabic fonts (lazy) + digit setting; React Router with `/app/<tab>`; prerendered public site (home, pricing, 3 Formulation guides, EN/AR, sitemap, robots, 404).
@@ -77,6 +79,9 @@ Billing: **free for now, billing-ready.** Plans + entitlements exist and gate fe
 - Catalog writes from users go through `ensure_fragrance()` / `add_fragrance_photo()`; users have no UPDATE/DELETE on `fragrances`. Server code that reads the catalog must filter `status = 'approved'`.
 - Public pages must not import Supabase or app code (they are prerendered and hydrated); the app lives behind a lazy import in `src/Root.jsx`.
 - i18n keys are dot paths, so message keys must not contain dots (nest them).
+- Arithmetic lives in `src/lib/calc/` (pure, 100% covered, enforced in CI). Components call `calculate()`, `solve*()`, `checkPour()`, `labelWeights()` and only format.
+- The service worker is built last (`scripts/build-sw.mjs`, after prerender); never cache `/api`. Offline batch logs go through `src/lib/outbox.js` with client ids (the API is idempotent on id).
+- `/dev/<screen>` renders app screens without sign-in under `vite dev` only, for visual checks.
 
 ## Stack and layout (as of Phase 0)
 
