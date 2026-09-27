@@ -12,6 +12,7 @@ import {
   listBatches,
 } from "../lib/fragranceApi";
 import { useI18n } from "../i18n/I18nProvider";
+import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import { can } from "../lib/entitlements";
 import { blendTips } from "../lib/aiApi";
@@ -297,7 +298,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
       setLogStatus("error");
       setLogError(e.code === "batch_cap"
         ? t("plan.batchCap", { plan: t(`plan.names.${entitlements.plan}`), cap: e.detail?.cap ?? entitlements.batchCap })
-        : e.message || t("calc.saveFailedGeneric"));
+        : errorText(t, e, "calc.saveFailedGeneric"));
     }
   }
 
@@ -335,7 +336,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         total_ml: result.totalMl,
       }));
     } catch (e) {
-      setTipsError(e.message || t("chat.unreachable"));
+      setTipsError(errorText(t, e, "chat.unreachable"));
     } finally {
       setTipsLoading(false);
     }

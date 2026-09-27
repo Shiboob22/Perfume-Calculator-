@@ -228,6 +228,14 @@ export default {
       notesInclude: "من نغماته: {list}.",
     },
   },
+  errors: {
+    not_authenticated: "انتهت جلستك. سجّل الدخول مرة أخرى.",
+    fragrance_save_failed: "تعذّر حفظ هذا العطر.",
+    catalog_save_failed: "تعذّر الحفظ في الكتالوج.",
+    photo_url_invalid: "الصق رابط صورة يبدأ بـ https://",
+    photo_exists: "لهذا العطر صورة بالفعل.",
+    feature_locked: "هذه الميزة جزء من خطة Pro.",
+  },
   auth: {
     loading: "جارٍ تحميل The Scent Handbook…",
     signIn: "تسجيل الدخول",

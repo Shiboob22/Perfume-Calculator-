@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { COLORS } from "../lib/theme";
 import { askPerfumer } from "../lib/aiApi";
 import { useI18n } from "../i18n/I18nProvider";
+import { errorText } from "../i18n/errorText";
 
 const STARTERS = ["gourmandExtrait", "sharpAfterWeek", "longestRest"];
 
@@ -33,7 +34,7 @@ export default function PerfumerChat() {
       // Drop the unanswered question and put it back in the box to retry.
       setMessages(messages);
       setDraft(question);
-      setError(e.message || t("chat.unreachable"));
+      setError(errorText(t, e, "chat.unreachable"));
     } finally {
       setSending(false);
     }

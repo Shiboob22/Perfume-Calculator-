@@ -227,6 +227,14 @@ export default {
       notesInclude: "Notes include {list}.",
     },
   },
+  errors: {
+    not_authenticated: "Your session has ended. Sign in again.",
+    fragrance_save_failed: "Could not save this fragrance.",
+    catalog_save_failed: "Could not save to catalog.",
+    photo_url_invalid: "Paste an image link starting with https://",
+    photo_exists: "This fragrance already has a photo.",
+    feature_locked: "This feature is part of Pro.",
+  },
   auth: {
     loading: "Loading The Scent Handbook…",
     signIn: "Sign in",

@@ -2,6 +2,12 @@ import { supabase } from "./supabaseClient";
 
 // An Error carrying the API's status and machine-readable code (e.g.
 // "batch_cap", "feature_locked", "not_tracked") so callers can tell cases apart.
+// A client-side error with a code the UI translates (errors.<code>); the
+// English message is the fallback.
+function codedError(code, message) {
+  return Object.assign(new Error(message), { code });
+}
+
 export async function apiError(res) {
   const err = await res.json().catch(() => ({}));
   return Object.assign(new Error(err.error || `HTTP ${res.status}`), { status: res.status, code: err.code, detail: err });
@@ -10,7 +16,7 @@ export async function apiError(res) {
 export async function authHeaders() {
   const { data } = await supabase.auth.getSession();
   const token = data?.session?.access_token;
-  if (!token) throw new Error('Not authenticated');
+  if (!token) throw codedError("not_authenticated", "Not authenticated");
   return {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
@@ -59,7 +65,7 @@ export async function getFragranceByExactName(name) {
 export async function ensureFragrance(name, tier) {
   const { data, error } = await supabase.rpc("ensure_fragrance", { p_name: name.trim(), p_tier: tier });
   if (error) throw error;
-  if (!data || data.length === 0) throw new Error("Could not save this fragrance.");
+  if (!data || data.length === 0) throw codedError("fragrance_save_failed", "Could not save this fragrance.");
   return data[0];
 }
 
@@ -83,7 +89,7 @@ export async function saveAiFragrance(estimate) {
   if (error) throw error;
   if (data && data.length > 0) return data[0];
   const existing = await getFragranceByExactName(row.name);
-  if (!existing) throw new Error("Could not save to catalog.");
+  if (!existing) throw codedError("catalog_save_failed", "Could not save to catalog.");
   return existing;
 }
 
@@ -92,13 +98,13 @@ export async function saveAiFragrance(estimate) {
 export async function addFragrancePhoto(fragranceId, url) {
   const clean = String(url || "").trim();
   if (!/^https:\/\/\S+$/i.test(clean) || clean.length > 1000) {
-    throw new Error("Paste an image link starting with https://");
+    throw codedError("photo_url_invalid", "Paste an image link starting with https://");
   }
   // Catalog rows aren't writable by users; this function only fills an
   // empty image_url on a row the caller can see.
   const { data, error } = await supabase.rpc("add_fragrance_photo", { p_id: fragranceId, p_url: clean });
   if (error) throw error;
-  if (!data || data.length === 0) throw new Error("This fragrance already has a photo.");
+  if (!data || data.length === 0) throw codedError("photo_exists", "This fragrance already has a photo.");
   return data[0];
 }
 

@@ -6,6 +6,7 @@ import { downloadBatchCard, actualOilPct } from "../lib/batchCard";
 import { batchInsights } from "../lib/aiApi";
 import { batchStartedAt, batchReadyAt, formatExact, readyCountdown } from "../lib/batchTiming";
 import { useI18n } from "../i18n/I18nProvider";
+import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 
 function round2(n) {
@@ -55,7 +56,7 @@ export default function Batches() {
     try {
       setInsights(await batchInsights());
     } catch (e) {
-      setInsightsError(e.message || t("chat.unreachable"));
+      setInsightsError(errorText(t, e, "chat.unreachable"));
     } finally {
       setInsightsLoading(false);
     }
@@ -68,7 +69,7 @@ export default function Batches() {
       const data = await listBatches(100);
       setBatches(data);
     } catch (e) {
-      setError(e.message || t("batches.loadFailed"));
+      setError(errorText(t, e, "batches.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -81,7 +82,7 @@ export default function Batches() {
       await deleteBatch(id);
       setBatches((prev) => prev.filter((b) => b.id !== id));
     } catch (e) {
-      setError(e.message || t("batches.deleteFailed"));
+      setError(errorText(t, e, "batches.deleteFailed"));
     }
   }
 

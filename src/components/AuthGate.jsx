@@ -3,6 +3,7 @@ import { supabase, signInWithEmail, signInWithProvider } from '../lib/auth'
 import { AUTH_STORAGE_KEY } from '../lib/supabaseClient'
 import { COLORS } from '../lib/theme'
 import { useI18n } from '../i18n/I18nProvider'
+import { errorText } from '../i18n/errorText';
 import LanguageToggle from './LanguageToggle'
 
 // The session saved by the last visit, read synchronously so a returning user
@@ -51,7 +52,7 @@ export default function AuthGate({ children }) {
       await signInWithEmail(email)
       setSentMagicLink(true)
     } catch (err) {
-      setErrorMsg(err.message || t('auth.sendFailed'))
+      setErrorMsg(errorText(t, err, 'auth.sendFailed'))
     } finally {
       setSubmitting(false)
     }

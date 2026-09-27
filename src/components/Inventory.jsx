@@ -3,6 +3,7 @@ import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listInventory, adjustInventory, setLowStockThreshold } from "../lib/fragranceApi";
 import { useI18n } from "../i18n/I18nProvider";
+import { errorText } from "../i18n/errorText";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -22,7 +23,7 @@ export default function Inventory() {
     try {
       setRows(await listInventory());
     } catch (e) {
-      setError(e.message || t("inventory.loadFailed"));
+      setError(errorText(t, e, "inventory.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -38,7 +39,7 @@ export default function Inventory() {
       setRestockAmounts({ ...restockAmounts, [fragranceId]: "" });
       refresh();
     } catch (e) {
-      setError(e.message || t("inventory.restockFailed"));
+      setError(errorText(t, e, "inventory.restockFailed"));
     }
   }
 
@@ -49,7 +50,7 @@ export default function Inventory() {
       await setLowStockThreshold(fragranceId, threshold);
       setRows((prev) => prev.map((r) => (r.fragrance_id === fragranceId ? { ...r, low_stock_threshold_g: threshold } : r)));
     } catch (e) {
-      setError(e.message || t("inventory.thresholdFailed"));
+      setError(errorText(t, e, "inventory.thresholdFailed"));
     }
   }
 

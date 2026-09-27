@@ -7,6 +7,7 @@ import { can } from '../lib/entitlements';
 import { TIERS, TIER_COLORS, TIER_INITIAL } from '../lib/tiers';
 import { COLORS } from '../lib/theme';
 import { useI18n } from '../i18n/I18nProvider';
+import { errorText } from '../i18n/errorText';
 import {
   accordColor, inkOn, accordWidth, noteCategory, NOTE_CATEGORIES, photoUrl, splitName,
   GENDER_GLYPH, estimateCharacter, describe,
@@ -358,7 +359,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
       setPhotoOpen(false);
       setPhotoDraft('');
     } catch (err) {
-      setPhotoMsg(err.message || t('search.photoFailed'));
+      setPhotoMsg(errorText(t, err, 'search.photoFailed'));
     }
   }
 
@@ -417,7 +418,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
       // No id until saved: that's how the detail panel tells an estimate apart.
       selectPerfume({ ...estimate, id: null });
     } catch (err) {
-      setAiMsg(err.message || t('chat.unreachable'));
+      setAiMsg(errorText(t, err, 'chat.unreachable'));
     } finally {
       setAiLoading(false);
     }
@@ -431,7 +432,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
       setSelectedPerfume(saved);
       setSaveMsg({ ok: true, text: saved.source === selectedPerfume.source ? t('search.savedToCatalog') : t('search.alreadyInCatalog') });
     } catch (err) {
-      setSaveMsg({ ok: false, text: err.message || t('search.saveFailed') });
+      setSaveMsg({ ok: false, text: errorText(t, err, 'search.saveFailed') });
     } finally {
       setSavingAi(false);
     }
@@ -445,7 +446,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
       await trackInventory(selectedPerfume.id);
       setInventoryMsg({ ok: true, text: t('search.addedToInventory') });
     } catch (err) {
-      setInventoryMsg({ ok: false, text: err.message || t('search.inventoryFailed') });
+      setInventoryMsg({ ok: false, text: errorText(t, err, 'search.inventoryFailed') });
     } finally {
       setAddingToInventory(false);
     }
@@ -503,7 +504,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
     setRelated((r) => ({ ...r, loading: true, error: '' }));
     fetchSimilar(selectedId)
       .then((d) => { if (!cancelled) setRelated({ loading: false, basis: d.basis, similar: d.similar || [], sameBrand: d.sameBrand || [], error: '' }); })
-      .catch((e) => { if (!cancelled) setRelated({ loading: false, basis: 'accords', similar: [], sameBrand: [], error: e.message || t('search.similarFailed') }); });
+      .catch((e) => { if (!cancelled) setRelated({ loading: false, basis: 'accords', similar: [], sameBrand: [], error: errorText(t, e, 'search.similarFailed') }); });
     return () => { cancelled = true; };
   }, [selectedId]);
 
