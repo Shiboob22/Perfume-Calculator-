@@ -1,4 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import FlaconMark from "./components/FlaconMark";
 import PerfumeSearch from "./components/PerfumeSearch";
 import { COLORS } from "./lib/theme";
@@ -10,10 +11,11 @@ import DigitToggle from "./components/DigitToggle";
 import ProLocked from "./components/ProLocked";
 import { EntitlementsProvider, useEntitlements } from "./lib/useEntitlements";
 import { can } from "./lib/entitlements";
+import { fetchPopular, warmUp } from "./lib/searchApi";
 
-// Search is the landing tab and ships in the main bundle; the others load as
-// separate chunks, fetched while the browser is idle after first paint so a
-// tab switch never waits on the network.
+// Search ships with the app shell; the other tabs load as separate chunks,
+// fetched while the browser is idle after first paint so a tab switch never
+// waits on the network.
 const loaders = {
   calculator: () => import("./components/FragranceBlendCalculator"),
   batches: () => import("./components/Batches"),
@@ -32,16 +34,25 @@ function prefetchTabs() {
 }
 
 const TABS = ["search", "calculator", "batches", "inventory", "ask"];
+const DEFAULT_TAB = "calculator";
 
+// The signed-in app, at /app/<tab>.
 export default function App() {
   const { t } = useI18n();
+  const navigate = useNavigate();
+  const { tab } = useParams();
+  const activeTab = TABS.includes(tab) ? tab : DEFAULT_TAB;
+  const setActiveTab = (id) => navigate(`/app/${id}${id === "calculator" ? window.location.search : ""}`);
+
+  // Start the search tab's popular shelf and wake the catalog functions
+  // while the session is being checked.
+  useEffect(() => { fetchPopular(); warmUp(); }, []);
   useEffect(() => {
     if (window.location.hash && window.location.hash.includes('access_token')) {
-      window.history.replaceState(null, '', window.location.pathname);
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
     }
   }, []);
 
-  const [activeTab, setActiveTab] = useState("search");
   const [selectedPerfume, setSelectedPerfume] = useState(null);
   // The chat stays mounted once opened, so it survives tab switches.
   const [chatOpened, setChatOpened] = useState(false);

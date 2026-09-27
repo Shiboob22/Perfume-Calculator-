@@ -28,3 +28,13 @@ html[dir="rtl"] body * {
 html[dir="rtl"] .font-mono {
   font-family: "IBM Plex Sans Arabic", "Space Grotesk", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
 }
+
+/* Guide tables become one card per row on a phone: no sideways scrolling.
+   Each cell shows its column name from data-label. */
+@media (max-width: 480px) {
+  .stack-table thead { display: none; }
+  .stack-table tr { display: block; padding: 0.5rem 0; border-bottom: 1px solid #2A2113; }
+  .stack-table td { display: flex; justify-content: space-between; gap: 1rem; border: 0 !important; padding: 0.2rem 0; }
+  .stack-table td::before { content: attr(data-label); color: #A79C82; }
+  .stack-table td:empty, .stack-table td[data-label=""]::before { display: none; }
+}

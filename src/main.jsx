@@ -1,8 +1,7 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";
-import { I18nProvider } from "./i18n/I18nProvider";
-import { fetchPopular, warmUp } from "./lib/searchApi";
+import { createRoot, hydrateRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import Root from "./Root";
 import "@fontsource/cormorant-garamond/latin-500.css";
 import "@fontsource/cormorant-garamond/latin-600.css";
 import "@fontsource/cormorant-garamond/latin-700.css";
@@ -15,15 +14,16 @@ import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./index.css";
 
-// Start the search tab's popular shelf now, in parallel with the session
-// check, instead of after sign-in resolves and the tab mounts.
-fetchPopular();
-warmUp();
-
-ReactDOM.createRoot(document.getElementById("root")).render(
+const tree = (
   <React.StrictMode>
-    <I18nProvider>
-      <App />
-    </I18nProvider>
+    <BrowserRouter>
+      <Root />
+    </BrowserRouter>
   </React.StrictMode>
 );
+
+// Public pages arrive prerendered: hydrate them. The app (/app) arrives as an
+// empty shell: render it.
+const el = document.getElementById("root");
+if (el.hasChildNodes()) hydrateRoot(el, tree);
+else createRoot(el).render(tree);

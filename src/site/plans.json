@@ -1,0 +1,4 @@
+[
+  { "id": "free", "name": "Free", "features": ["cards.download"], "batch_cap": 25, "sort": 0 },
+  { "id": "pro", "name": "Pro", "features": ["batches.unlimited", "inventory", "ai.ask", "export.labels", "calculator.advanced", "cards.download"], "batch_cap": null, "sort": 1 }
+]

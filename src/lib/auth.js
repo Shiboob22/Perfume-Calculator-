@@ -9,7 +9,9 @@ export async function signInWithEmail(email) {
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: window.location.origin,
+      // Back into the app (and to the page they came from, e.g. a guide's
+      // "Open in calculator" link), not to the public home page.
+      emailRedirectTo: window.location.origin + (window.location.pathname.startsWith('/app') ? window.location.pathname + window.location.search : '/app'),
     },
   })
   if (error) throw error
@@ -21,7 +23,7 @@ export async function signInWithProvider(provider) {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: window.location.origin,
+      redirectTo: window.location.origin + (window.location.pathname.startsWith('/app') ? window.location.pathname + window.location.search : '/app'),
     },
   })
   if (error) throw error
