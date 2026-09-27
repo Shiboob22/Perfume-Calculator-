@@ -27,9 +27,14 @@ function initialLocale() {
 
 const I18nContext = createContext(null);
 
-export function I18nProvider({ children }) {
-  const [locale, setLocaleState] = useState(initialLocale);
-  const [digits, setDigitsState] = useState(initialDigits);
+// `locale` forces the language — public pages take it from the URL (/ar/…),
+// so the server and the browser render the same HTML. The app itself uses
+// the saved choice.
+export function I18nProvider({ children, locale: forced }) {
+  const [chosen, setLocaleState] = useState(() => forced || initialLocale());
+  const locale = forced || chosen;
+  // Public pages always prerender with Western digits; the setting applies in the app.
+  const [digits, setDigitsState] = useState(() => (forced ? NUMBERING_SYSTEM : initialDigits()));
   const dir = dirOf(locale);
 
   // <html lang dir> drives the browser's bidi layout and Tailwind's rtl: variant.
@@ -37,7 +42,9 @@ export function I18nProvider({ children }) {
     document.documentElement.lang = locale;
     document.documentElement.dir = dir;
     if (locale === "ar") loadArabicFonts();
-  }, [locale, dir]);
+    // Reading /ar/… also sets the language the app opens in.
+    if (forced) { try { localStorage.setItem(STORAGE_KEY, forced); } catch {} }
+  }, [locale, dir, forced]);
 
   const value = useMemo(() => {
     function setLocale(next) {

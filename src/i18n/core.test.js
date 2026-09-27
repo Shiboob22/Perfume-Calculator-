@@ -86,3 +86,12 @@ describe("digit setting", () => {
     expect(t("batches", { count: 25 })).toBe("٢٥ دفعة");
   });
 });
+
+describe("t.raw", () => {
+  it("returns list-shaped messages, falling back to English", () => {
+    const t = createTranslator("ar", { en: { list: ["a", "b"], only: ["x"] }, ar: { list: ["أ", "ب"] } });
+    expect(t.raw("list")).toEqual(["أ", "ب"]);
+    expect(t.raw("only")).toEqual(["x"]);
+    expect(t.raw("missing")).toBeUndefined();
+  });
+});

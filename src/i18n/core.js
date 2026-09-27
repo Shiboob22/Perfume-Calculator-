@@ -53,7 +53,7 @@ function pickPlural(forms, locale, count) {
 // vars are formatted for the locale; `count` also selects the plural form.
 export function createTranslator(locale, catalogs, fallback = DEFAULT_LOCALE, { numberingSystem = NUMBERING_SYSTEM } = {}) {
   const numberFormat = new Intl.NumberFormat(locale, { numberingSystem });
-  return function t(key, vars = {}) {
+  function t(key, vars = {}) {
     let msg = lookup(catalogs[locale], key);
     let msgLocale = locale;
     if (msg === undefined && locale !== fallback) {
@@ -71,5 +71,12 @@ export function createTranslator(locale, catalogs, fallback = DEFAULT_LOCALE, { 
       shown[k] = typeof v === "number" ? numberFormat.format(v) : v;
     }
     return interpolate(msg, shown);
+  }
+  // The raw message value — for list-shaped copy (arrays of strings or
+  // objects) — in `locale`, else in `fallback`, else undefined.
+  t.raw = (key) => {
+    const own = lookup(catalogs[locale], key);
+    return own !== undefined ? own : lookup(catalogs[fallback], key);
   };
+  return t;
 }
