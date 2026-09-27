@@ -78,7 +78,11 @@ Billing: **free for now, billing-ready.** Plans + entitlements exist and gate fe
 
 ### Database — repo SQL does not match live
 
-The root `supabase-*.sql` files are hand-run scripts, not migrations, and the live schema has drifted from them (ad-hoc scripts like the deleted `fix_schema.js` altered it). Evidence: `supabase-schema-v2.sql` has no `user_id` on `batches`/`inventory`, but the API code and `supabase-restock-rpc.sql` assume `(user_id, fragrance_id)`. **Before the first migration, capture a schema-only dump of live as `supabase/migrations/0000_baseline.sql`.** The Supabase MCP connected to this machine is on a different account and cannot see project `nhfpgjikyolrwmbmqrng`.
+The root `supabase-*.sql` files are hand-run scripts, not migrations, and the live schema has drifted from them (ad-hoc scripts like the deleted `fix_schema.js` altered it). Evidence: `supabase-schema-v2.sql` has no `user_id` on `batches`/`inventory`, but the API code and `supabase-restock-rpc.sql` assume `(user_id, fragrance_id)`. **Before the first migration, capture a schema-only dump of live as `supabase/migrations/0000_baseline.sql`.** Baseline captured 2026-09-27 as `supabase/migrations/0000_baseline.sql` (pg_dump of `public`, lightly edited so it replays; see its header).
+
+Supabase projects (org "Hisham perfumer", free plan, both eu-west-1):
+- **production** `nhfpgjikyolrwmbmqrng` ("perfume calculator"). One user: `hishamshiboob@gmail.com` (the owner). Migrations reach it only after the owner has seen the SQL.
+- **staging** `eiqgsvqisuhinmbgxuop` ("scent-handbook-staging"), created 2026-09-27, baseline applied, schema verified identical to production. Every migration lands here first; Vercel previews will point here.
 
 Tables: `fragrances` (shared catalog, ~80k rows, generated `search_text`/`all_notes`/`priority`), `fragrance_notes` (per-user), `batches`, `inventory`, `perfumes` (legacy scraper table), storage bucket `bottles`.
 
