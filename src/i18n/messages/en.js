@@ -13,6 +13,17 @@ export default {
       ask: "Ask",
     },
   },
+  plan: {
+    pro: "Pro",
+    names: { free: "Free", pro: "Pro" },
+    earlyAccess: "Pro is in early access and not on sale yet.",
+    locked: {
+      ai: { ask: "Ask is part of Pro." },
+      inventory: "Inventory is part of Pro.",
+    },
+    usage: "{used} of {cap} batches",
+    batchCap: "Your {plan} plan keeps up to {cap} batches. Nothing is deleted; logging more needs Pro.",
+  },
   calculator: {
     log: {
       untracked: "This oil isn't in your inventory, so no stock was deducted.",

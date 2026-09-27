@@ -6,6 +6,9 @@ import AuthGate from "./components/AuthGate";
 import { signOut } from "./lib/auth";
 import { useI18n } from "./i18n/I18nProvider";
 import LanguageToggle from "./components/LanguageToggle";
+import ProLocked from "./components/ProLocked";
+import { EntitlementsProvider, useEntitlements } from "./lib/useEntitlements";
+import { can } from "./lib/entitlements";
 
 // Search is the landing tab and ships in the main bundle; the others load as
 // separate chunks, fetched while the browser is idle after first paint so a
@@ -52,6 +55,7 @@ export default function App() {
   return (
     <AuthGate>
       {(user) => (
+        <EntitlementsProvider>
         <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }}>
       <header className="max-w-3xl mx-auto px-6 sm:px-8 pt-10 pb-4">
         <div className="flex items-center gap-4 mb-6">
@@ -112,19 +116,29 @@ export default function App() {
           />
         )}
         {activeTab === "batches" && <Batches />}
-        {activeTab === "inventory" && <Inventory />}
+        {activeTab === "inventory" && <Gate feature="inventory"><Inventory /></Gate>}
         {/* Kept mounted so the conversation survives switching tabs. */}
         {(chatOpened || activeTab === "ask") && (
           <div hidden={activeTab !== "ask"}>
-            <PerfumerChat />
+            <Gate feature="ai.ask"><PerfumerChat /></Gate>
           </div>
         )}
         </Suspense>
       </main>
     </div>
+        </EntitlementsProvider>
       )}
     </AuthGate>
   );
+}
+
+// A tab whose feature the plan doesn't include shows the Pro panel instead.
+// Nothing is shown until the plan has loaded, so Free users never see a
+// feature flash up and then disappear.
+function Gate({ feature, children }) {
+  const entitlements = useEntitlements();
+  if (!entitlements.loaded) return <TabLoading />;
+  return can(entitlements, feature) ? children : <ProLocked feature={feature} />;
 }
 
 function TabLoading() {

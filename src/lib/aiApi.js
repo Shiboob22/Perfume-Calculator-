@@ -9,7 +9,7 @@ async function callAi(task, input = {}) {
     body: JSON.stringify({ task, ...input }),
   });
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+  if (!res.ok) throw Object.assign(new Error(body.error || `HTTP ${res.status}`), { status: res.status, code: body.code });
   return body;
 }
 

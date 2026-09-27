@@ -5,6 +5,8 @@ import { listBatches, deleteBatch } from "../lib/fragranceApi";
 import { downloadBatchCard, actualOilPct } from "../lib/batchCard";
 import { batchInsights } from "../lib/aiApi";
 import { batchStartedAt, batchReadyAt, formatExact, readyCountdown } from "../lib/batchTiming";
+import { useI18n } from "../i18n/I18nProvider";
+import { useEntitlements } from "../lib/useEntitlements";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -34,6 +36,9 @@ function BatchTiming({ batch }) {
 }
 
 export default function Batches() {
+  const { t } = useI18n();
+  const entitlements = useEntitlements();
+  const capped = entitlements.loaded && !entitlements.features?.includes("batches.unlimited") && entitlements.batchCap != null;
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -87,7 +92,7 @@ export default function Batches() {
             <span className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>
               {batches.length} batches · {round2(totalOilCost)} total oil cost
             </span>
-            <button
+            {entitlements.features?.includes("ai.ask") && <button
               type="button"
               onClick={handleInsights}
               disabled={insightsLoading}
@@ -95,10 +100,17 @@ export default function Batches() {
               style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
             >
               {insightsLoading ? "Thinking…" : "AI insights"}
-            </button>
+            </button>}
           </div>
         )}
       </div>
+
+      {capped && (
+        <p className="text-xs font-mono mb-4" style={{ color: batches.length >= entitlements.batchCap ? COLORS.danger : COLORS.inkSoft }}>
+          {t("plan.usage", { used: batches.length, cap: entitlements.batchCap })}
+          {batches.length >= entitlements.batchCap ? ` · ${t("plan.batchCap", { plan: t(`plan.names.${entitlements.plan}`), cap: entitlements.batchCap })}` : ""}
+        </p>
+      )}
 
       {insightsError && <p className="text-sm font-mono mb-4" style={{ color: COLORS.danger }}>{insightsError}</p>}
       {insights && (

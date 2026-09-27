@@ -12,6 +12,8 @@ import {
   listBatches,
 } from "../lib/fragranceApi";
 import { useI18n } from "../i18n/I18nProvider";
+import { useEntitlements } from "../lib/useEntitlements";
+import { can } from "../lib/entitlements";
 import { blendTips } from "../lib/aiApi";
 
 function round2(n) {
@@ -125,6 +127,7 @@ function ReadoutRow({ label, weight, volume, bold }) {
  */
 export default function FragranceBlendCalculator({ selectedPerfume, onClearSelection }) {
   const { t } = useI18n();
+  const entitlements = useEntitlements();
   const [fragName, setFragName] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [matched, setMatched] = useState(null); // resolved { id, name, tier } or null
@@ -284,15 +287,19 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
       // log doesn't silently reuse them.
       setActualOilG(""); setActualEthG("");
       setLogStatus("saved");
+      entitlements.refresh();
     } catch (e) {
       setLogStatus("error");
-      setLogError(e.message || "Could not save this batch.");
+      setLogError(e.code === "batch_cap"
+        ? t("plan.batchCap", { plan: t(`plan.names.${entitlements.plan}`), cap: e.detail?.cap ?? entitlements.batchCap })
+        : e.message || "Could not save this batch.");
     }
   }
 
   // Take the oil used by a just-saved batch out of inventory. Never throws:
   // the batch is already saved, so every outcome here ends in a note at most.
   async function deductStock(fragranceId, grams) {
+    if (!can(entitlements, "inventory")) return; // no stock tracking on this plan
     // An untracked oil stays untracked: creating a row here would start it at
     // 0 g, and a stock figure the user never entered is worse than none.
     try {
@@ -520,7 +527,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
 
           <p className="text-sm italic mt-4" style={{ color: COLORS.ink }}>{tier.note}</p>
 
-          <button
+          {can(entitlements, "ai.ask") && <button
             type="button"
             onClick={handleAdvise}
             disabled={!fragName.trim() || tipsLoading}
@@ -528,7 +535,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
           >
             {tipsLoading ? "Asking Gemini…" : "Advise me"}
-          </button>
+          </button>}
           {tips && (
             <div className="mt-3 p-3 text-sm whitespace-pre-wrap border rounded-lg" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
               {tips}

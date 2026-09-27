@@ -14,6 +14,17 @@ export default {
       ask: "اسأل",
     },
   },
+  plan: {
+    pro: "Pro",
+    names: { free: "المجانية", pro: "Pro" },
+    earlyAccess: "خطة Pro في مرحلة الوصول المبكر وليست متاحة للشراء بعد.",
+    locked: {
+      ai: { ask: "ميزة «اسأل» جزء من خطة Pro." },
+      inventory: "المخزون جزء من خطة Pro.",
+    },
+    usage: "{used} من {cap} دفعة",
+    batchCap: "تحتفظ خطة {plan} بما يصل إلى {cap} دفعة. لن يُحذف شيء؛ تسجيل المزيد يتطلب خطة Pro.",
+  },
   calculator: {
     log: {
       untracked: "هذا الزيت غير موجود في مخزونك، لذلك لم يُخصم شيء من الكمية.",

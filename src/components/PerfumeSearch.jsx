@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { searchCatalog, browseCatalog, fetchPopular, fetchSimilar } from '../lib/searchApi';
 import { trackInventory, saveAiFragrance, addFragrancePhoto } from '../lib/fragranceApi';
 import { lookupFragrance } from '../lib/aiApi';
+import { useEntitlements } from '../lib/useEntitlements';
+import { can } from '../lib/entitlements';
 import { TIERS, TIER_COLORS, TIER_INITIAL } from '../lib/tiers';
 import { COLORS } from '../lib/theme';
 import {
@@ -307,6 +309,7 @@ function CardSkeleton({ count = 4 }) {
 }
 
 export function PerfumeSearch({ onSelectPerfume }) {
+  const entitlements = useEntitlements();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [matchKind, setMatchKind] = useState('exact');
@@ -559,7 +562,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
         {!browse && query.trim().length >= 2 && results.length === 0 && !loading && (
           <div className="space-y-3">
             <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>No perfumes match “{query}”.</p>
-            <button
+            {can(entitlements, 'ai.ask') && <button
               type="button"
               onClick={handleAskGemini}
               disabled={aiLoading}
@@ -567,7 +570,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
               style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber, background: 'rgba(233,200,138,0.06)' }}
             >
               {aiLoading ? 'Asking Gemini…' : `Ask Gemini about “${query.trim()}”`}
-            </button>
+            </button>}
             {aiMsg && <p className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>{aiMsg}</p>}
           </div>
         )}
@@ -685,7 +688,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 >
                   Blend this in the Calculator <span aria-hidden="true">→</span>
                 </button>
-                {p.id ? (
+                {p.id ? (can(entitlements, 'inventory') && (
                   <button
                     type="button"
                     onClick={handleAddToInventory}
@@ -695,7 +698,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   >
                     {addingToInventory ? 'Adding…' : '+ Add to Inventory'}
                   </button>
-                ) : (
+                )) : (
                   <button
                     type="button"
                     onClick={handleSaveEstimate}

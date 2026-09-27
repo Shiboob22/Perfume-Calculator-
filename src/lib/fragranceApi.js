@@ -1,5 +1,12 @@
 import { supabase } from "./supabaseClient";
 
+// An Error carrying the API's status and machine-readable code (e.g.
+// "batch_cap", "feature_locked", "not_tracked") so callers can tell cases apart.
+export async function apiError(res) {
+  const err = await res.json().catch(() => ({}));
+  return Object.assign(new Error(err.error || `HTTP ${res.status}`), { status: res.status, code: err.code, detail: err });
+}
+
 export async function authHeaders() {
   const { data } = await supabase.auth.getSession();
   const token = data?.session?.access_token;
@@ -133,10 +140,7 @@ export async function logBatch(batch) {
     headers,
     body: JSON.stringify(batch),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${res.status}`);
-  }
+  if (!res.ok) throw await apiError(res);
   const data = await res.json();
   return data.batch;
 }
@@ -144,10 +148,7 @@ export async function logBatch(batch) {
 export async function listBatches(limit = 100) {
   const headers = await authHeaders();
   const res = await fetch(`/api/batches?limit=${limit}`, { headers });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${res.status}`);
-  }
+  if (!res.ok) throw await apiError(res);
   const data = await res.json();
   return data.batches || [];
 }
@@ -158,10 +159,7 @@ export async function deleteBatch(id) {
     method: 'DELETE',
     headers,
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${res.status}`);
-  }
+  if (!res.ok) throw await apiError(res);
 }
 
 /* ---------------- Inventory (stock on hand) ---------------- */
@@ -169,10 +167,7 @@ export async function deleteBatch(id) {
 export async function listInventory() {
   const headers = await authHeaders();
   const res = await fetch('/api/inventory', { headers });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${res.status}`);
-  }
+  if (!res.ok) throw await apiError(res);
   const data = await res.json();
   return (data.items || []).map(item => ({
     fragrance_id: item.fragrance_id,
@@ -190,11 +185,7 @@ export async function adjustInventory(fragranceId, deltaGrams) {
     headers,
     body: JSON.stringify({ fragrance_id: fragranceId, restock_g: deltaGrams }),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    // err.code === 'not_tracked': this oil has no inventory row yet.
-    throw Object.assign(new Error(err.error || `HTTP ${res.status}`), { status: res.status, code: err.code });
-  }
+  if (!res.ok) throw await apiError(res);
   const data = await res.json();
   return data.item;
 }
@@ -208,10 +199,7 @@ async function upsertInventory(fields) {
     headers,
     body: JSON.stringify(fields),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${res.status}`);
-  }
+  if (!res.ok) throw await apiError(res);
   const data = await res.json();
   return data.item;
 }
