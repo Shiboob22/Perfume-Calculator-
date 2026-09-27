@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
+import { loadEntitlements, can, lockedFeature } from './_lib/entitlements';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -69,6 +70,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
+  }
+
+  try {
+    if (!can(await loadEntitlements(supabase, userId), 'inventory')) {
+      return res.status(403).json(lockedFeature('inventory'));
+    }
+  } catch (err: any) {
+    if (isTimeout(err)) return res.status(503).json({ error: SLOW_READ });
+    return res.status(500).json({ error: err.message });
   }
 
   if (req.method === 'GET') {

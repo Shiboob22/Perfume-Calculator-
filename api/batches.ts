@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
+import { loadEntitlements, canLogBatch } from './_lib/entitlements';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -74,6 +75,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'POST') {
     try {
       const b = req.body || {};
+
+      // Free plans stop at a batch cap. Existing batches are never touched;
+      // only new logs are refused, with a code the app turns into the path
+      // to Pro.
+      const entitlements = await loadEntitlements(supabase, userId);
+      const { count: used, error: countError } = await supabase
+        .from('batches')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId);
+      if (countError) throw countError;
+      if (!canLogBatch(entitlements, used ?? 0)) {
+        return res.status(403).json({
+          error: `Your ${entitlements.name} plan keeps up to ${entitlements.batchCap} batches.`,
+          code: 'batch_cap',
+          cap: entitlements.batchCap,
+        });
+      }
 
       // Required (NOT NULL) columns on the batches table.
       const required = [
