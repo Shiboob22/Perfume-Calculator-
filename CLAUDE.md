@@ -9,13 +9,20 @@ The product is **The Scent Handbook**. Use that name everywhere (titles, meta, e
 
 ## Current phase
 
-**Phase 1 — Foundations and safety (in progress, branch `phase-1-foundations`).** Phase 0 review done; phase plan approved 2026-09-27. Staging = a free second Supabase project (owner's choice).
+**Phase 1 — Foundations and safety: built, in review (branch `phase-1-foundations`, PR open).** Migrations 0001–0003 are applied to STAGING only; production gets them at merge, after the owner approves the SQL.
 
-Open questions (answer before the phase that needs them):
-1. Phase 1 — live Supabase schema: need a schema-only dump (or access) to write the baseline migration. Which account hosts the staging project.
-2. Phase 2 — family oil densities (0.87–1.02) and family default concentrations / rest days are not in any handbook. Keep as "house defaults", or drop to the handbook's single 0.95 + measured density?
-3. Phase 3 — what Pro unlocks.
-4. Phase 7/8 — is a "Wardrobe" (choose-what-to-wear) feature in scope? Catalog data licensing (Fragrantica dataset, HF `doevent/perfume`, live Parfumo scrape, hot-linked `fimgs.net` photos). Hosting plans (Vercel Hobby is non-commercial; Supabase free has no backups).
+Done in Phase 1: tooling + CI (lint, typecheck, Vitest, bundle secret check); baseline migration; catalog ownership + moderation (0001), user-data hardening (0002), plans + `can()` (0003); RLS isolation test (30 checks, staging); inventory/batch-log bugs; the numbers module (`src/lib/formulation.ts`, values unchanged); i18n on every screen (EN/AR, plurals, errors); Arabic fonts (lazy) + digit setting; React Router with `/app/<tab>`; prerendered public site (home, pricing, 3 Formulation guides, EN/AR, sitemap, robots, 404).
+
+Waiting on the owner:
+1. Approve the production SQL (0001–0003) and the merge. At merge also: add `/app` URLs to production Supabase Auth redirect URLs.
+2. Staging Auth URL configuration (Site URL + preview redirect wildcard) so sign-in works on previews.
+3. The numbers table (`npm run numbers:diff`): densities, ranges, defaults, presets, rest days.
+4. Plan feature map + Free cap (25 proposed); pricing wording; Gemini key tier.
+5. Review of all Arabic strings and the three Arabic guide drafts; Arabic spelling of the byline.
+6. Landing copy (draft from the Phase 4 plan).
+Later phases: Wardrobe feature scope; catalog data licensing; hosting plans (Vercel Hobby is non-commercial; Supabase free has no backups).
+
+Not yet translated: the PNG batch card (canvas) is English-only until Phase 5 (EN/AR cards).
 
 Update this section at the end of every phase.
 
@@ -62,6 +69,14 @@ Billing: **free for now, billing-ready.** Plans + entitlements exist and gate fe
 - The owner checks the **deployed** URL, not localhost.
 
 ---
+
+## Engineering notes learned the hard way
+
+- `api/*.ts` run as native ES modules on Vercel: relative imports need the `.js` extension (`./_lib/x.js`), or the function crashes at runtime with ERR_MODULE_NOT_FOUND. `api/imports.test.ts` enforces it. Files under `api/_lib/` are helpers, not routes.
+- The browser client has no fallback project: `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` must be set (Preview env → staging, Production → production, local `.env.local` → staging).
+- Catalog writes from users go through `ensure_fragrance()` / `add_fragrance_photo()`; users have no UPDATE/DELETE on `fragrances`. Server code that reads the catalog must filter `status = 'approved'`.
+- Public pages must not import Supabase or app code (they are prerendered and hydrated); the app lives behind a lazy import in `src/Root.jsx`.
+- i18n keys are dot paths, so message keys must not contain dots (nest them).
 
 ## Stack and layout (as of Phase 0)
 
