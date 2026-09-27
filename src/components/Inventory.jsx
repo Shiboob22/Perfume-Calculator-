@@ -4,6 +4,7 @@ import { TIERS } from "../lib/tiers";
 import { listInventory, adjustInventory, setLowStockThreshold } from "../lib/fragranceApi";
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
+import EmptyState from "./EmptyState";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -71,9 +72,7 @@ export default function Inventory() {
       {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
       {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && rows.length === 0 && (
-        <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>
-          {t("inventory.empty")}
-        </p>
+        <EmptyState text={t("inventory.empty")} action={t("inventory.emptyAction")} to="/app/search" />
       )}
 
       {lowStock.length > 0 && (

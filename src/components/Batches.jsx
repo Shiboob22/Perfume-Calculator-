@@ -9,6 +9,7 @@ import { batchStartedAt, batchReadyAt, formatExact, readyCountdown } from "../li
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
+import EmptyState from "./EmptyState";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -134,9 +135,7 @@ export default function Batches() {
       {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
       {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && batches.length === 0 && (
-        <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>
-          {t("batches.empty")}
-        </p>
+        <EmptyState text={t("batches.empty")} action={t("batches.emptyAction")} to="/app/calculator" />
       )}
 
       <div className="space-y-3">
