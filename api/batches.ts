@@ -75,6 +75,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'POST') {
     try {
       const b = req.body || {};
+      const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const clientId = typeof b.id === 'string' && UUID.test(b.id) ? b.id : null;
+
+      // A re-sent offline batch that already landed: answer before the cap
+      // check, so it can't be refused as a new log.
+      if (clientId) {
+        const { data: existing, error: existingError } = await supabase
+          .from('batches').select('*').eq('id', clientId).eq('user_id', userId).maybeSingle();
+        if (existingError) throw existingError;
+        if (existing) return res.status(200).json({ success: true, batch: existing, duplicate: true });
+      }
 
       // Free plans stop at a batch cap. Existing batches are never touched;
       // only new logs are refused, with a code the app turns into the path
@@ -104,7 +115,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       // Whitelist only real columns; user_id + created_at are server-set.
+      // A client-chosen id makes logging idempotent (see above).
       const row = {
+        ...(clientId ? { id: clientId } : {}),
         user_id: userId,
         fragrance_id: b.fragrance_id ?? null,
         fragrance_name: b.fragrance_name,
@@ -135,6 +148,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .insert([row])
         .select();
 
+      if (error?.code === '23505' && 'id' in row) {
+        // Already logged by an earlier send of the same batch.
+        const { data: existing } = await supabase.from('batches').select('*').eq('id', row.id).eq('user_id', userId).maybeSingle();
+        if (existing) return res.status(200).json({ success: true, batch: existing, duplicate: true });
+      }
       if (error) throw error;
 
       return res.status(201).json({ success: true, batch: data[0] });
