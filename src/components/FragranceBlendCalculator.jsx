@@ -4,7 +4,7 @@ import { TIERS, TIER_COLORS, ML_PER_FLOZ, G_PER_OZ, ETHANOL_DENSITY_DEFAULT } fr
 import {
   searchFragrances,
   getFragranceByExactName,
-  upsertFragrance,
+  ensureFragrance,
   getFragranceNotes,
   saveFragranceNotes,
   logBatch,
@@ -256,7 +256,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
     try {
       let fragrance = matched;
       if (!fragrance) {
-        fragrance = await upsertFragrance(fragName, tierKey, "custom");
+        fragrance = await ensureFragrance(fragName, tierKey);
         setMatched(fragrance);
       }
       await saveFragranceNotes(fragrance.id, { oilType, pricePerGram: pricePerGram || null, notes });

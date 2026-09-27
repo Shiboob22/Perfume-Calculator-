@@ -207,6 +207,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from('fragrances')
         .select('*')
         .not('image_url', 'is', null)
+        .eq('status', 'approved')
         .order('popularity', { ascending: false, nullsFirst: false })
         .limit(12);
       if (error) throw error;
@@ -221,7 +222,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const clean = (v: unknown) => String(v || '').replace(/[{}"\\,]/g, '').trim().slice(0, 80);
     const note = clean(req.query.note), accord = clean(req.query.accord), brand = clean(req.query.brand);
     if (note || accord || brand) {
-      let browse = supabase.from('fragrances').select('*');
+      let browse = supabase.from('fragrances').select('*').eq('status', 'approved');
       if (note) browse = browse.contains('all_notes', [note]);
       if (accord) browse = browse.contains('accords', [accord]);
       if (brand) browse = browse.eq('brand', brand);
@@ -250,7 +251,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (words.length === 0) {
       return res.status(200).json({ source: 'database', results: [] });
     }
-    let search = supabase.from('fragrances').select('*');
+    let search = supabase.from('fragrances').select('*').eq('status', 'approved');
     for (const w of words) search = search.ilike('search_text', `%${w}%`);
     const { data: dbResults, error } = await search
       .order('priority', { ascending: false })
@@ -302,9 +303,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const userId = await getUserId(req);
       let savedRecord: any[] | null = null;
       if (userId) {
+        // Scrapes join the catalog as the caller's pending rows; an admin
+        // approves them before other users see them.
         const { data } = await supabase
           .from('fragrances')
-          .upsert([scrapedData], { onConflict: 'name', ignoreDuplicates: true })
+          .upsert([{ ...scrapedData, added_by: userId, status: 'pending' }], { onConflict: 'name', ignoreDuplicates: true })
           .select();
         savedRecord = data;
       }

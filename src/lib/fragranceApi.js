@@ -46,14 +46,14 @@ export async function getFragranceByExactName(name) {
   return data;
 }
 
-export async function upsertFragrance(name, tier, source = "custom") {
-  const { data, error } = await supabase
-    .from("fragrances")
-    .upsert({ name: name.trim(), tier, source }, { onConflict: "name" })
-    .select()
-    .single();
+// Find a fragrance by exact name, or add it as the user's own pending row.
+// A database function, because the row may already exist under another
+// user or the shared catalog, where the user has no right to write.
+export async function ensureFragrance(name, tier) {
+  const { data, error } = await supabase.rpc("ensure_fragrance", { p_name: name.trim(), p_tier: tier });
   if (error) throw error;
-  return data;
+  if (!data || data.length === 0) throw new Error("Could not save this fragrance.");
+  return data[0];
 }
 
 // Save a Gemini estimate (from lookupFragrance) to the shared catalog.
@@ -87,16 +87,12 @@ export async function addFragrancePhoto(fragranceId, url) {
   if (!/^https:\/\/\S+$/i.test(clean) || clean.length > 1000) {
     throw new Error("Paste an image link starting with https://");
   }
-  const { data, error } = await supabase
-    .from("fragrances")
-    .update({ image_url: clean })
-    .eq("id", fragranceId)
-    .is("image_url", null)
-    .select()
-    .maybeSingle();
+  // Catalog rows aren't writable by users; this function only fills an
+  // empty image_url on a row the caller can see.
+  const { data, error } = await supabase.rpc("add_fragrance_photo", { p_id: fragranceId, p_url: clean });
   if (error) throw error;
-  if (!data) throw new Error("This fragrance already has a photo.");
-  return data;
+  if (!data || data.length === 0) throw new Error("This fragrance already has a photo.");
+  return data[0];
 }
 
 /* ---------------- Personal notes ---------------- */
