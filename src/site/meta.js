@@ -37,6 +37,7 @@ export function headFor(pathname) {
   let title;
   let description;
   let type = "website";
+  let guideTitle = null;
 
   if (path === "/") {
     title = t("site.home.metaTitle");
@@ -54,17 +55,22 @@ export function headFor(pathname) {
     title = `${g.title} — The Scent Handbook`;
     description = g.summary;
     type = "article";
+    guideTitle = g.title;
   } else {
     return null;
   }
 
+  const canonical = SITE_URL + localePath(locale, path);
   return {
+    guideTitle,
+    guidesUrl: SITE_URL + localePath(locale, "/guides"),
+    guidesLabel: t("site.guides.title"),
     locale,
     dir: locale === "ar" ? "rtl" : "ltr",
     title,
     description,
     type,
-    canonical: SITE_URL + localePath(locale, path),
+    canonical,
     alternates: {
       en: SITE_URL + localePath("en", path),
       ar: SITE_URL + localePath("ar", path),
@@ -89,5 +95,33 @@ export function headHtml(head) {
     `<meta property="og:site_name" content="The Scent Handbook" />`,
     `<meta property="og:locale" content="${head.locale === "ar" ? "ar_EG" : "en_US"}" />`,
     `<meta name="twitter:card" content="summary" />`,
+    ...(head.type === "article" ? [`<script type="application/ld+json">${jsonLd(head)}</script>`] : []),
   ].join("\n    ");
+}
+
+// Structured data for a guide: the article and its breadcrumb trail.
+function jsonLd(head) {
+  const data = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: head.guideTitle,
+      description: head.description,
+      inLanguage: head.locale,
+      url: head.canonical,
+      author: { "@type": "Person", name: "Hisham Shiboob" },
+      publisher: { "@type": "Organization", name: "The Scent Handbook" },
+      isPartOf: { "@type": "Book", name: "The Scent Handbook", author: { "@type": "Person", name: "Hisham Shiboob" } },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: head.guidesLabel, item: head.guidesUrl },
+        { "@type": "ListItem", position: 2, name: head.guideTitle, item: head.canonical },
+      ],
+    },
+  ];
+  // Escape "<" so no text can close the script element.
+  return JSON.stringify(data).replace(/</g, "\\u003c");
 }

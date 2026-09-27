@@ -2,8 +2,19 @@ import React from "react";
 import { Link, useParams } from "react-router-dom";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
-import { guideBySlug } from "../content/guides";
+import { guideBySlug, GUIDES } from "../content/guides";
+import { readingMinutes } from "../content/search";
 import { localePath } from "./meta";
+
+// Badge colours for the handbook's evidence labels. The label text is always
+// the handbook's own; the tone grouping is a proposal pending the author.
+const TONE = {
+  scientific: "#8FB08C",
+  plausible: COLORS.amber,
+  anecdotal: COLORS.inkSoft,
+  myth: COLORS.danger,
+  practice: "#C9B79A",
+};
 
 const CALLOUT = {
   caution: { border: COLORS.danger, label: COLORS.danger },
@@ -79,6 +90,18 @@ function Block({ block }) {
       </table>
     );
   }
+  if (block.evidence) {
+    const color = TONE[block.evidence.tone] || COLORS.inkSoft;
+    return (
+      <div className="my-4 p-4 rounded-xl" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
+        <span className="inline-block px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-[0.14em]" style={{ border: `1px solid ${color}`, color }}>
+          {block.evidence.label}
+        </span>
+        {block.title && <p className="mt-2 font-semibold" style={{ color: COLORS.forestDeep }}>{block.title}</p>}
+        <p className="mt-2 leading-relaxed" style={{ color: COLORS.ink }}>{block.text}</p>
+      </div>
+    );
+  }
   if (block.callout) {
     const c = block.callout;
     const style = CALLOUT[c.kind] || CALLOUT.rule;
@@ -108,6 +131,10 @@ export default function GuidePage() {
   }
 
   const g = guide[locale];
+  const inSection = GUIDES.filter((x) => x.section === guide.section);
+  const at = inSection.findIndex((x) => x.slug === guide.slug);
+  const prev = inSection[at - 1];
+  const next = inSection[at + 1];
   const sections = g.body.filter((b) => b.h2);
   const calc = guide.calculator;
   const calcHref = calc ? `/app/calculator?${new URLSearchParams({ size: calc.size, unit: calc.unit, conc: calc.conc })}` : null;
@@ -120,7 +147,7 @@ export default function GuidePage() {
       <h1 className="font-serif italic text-5xl leading-tight mt-4" style={{ color: COLORS.forestDeep }}>{g.title}</h1>
       <p className="mt-4 text-lg leading-relaxed" style={{ color: COLORS.inkSoft }}>{g.summary}</p>
       <p className="mt-4 text-sm" style={{ color: COLORS.inkSoft }}>
-        {t("site.guides.by")} · {t("site.guides.from", {
+        {t("site.guides.minutes", { count: readingMinutes(g) })} · {t("site.guides.by")} · {t("site.guides.from", {
           volume: guide.source.volume,
           book: t(`site.guides.books.${guide.source.book}`),
           sections: new Intl.ListFormat(locale === "en" ? "en-GB" : locale, { type: "unit", style: "short" }).format(guide.source.sections),
@@ -147,6 +174,20 @@ export default function GuidePage() {
           {t("site.guides.openCalc")}
         </a>
       )}
+      <nav aria-label={t("site.guides.more")} className="mt-14 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+        {prev ? (
+          <Link to={to(`/guides/${prev.slug}`)} className="block p-4 rounded-xl" style={{ border: `1px solid ${COLORS.line}` }}>
+            <span className="block font-mono text-[11px] uppercase" style={{ color: COLORS.amberDeep }}>{t("site.guides.previous")}</span>
+            <span className="block mt-1 font-serif text-lg" style={{ color: COLORS.forestDeep }}>{prev[locale].title}</span>
+          </Link>
+        ) : <span />}
+        {next && (
+          <Link to={to(`/guides/${next.slug}`)} className="block p-4 rounded-xl text-end" style={{ border: `1px solid ${COLORS.line}` }}>
+            <span className="block font-mono text-[11px] uppercase" style={{ color: COLORS.amberDeep }}>{t("site.guides.next")}</span>
+            <span className="block mt-1 font-serif text-lg" style={{ color: COLORS.forestDeep }}>{next[locale].title}</span>
+          </Link>
+        )}
+      </nav>
     </article>
   );
 }
