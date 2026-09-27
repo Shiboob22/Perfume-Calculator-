@@ -1,22 +1,13 @@
-// Ported from the HTML tool (scent-handbook-blending-bench.html) so the
-// two stay consistent instead of diverging. Structure sourced from
-// Michael Edwards' Fragrance Wheel (4 main families, 14 subfamilies);
-// Gourmand is a clearly-separate practical 5th tier, not part of that
-// wheel — see the HTML tool's TIERS comment for the full rationale.
-// restDays: [min, max] maceration in days — the same ranges the `note` text
-// states, as numbers so batch "ready to use" times can be computed.
-export const TIERS = {
-  fresh:    { label:'Fresh',   sub:'Aromatic · Citrus · Water · Green · Fruity',  density:0.87, defaultConc:20, restDays:[7,14],
-              note:'Rest 1–2 weeks in a cool, dark place — light citrus and aromatic tops settle fastest.' },
-  floral:   { label:'Floral',  sub:'Floral · Soft Floral · Floral Amber',         density:0.95, defaultConc:25, restDays:[14,21],
-              note:'Rest 2–3 weeks in a cool, dark place before wearing — the classic all-purpose strength.' },
-  woody:    { label:'Woody',   sub:'Woods · Mossy Woods · Dry Woods',             density:0.93, defaultConc:22, restDays:[21,28],
-              note:'Rest 3–4 weeks in a cool, dark place — dry woods and mosses need time to round out.' },
-  oriental: { label:'Amber (Oriental)', sub:'Soft Amber · Amber · Woody Amber',   density:1.02, defaultConc:30, restDays:[28,42],
-              note:'Rest 4–6 weeks in a cool, dark place — dense resins need the longest maceration.' },
-  gourmand: { label:'Gourmand',  sub:'Vanilla · Praline · Tobacco-Honey — practical addition, not part of the classic wheel', density:1.00, defaultConc:25, restDays:[21,28],
-              note:'Rest 3–4 weeks — sweet resinous bases round out and lose the raw alcohol edge.' }
-};
+// Family table for the UI, derived from src/lib/formulation.ts — the single
+// source of every blending number. Edit numbers there, not here.
+import { FAMILIES, ML_PER_FLOZ, G_PER_OZ, ETHANOL_DENSITY } from "./formulation";
+
+export const TIERS = Object.fromEntries(
+  Object.values(FAMILIES).map((f) => [
+    f.key,
+    { label: f.label, sub: f.sub, note: f.note, density: f.active.density, defaultConc: f.active.defaultConc, restDays: f.active.restDays },
+  ])
+);
 
 export const TIER_COLORS = {
   fresh:    '#7E9A7C',
@@ -28,8 +19,5 @@ export const TIER_COLORS = {
 
 export const TIER_INITIAL = { fresh:'F', floral:'B', woody:'W', gourmand:'G', oriental:'A' };
 
-// US fluid ounce (volume) and avoirdupois ounce (weight)
-export const ML_PER_FLOZ = 29.5735;
-export const G_PER_OZ = 28.3495;
-
-export const ETHANOL_DENSITY_DEFAULT = 0.81; // g/mL for 96% ethanol
+export { ML_PER_FLOZ, G_PER_OZ };
+export const ETHANOL_DENSITY_DEFAULT = ETHANOL_DENSITY; // g/mL for 96% ethanol

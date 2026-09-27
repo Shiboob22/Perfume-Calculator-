@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { loadEntitlements, can, lockedFeature } from './_lib/entitlements.js';
+import { TIER_KEYS as FAMILY_KEYS, familyGuide } from '../src/lib/formulation.js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -64,16 +65,9 @@ async function getUserId(req: VercelRequest): Promise<string | null> {
   return user?.id ?? null;
 }
 
-// Mirrors src/lib/tiers.js (kept inline so this function stays
-// self-contained). Update both together if a tier's defaults change.
-const TIER_KEYS = ['fresh', 'floral', 'woody', 'oriental', 'gourmand'];
-const TIER_GUIDE = [
-  'fresh — Fresh (Aromatic, Citrus, Water, Green, Fruity). Oil density 0.87 g/mL, default 20% concentration, rest 1–2 weeks.',
-  'floral — Floral (Floral, Soft Floral, Floral Amber). Oil density 0.95 g/mL, default 25%, rest 2–3 weeks.',
-  'woody — Woody (Woods, Mossy Woods, Dry Woods). Oil density 0.93 g/mL, default 22%, rest 3–4 weeks.',
-  'oriental — Amber/Oriental (Soft Amber, Amber, Woody Amber). Oil density 1.02 g/mL, default 30%, rest 4–6 weeks.',
-  'gourmand — Gourmand (Vanilla, Praline, Tobacco-Honey). Oil density 1.00 g/mL, default 25%, rest 3–4 weeks.',
-].join('\n');
+// Same numbers as the calculator: both read src/lib/formulation.ts.
+const TIER_KEYS: string[] = FAMILY_KEYS;
+const TIER_GUIDE = familyGuide();
 
 // House rules the perfumer chat must follow on top of the base persona.
 // One sentence each; every rule is sent with every chat message, so keep

@@ -137,9 +137,10 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   const [batchSize, setBatchSize] = useState(100);
   const [batchUnit, setBatchUnit] = useState("ml"); // ml | floz | g | oz
   const [concPct, setConcPct] = useState(20);
-  const [densities, setDensities] = useState({
-    fresh: 0.87, floral: 0.95, woody: 0.93, gourmand: 1.00, oriental: 1.02, ethanol: ETHANOL_DENSITY_DEFAULT,
-  });
+  const [densities, setDensities] = useState(() => ({
+    ...Object.fromEntries(Object.entries(TIERS).map(([k, t]) => [k, t.density])),
+    ethanol: ETHANOL_DENSITY_DEFAULT,
+  }));
 
   const [oilType, setOilType] = useState("");
   const [pricePerGram, setPricePerGram] = useState("");
