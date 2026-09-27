@@ -3,7 +3,7 @@ import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 
 export default [
-  { ignores: ["dist/**", "node_modules/**", "api/**", "**/*.ts"] },
+  { ignores: ["dist/**", "dist-ssr/**", "node_modules/**", "api/**", "**/*.ts"] },
   { linterOptions: { reportUnusedDisableDirectives: "off" } },
   js.configs.recommended,
   { rules: { "no-empty": ["error", { allowEmptyCatch: true }] } },

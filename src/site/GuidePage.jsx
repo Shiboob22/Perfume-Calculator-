@@ -70,7 +70,7 @@ function Block({ block }) {
             <tr key={r}>
               {row.map((cell, c) => (
                 <td key={c} data-label={head[c]} className="py-2 pe-4" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
-                  {/g$|g\/ml$|غ$|غ\/مل$|×/.test(cell) ? <span dir="ltr">{cell}</span> : cell}
+                  {/(^|\s)(g|g\/ml)$|× \d/.test(cell) ? <span dir="ltr">{cell}</span> : cell}
                 </td>
               ))}
             </tr>
@@ -120,7 +120,11 @@ export default function GuidePage() {
       <h1 className="font-serif italic text-5xl leading-tight mt-4" style={{ color: COLORS.forestDeep }}>{g.title}</h1>
       <p className="mt-4 text-lg leading-relaxed" style={{ color: COLORS.inkSoft }}>{g.summary}</p>
       <p className="mt-4 text-sm" style={{ color: COLORS.inkSoft }}>
-        {t("site.guides.by")} · {t("site.guides.from", { volume: guide.source.volume, book: guide.source.book, sections: guide.source.sections.join(", ") })}
+        {t("site.guides.by")} · {t("site.guides.from", {
+          volume: guide.source.volume,
+          book: t(`site.guides.books.${guide.source.book}`),
+          sections: new Intl.ListFormat(locale === "en" ? "en-GB" : locale, { type: "unit", style: "short" }).format(guide.source.sections),
+        })}
       </p>
       {g.needsReview && (
         <p className="mt-4 p-3 rounded-lg text-sm" style={{ border: `1px dashed ${COLORS.amberDeep}`, color: COLORS.amber }}>{t("site.guides.reviewNote")}</p>

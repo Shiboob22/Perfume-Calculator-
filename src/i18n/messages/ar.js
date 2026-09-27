@@ -311,6 +311,7 @@ export default {
       toc: "في هذه الصفحة",
       all: "كل الأدلة",
       notFound: "هذا الدليل غير موجود.",
+      books: { Formulation: "التركيب" },
       blending: "الخلط",
     },
   },

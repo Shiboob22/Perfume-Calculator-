@@ -310,6 +310,7 @@ export default {
       toc: "On this page",
       all: "All guides",
       notFound: "That guide doesn't exist.",
+      books: { Formulation: "Formulation" },
       blending: "Blending",
     },
   },
