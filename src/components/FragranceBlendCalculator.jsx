@@ -5,6 +5,7 @@ import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
 import { STRENGTHS } from "../lib/formulation";
 import MeasuredDensity from "./calc/MeasuredDensity";
 import Presets from "./calc/Presets";
+import { FromOil, Adjust, Run } from "./calc/Modes";
 import { COLORS } from "../lib/theme";
 import { TIERS, ETHANOL_DENSITY_DEFAULT } from "../lib/tiers";
 import {
@@ -27,6 +28,8 @@ function todayISO() {
   const d = new Date();
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
+
+const MODES = ["bottle", "fromOil", "adjust", "run"];
 
 function useDebouncedValue(value, delay) {
   const [debounced, setDebounced] = useState(value);
@@ -152,6 +155,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   // This user's measured density for the matched oil, if any: it replaces
   // the family's reference density (the handbook: a measured density wins).
   const [measuredDensityValue, setMeasuredDensity] = useState(null);
+  const [mode, setMode] = useState("bottle"); // bottle | fromOil | adjust | run
   const [oilType, setOilType] = useState("");
   const [pricePerGram, setPricePerGram] = useState("");
   const [notes, setNotes] = useState("");
@@ -342,6 +346,35 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         </div>
       )}
 
+      <div role="tablist" aria-label={t("calc.modes.label")} className="flex flex-wrap gap-2 mb-6">
+        {MODES.map((m) => (
+          <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)}
+            className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider border rounded-lg"
+            style={{ borderColor: mode === m ? COLORS.amber : COLORS.line, color: mode === m ? COLORS.amber : COLORS.inkSoft }}>
+            {t(`calc.modes.tabs.${m}`)}
+          </button>
+        ))}
+      </div>
+
+      {mode !== "bottle" ? (
+        <div className="p-6 border max-w-xl" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
+          <Field label={t("calc.family")} htmlFor="calc-family-mode">
+            <select id="calc-family-mode" value={tierKey} onChange={(e) => setTierKey(e.target.value)}
+              className="w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
+              style={{ borderColor: COLORS.line, color: COLORS.ink, backgroundColor: COLORS.cardHi }}>
+              {Object.keys(TIERS).map((key) => (
+                <option key={key} value={key}>{t(`families.${key}.label`)}</option>
+              ))}
+            </select>
+          </Field>
+          <p className="text-[11px] font-mono mb-5" style={{ color: COLORS.inkSoft }}>
+            {t(measuredDensityValue != null ? "calc.densitiesUsedMeasured" : "calc.densitiesUsed", { oil: result.densities.oil, ethanol: result.densities.ethanol })}
+          </p>
+          {mode === "fromOil" && <FromOil densities={result.densities} defaultPct={concPct} />}
+          {mode === "adjust" && <Adjust densities={result.densities} defaultPct={concPct} />}
+          {mode === "run" && <Run densities={result.densities} defaultPct={concPct} />}
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
           <h3 className="text-base font-serif font-semibold mb-5" style={{ color: COLORS.forestDeep }}>{t("calc.benchSheet")}</h3>
@@ -591,6 +624,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }
