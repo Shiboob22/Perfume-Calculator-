@@ -12,6 +12,9 @@ import { COLORS } from "./lib/theme";
 // The signed-in app is its own chunk: public pages (prerendered, crawlable)
 // never load Supabase, the catalog search or the calculator.
 const App = lazy(() => import("./App"));
+// Dev-only screen previews; `import.meta.env.DEV` is false in production
+// builds, so this route and its chunk are dropped there.
+const DevScreens = import.meta.env.DEV ? lazy(() => import("./dev/DevScreens")) : null;
 
 function AppLoading() {
   return <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }} />;
@@ -35,6 +38,9 @@ export default function Root() {
   return (
     <Routes>
       <Route path="/app/:tab?" element={<I18nProvider><Suspense fallback={<AppLoading />}><App /></Suspense></I18nProvider>} />
+      {DevScreens && (
+        <Route path="/dev/:screen?" element={<I18nProvider><Suspense fallback={<AppLoading />}><DevScreens /></Suspense></I18nProvider>} />
+      )}
       <Route path="/ar/*" element={<I18nProvider locale="ar"><PublicRoutes /></I18nProvider>} />
       <Route path="/*" element={<I18nProvider locale="en"><PublicRoutes /></I18nProvider>} />
     </Routes>

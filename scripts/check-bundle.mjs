@@ -36,6 +36,14 @@ for (const file of files) {
   }
 }
 
+// Public pages are prerendered and must stay light: the entry bundle (the
+// one every public page loads) may not carry the sign-in client.
+for (const file of files.filter((f) => /assets\/index-[^/]+\.js$/.test(f))) {
+  if (/auth\/v1|GoTrueClient/.test(readFileSync(file, "utf8"))) {
+    problems.push(`${file}: the public entry bundle contains the Supabase auth client`);
+  }
+}
+
 if (problems.length) {
   console.error("Secret check failed:\n" + problems.map((p) => "  - " + p).join("\n"));
   process.exit(1);
