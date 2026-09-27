@@ -33,21 +33,22 @@ export function batchReadyAt(batch) {
   return new Date(start.getTime() + rest[1] * DAY_MS);
 }
 
-export function formatExact(date) {
+// Date and time in the app's language (Western digits, as everywhere).
+export function formatExact(date, locale = "en") {
   if (!date) return "";
-  return date.toLocaleString(undefined, {
+  return date.toLocaleString(locale, {
     weekday: "short", year: "numeric", month: "short", day: "numeric",
-    hour: "numeric", minute: "2-digit",
+    hour: "numeric", minute: "2-digit", numberingSystem: "latn",
   });
 }
 
-// "ready now" or "in 12 days" / "in 5 hours" relative to `now`.
+// Time left until `readyAt`, as a message key and count for t():
+// { key: "ready" } | { key: "inDays", count } | { key: "inHours", count }.
 export function readyCountdown(readyAt, now = new Date()) {
-  if (!readyAt) return "";
+  if (!readyAt) return null;
   const ms = readyAt.getTime() - now.getTime();
-  if (ms <= 0) return "ready now";
+  if (ms <= 0) return { key: "ready" };
   const days = Math.ceil(ms / DAY_MS);
-  if (days > 1) return `in ${days} days`;
-  const hours = Math.ceil(ms / (60 * 60 * 1000));
-  return `in ${hours} hour${hours === 1 ? "" : "s"}`;
+  if (days > 1) return { key: "inDays", count: days };
+  return { key: "inHours", count: Math.ceil(ms / (60 * 60 * 1000)) };
 }
