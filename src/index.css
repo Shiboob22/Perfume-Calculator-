@@ -6,7 +6,7 @@ body {
   margin: 0;
   background: #100E0A;
   color: #F0E8D7;
-  font-family: "Space Grotesk", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  font-family: "Space Grotesk", "IBM Plex Sans Arabic", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -20,4 +20,11 @@ input[type="range"] {
    for the whole page in RTL. */
 html[dir="rtl"] body * {
   letter-spacing: normal !important;
+}
+
+/* The mono labels are a Latin design device. In Arabic they would take their
+   word spaces from IBM Plex Mono (fixed-width, so gaps look wide); use the
+   proportional UI fonts instead. */
+html[dir="rtl"] .font-mono {
+  font-family: "IBM Plex Sans Arabic", "Space Grotesk", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
 }

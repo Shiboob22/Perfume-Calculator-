@@ -15,8 +15,10 @@
     "numbers:diff": "node scripts/numbers-diff.mjs"
   },
   "dependencies": {
+    "@fontsource/amiri": "^5.3.0",
     "@fontsource/cormorant-garamond": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
     "@fontsource/space-grotesk": "^5.3.0",
     "@supabase/auth-js": "^2.116.0",
     "@supabase/postgrest-js": "^2.116.0",

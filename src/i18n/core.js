@@ -6,9 +6,11 @@ export const LOCALES = ["en", "ar"];
 export const DEFAULT_LOCALE = "en";
 const RTL = new Set(["ar"]);
 
-// Western digits in every locale for now, so figures match what a scale shows.
-// Arabic-Indic digits ("arab") are an owner decision pending for Phase 6.
+// Western digits by default, so figures match what a scale shows. Arabic-
+// Indic digits ("arab") are a per-user setting for text; calculator figures
+// stay Western either way.
 export const NUMBERING_SYSTEM = "latn";
+export const NUMBERING_SYSTEMS = ["latn", "arab"];
 
 export function dirOf(locale) {
   return RTL.has(locale) ? "rtl" : "ltr";
@@ -49,8 +51,8 @@ function pickPlural(forms, locale, count) {
 // t(key, vars): the message in `locale`, else in `fallback`, else the key
 // itself (so a missing string is visible, never blank). Numbers passed in
 // vars are formatted for the locale; `count` also selects the plural form.
-export function createTranslator(locale, catalogs, fallback = DEFAULT_LOCALE) {
-  const numberFormat = new Intl.NumberFormat(locale, { numberingSystem: NUMBERING_SYSTEM });
+export function createTranslator(locale, catalogs, fallback = DEFAULT_LOCALE, { numberingSystem = NUMBERING_SYSTEM } = {}) {
+  const numberFormat = new Intl.NumberFormat(locale, { numberingSystem });
   return function t(key, vars = {}) {
     let msg = lookup(catalogs[locale], key);
     let msgLocale = locale;

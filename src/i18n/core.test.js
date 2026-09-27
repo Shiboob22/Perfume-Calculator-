@@ -79,3 +79,10 @@ describe("locale helpers", () => {
     expect(matchLocale(undefined)).toBe("en");
   });
 });
+
+describe("digit setting", () => {
+  it("uses Arabic-Indic digits when asked", () => {
+    const t = createTranslator("ar", catalogs, "en", { numberingSystem: "arab" });
+    expect(t("batches", { count: 25 })).toBe("٢٥ دفعة");
+  });
+});
