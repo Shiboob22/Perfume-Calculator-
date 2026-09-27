@@ -235,6 +235,11 @@ export default {
     photo_exists: "This fragrance already has a photo.",
     feature_locked: "This feature is part of Pro.",
   },
+  settings: {
+    digitsLabel: "Digit style",
+    useArabicIndic: "Digits: ١٢٣",
+    useWestern: "Digits: 123",
+  },
   auth: {
     loading: "Loading The Scent Handbook…",
     signIn: "Sign in",

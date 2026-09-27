@@ -6,6 +6,7 @@ import AuthGate from "./components/AuthGate";
 import { signOut } from "./lib/auth";
 import { useI18n } from "./i18n/I18nProvider";
 import LanguageToggle from "./components/LanguageToggle";
+import DigitToggle from "./components/DigitToggle";
 import ProLocked from "./components/ProLocked";
 import { EntitlementsProvider, useEntitlements } from "./lib/useEntitlements";
 import { can } from "./lib/entitlements";
@@ -84,7 +85,7 @@ export default function App() {
             >
               {t("app.signOut")}
             </button>
-            <div><LanguageToggle /></div>
+            <div className="flex gap-3 justify-end"><DigitToggle /><LanguageToggle /></div>
           </div>
         </div>
 

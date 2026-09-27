@@ -236,6 +236,11 @@ export default {
     photo_exists: "لهذا العطر صورة بالفعل.",
     feature_locked: "هذه الميزة جزء من خطة Pro.",
   },
+  settings: {
+    digitsLabel: "شكل الأرقام",
+    useArabicIndic: "الأرقام: ١٢٣",
+    useWestern: "الأرقام: 123",
+  },
   auth: {
     loading: "جارٍ تحميل The Scent Handbook…",
     signIn: "تسجيل الدخول",
