@@ -24,7 +24,7 @@ export default [
     },
   },
   {
-    files: ["*.{js,cjs,mjs}", "src/**/*.test.{js,jsx}"],
+    files: ["*.{js,cjs,mjs}", "scripts/**/*.{js,mjs}", "src/**/*.test.{js,jsx}"],
     languageOptions: { globals: { ...globals.node } },
   },
 ];
