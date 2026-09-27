@@ -11,6 +11,12 @@
 //   { formula: [...] }                equations, always laid out left to right
 //   { callout: { kind, title, text } } caution | important | rule
 //   { quote }                         pull quote
+//   { evidence: { label, tone }, title?, text }  a claim with the handbook's
+//                                     own evidence label (tone: scientific |
+//                                     plausible | anecdotal | myth | practice)
+
+import { WEARING_1 } from "./wearing-1";
+import { WEARING_2 } from "./wearing-2";
 
 const QUICK_REFERENCE = [
   ["30 ml", "15% EDT", "4.28 g", "20.66 g", "24.94 g"],
@@ -30,9 +36,10 @@ const QUICK_REFERENCE = [
 const AR_STRENGTH = { "15% EDT": "15% EDT", "20% EDP": "20% EDP", "25% EDP Intense": "25% EDP إنتنس", "30% Extrait": "30% إكستريه" };
 const arRow = ([bottle, strength, ...grams]) => [bottle.replace("ml", "مل"), AR_STRENGTH[strength], ...grams.map((g) => g.replace(" g", " غ"))];
 
-export const GUIDES = [
+const BLENDING = [
   {
     slug: "why-weigh",
+    section: "blending",
     source: { volume: "III", book: "Formulation", sections: ["01", "12"] },
     calculator: null,
     en: {
@@ -71,6 +78,7 @@ export const GUIDES = [
   },
   {
     slug: "the-calculation",
+    section: "blending",
     source: { volume: "III", book: "Formulation", sections: ["02", "03", "11"] },
     calculator: { mode: "a", size: 100, unit: "ml", conc: 25 },
     en: {
@@ -121,6 +129,7 @@ export const GUIDES = [
   },
   {
     slug: "at-the-bench",
+    section: "blending",
     source: { volume: "III", book: "Formulation", sections: ["04", "05", "06", "07", "08", "09", "10"] },
     calculator: null,
     en: {
@@ -222,6 +231,11 @@ export const GUIDES = [
     },
   },
 ];
+
+export const SECTIONS = ["blending", "wearing"];
+
+// Every guide, in reading order: Blending (Vol. III), then Wearing (Vol. I).
+export const GUIDES = [...BLENDING, ...WEARING_1, ...WEARING_2];
 
 export function guideBySlug(slug) {
   return GUIDES.find((g) => g.slug === slug) || null;

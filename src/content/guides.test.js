@@ -34,3 +34,31 @@ describe("guides", () => {
     }
   });
 });
+
+describe("private content", () => {
+  // The owner's own collection (Vol. I Part X, most of Vol. II) is never
+  // published. Any of these names in public content is a leak.
+  const BOTTLES = [
+    /\bIcon\b/, /Sedley/, /YSL Y\b/, /MYSLF/i, /Wulong Cha/i, /Rain Tea/i, /Tea Storm/i, /Blue Talisman/i, /Alth[aä]ïr|Althair/i,
+    /Layton/i, /Pegasus/i, /40 Knots/i, /Herod/i, /Naxos/i, /Code Parfum/i, /Tobacco RWA|Rich Warm Addictive/i,
+    /1 Million|One Million/i, /God of Fire/i, /Black XS/i, /Desire (Red|for a Man)/i, /Le Beau/i,
+  ];
+
+  it("names none of the owner's bottles in any guide or UI string", async () => {
+    const en = (await import("../i18n/messages/en")).default;
+    const ar = (await import("../i18n/messages/ar")).default;
+    const text = JSON.stringify([GUIDES, en, ar]);
+    for (const re of BOTTLES) expect(text, String(re)).not.toMatch(re);
+  });
+});
+
+describe("guide pages' head", () => {
+  it("carries article structured data with the author", async () => {
+    const { headFor, headHtml } = await import("../site/meta");
+    const html = headHtml(headFor("/ar/guides/why-weigh"));
+    const json = JSON.parse(html.match(/<script type="application\/ld\+json">(.*)<\/script>/)[1]);
+    expect(json[0]).toMatchObject({ "@type": "Article", inLanguage: "ar", author: { name: "Hisham Shiboob" } });
+    expect(json[1].itemListElement).toHaveLength(2);
+    expect(headHtml(headFor("/pricing"))).not.toContain("ld+json");
+  });
+});
