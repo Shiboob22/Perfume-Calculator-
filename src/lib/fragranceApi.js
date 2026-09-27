@@ -121,20 +121,52 @@ export async function getFragranceNotes(fragranceId) {
   return data;
 }
 
-export async function saveFragranceNotes(fragranceId, { oilType, pricePerGram, notes }) {
+// measuredDensity: undefined leaves the stored value alone; null clears it.
+export async function saveFragranceNotes(fragranceId, { oilType, pricePerGram, notes, measuredDensity }) {
+  const row = {
+    fragrance_id: fragranceId,
+    oil_type: oilType || null,
+    price_per_gram: pricePerGram || null,
+    notes: notes || null,
+    updated_at: new Date().toISOString(),
+  };
+  if (measuredDensity !== undefined) {
+    row.measured_density = measuredDensity;
+    row.measured_at = measuredDensity === null ? null : new Date().toISOString();
+  }
   const { data, error } = await supabase
     .from("fragrance_notes")
-    .upsert({
-      fragrance_id: fragranceId,
-      oil_type: oilType || null,
-      price_per_gram: pricePerGram || null,
-      notes: notes || null,
-      updated_at: new Date().toISOString(),
-    })
+    .upsert(row)
     .select()
     .single();
   if (error) throw error;
   return data;
+}
+
+/* ---------------- Calculator presets ---------------- */
+
+export async function listPresets() {
+  const { data, error } = await supabase
+    .from("calc_presets")
+    .select("id, name, amount, unit, concentration_pct")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function savePreset({ name, amount, unit, concentrationPct }) {
+  const { data, error } = await supabase
+    .from("calc_presets")
+    .insert({ name: name.trim(), amount, unit, concentration_pct: concentrationPct })
+    .select("id, name, amount, unit, concentration_pct")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deletePreset(id) {
+  const { error } = await supabase.from("calc_presets").delete().eq("id", id);
+  if (error) throw error;
 }
 
 /* ---------------- Batches (production history) ---------------- */

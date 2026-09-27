@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { UNIT_LABELS, prefillFromQuery } from "../lib/calcPrefill";
 import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
 import { STRENGTHS } from "../lib/formulation";
+import MeasuredDensity from "./calc/MeasuredDensity";
+import Presets from "./calc/Presets";
 import { COLORS } from "../lib/theme";
 import { TIERS, ETHANOL_DENSITY_DEFAULT } from "../lib/tiers";
 import {
@@ -147,6 +149,9 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
     ethanol: ETHANOL_DENSITY_DEFAULT,
   }));
 
+  // This user's measured density for the matched oil, if any: it replaces
+  // the family's reference density (the handbook: a measured density wins).
+  const [measuredDensityValue, setMeasuredDensity] = useState(null);
   const [oilType, setOilType] = useState("");
   const [pricePerGram, setPricePerGram] = useState("");
   const [notes, setNotes] = useState("");
@@ -209,8 +214,9 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         setOilType(noteRow?.oil_type || "");
         setPricePerGram(noteRow?.price_per_gram ?? "");
         setNotes(noteRow?.notes || "");
+        setMeasuredDensity(noteRow?.measured_density != null ? Number(noteRow.measured_density) : null);
       } else {
-        setOilType(""); setPricePerGram(""); setNotes("");
+        setOilType(""); setPricePerGram(""); setNotes(""); setMeasuredDensity(null);
       }
     } catch (e) { /* offline or query failed — leave fields as-is */ }
   }
@@ -225,12 +231,12 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
     amount: batchSize,
     unit: batchUnit,
     concPct,
-    oilDensity: densities[tierKey],
+    oilDensity: measuredDensityValue ?? densities[tierKey],
     ethanolDensity: densities.ethanol || ETHANOL_DENSITY_DEFAULT,
     actualOilG,
     actualEthanolG: actualEthG,
     pricePerGram,
-  }), [batchSize, batchUnit, concPct, densities, tierKey, pricePerGram, actualOilG, actualEthG]);
+  }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG]);
 
   async function handleLogBatch() {
     if (!fragName.trim()) return;
@@ -241,7 +247,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         fragrance = await ensureFragrance(fragName, tierKey);
         setMatched(fragrance);
       }
-      await saveFragranceNotes(fragrance.id, { oilType, pricePerGram: pricePerGram || null, notes });
+      await saveFragranceNotes(fragrance.id, { oilType, pricePerGram: pricePerGram || null, notes, measuredDensity: measuredDensityValue });
       await logBatch({
         fragrance_id: fragrance.id,
         fragrance_name: fragName.trim(),
@@ -386,6 +392,11 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             </select>
           </Field>
 
+          <Presets
+            current={{ amount: batchSize, unit: batchUnit, concPct }}
+            onApply={({ amount, unit, concPct: c }) => { setBatchSize(amount); setBatchUnit(unit); setConcPct(c); }}
+          />
+
           <Field label={t("calc.batchSize")} htmlFor="calc-size">
             <AmountWithUnit
               id="calc-size" unitLabel={t("calc.unit")}
@@ -454,6 +465,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
                   onChange={(e) => setDensities({ ...densities, ethanol: parseFloat(e.target.value) || 0 })} />
               </div>
             </div>
+            <MeasuredDensity value={measuredDensityValue} onChange={setMeasuredDensity} referenceDensity={densities[tierKey]} />
           </details>
 
           <div className="pt-1 border-t" style={{ borderColor: COLORS.line }}>
@@ -516,7 +528,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
           <ReadoutRow label={t("calc.ethanol96")} weight={result.shown.ethanolG} volume={result.shown.ethanolMl} />
           <ReadoutRow label={t("calc.total")} weight={result.shown.totalG} volume={result.shown.totalMl} bold />
           <p className="text-[11px] font-mono mt-2" style={{ color: COLORS.inkSoft }}>
-            {t("calc.densitiesUsed", { oil: result.densities.oil, ethanol: result.densities.ethanol })}
+            {t(measuredDensityValue != null ? "calc.densitiesUsedMeasured" : "calc.densitiesUsed", { oil: result.densities.oil, ethanol: result.densities.ethanol })}
           </p>
           <p className="text-[11px] mt-1" style={{ color: COLORS.dim }}>{t("calc.onAccuracy")}</p>
 
