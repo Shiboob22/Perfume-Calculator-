@@ -4,6 +4,7 @@ import { createTranslator } from "../i18n/core";
 import en from "../i18n/messages/en";
 import ar from "../i18n/messages/ar";
 import { GUIDES, guideBySlug } from "../content/guides";
+import { LEGAL, LEGAL_PAGES } from "../content/legal";
 
 const CATALOGS = { en, ar };
 
@@ -26,7 +27,7 @@ export function parsePath(pathname) {
 
 // Every public page, in both languages: what the prerender writes out.
 export function publicPaths() {
-  const base = ["/", "/pricing", "/guides", ...GUIDES.map((g) => `/guides/${g.slug}`)];
+  const base = ["/", "/pricing", "/guides", ...GUIDES.map((g) => `/guides/${g.slug}`), ...LEGAL_PAGES.map((p) => `/${p}`)];
   return base.flatMap((p) => [localePath("en", p), localePath("ar", p)]);
 }
 
@@ -38,6 +39,7 @@ export function headFor(pathname) {
   let description;
   let type = "website";
   let guideTitle = null;
+  let noindex = false;
 
   if (path === "/") {
     title = t("site.home.metaTitle");
@@ -56,6 +58,12 @@ export function headFor(pathname) {
     description = g.summary;
     type = "article";
     guideTitle = g.title;
+  } else if (LEGAL_PAGES.includes(path.slice(1))) {
+    const doc = LEGAL[path.slice(1)];
+    title = `${doc[locale].title} — The Scent Handbook`;
+    description = doc[locale].summary;
+    // Drafts are reachable (the footer links them) but kept out of search.
+    noindex = doc.draft;
   } else {
     return null;
   }
@@ -63,6 +71,7 @@ export function headFor(pathname) {
   const canonical = SITE_URL + localePath(locale, path);
   return {
     guideTitle,
+    noindex,
     guidesUrl: SITE_URL + localePath(locale, "/guides"),
     guidesLabel: t("site.guides.title"),
     locale,
@@ -85,6 +94,7 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").repl
 export function headHtml(head) {
   return [
     `<title>${esc(head.title)}</title>`,
+    ...(head.noindex ? [`<meta name="robots" content="noindex" />`] : []),
     `<meta name="description" content="${esc(head.description)}" />`,
     `<link rel="canonical" href="${esc(head.canonical)}" />`,
     ...Object.entries(head.alternates).map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${esc(href)}" />`),

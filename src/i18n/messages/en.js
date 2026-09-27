@@ -32,6 +32,8 @@ export default {
     },
   },
   chat: {
+    disclosure: "Your question and your 30 most recent batches are sent to Google's Gemini to write the answer. Answers can be wrong.",
+    disclosureLink: "What is shared",
     title: "Ask the perfumer",
     newConversation: "New conversation",
     intro: "Gemini knows your five families and your recent batches. Try:",
@@ -471,7 +473,8 @@ export default {
     useWestern: "Digits: 123",
   },
   site: {
-    nav: { guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "The Scent Handbook, home", language: "العربية", languageLabel: "Read this page in Arabic" },
+    nav: { privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "The Scent Handbook, home", language: "العربية", languageLabel: "Read this page in Arabic" },
+    legal: { draft: "Draft — not yet reviewed. This page may change before launch.", updated: "Last updated {date}" },
     footer: { by: "By Hisham Shiboob", rights: "© 2026 The Scent Handbook" },
     home: {
       metaTitle: "The Scent Handbook — a fragrance blending calculator by weight",

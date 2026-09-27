@@ -54,6 +54,8 @@ export default function PublicLayout({ children }) {
         <Link to={to("/guides")} className="hover:underline">{t("site.nav.guides")}</Link>
         <Link to={to("/pricing")} className="hover:underline">{t("site.nav.pricing")}</Link>
         <Link to={localePath(other, path)} lang={other} className="hover:underline">{t("site.nav.language")}</Link>
+        <Link to={to("/privacy")} className="hover:underline">{t("site.nav.privacy")}</Link>
+        <Link to={to("/terms")} className="hover:underline">{t("site.nav.terms")}</Link>
         <span className="ms-auto">{t("site.footer.by")} · {t("site.footer.rights")}</span>
       </footer>
     </div>

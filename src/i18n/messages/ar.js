@@ -33,6 +33,8 @@ export default {
     },
   },
   chat: {
+    disclosure: "يُرسَل سؤالك وآخر 30 خلطة لك إلى Gemini من Google لكتابة الإجابة. قد تكون الإجابات خاطئة.",
+    disclosureLink: "ما الذي يُشارَك",
     title: "اسأل خبير العطور",
     newConversation: "محادثة جديدة",
     intro: "يعرف Gemini عائلاتك الخمس ودفعاتك الأخيرة. جرّب:",
@@ -472,7 +474,8 @@ export default {
     useWestern: "الأرقام: 123",
   },
   site: {
-    nav: { guides: "الأدلة", pricing: "الخطط", openApp: "افتح التطبيق", home: "The Scent Handbook، الصفحة الرئيسية", language: "English", languageLabel: "اقرأ هذه الصفحة بالإنجليزية" },
+    nav: { privacy: "الخصوصية", terms: "الشروط", guides: "الأدلة", pricing: "الخطط", openApp: "افتح التطبيق", home: "The Scent Handbook، الصفحة الرئيسية", language: "English", languageLabel: "اقرأ هذه الصفحة بالإنجليزية" },
+    legal: { draft: "مسودة لم تُراجَع بعد. قد تتغير هذه الصفحة قبل الإطلاق.", updated: "آخر تحديث {date}" },
     footer: { by: "بقلم Hisham Shiboob", rights: "© 2026 The Scent Handbook" },
     home: {
       metaTitle: "The Scent Handbook — حاسبة لخلط العطور بالوزن",

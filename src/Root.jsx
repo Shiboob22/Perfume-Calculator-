@@ -7,6 +7,7 @@ import Pricing from "./site/Pricing";
 import GuidesIndex from "./site/GuidesIndex";
 import GuidePage from "./site/GuidePage";
 import NotFound from "./site/NotFound";
+import LegalPage from "./site/LegalPage";
 import { COLORS } from "./lib/theme";
 
 // The signed-in app is its own chunk: public pages (prerendered, crawlable)
@@ -28,6 +29,8 @@ function PublicRoutes() {
         <Route path="pricing" element={<Pricing />} />
         <Route path="guides" element={<GuidesIndex />} />
         <Route path="guides/:slug" element={<GuidePage />} />
+        <Route path="privacy" element={<LegalPage page="privacy" />} />
+        <Route path="terms" element={<LegalPage page="terms" />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </PublicLayout>

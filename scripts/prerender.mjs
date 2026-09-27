@@ -41,7 +41,7 @@ write(join(DIST, "404.html"), page("/this-page-does-not-exist", notFound).replac
 
 const site = headFor("/").canonical.replace(/\/$/, "");
 const today = new Date().toISOString().slice(0, 10);
-const entries = paths.filter((p) => !p.startsWith("/ar")).map((p) => {
+const entries = paths.filter((p) => !p.startsWith("/ar") && !headFor(p).noindex).map((p) => {
   const h = headFor(p);
   const alt = Object.entries(h.alternates).map(([lang, href]) => `    <xhtml:link rel="alternate" hreflang="${lang}" href="${href}" />`).join("\n");
   const both = [h.alternates.en, h.alternates.ar];

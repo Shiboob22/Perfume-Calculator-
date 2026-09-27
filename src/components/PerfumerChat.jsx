@@ -8,7 +8,7 @@ const STARTERS = ["gourmandExtrait", "sharpAfterWeek", "longestRest"];
 
 // Conversation lives in component state only — it resets on reload by design.
 export default function PerfumerChat() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [messages, setMessages] = useState([]); // [{ role: 'user' | 'model', text }]
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -62,6 +62,11 @@ export default function PerfumerChat() {
           </button>
         )}
       </div>
+
+      <p className="text-xs mb-4" style={{ color: COLORS.dim }}>
+        {t("chat.disclosure")}{" "}
+        <a href={`${locale === "ar" ? "/ar" : ""}/privacy#ai`} className="underline" style={{ color: COLORS.inkSoft }}>{t("chat.disclosureLink")}</a>
+      </p>
 
       {messages.length === 0 && (
         <div className="mb-6">
