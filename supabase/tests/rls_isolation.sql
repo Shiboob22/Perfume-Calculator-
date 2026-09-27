@@ -40,6 +40,9 @@ begin
   insert into public.inventory (user_id, fragrance_id, stock_g) values (a, f_shared, 100), (b, f_shared, 50);
   insert into public.fragrance_notes (user_id, fragrance_id, notes, measured_density) values (a, f_shared, 'A secret', 0.97), (b, f_shared, 'B note', null);
   insert into public.calc_presets (user_id, name, amount, unit, concentration_pct) values (a, 'A usual', 50, 'ml', 25);
+  insert into public.profiles (user_id, locale, default_unit) values (a, 'ar', 'g');
+  insert into public.pro_waitlist (user_id, locale) values (a, 'ar');
+  insert into public.billing_events (provider, event_id, payload) values ('test', 'evt_' || a, '{}');
 
   -- ------------------------------------------------------ act as user B
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
@@ -67,6 +70,20 @@ begin
   exception when insufficient_privilege then ok := true;
   end;
   if not ok then raise exception 'RLS_ISOLATION FAILED: B added a preset as A'; end if; checks := checks + 1;
+  select count(*) into n from public.profiles;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s profile'; end if; checks := checks + 1;
+  select count(*) into n from public.pro_waitlist;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s waitlist entry'; end if; checks := checks + 1;
+  ok := false;
+  begin perform 1 from public.billing_events limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a user can read billing events'; end if; checks := checks + 1;
+  ok := false;
+  begin
+    insert into public.pro_waitlist (user_id) values (a);
+  exception when insufficient_privilege or unique_violation then ok := true;
+  end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B joined the waitlist as A'; end if; checks := checks + 1;
   select count(*) into n from public.fragrances where id = f_shared;
   if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B can''t read the shared catalog'; end if; checks := checks + 1;
 
