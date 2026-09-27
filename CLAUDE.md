@@ -9,6 +9,8 @@ The product is **The Scent Handbook**. Use that name everywhere (titles, meta, e
 
 ## Current phase
 
+**Phase 3 — Library: built, in review (branch `phase-3-library`, stacked on Phase 2).** 15 guides EN/AR (3 Blending from Vol. III, 12 Wearing from Vol. I), search, evidence badges, JSON-LD, Pro printable cards at `/app/cards`. Choosing (Wardrobe) guides wait on neutral-example approval. Guide content lives in `src/content/` (JS modules; EN follows the handbook, AR drafts `needsReview`).
+
 **Phase 2 — Calculator: built, in review (branch `phase-2-calculator`, stacked on Phase 1).** Migrations 0004–0006 on staging only. Calculation core `src/lib/calc/` (100% covered, golden tests = Vol. III Quick Reference), four modes, measured density, presets, bench mode `/app/bench`, offline (service worker + outbox), warnings, sources, Pro cost. Open decisions specific to Phase 2: pour tolerance (none set; check shows deviation only), density bounds (proposed 0.80–1.20 / 0.78–0.83), whether measured density / by-weight are Pro, the density-measurement wording. Until the numbers table is decided, guide links (0.95) and calculator family densities (e.g. Fresh 0.87) give different grams.
 
 **Phase 1 — Foundations and safety: built, in review (branch `phase-1-foundations`, PR open).** Migrations 0001–0003 are applied to STAGING only; production gets them at merge, after the owner approves the SQL.
