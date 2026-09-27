@@ -11,6 +11,7 @@ import {
   adjustInventory,
   listBatches,
 } from "../lib/fragranceApi";
+import { useI18n } from "../i18n/I18nProvider";
 import { blendTips } from "../lib/aiApi";
 
 function round2(n) {
@@ -123,6 +124,7 @@ function ReadoutRow({ label, weight, volume, bold }) {
  * personal log — this is now the single source of truth.
  */
 export default function FragranceBlendCalculator({ selectedPerfume, onClearSelection }) {
+  const { t } = useI18n();
   const [fragName, setFragName] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [matched, setMatched] = useState(null); // resolved { id, name, tier } or null
@@ -161,6 +163,8 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
     return () => { cancelled = true; };
   }, []);
   const [logError, setLogError] = useState("");
+  // Shown under "Saved" when the batch saved but the stock step needs a word.
+  const [logNote, setLogNote] = useState("");
 
   // Incoming selection from PerfumeSearch (scraped Fragrantica-style data)
   useEffect(() => {
@@ -248,7 +252,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
 
   async function handleLogBatch() {
     if (!fragName.trim()) return;
-    setLogStatus("saving"); setLogError("");
+    setLogStatus("saving"); setLogError(""); setLogNote("");
     try {
       let fragrance = matched;
       if (!fragrance) {
@@ -273,7 +277,9 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         actual_oil_g: Number(actualOilG) > 0 ? Number(actualOilG) : null,
         actual_ethanol_g: Number(actualEthG) > 0 ? Number(actualEthG) : null,
       });
-      await adjustInventory(fragrance.id, -result.usedOilG);
+      // The batch is saved from here on: nothing below may report it as unsaved,
+      // or a retry would log it twice.
+      await deductStock(fragrance.id, result.usedOilG);
       // Actual pours belong to this batch only — clear them so the next
       // log doesn't silently reuse them.
       setActualOilG(""); setActualEthG("");
@@ -281,6 +287,20 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
     } catch (e) {
       setLogStatus("error");
       setLogError(e.message || "Could not save this batch.");
+    }
+  }
+
+  // Take the oil used by a just-saved batch out of inventory. Never throws:
+  // the batch is already saved, so every outcome here ends in a note at most.
+  async function deductStock(fragranceId, grams) {
+    // An untracked oil stays untracked: creating a row here would start it at
+    // 0 g, and a stock figure the user never entered is worse than none.
+    try {
+      await adjustInventory(fragranceId, -grams);
+    } catch (e) {
+      setLogNote(e.code === "not_tracked"
+        ? t("calculator.log.untracked")
+        : t("calculator.log.stockFailed", { error: e.message }));
     }
   }
 
@@ -539,8 +559,11 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
           </button>
           {logStatus === "saved" && (
             <p className="text-xs mt-2" style={{ color: COLORS.forest }}>
-              Saved — added to batch history{!matched ? " and to the fragrance database" : ""}, inventory adjusted.
+              Saved — added to batch history{!matched ? " and to the fragrance database" : ""}.
             </p>
+          )}
+          {logStatus === "saved" && logNote && (
+            <p className="text-xs mt-1" style={{ color: COLORS.inkSoft }}>{logNote}</p>
           )}
           {logStatus === "error" && (
             <p className="text-xs mt-2" style={{ color: COLORS.danger }}>Could not save: {logError}</p>

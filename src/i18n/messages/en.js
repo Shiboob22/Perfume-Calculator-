@@ -13,6 +13,12 @@ export default {
       ask: "Ask",
     },
   },
+  calculator: {
+    log: {
+      untracked: "This oil isn't in your inventory, so no stock was deducted.",
+      stockFailed: "Your batch is saved, but the inventory couldn't be updated: {error}",
+    },
+  },
   auth: {
     loading: "Loading The Scent Handbook…",
     signIn: "Sign in",

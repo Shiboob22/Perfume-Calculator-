@@ -14,6 +14,12 @@ export default {
       ask: "اسأل",
     },
   },
+  calculator: {
+    log: {
+      untracked: "هذا الزيت غير موجود في مخزونك، لذلك لم يُخصم شيء من الكمية.",
+      stockFailed: "حُفظت دفعتك، لكن تعذّر تحديث المخزون: {error}",
+    },
+  },
   auth: {
     loading: "جارٍ تحميل The Scent Handbook…",
     signIn: "تسجيل الدخول",
