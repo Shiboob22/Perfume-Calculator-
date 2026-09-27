@@ -9,6 +9,8 @@ The product is **The Scent Handbook**. Use that name everywhere (titles, meta, e
 
 ## Current phase
 
+**Phase 4 — Site, account and billing seam: built, in review (branch `phase-4-site`, stacked on Phase 3).** Migrations 0007–0009 (profiles, pro_waitlist, billing seam) on staging only; RLS isolation test now 37 checks. Onboarding (3 questions → calculator opens at the answers), `/app/account` (plan + usage, Pro waitlist, preferences, JSON/CSV export, delete account via `DELETE /api/account` — email typed back, admins refused, immediate), billing seam (`api/_lib/billing.ts`, 501 webhook, `docs/billing.md`), draft `/privacy` + `/terms` (noindex, `[OWNER: …]` placeholders), Ask AI disclosure, safety notice on blending guides, empty-state actions, Vercel Web Analytics (needs switching on in the Vercel project). Open decisions specific to Phase 4: manual-grant vs provider-event precedence (`resolvePlan`), deletion grace period (built: immediate), provider choice/prices, all `[OWNER: …]` legal facts + lawyer review, landing copy approval.
+
 **Phase 3 — Library: built, in review (branch `phase-3-library`, stacked on Phase 2).** 15 guides EN/AR (3 Blending from Vol. III, 12 Wearing from Vol. I), search, evidence badges, JSON-LD, Pro printable cards at `/app/cards`. Choosing (Wardrobe) guides wait on neutral-example approval. Guide content lives in `src/content/` (JS modules; EN follows the handbook, AR drafts `needsReview`).
 
 **Phase 2 — Calculator: built, in review (branch `phase-2-calculator`, stacked on Phase 1).** Migrations 0004–0006 on staging only. Calculation core `src/lib/calc/` (100% covered, golden tests = Vol. III Quick Reference), four modes, measured density, presets, bench mode `/app/bench`, offline (service worker + outbox), warnings, sources, Pro cost. Open decisions specific to Phase 2: pour tolerance (none set; check shows deviation only), density bounds (proposed 0.80–1.20 / 0.78–0.83), whether measured density / by-weight are Pro, the density-measurement wording. Until the numbers table is decided, guide links (0.95) and calculator family densities (e.g. Fresh 0.87) give different grams.
@@ -84,6 +86,8 @@ Billing: **free for now, billing-ready.** Plans + entitlements exist and gate fe
 - Arithmetic lives in `src/lib/calc/` (pure, 100% covered, enforced in CI). Components call `calculate()`, `solve*()`, `checkPour()`, `labelWeights()` and only format.
 - The service worker is built last (`scripts/build-sw.mjs`, after prerender); never cache `/api`. Offline batch logs go through `src/lib/outbox.js` with client ids (the API is idempotent on id).
 - `/dev/<screen>` renders app screens without sign-in under `vite dev` only, for visual checks.
+- Owner-only tables written straight from the browser (profiles, pro_waitlist) rely on RLS alone: add every such table to `supabase/tests/rls_isolation.sql`. Anything needing the service role (deleting a user, billing) goes through `api/`.
+- Every user table references `auth.users` with ON DELETE CASCADE, so account deletion is one `auth.admin.deleteUser`. New user tables must do the same (and be added to `EXPORT_TABLES` in `src/lib/exportData.js`).
 
 ## Stack and layout (as of Phase 0)
 
