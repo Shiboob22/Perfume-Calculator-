@@ -6,18 +6,19 @@ import { useEntitlements } from '../lib/useEntitlements';
 import { can } from '../lib/entitlements';
 import { TIERS, TIER_COLORS, TIER_INITIAL } from '../lib/tiers';
 import { COLORS } from '../lib/theme';
+import { useI18n } from '../i18n/I18nProvider';
 import {
   accordColor, inkOn, accordWidth, noteCategory, NOTE_CATEGORIES, photoUrl, splitName,
-  GENDER_LABEL, GENDER_GLYPH, RADAR_AXES, estimateCharacter, describe,
+  GENDER_GLYPH, estimateCharacter, describe,
 } from '../lib/fragranceStyle';
 
 // Resolve a fragrance's family (tier) into display data.
-function familyOf(tierKey) {
+function familyOf(tierKey, t) {
   const key = tierKey && TIERS[tierKey] ? tierKey : null;
   return {
     key,
-    label: key ? TIERS[key].label : 'Uncategorized',
-    sub: key ? TIERS[key].sub : '',
+    label: key ? t(`families.${key}.label`) : t('search.uncategorized'),
+    sub: key ? t(`families.${key}.sub`) : '',
     color: key ? TIER_COLORS[key] : '#8A8A8A',
     initial: key ? TIER_INITIAL[key] : '·',
   };
@@ -79,9 +80,10 @@ function BottlePhoto({ perfume, size = 'hero' }) {
 
 // Five stars filled to the rating (Fragrantica's 1–5 community score).
 function Stars({ value, size = 16 }) {
+  const { t } = useI18n();
   const pct = Math.max(0, Math.min(100, (Number(value) / 5) * 100));
   return (
-    <span className="relative inline-block leading-none" style={{ fontSize: size, letterSpacing: 2 }} aria-label={`${value} out of 5`}>
+    <span className="relative inline-block leading-none" style={{ fontSize: size, letterSpacing: 2 }} role="img" aria-label={t('search.outOf5', { value })}>
       <span style={{ color: 'rgba(233,200,138,0.22)' }}>★★★★★</span>
       <span className="absolute inset-0 overflow-hidden whitespace-nowrap" style={{ width: `${pct}%`, color: COLORS.amber }}>★★★★★</span>
     </span>
@@ -89,6 +91,7 @@ function Stars({ value, size = 16 }) {
 }
 
 function RatingLine({ perfume, size = 16, compact = false }) {
+  const { t } = useI18n();
   if (!perfume?.rating) return null;
   const r = Number(perfume.rating);
   return (
@@ -97,7 +100,7 @@ function RatingLine({ perfume, size = 16, compact = false }) {
       <span className="font-mono" style={{ fontSize: compact ? 11 : 13, color: COLORS.ink }}>{r.toFixed(2)}</span>
       {perfume.popularity > 0 && (
         <span className="font-mono" style={{ fontSize: compact ? 10 : 12, color: COLORS.inkSoft }}>
-          {compact ? `(${fmtInt(perfume.popularity)})` : `· ${fmtInt(perfume.popularity)} votes`}
+          {compact ? `(${fmtInt(perfume.popularity)})` : t('search.votes', { count: fmtInt(perfume.popularity) })}
         </span>
       )}
     </span>
@@ -126,10 +129,13 @@ function labelPos(i) {
 }
 
 function ClassificationRadar({ radar }) {
+  const { t } = useI18n();
   const fill = radar.map((v, i) => pt(i, v).map((n) => Math.round(n * 10) / 10).join(',')).join(' ');
   const verts = radar.map((v, i) => pt(i, v));
   return (
-    <svg width="100%" viewBox="-48 0 476 390" aria-hidden="true">
+    // Laid out left to right in both languages: the label anchors are computed
+    // for LTR, and each Arabic word still shapes correctly inside its <text>.
+    <svg width="100%" viewBox="-48 0 476 390" aria-hidden="true" direction="ltr" style={{ direction: 'ltr' }}>
       {[10, 6.67, 3.33].map((v) => (
         <polygon key={v} points={ringPoints(v)} fill="none" stroke="rgba(233,200,138,0.13)" />
       ))}
@@ -139,10 +145,11 @@ function ClassificationRadar({ radar }) {
       })}
       <polygon points={fill} fill="rgba(233,200,138,0.18)" stroke={COLORS.amber} strokeWidth="2" />
       {verts.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3" fill={COLORS.amber} />)}
-      {RADAR_AXES.map((label, i) => {
+      {radar.map((_, i) => {
         const { x, y, anchor } = labelPos(i);
+        const label = t(`search.radar.${i}`);
         return (
-          <text key={label} x={x} y={y} textAnchor={anchor} fontSize="12"
+          <text key={i} x={x} y={y} textAnchor={anchor} fontSize="12"
             fill="#CDBF9E" fontFamily="'IBM Plex Mono', monospace">
             {label}
           </text>
@@ -154,10 +161,11 @@ function ClassificationRadar({ radar }) {
 
 // Fragrantica-style accord bar: the accord's own colour, name inside the bar.
 function AccordBar({ name, rank, onBrowse }) {
+  const { t } = useI18n();
   const bg = accordColor(name);
   return (
-    <button type="button" onClick={() => onBrowse('accord', name)} title={`Perfumes with a ${String(name).toLowerCase()} accord`}
-      className="block w-full text-left transition-opacity hover:opacity-90"
+    <button type="button" onClick={() => onBrowse('accord', name)} title={t('search.accordTitle', { accord: String(name).toLowerCase() })}
+      className="block w-full text-start transition-opacity hover:opacity-90"
       style={{ height: 30, borderRadius: 7, background: 'rgba(255,255,255,0.035)' }}>
       <div className="flex items-center px-3" style={{
         width: `${accordWidth(rank)}%`, minWidth: 'max-content', height: '100%', borderRadius: 7, background: bg,
@@ -172,10 +180,12 @@ function AccordBar({ name, rank, onBrowse }) {
 }
 
 function NoteToken({ note, onBrowse }) {
-  const cat = NOTE_CATEGORIES[noteCategory(note)];
+  const { t } = useI18n();
+  const catKey = noteCategory(note);
+  const cat = NOTE_CATEGORIES[catKey];
   const init = note.trim().charAt(0).toUpperCase();
   return (
-    <button type="button" onClick={() => onBrowse('note', note)} title={`${note} · ${cat.label} — perfumes with this note`}
+    <button type="button" onClick={() => onBrowse('note', note)} title={t('search.noteTitle', { note, category: t(`search.noteCats.${catKey}`) })}
       className="flex flex-col items-center gap-2 transition-transform hover:-translate-y-0.5" style={{ width: 84 }}>
       <span className="grid place-items-center" style={{
         width: 54, height: 54, borderRadius: 999,
@@ -201,13 +211,14 @@ function NoteLevel({ label, notes, onBrowse }) {
 }
 
 function NoteLegend({ notes }) {
+  const { t } = useI18n();
   const cats = [...new Set(notes.map(noteCategory))];
   return (
     <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
       {cats.map((c) => (
         <span key={c} className="inline-flex items-center gap-1.5 font-mono" style={{ fontSize: 10, color: COLORS.inkSoft, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           <span style={{ width: 8, height: 8, borderRadius: 99, background: NOTE_CATEGORIES[c].color }} />
-          {NOTE_CATEGORIES[c].label}
+          {t(`search.noteCats.${c}`)}
         </span>
       ))}
     </div>
@@ -233,13 +244,14 @@ function SegMeter({ label, value, caption }) {
 
 const SEASON_ICON = { Winter: '❄', Spring: '✿', Summer: '☀', Fall: '❦', Day: '◐', Night: '☾' };
 function SeasonBar({ label, value }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
       <span style={{ fontSize: 16, color: value >= 70 ? COLORS.amber : COLORS.dim }}>{SEASON_ICON[label]}</span>
       <span className="w-full relative overflow-hidden" style={{ maxWidth: 70, height: 90, borderRadius: 9, background: 'rgba(255,255,255,0.04)' }}>
         <span className="absolute bottom-0 left-0 right-0" style={{ height: `${value}%`, background: 'linear-gradient(180deg,#E9C88A,#A5673A)', opacity: 0.35 + value / 160 }} />
       </span>
-      <span className="font-mono" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#CDBF9E' }}>{label}</span>
+      <span className="font-mono" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#CDBF9E' }}>{t(`search.seasons.${label}`)}</span>
     </div>
   );
 }
@@ -254,11 +266,12 @@ function SectionLabel({ n, children }) {
 
 // Search result row: thumbnail, perfume, house · year, stars.
 function ResultRow({ item, active, onSelect }) {
+  const { t } = useI18n();
   const { brand, title } = splitName(item);
-  const f = familyOf(item.tier);
+  const f = familyOf(item.tier, t);
   return (
     <button type="button" onClick={() => onSelect(item)}
-      className="w-full text-left px-3 py-2.5 flex items-center gap-3 transition-colors"
+      className="w-full text-start px-3 py-2.5 flex items-center gap-3 transition-colors"
       style={{ background: active ? 'rgba(233,200,138,0.08)' : 'transparent', borderBottom: `1px solid ${COLORS.line}` }}>
       <BottlePhoto perfume={item} size="thumb" />
       <span className="min-w-0 flex-1">
@@ -275,15 +288,16 @@ function ResultRow({ item, active, onSelect }) {
 
 // Grid card for "reminds me of", "more from" and the most-rated shelf.
 function PerfumeCard({ item, onSelect }) {
+  const { t } = useI18n();
   const { brand, title } = splitName(item);
   return (
     <button type="button" onClick={() => onSelect(item)}
-      className="text-left rounded-xl p-2.5 flex flex-col gap-2 transition-transform hover:-translate-y-0.5"
+      className="text-start rounded-xl p-2.5 flex flex-col gap-2 transition-transform hover:-translate-y-0.5"
       style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}` }}>
       <BottlePhoto perfume={item} size="card" />
       <span className="min-w-0 px-0.5">
         <span className="block font-serif text-[14px] leading-tight" style={{ color: COLORS.forestDeep, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{title}</span>
-        <span className="block font-mono text-[10px] uppercase tracking-wider truncate mt-1" style={{ color: COLORS.inkSoft }}>{brand || familyOf(item.tier).label}</span>
+        <span className="block font-mono text-[10px] uppercase tracking-wider truncate mt-1" style={{ color: COLORS.inkSoft }}>{brand || familyOf(item.tier, t).label}</span>
         {item.rating ? <span className="block mt-1"><RatingLine perfume={item} size={10} compact /></span> : null}
       </span>
     </button>
@@ -309,6 +323,7 @@ function CardSkeleton({ count = 4 }) {
 }
 
 export function PerfumeSearch({ onSelectPerfume }) {
+  const { t, locale } = useI18n();
   const entitlements = useEntitlements();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -343,7 +358,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
       setPhotoOpen(false);
       setPhotoDraft('');
     } catch (err) {
-      setPhotoMsg(err.message || 'Could not save the photo.');
+      setPhotoMsg(err.message || t('search.photoFailed'));
     }
   }
 
@@ -396,13 +411,13 @@ export function PerfumeSearch({ onSelectPerfume }) {
     try {
       const estimate = await lookupFragrance(query.trim());
       if (!estimate.known) {
-        setAiMsg(`Gemini doesn't recognise “${query.trim()}” either.`);
+        setAiMsg(t('search.geminiUnknown', { query: query.trim() }));
         return;
       }
       // No id until saved: that's how the detail panel tells an estimate apart.
       selectPerfume({ ...estimate, id: null });
     } catch (err) {
-      setAiMsg(err.message || 'Could not reach Gemini.');
+      setAiMsg(err.message || t('chat.unreachable'));
     } finally {
       setAiLoading(false);
     }
@@ -414,11 +429,9 @@ export function PerfumeSearch({ onSelectPerfume }) {
     try {
       const saved = await saveAiFragrance(selectedPerfume);
       setSelectedPerfume(saved);
-      setSaveMsg(saved.source === selectedPerfume.source
-        ? 'Saved to your catalog.'
-        : 'Already in your catalog — showing the saved entry.');
+      setSaveMsg({ ok: true, text: saved.source === selectedPerfume.source ? t('search.savedToCatalog') : t('search.alreadyInCatalog') });
     } catch (err) {
-      setSaveMsg(err.message || 'Could not save to catalog.');
+      setSaveMsg({ ok: false, text: err.message || t('search.saveFailed') });
     } finally {
       setSavingAi(false);
     }
@@ -430,9 +443,9 @@ export function PerfumeSearch({ onSelectPerfume }) {
     setInventoryMsg('');
     try {
       await trackInventory(selectedPerfume.id);
-      setInventoryMsg('Added to your inventory!');
+      setInventoryMsg({ ok: true, text: t('search.addedToInventory') });
     } catch (err) {
-      setInventoryMsg(err.message || 'Could not add to inventory.');
+      setInventoryMsg({ ok: false, text: err.message || t('search.inventoryFailed') });
     } finally {
       setAddingToInventory(false);
     }
@@ -477,11 +490,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
     return () => { cancelled = true; };
   }, [browse]);
 
-  const browseTitle = browse
-    ? browse.kind === 'note' ? `Perfumes with ${browse.value}`
-      : browse.kind === 'accord' ? `${browse.value} accord`
-        : `All from ${browse.value}`
-    : '';
+  const browseTitle = browse ? t(`search.browseTitle.${browse.kind}`, { value: browse.value }) : '';
 
   // Similar perfumes and the house's line-up for the selected fragrance.
   const selectedId = selectedPerfume?.id || null;
@@ -494,12 +503,12 @@ export function PerfumeSearch({ onSelectPerfume }) {
     setRelated((r) => ({ ...r, loading: true, error: '' }));
     fetchSimilar(selectedId)
       .then((d) => { if (!cancelled) setRelated({ loading: false, basis: d.basis, similar: d.similar || [], sameBrand: d.sameBrand || [], error: '' }); })
-      .catch((e) => { if (!cancelled) setRelated({ loading: false, basis: 'accords', similar: [], sameBrand: [], error: e.message || 'Could not load similar fragrances.' }); });
+      .catch((e) => { if (!cancelled) setRelated({ loading: false, basis: 'accords', similar: [], sameBrand: [], error: e.message || t('search.similarFailed') }); });
     return () => { cancelled = true; };
   }, [selectedId]);
 
   const p = selectedPerfume;
-  const fam = p ? familyOf(p.tier) : null;
+  const fam = p ? familyOf(p.tier, t) : null;
   const names = p ? splitName(p) : null;
   const character = p ? estimateCharacter(p) : null;
   const accords = p?.accords || [];
@@ -508,9 +517,9 @@ export function PerfumeSearch({ onSelectPerfume }) {
   const bas = p?.base_notes || [];
   const flatNotes = top.length > 0 && mid.length === 0 && bas.length === 0;
   const allNotes = [...top, ...mid, ...bas];
-  const about = p ? describe(p) : '';
+  const about = p ? describe(p, t, locale) : '';
   const meta = p ? [
-    p.gender ? `${GENDER_GLYPH[p.gender]} ${GENDER_LABEL[p.gender]}` : null,
+    p.gender && GENDER_GLYPH[p.gender] ? `${GENDER_GLYPH[p.gender]} ${t(`search.gender.${p.gender}`)}` : null,
     p.year || null,
     p.country || null,
   ].filter(Boolean) : [];
@@ -520,21 +529,22 @@ export function PerfumeSearch({ onSelectPerfume }) {
       style={{ colorScheme: 'dark' }}>
       {/* ---------------- Search column ---------------- */}
       <div ref={searchColRef} className="space-y-4 md:sticky md:top-4 md:self-start scroll-mt-4">
-        <label className="block font-mono text-[11px] uppercase tracking-[0.2em]" style={{ color: COLORS.amberDeep }}>
-          Search the library
+        <label htmlFor="search-input" className="block font-mono text-[11px] uppercase tracking-[0.2em]" style={{ color: COLORS.amberDeep }}>
+          {t('search.label')}
         </label>
         <div className="relative">
           <input
+            id="search-input"
             type="search"
             value={query}
             onChange={(e) => { setQuery(e.target.value); if (browse) setBrowse(null); }}
-            placeholder="Search perfumes or houses…"
+            placeholder={t('search.placeholder')}
             className="w-full px-4 py-3 font-mono text-sm rounded-lg focus:outline-none"
             style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}
           />
           {loading && (
-            <span className="absolute right-3 top-3.5 text-xs font-mono animate-pulse" style={{ color: COLORS.inkSoft }}>
-              Searching…
+            <span className="absolute end-3 top-3.5 text-xs font-mono animate-pulse" style={{ color: COLORS.inkSoft }}>
+              {t('search.searching')}
             </span>
           )}
         </div>
@@ -543,25 +553,25 @@ export function PerfumeSearch({ onSelectPerfume }) {
             style={{ border: `1px solid ${COLORS.amberDeep}`, background: 'rgba(233,200,138,0.06)' }}>
             <span className="min-w-0">
               <span className="block font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: COLORS.amberDeep }}>
-                Browsing · most rated first
+                {t('search.browsing')}
               </span>
               <span className="block font-serif text-[17px] truncate" style={{ color: COLORS.forestDeep }}>{browseTitle}</span>
             </span>
             <button type="button" onClick={() => setBrowse(null)} className="shrink-0 font-mono text-[11px] uppercase tracking-wider px-2 py-1 rounded"
-              style={{ color: COLORS.amber, border: `1px solid ${COLORS.line}` }} aria-label="Clear browse">
-              ✕ Clear
+              style={{ color: COLORS.amber, border: `1px solid ${COLORS.line}` }} aria-label={t('search.clearBrowse')}>
+              {t('search.clear')}
             </button>
           </div>
         )}
         {!browse && query.trim().length < 2 && (
           <p className="text-xs font-mono leading-relaxed" style={{ color: COLORS.inkSoft }}>
-            Over 80,000 fragrances with notes, accords, ratings and bottle photos. Any word order works, accents optional. Tap a note, accord or house on a fragrance page to browse.
+            {t('search.intro')}
           </p>
         )}
 
         {!browse && query.trim().length >= 2 && results.length === 0 && !loading && (
           <div className="space-y-3">
-            <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>No perfumes match “{query}”.</p>
+            <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t('search.noMatch', { query })}</p>
             {can(entitlements, 'ai.ask') && <button
               type="button"
               onClick={handleAskGemini}
@@ -569,7 +579,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
               className="w-full px-4 py-3 rounded-lg font-mono text-xs uppercase tracking-wider disabled:opacity-50"
               style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber, background: 'rgba(233,200,138,0.06)' }}
             >
-              {aiLoading ? 'Asking Gemini…' : `Ask Gemini about “${query.trim()}”`}
+              {aiLoading ? t('search.askingGemini') : t('search.askGemini', { query: query.trim() })}
             </button>}
             {aiMsg && <p className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>{aiMsg}</p>}
           </div>
@@ -578,7 +588,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
         {results.length > 0 && (
           <div>
             {matchKind === 'fuzzy' && (
-              <p className="text-xs font-mono mb-2" style={{ color: COLORS.inkSoft }}>No exact match — closest names:</p>
+              <p className="text-xs font-mono mb-2" style={{ color: COLORS.inkSoft }}>{t('search.closest')}</p>
             )}
             <div className="rounded-lg overflow-hidden md:max-h-[70vh] md:overflow-y-auto" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
               {results.map((item) => (
@@ -588,14 +598,14 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 <button type="button" onClick={loadMore} disabled={loadingMore}
                   className="w-full px-4 py-3 font-mono text-[11px] uppercase tracking-wider disabled:opacity-50"
                   style={{ color: COLORS.amber, background: 'rgba(233,200,138,0.04)' }}>
-                  {loadingMore ? 'Loading…' : 'Show more'}
+                  {loadingMore ? t('app.loading') : t('search.showMore')}
                 </button>
               )}
             </div>
           </div>
         )}
         {browse && !loading && results.length === 0 && (
-          <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>Nothing found for {browseTitle.toLowerCase()}.</p>
+          <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t('search.nothingFor', { title: browseTitle })}</p>
         )}
       </div>
 
@@ -612,16 +622,16 @@ export function PerfumeSearch({ onSelectPerfume }) {
                     photoOpen ? (
                       <div className="flex flex-col gap-1.5" style={{ width: 200 }}>
                         <input type="url" value={photoDraft} onChange={(e) => setPhotoDraft(e.target.value)}
-                          placeholder="https://… image link" autoFocus
+                          placeholder={t('search.photoPlaceholder')} aria-label={t('search.photoPlaceholder')} autoFocus
                           className="w-full px-2.5 py-1.5 font-mono text-[11px] rounded focus:outline-none"
                           style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }} />
                         <div className="flex gap-2">
                           <button type="button" onClick={handleSavePhoto}
                             className="flex-1 px-2 py-1 rounded font-mono text-[10px] uppercase tracking-wider"
-                            style={{ background: COLORS.amber, color: COLORS.onAmber }}>Save</button>
+                            style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t('search.save')}</button>
                           <button type="button" onClick={() => { setPhotoOpen(false); setPhotoMsg(''); }}
                             className="px-2 py-1 rounded font-mono text-[10px] uppercase tracking-wider"
-                            style={{ border: `1px solid ${COLORS.line}`, color: COLORS.inkSoft }}>Cancel</button>
+                            style={{ border: `1px solid ${COLORS.line}`, color: COLORS.inkSoft }}>{t('search.cancel')}</button>
                         </div>
                         {photoMsg && <p className="font-mono text-[10px]" style={{ color: COLORS.danger }}>{photoMsg}</p>}
                       </div>
@@ -629,7 +639,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                       <button type="button" onClick={() => setPhotoOpen(true)}
                         className="font-mono text-[10px] uppercase tracking-wider hover:underline underline-offset-4"
                         style={{ color: COLORS.inkSoft }}>
-                        + Add photo
+                        {t('search.addPhoto')}
                       </button>
                     )
                   )}
@@ -637,8 +647,8 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 <div className="min-w-0 flex-1">
                   {names.brand && (
                     p.brand ? (
-                      <button type="button" onClick={() => browseBy('brand', p.brand)} title={`All perfumes by ${p.brand}`}
-                        className="font-mono text-[12px] tracking-[0.24em] uppercase hover:underline underline-offset-4 text-left"
+                      <button type="button" onClick={() => browseBy('brand', p.brand)} title={t('search.brandTitle', { brand: p.brand })}
+                        className="font-mono text-[12px] tracking-[0.24em] uppercase hover:underline underline-offset-4 text-start"
                         style={{ color: COLORS.amberDeep }}>
                         {names.brand}
                       </button>
@@ -664,7 +674,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                         {p.olfactory_family}
                       </span>
                     )}
-                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full" title="Family used by the Calculator for density and concentration"
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full" title={t('search.familyTitle')}
                       style={{ border: `1px solid ${COLORS.amberDeep}`, background: 'rgba(233,200,138,0.08)' }}>
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: fam.color }} />
                       <span className="font-mono text-[11px] tracking-wider uppercase" style={{ color: COLORS.amber }}>{fam.label}</span>
@@ -672,7 +682,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   </div>
                   {p.perfumers && p.perfumers.length > 0 && (
                     <p className="mt-3 font-mono text-[12px]" style={{ color: COLORS.inkSoft }}>
-                      {p.perfumers.length > 1 ? 'Perfumers' : 'Perfumer'} · <span style={{ color: COLORS.ink }}>{p.perfumers.join(', ')}</span>
+                      {t('search.perfumer', { count: p.perfumers.length })} · <span style={{ color: COLORS.ink }}>{p.perfumers.join(', ')}</span>
                     </p>
                   )}
                 </div>
@@ -686,7 +696,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-semibold text-[15px]"
                   style={{ background: 'linear-gradient(180deg,#E9C88A,#C9A15A)', color: COLORS.onAmber }}
                 >
-                  Blend this in the Calculator <span aria-hidden="true">→</span>
+                  {t('search.blend')} <span aria-hidden="true" className="rtl:-scale-x-100 inline-block">→</span>
                 </button>
                 {p.id ? (can(entitlements, 'inventory') && (
                   <button
@@ -696,7 +706,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                     className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-semibold text-[15px] disabled:opacity-50"
                     style={{ background: 'transparent', border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}
                   >
-                    {addingToInventory ? 'Adding…' : '+ Add to Inventory'}
+                    {addingToInventory ? t('search.adding') : t('search.addToInventory')}
                   </button>
                 )) : (
                   <button
@@ -706,23 +716,23 @@ export function PerfumeSearch({ onSelectPerfume }) {
                     className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-semibold text-[15px] disabled:opacity-50"
                     style={{ background: 'transparent', border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}
                   >
-                    {savingAi ? 'Saving…' : 'Save to catalog'}
+                    {savingAi ? t('search.saving') : t('search.saveToCatalog')}
                   </button>
                 )}
               </div>
               {!p.id && (
                 <p className="text-xs font-mono mt-3" style={{ color: COLORS.inkSoft }}>
-                  AI estimate — notes and family come from Gemini and may be wrong. Check before saving.
+                  {t('search.aiEstimate')}
                 </p>
               )}
               {saveMsg && (
-                <p className="text-xs font-mono mt-2" style={{ color: /^(Saved|Already)/.test(saveMsg) ? COLORS.amber : COLORS.danger }}>
-                  {saveMsg}
+                <p className="text-xs font-mono mt-2" style={{ color: saveMsg.ok ? COLORS.amber : COLORS.danger }}>
+                  {saveMsg.text}
                 </p>
               )}
               {inventoryMsg && (
-                <p className="text-xs font-mono mt-2" style={{ color: inventoryMsg.includes('Added') ? COLORS.amber : COLORS.danger }}>
-                  {inventoryMsg}
+                <p className="text-xs font-mono mt-2" style={{ color: inventoryMsg.ok ? COLORS.amber : COLORS.danger }}>
+                  {inventoryMsg.text}
                 </p>
               )}
             </div>
@@ -735,15 +745,15 @@ export function PerfumeSearch({ onSelectPerfume }) {
               {/* Accords + profile */}
               <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_280px] gap-8 items-start">
                 <div>
-                  <SectionLabel n="01">Main accords</SectionLabel>
+                  <SectionLabel n="01">{t('search.mainAccords')}</SectionLabel>
                   <div className="mt-5 flex flex-col gap-2">
                     {accords.length > 0
                       ? accords.slice(0, 10).map((a, i) => <AccordBar key={a} name={a} rank={i} onBrowse={browseBy} />)
-                      : <p className="font-serif italic" style={{ color: COLORS.dim }}>No accords recorded for this fragrance.</p>}
+                      : <p className="font-serif italic" style={{ color: COLORS.dim }}>{t('search.noAccords')}</p>}
                   </div>
                 </div>
                 <div className="rounded-2xl p-4" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.ink1 }}>
-                  <SectionLabel>Olfactive profile · est.</SectionLabel>
+                  <SectionLabel>{t('search.profile')}</SectionLabel>
                   <ClassificationRadar radar={character.radar} />
                 </div>
               </div>
@@ -752,18 +762,18 @@ export function PerfumeSearch({ onSelectPerfume }) {
 
               {/* Note pyramid */}
               <div>
-                <SectionLabel n="02">{flatNotes ? 'Notes' : 'Fragrance pyramid'}</SectionLabel>
+                <SectionLabel n="02">{flatNotes ? t('search.notes') : t('search.pyramid')}</SectionLabel>
                 {allNotes.length === 0 ? (
-                  <p className="mt-5 font-serif italic" style={{ color: COLORS.dim }}>No notes recorded for this fragrance.</p>
+                  <p className="mt-5 font-serif italic" style={{ color: COLORS.dim }}>{t('search.noNotes')}</p>
                 ) : (
                   <div className="mt-6 flex flex-col gap-7">
                     {flatNotes ? (
-                      <NoteLevel label="Notes" notes={top} onBrowse={browseBy} />
+                      <NoteLevel label={t('search.notes')} notes={top} onBrowse={browseBy} />
                     ) : (
                       <>
-                        {top.length > 0 && <NoteLevel label="Top notes" notes={top} onBrowse={browseBy} />}
-                        {mid.length > 0 && <NoteLevel label="Middle notes" notes={mid} onBrowse={browseBy} />}
-                        {bas.length > 0 && <NoteLevel label="Base notes" notes={bas} onBrowse={browseBy} />}
+                        {top.length > 0 && <NoteLevel label={t('search.top')} notes={top} onBrowse={browseBy} />}
+                        {mid.length > 0 && <NoteLevel label={t('search.middle')} notes={mid} onBrowse={browseBy} />}
+                        {bas.length > 0 && <NoteLevel label={t('search.base')} notes={bas} onBrowse={browseBy} />}
                       </>
                     )}
                     <NoteLegend notes={allNotes} />
@@ -775,7 +785,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
 
               {/* Character (estimated) */}
               <div>
-                <SectionLabel n="03">When to wear · estimated from {character.basis === 'accords' ? 'accords' : 'family'}</SectionLabel>
+                <SectionLabel n="03">{t(`search.whenToWear.${character.basis === 'accords' ? 'accords' : 'family'}`)}</SectionLabel>
                 <div className="mt-6 flex justify-between items-end gap-2 sm:gap-4">
                   {Object.entries(character.seasons).map(([label, value], i) => (
                     <React.Fragment key={label}>
@@ -785,8 +795,8 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   ))}
                 </div>
                 <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <SegMeter label="Longevity" value={character.lon} caption={character.lon >= 8 ? 'Long lasting' : character.lon >= 5.5 ? 'Moderate' : character.lon >= 4 ? 'Weak' : 'Very weak'} />
-                  <SegMeter label="Sillage" value={character.sil} caption={character.sil >= 7 ? 'Strong' : character.sil >= 5 ? 'Moderate' : character.sil >= 3.5 ? 'Soft' : 'Intimate'} />
+                  <SegMeter label={t('search.longevity')} value={character.lon} caption={t(`search.longevityLevels.${character.lon >= 8 ? 'long' : character.lon >= 5.5 ? 'moderate' : character.lon >= 4 ? 'weak' : 'veryWeak'}`)} />
+                  <SegMeter label={t('search.sillage')} value={character.sil} caption={t(`search.sillageLevels.${character.sil >= 7 ? 'strong' : character.sil >= 5 ? 'moderate' : character.sil >= 3.5 ? 'soft' : 'intimate'}`)} />
                 </div>
               </div>
 
@@ -795,26 +805,26 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 <>
                   <div style={{ height: 1, background: COLORS.hair }} />
                   <div>
-                    <SectionLabel n="04">{related.basis === 'family' ? `Popular ${fam.label.toLowerCase()} fragrances` : 'This perfume reminds me of'}</SectionLabel>
+                    <SectionLabel n="04">{related.basis === 'family' ? t('search.popularInFamily', { family: fam.label.toLowerCase() }) : t('search.remindsMe')}</SectionLabel>
                     <div className="mt-5">
                       {related.loading ? <CardSkeleton /> : related.error ? (
                         <p className="text-xs font-mono" style={{ color: COLORS.danger }}>{related.error}</p>
                       ) : related.similar.length > 0 ? (
                         <CardGrid items={related.similar} onSelect={selectPerfume} />
                       ) : (
-                        <p className="font-serif italic" style={{ color: COLORS.dim }}>Nothing similar found yet.</p>
+                        <p className="font-serif italic" style={{ color: COLORS.dim }}>{t('search.nothingSimilar')}</p>
                       )}
                     </div>
                   </div>
                   {names.brand && (related.loading || related.sameBrand.length > 0) && (
                     <div>
                       <div className="flex items-center justify-between gap-3">
-                        <SectionLabel n="05">More from {names.brand}</SectionLabel>
+                        <SectionLabel n="05">{t('search.moreFrom', { brand: names.brand })}</SectionLabel>
                         {p.brand && (
                           <button type="button" onClick={() => browseBy('brand', p.brand)}
                             className="shrink-0 font-mono text-[11px] uppercase tracking-wider hover:underline underline-offset-4"
                             style={{ color: COLORS.amber }}>
-                            See all →
+                            {t('search.seeAll')}
                           </button>
                         )}
                       </div>
@@ -827,16 +837,16 @@ export function PerfumeSearch({ onSelectPerfume }) {
               )}
 
               <div className="pt-3 flex flex-wrap gap-2 justify-between font-mono text-[10px] uppercase tracking-wider" style={{ color: COLORS.dim, borderTop: `1px solid ${COLORS.hair}` }}>
-                <span>Source · {p.source || 'Database'}</span>
-                <span>{p.id ? `ID ${String(p.id).substring(0, 8)}` : 'Not saved'}</span>
+                <span>{t('search.source', { source: p.source || t('search.database') })}</span>
+                <span>{p.id ? t('search.id', { id: String(p.id).substring(0, 8) }) : t('search.notSaved')}</span>
               </div>
             </div>
           </div>
         ) : (
           <div className="px-5 sm:px-8 py-8">
-            <SectionLabel>Most rated in the library</SectionLabel>
+            <SectionLabel>{t('search.mostRated')}</SectionLabel>
             <p className="mt-2 mb-6 font-serif italic" style={{ fontSize: 17, color: COLORS.inkSoft }}>
-              Pick one, or search for any perfume to see its bottle, accords, pyramid and similar scents.
+              {t('search.emptyIntro')}
             </p>
             {popular.length > 0 ? <CardGrid items={popular} onSelect={selectPerfume} /> : <CardSkeleton count={8} />}
           </div>

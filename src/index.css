@@ -14,3 +14,10 @@ body {
 input[type="range"] {
   accent-color: #E9C88A;
 }
+
+/* Arabic letters join; any letter-spacing breaks the joins. Many labels set
+   tracking inline, which Tailwind's rtl: variant can't reach, so reset it
+   for the whole page in RTL. */
+html[dir="rtl"] body * {
+  letter-spacing: normal !important;
+}

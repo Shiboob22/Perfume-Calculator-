@@ -134,6 +134,7 @@ export function splitName(p) {
   return { brand: brand || null, title: name };
 }
 
+// Genders the catalog uses; the words live in the i18n catalogs (search.gender).
 export const GENDER_LABEL = { women: 'for women', men: 'for men', unisex: 'for women and men' };
 export const GENDER_GLYPH = { women: '♀', men: '♂', unisex: '⚥' };
 
@@ -154,8 +155,8 @@ const FAMILY_OF_ACCORD = Object.fromEntries(
   Object.entries(ACCORD_FAMILY).flatMap(([fam, list]) => list.map((a) => [a, fam]))
 );
 
-// radar axes: Sweet · Spicy · Woody · Balsamic · Amber · Gourmand · Floral · Fresh
-export const RADAR_AXES = ['SWEET', 'SPICY', 'WOODY', 'BALSAM', 'AMBER', 'GOURM.', 'FLORAL', 'FRESH'];
+// Radar axes, in order (labels live in the i18n catalogs, search.radar):
+// Sweet · Spicy · Woody · Balsamic · Amber · Gourmand · Floral · Fresh
 export const FAMILY_PROFILES = {
   fresh:    { radar: [3, 4, 3, 2, 2, 2, 5, 9], lon: 5, sil: 4, seasons: { Winter: 20, Spring: 90, Summer: 95, Fall: 45, Day: 95, Night: 40 } },
   floral:   { radar: [5, 4, 3, 3, 3, 4, 9, 5], lon: 6, sil: 5, seasons: { Winter: 40, Spring: 90, Summer: 70, Fall: 60, Day: 85, Night: 60 } },
@@ -221,37 +222,42 @@ export function estimateCharacter(p) {
 
 /* ---------------- About paragraph ----------------
  * A Fragrantica-style summary written from the structured fields. */
-function listText(items) {
+// "A, B and C" in the reader's language (British English keeps the old
+// no-Oxford-comma style).
+function listText(items, locale) {
   const xs = (items || []).filter(Boolean);
-  if (xs.length <= 1) return xs.join('');
-  return `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
+  return new Intl.ListFormat(locale === 'en' ? 'en-GB' : locale, { type: 'conjunction' }).format(xs);
 }
 
-export function describe(p) {
+// A Fragrantica-style paragraph from the structured fields, in the app's
+// language. `t` is the i18n translator; catalog data (names, notes,
+// families) stays as recorded.
+export function describe(p, t, locale = 'en') {
   const { brand, title } = splitName(p);
   const parts = [];
   const fam = p?.olfactory_family;
-  const gender = GENDER_LABEL[p?.gender];
-  const article = fam && /^[aeiou]/i.test(fam) ? 'an' : 'a';
+  const gender = p?.gender && GENDER_LABEL[p.gender] ? t(`search.gender.${p.gender}`) : null;
+  const an = fam && /^[aeiou]/i.test(fam) ? 'An' : 'A';
   // "X by Y is a fragrance." says nothing; only open with it when there is a
   // family or gender to state.
   if (brand && (fam || gender)) {
-    parts.push(`${title} by ${brand} is ${fam ? `${article} ${fam} ` : 'a '}fragrance${gender ? ` ${gender}` : ''}.`);
+    const key = fam && gender ? `introFamilyGender${an}` : fam ? `introFamily${an}` : 'introGender';
+    parts.push(t(`search.about.${key}`, { title, brand, family: fam || '', gender: gender || '' }));
   }
-  if (p?.year) parts.push(`${title} was launched in ${p.year}.`);
+  if (p?.year) parts.push(t('search.about.launched', { title, year: String(p.year) }));
   const noses = p?.perfumers || [];
-  if (noses.length === 1) parts.push(`The nose behind this fragrance is ${noses[0]}.`);
-  if (noses.length > 1) parts.push(`The noses behind this fragrance are ${listText(noses)}.`);
+  if (noses.length === 1) parts.push(t('search.about.nose', { name: noses[0] }));
+  if (noses.length > 1) parts.push(t('search.about.noses', { names: listText(noses, locale) }));
   const levels = [
-    ['Top notes', p?.top_notes],
-    ['middle notes', p?.middle_notes],
-    ['base notes', p?.base_notes],
+    ['top', p?.top_notes],
+    ['middle', p?.middle_notes],
+    ['base', p?.base_notes],
   ].filter(([, xs]) => xs && xs.length);
   if (levels.length === 3) {
-    parts.push(levels.map(([l, xs]) => `${l} ${xs.length > 1 ? 'are' : 'is'} ${listText(xs)}`).join('; ') + '.');
+    parts.push(levels.map(([l, xs]) => t(`search.about.${l}`, { count: xs.length, list: listText(xs, locale) })).join(t('search.about.levelJoin')) + t('search.about.end'));
   } else if (levels.length > 0) {
     const all = levels.flatMap(([, xs]) => xs);
-    parts.push(`Notes include ${listText(all.slice(0, 12))}.`);
+    parts.push(t('search.about.notesInclude', { list: listText(all.slice(0, 12), locale) }));
   }
   return parts.join(' ');
 }
