@@ -124,6 +124,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         blended_by: b.blended_by ?? null,
         actual_oil_g: b.actual_oil_g ?? null,
         actual_ethanol_g: b.actual_ethanol_g ?? null,
+        basis: b.basis === 'volume' || b.basis === 'weight' ? b.basis : null,
+        oil_density: Number(b.oil_density) > 0 ? Number(b.oil_density) : null,
+        ethanol_density: Number(b.ethanol_density) > 0 ? Number(b.ethanol_density) : null,
         created_at: new Date().toISOString(),
       };
 

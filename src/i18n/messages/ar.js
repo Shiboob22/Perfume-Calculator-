@@ -84,7 +84,11 @@ export default {
     total: "الإجمالي",
     cost: "التكلفة",
     perGram: "/غ",
-    actualPour: "الصبّ الفعلي: زيت {oil} غ · إيثانول {ethanol} غ ← {pct}% زيت حجمًا (المستهدف {target}%)",
+    actualPour: {
+      volume: "الصبّ الفعلي: زيت {oil} غ · إيثانول {ethanol} غ ← {pct}% زيت حجمًا (المستهدف {target}%)",
+      weight: "الصبّ الفعلي: زيت {oil} غ · إيثانول {ethanol} غ ← {pct}% زيت وزنًا (المستهدف {target}%)",
+      assumed: "الصبّ الفعلي: زيت {oil} غ · إيثانول {ethanol} غ ← {pct}% زيت حجمًا، بافتراض ذلك (المستهدف {target}%)",
+    },
     by: "بواسطة {name}",
     created: "أُنشئت",
     bestFrom: "الأفضل من",

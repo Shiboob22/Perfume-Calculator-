@@ -258,6 +258,9 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         blended_by: blendedBy || null,
         actual_oil_g: Number(actualOilG) > 0 ? Number(actualOilG) : null,
         actual_ethanol_g: Number(actualEthG) > 0 ? Number(actualEthG) : null,
+        basis: result.basis,
+        oil_density: result.densities.oil,
+        ethanol_density: result.densities.ethanol,
       });
       // The batch is saved from here on: nothing below may report it as unsaved,
       // or a retry would log it twice.

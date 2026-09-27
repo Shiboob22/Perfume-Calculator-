@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listBatches, deleteBatch } from "../lib/fragranceApi";
-import { downloadBatchCard, actualOilPct } from "../lib/batchCard";
+import { downloadBatchCard } from "../lib/batchCard";
+import { actualStrength } from "../lib/calc";
 import { batchInsights } from "../lib/aiApi";
 import { batchStartedAt, batchReadyAt, formatExact, readyCountdown } from "../lib/batchTiming";
 import { useI18n } from "../i18n/I18nProvider";
@@ -173,9 +174,9 @@ export default function Batches() {
               {b.oil_cost ? <> &nbsp;·&nbsp; {t("batches.cost")} {round2(b.oil_cost)}</> : null}
               {b.price_per_gram ? <> ({round2(Number(b.price_per_gram))}{t("batches.perGram")})</> : null}
             </div>
-            {actualOilPct(b) !== null && (
+            {actualStrength(b) !== null && (
               <div className="text-xs font-mono mt-1" style={{ color: COLORS.ink }}>
-                {t("batches.actualPour", { oil: round2(Number(b.actual_oil_g)), ethanol: round2(Number(b.actual_ethanol_g)), pct: round2(actualOilPct(b)), target: b.concentration_pct })}
+                {t(`batches.actualPour.${actualStrength(b).basisKnown ? actualStrength(b).basis : "assumed"}`, { oil: round2(Number(b.actual_oil_g)), ethanol: round2(Number(b.actual_ethanol_g)), pct: round2(actualStrength(b).pct), target: b.concentration_pct })}
               </div>
             )}
             <BatchTiming batch={b} />

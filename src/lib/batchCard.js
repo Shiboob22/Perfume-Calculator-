@@ -5,6 +5,7 @@
 import { COLORS } from "./theme";
 import { TIERS, TIER_COLORS } from "./tiers";
 import { batchStartedAt, batchReadyAt, formatExact } from "./batchTiming";
+import { actualStrength } from "./calc";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -39,18 +40,6 @@ function wrapLines(ctx, text, maxWidth) {
 }
 
 // Draw the card for one batch onto a fresh canvas and return it.
-// Oil share of what was really poured, by volume like concentration_pct.
-// Densities come from the batch's own planned g/mL, so no tier table needed.
-// Null when the actual pour wasn't recorded.
-export function actualOilPct(batch) {
-  const oilG = Number(batch.actual_oil_g);
-  const ethG = Number(batch.actual_ethanol_g);
-  if (!(oilG > 0 && ethG > 0)) return null;
-  const oilMl = oilG / (Number(batch.oil_g) / Number(batch.oil_ml) || 1);
-  const ethMl = ethG / (Number(batch.ethanol_g) / Number(batch.ethanol_ml) || 1);
-  return (oilMl / (oilMl + ethMl)) * 100;
-}
-
 export function renderBatchCard(batch) {
   const canvas = document.createElement("canvas");
   canvas.width = W * SCALE;
@@ -139,10 +128,10 @@ export function renderBatchCard(batch) {
     ["Ethanol", `${round2(batch.ethanol_g)} g  /  ${round2(batch.ethanol_ml)} mL`],
     ["Total", `${round2(batch.total_g)} g`],
   ];
-  const actualPct = actualOilPct(batch);
-  if (actualPct !== null) {
+  const actual = actualStrength(batch);
+  if (actual !== null) {
     rows.push(["Actual pour", `${round2(Number(batch.actual_oil_g))} g  /  ${round2(Number(batch.actual_ethanol_g))} g`]);
-    rows.push(["Actual ratio", `${round2(actualPct)}% oil`]);
+    rows.push(["Actual ratio", `${round2(actual.pct)}% oil by ${actual.basis}${actual.basisKnown ? "" : " (assumed)"}`]);
   }
   if (batch.oil_cost) rows.push(["Oil cost", round2(batch.oil_cost)]);
   if (batch.price_per_gram) rows.push(["Price / g", round2(Number(batch.price_per_gram))]);

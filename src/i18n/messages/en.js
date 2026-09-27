@@ -83,7 +83,11 @@ export default {
     total: "Total",
     cost: "Cost",
     perGram: "/g",
-    actualPour: "Actual pour: oil {oil} g · ethanol {ethanol} g → {pct}% oil by volume (target {target}%)",
+    actualPour: {
+      volume: "Actual pour: oil {oil} g · ethanol {ethanol} g → {pct}% oil by volume (target {target}%)",
+      weight: "Actual pour: oil {oil} g · ethanol {ethanol} g → {pct}% oil by weight (target {target}%)",
+      assumed: "Actual pour: oil {oil} g · ethanol {ethanol} g → {pct}% oil by volume, assumed (target {target}%)",
+    },
     by: "by {name}",
     created: "Created",
     bestFrom: "Best from",
