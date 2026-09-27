@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { clientIp, overLimit } from './_lib/rateLimit.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
@@ -296,11 +297,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 2. No catalog match → try a live Parfumo scrape, but only trust it when
     //    the scraped name actually relates to the query (guards the generic /
     //    blocked-page case that returned the same perfume for everything).
+    const userId = await getUserId(req);
+    if (await overLimit(supabase, res, 'live', userId ?? clientIp(req))) return;
     const scrapedData = await fetchParfumoData(query);
 
     if (scrapedData && queryMatchesName(query, scrapedData.name)) {
       // Persist to the shared catalog only for authenticated callers.
-      const userId = await getUserId(req);
       let savedRecord: any[] | null = null;
       if (userId) {
         // Scrapes join the catalog as the caller's pending rows; an admin

@@ -429,6 +429,7 @@ export default {
     },
   },
   errors: {
+    rate_limited: "Too many requests — wait a few minutes and try again.",
     not_authenticated: "Your session has ended. Sign in again.",
     fragrance_save_failed: "Could not save this fragrance.",
     catalog_save_failed: "Could not save to catalog.",

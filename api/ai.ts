@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
+import { overLimit } from './_lib/rateLimit.js';
 import { loadEntitlements, can, lockedFeature } from './_lib/entitlements.js';
 import { TIER_KEYS as FAMILY_KEYS, familyGuide } from '../src/lib/formulation.js';
 
@@ -352,6 +353,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!can(await loadEntitlements(admin, userId), 'ai.ask')) {
       return res.status(403).json(lockedFeature('ai.ask'));
     }
+    if (await overLimit(admin, res, 'ai', userId)) return;
 
     switch (b.task) {
       case 'chat':

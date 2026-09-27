@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
+import { overLimit } from './_lib/rateLimit.js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -33,13 +34,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     if (!user) return res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
 
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, { global: { fetch: timedFetch } });
+    if (await overLimit(supabase, res, 'deleteAccount', user.id)) return;
+
     // The user types their email to confirm: a stray request can't delete.
     const confirm = String(req.body?.confirm ?? '').trim().toLowerCase();
     if (!user.email || confirm !== user.email.toLowerCase()) {
       return res.status(400).json({ error: 'Type your email to confirm.', code: 'confirm_mismatch' });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, { global: { fetch: timedFetch } });
     const { data: admin, error: adminError } = await supabase
       .from('admins').select('user_id').eq('user_id', user.id).maybeSingle();
     if (adminError) throw adminError;

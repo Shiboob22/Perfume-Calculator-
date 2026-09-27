@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { loadEntitlements, canLogBatch } from './_lib/entitlements.js';
+import { overLimit } from './_lib/rateLimit.js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -86,6 +87,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (existingError) throw existingError;
         if (existing) return res.status(200).json({ success: true, batch: existing, duplicate: true });
       }
+
+      if (await overLimit(supabase, res, 'batch', userId)) return;
 
       // Free plans stop at a batch cap. Existing batches are never touched;
       // only new logs are refused, with a code the app turns into the path

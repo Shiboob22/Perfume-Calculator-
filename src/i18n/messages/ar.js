@@ -430,6 +430,7 @@ export default {
     },
   },
   errors: {
+    rate_limited: "طلبات كثيرة جدًا — انتظر بضع دقائق ثم حاول مرة أخرى.",
     not_authenticated: "انتهت جلستك. سجّل الدخول مرة أخرى.",
     fragrance_save_failed: "تعذّر حفظ هذا العطر.",
     catalog_save_failed: "تعذّر الحفظ في الكتالوج.",
