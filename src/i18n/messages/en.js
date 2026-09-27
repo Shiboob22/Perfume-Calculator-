@@ -475,6 +475,7 @@ export default {
   site: {
     nav: { privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "The Scent Handbook, home", language: "العربية", languageLabel: "Read this page in Arabic" },
     legal: { draft: "Draft — not yet reviewed. This page may change before launch.", updated: "Last updated {date}" },
+    safety: { title: "Safety", text: "Perfumer's alcohol is flammable: blend away from flame and heat, in a ventilated room, out of reach of children. Fragrance oils can irritate skin and eyes — wear gloves and read each material's safety data sheet. The numbers here are starting points; check every weight on your own scale.", more: "Safety and responsibility" },
     footer: { by: "By Hisham Shiboob", rights: "© 2026 The Scent Handbook" },
     home: {
       metaTitle: "The Scent Handbook — a fragrance blending calculator by weight",

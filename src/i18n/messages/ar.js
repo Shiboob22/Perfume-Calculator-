@@ -476,6 +476,7 @@ export default {
   site: {
     nav: { privacy: "الخصوصية", terms: "الشروط", guides: "الأدلة", pricing: "الخطط", openApp: "افتح التطبيق", home: "The Scent Handbook، الصفحة الرئيسية", language: "English", languageLabel: "اقرأ هذه الصفحة بالإنجليزية" },
     legal: { draft: "مسودة لم تُراجَع بعد. قد تتغير هذه الصفحة قبل الإطلاق.", updated: "آخر تحديث {date}" },
+    safety: { title: "السلامة", text: "كحول العطور سريع الاشتعال: اخلط بعيدًا عن اللهب والحرارة، في غرفة جيدة التهوية، وبعيدًا عن متناول الأطفال. قد تهيّج زيوت العطر الجلد والعينين — ارتدِ قفازات واقرأ صحيفة بيانات السلامة لكل مادة. الأرقام هنا نقاط انطلاق؛ تحقّق من كل وزن على ميزانك.", more: "السلامة والمسؤولية" },
     footer: { by: "بقلم Hisham Shiboob", rights: "© 2026 The Scent Handbook" },
     home: {
       metaTitle: "The Scent Handbook — حاسبة لخلط العطور بالوزن",

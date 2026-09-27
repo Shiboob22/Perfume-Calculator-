@@ -168,6 +168,16 @@ export default function GuidePage() {
 
       <div className="mt-6">{g.body.map((b, i) => <Block key={i} block={b} />)}</div>
 
+      {/* The app's own safety notice, not handbook text: shown on every
+          blending guide, styled apart from the author's callouts. */}
+      {guide.section === "blending" && (
+        <aside role="note" className="mt-10 p-4 rounded-xl text-sm leading-relaxed" style={{ background: COLORS.dangerBg, border: `1px solid ${COLORS.danger}`, color: COLORS.ink }}>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] rtl:tracking-normal mb-2" style={{ color: COLORS.danger }}>{t("site.safety.title")}</p>
+          {t("site.safety.text")}{" "}
+          <Link to={to("/terms") + "#safety"} className="underline" style={{ color: COLORS.amber }}>{t("site.safety.more")}</Link>
+        </aside>
+      )}
+
       {calcHref && (
         <a href={calcHref} className="inline-block mt-10 px-5 py-3 rounded-xl font-semibold"
           style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}>
