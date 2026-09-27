@@ -10,6 +10,7 @@ import LanguageToggle from "./components/LanguageToggle";
 import DigitToggle from "./components/DigitToggle";
 import ProLocked from "./components/ProLocked";
 import { EntitlementsProvider, useEntitlements } from "./lib/useEntitlements";
+import { ProfileProvider, useProfile, needsOnboarding } from "./lib/useProfile";
 import { can } from "./lib/entitlements";
 import { fetchPopular, warmUp } from "./lib/searchApi";
 import { flush } from "./lib/outbox";
@@ -30,6 +31,8 @@ const Inventory = lazy(loaders.inventory);
 const PerfumerChat = lazy(loaders.ask);
 const BenchMode = lazy(() => import("./components/BenchMode"));
 const BenchCards = lazy(() => import("./components/BenchCards"));
+const Account = lazy(() => import("./components/Account"));
+const Onboarding = lazy(() => import("./components/Onboarding"));
 
 function prefetchTabs() {
   const run = () => Object.values(loaders).forEach((load) => load());
@@ -45,7 +48,8 @@ export default function App() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { tab } = useParams();
-  const activeTab = TABS.includes(tab) ? tab : tab === "cards" ? null : DEFAULT_TAB;
+  // cards and account are pages of their own, reached from links, not tabs.
+  const activeTab = TABS.includes(tab) ? tab : tab === "cards" || tab === "account" ? null : DEFAULT_TAB;
   const setActiveTab = (id) => navigate(`/app/${id}${id === "calculator" ? window.location.search : ""}`);
 
   // Start the search tab's popular shelf and wake the catalog functions
@@ -81,6 +85,8 @@ export default function App() {
     <AuthGate>
       {(user) => (
         <EntitlementsProvider>
+        <ProfileProvider>
+        <OnboardingGate>
         {tab === "bench" ? (
           // Bench mode is full screen: no header or tabs at the scale.
           <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
@@ -106,6 +112,15 @@ export default function App() {
                 {user.email}
               </div>
             )}
+            <button
+              type="button"
+              onClick={() => navigate("/app/account")}
+              className="text-xs font-mono hover:underline me-3"
+              style={{ color: tab === "account" ? COLORS.amber : COLORS.inkSoft }}
+              aria-current={tab === "account" ? "page" : undefined}
+            >
+              {t("account.link")}
+            </button>
             <button
               onClick={() => signOut()}
               className="text-xs font-mono hover:underline"
@@ -138,6 +153,7 @@ export default function App() {
       <main className="pb-16">
         <Suspense fallback={<TabLoading />}>
         {tab === "cards" && <BenchCards />}
+        {tab === "account" && <Account user={user} />}
         {tab !== "cards" && activeTab === "search" && <PerfumeSearch onSelectPerfume={handleSelectPerfume} />}
         {activeTab === "calculator" && (
           <FragranceBlendCalculator
@@ -157,10 +173,23 @@ export default function App() {
       </main>
     </div>
         )}
+        </OnboardingGate>
+        </ProfileProvider>
         </EntitlementsProvider>
       )}
     </AuthGate>
   );
+}
+
+// New accounts answer three questions before the app opens. The app waits
+// for the profile (capped at a few seconds in ProfileProvider) so the
+// calculator opens at the saved bottle and new users never see it flash
+// up before the questions.
+function OnboardingGate({ children }) {
+  const profile = useProfile();
+  if (!profile.loaded) return <TabLoading />;
+  if (needsOnboarding(profile)) return <Suspense fallback={<TabLoading />}><Onboarding /></Suspense>;
+  return children;
 }
 
 // A tab whose feature the plan doesn't include shows the Pro panel instead.

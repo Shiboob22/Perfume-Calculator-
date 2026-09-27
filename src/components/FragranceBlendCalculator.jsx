@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { UNIT_LABELS, prefillFromQuery } from "../lib/calcPrefill";
+import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
 import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
 import { STRENGTHS } from "../lib/formulation";
 import MeasuredDensity from "./calc/MeasuredDensity";
@@ -22,6 +22,7 @@ import {
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
+import { useProfile } from "../lib/useProfile";
 import { can } from "../lib/entitlements";
 import { blendTips } from "../lib/aiApi";
 
@@ -145,9 +146,11 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
 
   const [searchParams] = useSearchParams();
   const [prefill] = useState(() => prefillFromQuery(searchParams));
+  const { profile } = useProfile();
+  const [start] = useState(() => startingBottle(prefill, profile));
   const [tierKey, setTierKey] = useState("fresh");
-  const [batchSize, setBatchSize] = useState(prefill.size ?? 100);
-  const [batchUnit, setBatchUnit] = useState(prefill.unit ?? "ml"); // ml | floz | g | oz
+  const [batchSize, setBatchSize] = useState(start.size);
+  const [batchUnit, setBatchUnit] = useState(start.unit); // ml | floz | g | oz
   const [concPct, setConcPct] = useState(prefill.conc ?? 20);
   const [densities, setDensities] = useState(() => ({
     ...Object.fromEntries(Object.entries(TIERS).map(([k, t]) => [k, t.density])),

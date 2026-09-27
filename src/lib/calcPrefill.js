@@ -12,3 +12,16 @@ export function prefillFromQuery(params) {
     conc: Number.isFinite(conc) && conc >= 1 && conc <= 100 ? conc : null,
   };
 }
+
+// Where the calculator opens: a link's size/unit wins; otherwise the
+// user's saved usual bottle; otherwise 100 mL. A saved size is only used
+// with its own saved unit — "50" means nothing without knowing 50 of what.
+export function startingBottle(prefill, profile) {
+  if (prefill.size != null || prefill.unit != null) {
+    return { size: prefill.size ?? 100, unit: prefill.unit ?? "ml" };
+  }
+  const size = Number(profile?.default_bottle);
+  const unit = profile?.default_unit;
+  if (Number.isFinite(size) && size > 0 && Object.hasOwn(UNIT_LABELS, unit)) return { size, unit };
+  return { size: 100, unit: Object.hasOwn(UNIT_LABELS, unit) ? unit : "ml" };
+}

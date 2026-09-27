@@ -15,7 +15,11 @@ const SCREENS = {
   ask: lazy(() => import("../components/PerfumerChat")),
   search: lazy(() => import("../components/PerfumeSearch")),
   bench: lazy(() => import("../components/BenchMode")),
+  onboarding: lazy(() => import("../components/Onboarding")),
+  account: lazy(() => import("../components/Account")),
 };
+
+const DEV_USER = { email: "preview@example.com" };
 
 export default function DevScreens() {
   const { screen } = useParams();
@@ -26,7 +30,7 @@ export default function DevScreens() {
         <div className="flex gap-4 justify-end p-3 text-xs font-mono" style={{ color: COLORS.dim }}>
           dev preview · not signed in <DigitToggle /> <LanguageToggle />
         </div>
-        <Suspense fallback={null}><Screen /></Suspense>
+        <Suspense fallback={null}><Screen user={DEV_USER} /></Suspense>
       </div>
     </EntitlementsProvider>
   );
