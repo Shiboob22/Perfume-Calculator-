@@ -26,6 +26,7 @@ const FragranceBlendCalculator = lazy(loaders.calculator);
 const Batches = lazy(loaders.batches);
 const Inventory = lazy(loaders.inventory);
 const PerfumerChat = lazy(loaders.ask);
+const BenchMode = lazy(() => import("./components/BenchMode"));
 
 function prefetchTabs() {
   const run = () => Object.values(loaders).forEach((load) => load());
@@ -68,6 +69,10 @@ export default function App() {
     <AuthGate>
       {(user) => (
         <EntitlementsProvider>
+        {tab === "bench" ? (
+          // Bench mode is full screen: no header or tabs at the scale.
+          <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
+        ) : (
         <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }}>
       <header className="max-w-3xl mx-auto px-6 sm:px-8 pt-10 pb-4">
         <div className="flex items-center gap-4 mb-6">
@@ -138,6 +143,7 @@ export default function App() {
         </Suspense>
       </main>
     </div>
+        )}
         </EntitlementsProvider>
       )}
     </AuthGate>

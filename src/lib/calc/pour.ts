@@ -1,6 +1,7 @@
 import type { Basis, Densities } from "./types";
 import { fromWeights, concentrationOf } from "./blend";
 import { adjustConcentration } from "./solve";
+import { round2 } from "./round";
 
 // Precision Rule 5 — record actual weights. Given what was really poured,
 // what concentration was made, and what to add (never remove) to land on
@@ -48,4 +49,14 @@ export function alcoholForOil(actualOilG: number, targetPct: number, basis: Basi
   return basis === "volume"
     ? (actualOilG / d.oil / c) * (1 - c) * d.ethanol
     : (actualOilG / c) * (1 - c);
+}
+
+/**
+ * The weights for the label: what was poured where recorded, else the
+ * targets; the total is the sum of the two rounded weights, as on the scale.
+ */
+export function labelWeights(targetOilG: number, targetEthanolG: number, actualOilG?: number | null, actualEthanolG?: number | null) {
+  const oil = round2(actualOilG && actualOilG > 0 ? actualOilG : targetOilG);
+  const ethanol = round2(actualEthanolG && actualEthanolG > 0 ? actualEthanolG : targetEthanolG);
+  return { oil, ethanol, total: round2(oil + ethanol) };
 }

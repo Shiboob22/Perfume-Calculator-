@@ -14,6 +14,7 @@ const SCREENS = {
   inventory: lazy(() => import("../components/Inventory")),
   ask: lazy(() => import("../components/PerfumerChat")),
   search: lazy(() => import("../components/PerfumeSearch")),
+  bench: lazy(() => import("../components/BenchMode")),
 };
 
 export default function DevScreens() {

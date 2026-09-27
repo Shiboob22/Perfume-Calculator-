@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { UNIT_LABELS, prefillFromQuery } from "../lib/calcPrefill";
 import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
 import { STRENGTHS } from "../lib/formulation";
@@ -135,6 +135,7 @@ function ReadoutRow({ label, weight, volume, bold }) {
  */
 export default function FragranceBlendCalculator({ selectedPerfume, onClearSelection }) {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const entitlements = useEntitlements();
   const [fragName, setFragName] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -601,6 +602,24 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
               <TextInput id="calc-date" type="date" value={blendDate} onChange={(e) => setBlendDate(e.target.value)} />
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => navigate("/app/bench", { state: { plan: {
+              name: fragName.trim(),
+              fragranceId: matched?.id || null,
+              tier: tierKey,
+              amount: Number(batchSize),
+              unit: batchUnit,
+              concPct: Number(concPct),
+              densities: result.densities,
+            } } })}
+            disabled={!(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
+            className="w-full mt-5 px-4 py-3 text-sm font-semibold border disabled:opacity-50"
+            style={{ borderColor: COLORS.amber, color: COLORS.amber }}
+          >
+            {t("bench.start")}
+          </button>
 
           <button
             type="button"
