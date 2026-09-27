@@ -20,6 +20,7 @@ export default {
     locked: {
       ai: { ask: "Ask is part of Pro." },
       inventory: "Inventory is part of Pro.",
+      export: { labels: "Printable cards and labels are part of Pro." },
     },
     usage: "{used} of {cap} batches",
     batchCap: "Your {plan} plan keeps up to {cap} batches. Nothing is deleted; logging more needs Pro.",
@@ -99,6 +100,16 @@ export default {
     loadFailed: "Could not load batch history.",
     deleteFailed: "Could not delete that batch.",
   },
+  cards: {
+    open: "Printable bench cards",
+    tabs: { "quick-reference": "Quick reference", workflow: "Bench workflow", qc: "QC checklist" },
+    quickReference: "Quick reference",
+    workflow: "Bench workflow",
+    qc: "Quality control checklist",
+    densities: "Figures are calculated at 0.95 g/ml (oil) and 0.81 g/ml (96% ethanol).",
+    print: "Print / save as PDF",
+    byline: "By Hisham Shiboob",
+  },
   bench: {
     title: "Bench mode",
     start: "Start bench mode",
@@ -111,6 +122,7 @@ export default {
     noPlan: "Set up a batch in the calculator first, then start bench mode from there.",
     awake: "The screen stays on while you work.",
     awakeUnsupported: "Keep your screen awake: this browser can't hold it on.",
+    readRule: "In the guide",
     rule: "Rule {n}",
     rules: {
       "1": "Tare before every component. Never mentally subtract the previous one.",

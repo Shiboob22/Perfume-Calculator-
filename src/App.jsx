@@ -29,6 +29,7 @@ const Batches = lazy(loaders.batches);
 const Inventory = lazy(loaders.inventory);
 const PerfumerChat = lazy(loaders.ask);
 const BenchMode = lazy(() => import("./components/BenchMode"));
+const BenchCards = lazy(() => import("./components/BenchCards"));
 
 function prefetchTabs() {
   const run = () => Object.values(loaders).forEach((load) => load());
@@ -44,7 +45,7 @@ export default function App() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { tab } = useParams();
-  const activeTab = TABS.includes(tab) ? tab : DEFAULT_TAB;
+  const activeTab = TABS.includes(tab) ? tab : tab === "cards" ? null : DEFAULT_TAB;
   const setActiveTab = (id) => navigate(`/app/${id}${id === "calculator" ? window.location.search : ""}`);
 
   // Start the search tab's popular shelf and wake the catalog functions
@@ -136,7 +137,8 @@ export default function App() {
 
       <main className="pb-16">
         <Suspense fallback={<TabLoading />}>
-        {activeTab === "search" && <PerfumeSearch onSelectPerfume={handleSelectPerfume} />}
+        {tab === "cards" && <BenchCards />}
+        {tab !== "cards" && activeTab === "search" && <PerfumeSearch onSelectPerfume={handleSelectPerfume} />}
         {activeTab === "calculator" && (
           <FragranceBlendCalculator
             selectedPerfume={selectedPerfume}

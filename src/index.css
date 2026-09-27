@@ -38,3 +38,19 @@ html[dir="rtl"] .font-mono {
   .stack-table td::before { content: attr(data-label); color: #A79C82; }
   .stack-table td:empty, .stack-table td[data-label=""]::before { display: none; }
 }
+
+/* Printable bench cards (/app/cards): readable on screen, clean on paper. */
+.print-card { background: #F5EEDD; color: #1A1207; padding: 2rem; border-radius: 0.75rem; }
+.print-card h2 { font-family: "Cormorant Garamond", "Amiri", Georgia, serif; font-size: 1.9rem; font-style: italic; margin-bottom: 1rem; }
+.print-brand { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: #6E5A35; margin-bottom: 0.5rem; }
+.print-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.print-table th, .print-table td { text-align: start; padding: 0.35rem 0.5rem; border-bottom: 1px solid #CDBF9E; }
+.print-steps { list-style: decimal; padding-inline-start: 1.25rem; display: grid; gap: 0.6rem; }
+.print-checklist { display: grid; gap: 0.5rem; font-size: 1rem; }
+.print-note { margin-top: 1rem; font-size: 0.8rem; color: #4A3D25; }
+@media print {
+  @page { size: A5; margin: 12mm; }
+  body { background: #fff !important; }
+  .no-print, header, nav { display: none !important; }
+  .print-card { background: #fff; padding: 0; border-radius: 0; }
+}

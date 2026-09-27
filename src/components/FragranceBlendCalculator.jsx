@@ -659,6 +659,11 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
           >
             {t("bench.start")}
           </button>
+          {can(entitlements, "export.labels") && (
+            <button type="button" onClick={() => navigate("/app/cards")} className="block mx-auto mt-2 text-xs underline" style={{ color: COLORS.inkSoft }}>
+              {t("cards.open")}
+            </button>
+          )}
 
           <button
             type="button"

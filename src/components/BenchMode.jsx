@@ -50,7 +50,8 @@ function Rules({ step }) {
       {rules.map((n) => (
         <li key={n} className="p-3 rounded-lg text-sm" style={{ border: `1px solid ${COLORS.line}`, color: COLORS.ink }}>
           <span className="font-mono text-[11px] uppercase me-2" style={{ color: COLORS.amberDeep }}>{t("bench.rule", { n })}</span>
-          {t(`bench.rules.${n}`)}
+          {t(`bench.rules.${n}`)}{" "}
+          <a href={`/guides/at-the-bench#rule-${n}`} className="underline text-xs" style={{ color: COLORS.amber }}>{t("bench.readRule")}</a>
         </li>
       ))}
     </ul>
