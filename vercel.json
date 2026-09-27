@@ -1,6 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "regions": ["dub1"],
+  "rewrites": [
+    { "source": "/app/:path*", "destination": "/app/index.html" }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",
