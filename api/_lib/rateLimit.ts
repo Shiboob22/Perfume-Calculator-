@@ -8,6 +8,7 @@ export const LIMITS = {
   live: [20, 600],         // live Parfumo lookups: 20 per 10 minutes
   batch: [60, 600],        // batch logs: 60 per 10 minutes
   deleteAccount: [5, 3600],
+  log: [30, 600],          // client error reports per IP
 } as const satisfies Record<string, readonly [number, number]>;
 
 export type LimitName = keyof typeof LIMITS;

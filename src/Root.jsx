@@ -9,6 +9,7 @@ import GuidePage from "./site/GuidePage";
 import NotFound from "./site/NotFound";
 import LegalPage from "./site/LegalPage";
 import { COLORS } from "./lib/theme";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // The signed-in app is its own chunk: public pages (prerendered, crawlable)
 // never load Supabase, the catalog search or the calculator.
@@ -40,7 +41,7 @@ function PublicRoutes() {
 export default function Root() {
   return (
     <Routes>
-      <Route path="/app/:tab?" element={<I18nProvider><Suspense fallback={<AppLoading />}><App /></Suspense></I18nProvider>} />
+      <Route path="/app/:tab?" element={<I18nProvider><ErrorBoundary><Suspense fallback={<AppLoading />}><App /></Suspense></ErrorBoundary></I18nProvider>} />
       {DevScreens && (
         <Route path="/dev/:screen?" element={<I18nProvider><Suspense fallback={<AppLoading />}><DevScreens /></Suspense></I18nProvider>} />
       )}

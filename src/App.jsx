@@ -15,6 +15,7 @@ import { can } from "./lib/entitlements";
 import { fetchPopular, warmUp } from "./lib/searchApi";
 import { flush } from "./lib/outbox";
 import { logBatch } from "./lib/fragranceApi";
+import { installGlobalHandlers } from "./lib/reportError";
 
 // Search ships with the app shell; the other tabs load as separate chunks,
 // fetched while the browser is idle after first paint so a tab switch never
@@ -55,6 +56,7 @@ export default function App() {
   // Start the search tab's popular shelf and wake the catalog functions
   // while the session is being checked.
   useEffect(() => { fetchPopular(); warmUp(); }, []);
+  useEffect(installGlobalHandlers, []);
 
   // Batches logged without a connection are sent when the app opens and
   // whenever the connection returns.

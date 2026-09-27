@@ -5,6 +5,7 @@ export default {
   language: { switchTo: "English", switchLabel: "التبديل إلى الإنجليزية" },
   app: {
     loading: "جارٍ التحميل…",
+    crash: { title: "حدث خطأ ما.", text: "واجهت هذه الشاشة خطأً وتم الإبلاغ عنه. خلطاتك المحفوظة في أمان.", retry: "حاول مرة أخرى", reload: "أعد التحميل" },
     signOut: "تسجيل الخروج",
     tabs: {
       search: "بحث",

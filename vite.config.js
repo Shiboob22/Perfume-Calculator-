@@ -1,6 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+// Error reports carry the build they came from (the Vercel commit, short).
+process.env.VITE_RELEASE ??= (process.env.VERCEL_GIT_COMMIT_SHA || "local").slice(0, 7);
+
 export default defineConfig({
   plugins: [react()],
   test: {
