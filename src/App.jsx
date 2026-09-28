@@ -61,7 +61,10 @@ export default function App() {
   // Batches logged without a connection are sent when the app opens and
   // whenever the connection returns.
   useEffect(() => {
-    const send = () => flush(logBatch).catch(() => {});
+    // Refused batches are kept (see outbox.js); tell the Batches tab.
+    const send = () => flush(logBatch)
+      .then((r) => { if (r.refused.length) window.dispatchEvent(new Event("sh-outbox-refused")); })
+      .catch(() => {});
     send();
     window.addEventListener("online", send);
     return () => window.removeEventListener("online", send);

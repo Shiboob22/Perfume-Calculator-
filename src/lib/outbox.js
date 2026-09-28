@@ -3,18 +3,19 @@
 // that did reach the server can't create a duplicate (the API treats a
 // repeated id as already logged).
 const KEY = "sh-outbox";
+const REFUSED_KEY = "sh-outbox-refused";
 
-function read(storage) {
+function read(storage, key = KEY) {
   try {
-    const list = JSON.parse(storage.getItem(KEY) || "[]");
+    const list = JSON.parse(storage.getItem(key) || "[]");
     return Array.isArray(list) ? list : [];
   } catch {
     return [];
   }
 }
 
-function write(storage, list) {
-  try { storage.setItem(KEY, JSON.stringify(list)); } catch {}
+function write(storage, list, key = KEY) {
+  try { storage.setItem(key, JSON.stringify(list)); } catch {}
 }
 
 export function pending(storage = globalThis.localStorage) {
@@ -56,11 +57,30 @@ export async function flush(send, storage = globalThis.localStorage) {
       await send(item.batch);
       sent += 1;
     } catch (err) {
-      if (isOffline(err) || isRetryable(err)) break;
-      refused.push({ batch: item.batch, error: err?.message || String(err) });
+      if (isOffline(err) || isRetryable(err) || needsSignIn(err)) break;
+      refused.push({ ...item, code: err?.code || null, error: err?.message || String(err) });
     }
     list = rest;
     write(storage, list);
   }
+  if (refused.length) write(storage, [...read(storage, REFUSED_KEY), ...refused], REFUSED_KEY);
   return { sent, refused, left: list.length };
+}
+
+// No session (signed out, or it expired while offline): the batch is fine,
+// it just can't be sent as anyone yet. Keep it until the user signs in.
+export function needsSignIn(err) {
+  return err?.code === "not_authenticated" || err?.status === 401;
+}
+
+// Batches the server refused outright (e.g. the plan's batch cap), kept so
+// the weights the user recorded are never thrown away unseen.
+export function refusedBatches(storage = globalThis.localStorage) {
+  return storage ? read(storage, REFUSED_KEY) : [];
+}
+
+export function dismissRefused(id, storage = globalThis.localStorage) {
+  const list = read(storage, REFUSED_KEY).filter((item) => item.batch?.id !== id);
+  write(storage, list, REFUSED_KEY);
+  return list;
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listBatches, deleteBatch } from "../lib/fragranceApi";
@@ -10,6 +10,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import EmptyState from "./EmptyState";
+import { refusedBatches, dismissRefused } from "../lib/outbox";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -52,6 +53,10 @@ export default function Batches() {
   const [insights, setInsights] = useState("");
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [insightsError, setInsightsError] = useState("");
+  const [confirming, setConfirming] = useState(null); // id awaiting "Delete for good?"
+  const [status, setStatus] = useState("");
+  const [refused, setRefused] = useState(() => refusedBatches());
+  const headingRef = useRef(null);
 
   async function handleInsights() {
     setInsightsLoading(true); setInsightsError("");
@@ -78,11 +83,21 @@ export default function Batches() {
   }
 
   useEffect(() => { refresh(); }, []);
+  useEffect(() => {
+    const update = () => setRefused(refusedBatches());
+    window.addEventListener("sh-outbox-refused", update);
+    return () => window.removeEventListener("sh-outbox-refused", update);
+  }, []);
 
+  // Deleting is permanent (the batch is the record of what was poured), so
+  // it takes a second tap. Focus then goes to the list heading, not <body>.
   async function handleDelete(id) {
+    setConfirming(null);
     try {
       await deleteBatch(id);
       setBatches((prev) => prev.filter((b) => b.id !== id));
+      setStatus(t("batches.deleted"));
+      headingRef.current?.focus();
     } catch (e) {
       setError(errorText(t, e, "batches.deleteFailed"));
     }
@@ -93,7 +108,7 @@ export default function Batches() {
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>{t("batches.title")}</h2>
+        <h2 ref={headingRef} tabIndex={-1} className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>{t("batches.title")}</h2>
         {batches.length > 0 && (
           <div className="flex items-center gap-3">
             <span className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>
@@ -132,6 +147,29 @@ export default function Batches() {
         </div>
       )}
 
+      <p role="status" className="sr-only">{status}</p>
+
+      {refused.length > 0 && (
+        <div role="alert" className="mb-6 p-4 border rounded-lg text-sm" style={{ borderColor: COLORS.danger, backgroundColor: COLORS.dangerBg, color: COLORS.ink }}>
+          <p className="font-semibold mb-2">{t("batches.refused.title", { count: refused.length })}</p>
+          <ul className="space-y-2">
+            {refused.map((item) => (
+              <li key={item.batch?.id} className="flex items-start justify-between gap-3 font-mono text-xs">
+                <span>{t("batches.refused.item", {
+                  name: item.batch?.fragrance_name || t("bench.untitled"),
+                  oil: round2(Number(item.batch?.actual_oil_g ?? item.batch?.oil_g)),
+                  ethanol: round2(Number(item.batch?.actual_ethanol_g ?? item.batch?.ethanol_g)),
+                  error: errorText(t, { code: item.code, message: item.error }),
+                })}</span>
+                <button type="button" onClick={() => setRefused(dismissRefused(item.batch?.id))} className="underline shrink-0 min-h-[24px]" style={{ color: COLORS.inkSoft }}>
+                  {t("batches.refused.dismiss")}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
       {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && batches.length === 0 && (
@@ -157,14 +195,26 @@ export default function Batches() {
                 >
                   {t("batches.exportCard")}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(b.id)}
-                  className="text-xs font-mono underline"
-                  style={{ color: COLORS.inkSoft }}
-                >
-                  {t("batches.delete")}
-                </button>
+                {confirming === b.id ? (
+                  <span className="flex items-center gap-2 text-xs font-mono">
+                    <span style={{ color: COLORS.ink }}>{t("batches.confirmDelete")}</span>
+                    <button type="button" autoFocus onClick={() => handleDelete(b.id)} className="underline min-h-[24px]" style={{ color: COLORS.danger }}>
+                      {t("batches.delete")}
+                    </button>
+                    <button type="button" onClick={() => setConfirming(null)} className="underline min-h-[24px]" style={{ color: COLORS.inkSoft }}>
+                      {t("batches.keep")}
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirming(b.id)}
+                    className="text-xs font-mono underline min-h-[24px]"
+                    style={{ color: COLORS.inkSoft }}
+                  >
+                    {t("batches.delete")}
+                  </button>
+                )}
               </div>
             </div>
             <div className="mt-2 text-sm font-mono" style={{ color: COLORS.ink }}>

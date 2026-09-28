@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { enqueue, pending, flush, isOffline } from "./outbox";
+import { enqueue, pending, flush, isOffline, refusedBatches, dismissRefused } from "./outbox";
 
 function memory() {
   const m = new Map();
@@ -27,14 +27,28 @@ describe("outbox", () => {
     expect(pending(s).map((x) => x.batch.id)).toEqual(["a", "b"]);
   });
 
-  it("drops a batch the server refuses and carries on", async () => {
+  it("moves a batch the server refuses to the refused list and carries on", async () => {
     const s = memory();
     enqueue({ id: "bad" }, s);
     enqueue({ id: "good" }, s);
-    const r = await flush(async (b) => { if (b.id === "bad") throw new Error("Invalid"); }, s);
+    const r = await flush(async (b) => { if (b.id === "bad") throw Object.assign(new Error("cap"), { status: 403, code: "batch_cap" }); }, s);
     expect(r.sent).toBe(1);
     expect(r.refused.map((x) => x.batch.id)).toEqual(["bad"]);
     expect(r.left).toBe(0);
+    expect(refusedBatches(s)).toMatchObject([{ batch: { id: "bad" }, code: "batch_cap" }]);
+    expect(dismissRefused("bad", s)).toEqual([]);
+    expect(refusedBatches(s)).toEqual([]);
+  });
+
+  it.each([
+    ["no session", Object.assign(new Error("Not authenticated"), { code: "not_authenticated" })],
+    ["a 401", Object.assign(new Error("Unauthorized"), { status: 401 })],
+  ])("keeps the queue on %s until the user signs in", async (_, err) => {
+    const s = memory();
+    enqueue({ id: "a" }, s);
+    const r = await flush(async () => { throw err; }, s);
+    expect(r).toEqual({ sent: 0, refused: [], left: 1 });
+    expect(refusedBatches(s)).toEqual([]);
   });
 
   it.each([429, 500, 503])("keeps the queue on a %i and tries again later", async (status) => {
