@@ -261,13 +261,13 @@ function SeasonBar({ label, value }) {
   );
 }
 
-// A heading under the perfume's title (h3), so screen reader users can jump
+// A heading under the perfume's title (h2), so screen reader users can jump
 // between sections of the detail panel.
 function SectionLabel({ n, children }) {
   return (
-    <h4 className="font-mono font-normal" style={{ fontSize: 11, letterSpacing: '0.26em', textTransform: 'uppercase', color: COLORS.amberDeep }}>
+    <h3 className="font-mono font-normal" style={{ fontSize: 11, letterSpacing: '0.26em', textTransform: 'uppercase', color: COLORS.amberDeep }}>
       {n ? <span aria-hidden="true">{`${n} — `}</span> : ''}{children}
-    </h4>
+    </h3>
   );
 }
 
@@ -672,9 +672,9 @@ export function PerfumeSearch({ onSelectPerfume }) {
                       </div>
                     )
                   )}
-                  <h3 className="font-serif italic leading-[0.95] break-words text-4xl sm:text-5xl mt-1" style={{ color: COLORS.forestDeep }}>
+                  <h2 className="font-serif italic leading-[0.95] break-words text-4xl sm:text-5xl mt-1" style={{ color: COLORS.forestDeep }}>
                     {names.title}
-                  </h3>
+                  </h2>
                   {meta.length > 0 && (
                     <div className="mt-3 font-mono text-[12px] tracking-wide" style={{ color: '#CDBF9E' }}>
                       {meta.join('  ·  ')}

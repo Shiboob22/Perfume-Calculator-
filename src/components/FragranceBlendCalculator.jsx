@@ -407,7 +407,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
       ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
-          <h3 className="text-base font-serif font-semibold mb-5" style={{ color: COLORS.forestDeep }}>{t("calc.benchSheet")}</h3>
+          <h2 className="text-base font-serif font-semibold mb-5" style={{ color: COLORS.forestDeep }}>{t("calc.benchSheet")}</h2>
 
           <Field label={t("calc.name")} htmlFor="calc-name">
             <div className="relative">
@@ -558,9 +558,9 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
           </details>
 
           <div className="pt-1 border-t" style={{ borderColor: COLORS.line }}>
-            <h4 className="text-xs font-semibold mt-4 mb-3" style={{ color: COLORS.forestDeep }}>
+            <h3 className="text-xs font-semibold mt-4 mb-3" style={{ color: COLORS.forestDeep }}>
               {t("calc.personalLog")} <span className="font-normal" style={{ color: COLORS.ink }}>— {t("calc.savedToAccount")}</span>
-            </h4>
+            </h3>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <label htmlFor="calc-oil-type" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.oilType")}</label>
@@ -622,7 +622,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         </div>
 
         <div className="p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
-          <h3 className="text-base font-serif font-semibold mb-5" style={{ color: COLORS.forestDeep }}>{t("calc.readout")}</h3>
+          <h2 className="text-base font-serif font-semibold mb-5" style={{ color: COLORS.forestDeep }}>{t("calc.readout")}</h2>
 
           <p className="text-xs font-mono mb-2" style={{ color: COLORS.inkSoft }}>
             {t(result.basis === "volume" ? "calc.basisVolume" : "calc.basisWeight", { pct: Number(concPct) })}

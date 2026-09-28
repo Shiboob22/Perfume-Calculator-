@@ -60,7 +60,7 @@ export default function Home() {
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6 py-16">
         {benefits.map((b) => (
           <div key={b.title}>
-            <h3 className="font-serif text-2xl mb-2" style={{ color: COLORS.forestDeep }}>{b.title}</h3>
+            <h2 className="font-serif text-2xl mb-2" style={{ color: COLORS.forestDeep }}>{b.title}</h2>
             <p className="leading-relaxed" style={{ color: COLORS.inkSoft }}>{b.text}</p>
           </div>
         ))}
