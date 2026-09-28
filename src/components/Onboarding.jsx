@@ -16,7 +16,7 @@ const DEFAULT_SIZE = { ml: 50, floz: 1.7, g: 50, oz: 2 };
 // it never comes back; everything can be changed under Account.
 export default function Onboarding() {
   const { t, locale, setLocale } = useI18n();
-  const { save } = useProfile();
+  const { save, keepLocally } = useProfile();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [unit, setUnit] = useState("ml");
@@ -31,11 +31,13 @@ export default function Onboarding() {
   async function finish(skipped) {
     setSaving(true);
     setError(null);
-    const answers = skipped ? {} : { default_unit: unit, default_bottle: size, locale };
+    const answers = { ...(skipped ? {} : { default_unit: unit, default_bottle: size, locale }), onboarded_at: new Date().toISOString() };
     try {
-      await save({ ...answers, onboarded_at: new Date().toISOString() });
+      await save(answers);
     } catch {
-      // The answers still take effect for this visit through the URL.
+      // Not saved (offline, say): use the answers for this visit anyway, so
+      // the calculator opens; onboarding asks again on the next visit.
+      keepLocally(answers);
       setError(t("onboarding.saveFailed"));
     }
     setSaving(false);

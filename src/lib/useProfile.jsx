@@ -7,7 +7,7 @@ import { getProfile, saveProfile } from "./accountApi";
 // calculator at the bench.
 const PROFILE_TIMEOUT_MS = 3000;
 
-const ProfileContext = createContext({ profile: null, loaded: false, failed: false, save: async () => {} });
+const ProfileContext = createContext({ profile: null, loaded: false, failed: false, save: async () => {}, keepLocally: () => {} });
 
 export function ProfileProvider({ children }) {
   const [state, setState] = useState({ profile: null, loaded: false, failed: false });
@@ -29,7 +29,13 @@ export function ProfileProvider({ children }) {
     return profile;
   }, []);
 
-  return <ProfileContext.Provider value={{ ...state, save }}>{children}</ProfileContext.Provider>;
+  // When saving fails (offline at the bench), keep the answers for this
+  // visit only, so onboarding can't trap the user; it asks again next time.
+  const keepLocally = useCallback((changes) => {
+    setState((prev) => ({ ...prev, profile: { ...prev.profile, ...changes } }));
+  }, []);
+
+  return <ProfileContext.Provider value={{ ...state, save, keepLocally }}>{children}</ProfileContext.Provider>;
 }
 
 export function useProfile() {
