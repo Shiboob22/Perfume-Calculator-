@@ -78,6 +78,10 @@ by hand.
    such as Paddle or Lemon Squeezy handles VAT, while Stripe leaves it with
    you.
 3. **Prices and currencies**, including whether there is an annual plan.
-4. **What happens to Pro-only data on downgrade.** Today nothing is deleted.
+4. **Account deletion with a live subscription.** Deleting an account
+   does not cancel a provider subscription yet. Once billing is live, the
+   delete handler must cancel it first. Events that arrive for a deleted
+   user are closed out as `orphaned` rather than retried forever.
+5. **What happens to Pro-only data on downgrade.** Today nothing is deleted.
    Inventory and Ask are hidden; batches over the cap stay readable, and
    logging a new one is blocked.

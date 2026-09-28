@@ -85,9 +85,21 @@ export async function applyEvent(supabase: SupabaseClient, event: BillingEvent) 
       current_period_end: event.periodEnd,
       updated_at: new Date().toISOString(),
     });
+    // 23503: the user no longer exists (they deleted their account). There
+    // is nothing to apply; mark the event done so the provider stops
+    // retrying it forever.
+    if (upsertError?.code === '23503') {
+      await markProcessed(supabase, stored.id);
+      return 'orphaned' as const;
+    }
     if (upsertError) throw upsertError;
   }
 
-  await supabase.from('billing_events').update({ processed_at: new Date().toISOString() }).eq('id', stored.id);
+  await markProcessed(supabase, stored.id);
   return 'applied' as const;
+}
+
+async function markProcessed(supabase: SupabaseClient, id: number) {
+  const { error } = await supabase.from('billing_events').update({ processed_at: new Date().toISOString() }).eq('id', id);
+  if (error) throw error;
 }
