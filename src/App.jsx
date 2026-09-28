@@ -5,7 +5,7 @@ import PerfumeSearch from "./components/PerfumeSearch";
 import { COLORS } from "./lib/theme";
 import AuthGate from "./components/AuthGate";
 import { signOut } from "./lib/auth";
-import { useI18n } from "./i18n/I18nProvider";
+import { useI18n, hasLocalChoice } from "./i18n/I18nProvider";
 import LanguageToggle from "./components/LanguageToggle";
 import DigitToggle from "./components/DigitToggle";
 import ProLocked from "./components/ProLocked";
@@ -200,6 +200,14 @@ export default function App() {
 // up before the questions.
 function OnboardingGate({ children }) {
   const profile = useProfile();
+  const { setLocale, setDigits } = useI18n();
+  // Language and digits saved to the account follow the user to a new
+  // device (one with no choice of its own yet).
+  const saved = profile.profile;
+  useEffect(() => {
+    if (saved?.locale && !hasLocalChoice("locale")) setLocale(saved.locale);
+    if (saved?.digits && !hasLocalChoice("digits")) setDigits(saved.digits);
+  }, [saved?.locale, saved?.digits, setLocale, setDigits]);
   if (!profile.loaded) return <TabLoading />;
   if (needsOnboarding(profile)) return <Suspense fallback={<TabLoading />}><Onboarding /></Suspense>;
   return children;

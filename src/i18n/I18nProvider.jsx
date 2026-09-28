@@ -25,6 +25,13 @@ function initialLocale() {
   return matchLocale(typeof navigator === "undefined" ? [] : navigator.languages);
 }
 
+// Whether this browser already has its own language / digit choice. A
+// choice saved to the account applies only where there is none, so a
+// device someone switched by hand keeps what they picked there.
+export function hasLocalChoice(kind) {
+  try { return localStorage.getItem(kind === "digits" ? DIGITS_KEY : STORAGE_KEY) != null; } catch { return false; }
+}
+
 const I18nContext = createContext(null);
 
 // `locale` forces the language — public pages take it from the URL (/ar/…),
