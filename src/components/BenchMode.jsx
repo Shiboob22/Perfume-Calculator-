@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
@@ -75,6 +75,14 @@ export default function BenchMode() {
   const location = useLocation();
   const [plan] = useState(() => loadPlan(location.state));
   const [i, setI] = useState(0);
+  // A new step replaces the whole screen: move focus to its title so screen
+  // readers read the new instruction (not on the first render).
+  const titleRef = useRef(null);
+  const firstStep = useRef(true);
+  useEffect(() => {
+    if (firstStep.current) { firstStep.current = false; return; }
+    titleRef.current?.focus();
+  }, [i]);
   const [cautionRead, setCautionRead] = useState(false);
   const [oilG, setOilG] = useState("");
   const [alcoholG, setAlcoholG] = useState("");
@@ -167,7 +175,7 @@ export default function BenchMode() {
       </div>
 
       <main className="flex-1 w-full max-w-xl mx-auto px-5 py-6">
-        <h1 className="font-serif italic text-4xl" style={{ color: COLORS.forestDeep }}>{t(`bench.${step}.title`)}</h1>
+        <h1 ref={titleRef} tabIndex={-1} className="font-serif italic text-4xl" style={{ color: COLORS.forestDeep }}>{t(`bench.${step}.title`)}</h1>
 
         {step === "prepare" && (
           <>
@@ -206,6 +214,7 @@ export default function BenchMode() {
             )}
             <p className="leading-relaxed">{t("bench.alcohol.text")}</p>
             <Grams id="bench-alcohol" label={t("bench.alcohol.actual")} value={alcoholG} onChange={setAlcoholG} />
+            <div role="status">
             {pour && (
               <p className="mt-3 text-sm">
                 {t("bench.alcohol.made", { pct: fmt2(pour.actualPct), basis: t(`calc.modes.by.${pour.basis}`).toLowerCase() })}
@@ -216,6 +225,7 @@ export default function BenchMode() {
                 )}
               </p>
             )}
+            </div>
           </>
         )}
 
@@ -223,9 +233,13 @@ export default function BenchMode() {
           <>
             <p className="mt-6 text-lg leading-relaxed">{t("bench.mix.text")}</p>
             <button type="button" onClick={() => setTimer(60)} className="mt-6 w-full py-4 rounded-xl font-mono text-2xl"
-              style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }} aria-live="polite">
+              style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}>
               {timer === null ? t("bench.mix.timer") : timer > 0 ? t("bench.mix.running", { s: timer }) : t("bench.mix.done")}
             </button>
+            {/* Announce the start and the end, not every second. */}
+            <p role="status" className="sr-only">
+              {timer === null ? "" : timer > 0 ? t("bench.mix.running", { s: 60 }) : t("bench.mix.done")}
+            </p>
           </>
         )}
 
@@ -284,12 +298,11 @@ export default function BenchMode() {
           className="px-5 py-4 rounded-xl border disabled:opacity-30" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
           {t("bench.back")}
         </button>
-        {i < STEPS.length - 1 && (
-          <button type="button" onClick={() => setI((n) => n + 1)} disabled={!canNext}
-            className="flex-1 py-4 rounded-xl text-lg font-semibold disabled:opacity-40" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
-            {t("bench.next")}
-          </button>
-        )}
+        {/* Kept on the last step (disabled) so focus has somewhere to stay. */}
+        <button type="button" onClick={() => setI((n) => Math.min(n + 1, STEPS.length - 1))} disabled={!canNext || i === STEPS.length - 1}
+          className="flex-1 py-4 rounded-xl text-lg font-semibold disabled:opacity-40" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+          {t("bench.next")}
+        </button>
       </footer>
     </div>
   );
