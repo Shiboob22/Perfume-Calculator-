@@ -63,7 +63,7 @@ function TextInput(props) {
     <input
       {...props}
       className="w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
-      style={{ borderColor: COLORS.line, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
+      style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
     />
   );
 }
@@ -79,14 +79,14 @@ function AmountWithUnit({ id, unitLabel, value, onChange, unit, onUnitChange, un
         step="0.1"
         onChange={(e) => onChange(e.target.value)}
         className="flex-1 min-w-0 px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
-        style={{ borderColor: COLORS.line, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
+        style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
       />
       <select
         aria-label={unitLabel}
         value={unit}
         onChange={(e) => onUnitChange(e.target.value)}
         className="px-2 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
-        style={{ borderColor: COLORS.line, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
+        style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
       >
         {units.map((u) => (
           <option key={u.value} value={u.value}>{u.label}</option>
@@ -372,7 +372,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
           <Field label={t("calc.family")} htmlFor="calc-family-mode">
             <select id="calc-family-mode" value={tierKey} onChange={(e) => setTierKey(e.target.value)}
               className="w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
-              style={{ borderColor: COLORS.line, color: COLORS.ink, backgroundColor: COLORS.cardHi }}>
+              style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}>
               {Object.keys(TIERS).map((key) => (
                 <option key={key} value={key}>{t(`families.${key}.label`)}</option>
               ))}
@@ -428,7 +428,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
               value={tierKey}
               onChange={(e) => { setTierKey(e.target.value); setConcPct(TIERS[e.target.value].defaultConc); }}
               className="w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
-              style={{ borderColor: COLORS.line, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
+              style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
             >
               {Object.keys(TIERS).map((key) => (
                 <option key={key} value={key}>{t(`families.${key}.label`)} — {t(`families.${key}.sub`)}</option>
@@ -520,7 +520,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
               <div>
                 <label htmlFor="calc-oil-type" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.oilType")}</label>
                 <input id="calc-oil-type" list="oilTypeOptions" value={oilType} onChange={(e) => setOilType(e.target.value)}
-                  className="w-full px-3 py-2 font-mono text-sm border" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }} />
+                  className="w-full px-3 py-2 font-mono text-sm border" style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }} />
                 <datalist id="oilTypeOptions">
                   {oilTypeOptions.map((o) => <option key={o} value={o} />)}
                 </datalist>
@@ -571,7 +571,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
               id="calc-notes"
               value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
               className="w-full px-3 py-2 font-mono text-sm border resize-y"
-              style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
+              style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
             />
           </div>
         </div>

@@ -92,7 +92,7 @@ export default function Onboarding() {
               <label className="block mt-4 text-sm" style={{ color: COLORS.inkSoft }}>
                 {t("onboarding.bottle.custom")}
                 <input type="number" inputMode="decimal" min="0" step="any" value={custom} onChange={(e) => setCustom(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 rounded-lg font-mono" style={{ background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.line}` }} />
+                  className="mt-1 w-full px-3 py-2 rounded-lg font-mono" style={{ background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` }} />
               </label>
               <p className="text-xs mt-3" style={{ color: COLORS.inkSoft }}>{t("onboarding.bottle.hint")}</p>
             </>

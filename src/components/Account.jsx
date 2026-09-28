@@ -30,7 +30,7 @@ function Section({ title, children, danger = false, id }) {
 }
 
 const buttonStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.line}` };
-const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.line}` };
+const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` };
 
 // /app/account: plan and usage, the Pro waitlist, preferences, data export
 // and account deletion.

@@ -4,7 +4,7 @@ import { useI18n } from "../../i18n/I18nProvider";
 import { measuredDensity } from "../../lib/calc";
 
 const input = "w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2";
-const inputStyle = { borderColor: COLORS.line, color: COLORS.ink, backgroundColor: COLORS.cardHi };
+const inputStyle = { borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi };
 
 // The handbook's rule: a measured density always wins over the reference.
 // Weigh a known volume of this oil; the calculator then uses its density.

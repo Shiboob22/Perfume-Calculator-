@@ -23,7 +23,7 @@ export default function GuidesIndex() {
         <label htmlFor="guide-search" className="sr-only">{t("site.guides.search")}</label>
         <input id="guide-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("site.guides.search")}
           className="flex-1 px-4 py-3 rounded-lg text-sm focus:outline-none focus:ring-2"
-          style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.dim}`, color: COLORS.ink }} />
+          style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }} />
         <div role="radiogroup" aria-label={t("site.guides.filter")} className="flex gap-2">
           {["all", ...SECTIONS].map((s) => (
             <button key={s} type="button" role="radio" aria-checked={section === s} onClick={() => setSection(s)}

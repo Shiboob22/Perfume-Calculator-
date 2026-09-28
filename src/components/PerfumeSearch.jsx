@@ -540,8 +540,8 @@ export function PerfumeSearch({ onSelectPerfume }) {
             value={query}
             onChange={(e) => { setQuery(e.target.value); if (browse) setBrowse(null); }}
             placeholder={t('search.placeholder')}
-            className="w-full px-4 py-3 font-mono text-sm rounded-lg focus:outline-none"
-            style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}
+            className="w-full px-4 py-3 font-mono text-sm rounded-lg focus:outline-none focus:ring-2"
+            style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }}
           />
           {loading && (
             <span className="absolute end-3 top-3.5 text-xs font-mono animate-pulse" style={{ color: COLORS.inkSoft }}>
@@ -624,8 +624,8 @@ export function PerfumeSearch({ onSelectPerfume }) {
                       <div className="flex flex-col gap-1.5" style={{ width: 200 }}>
                         <input type="url" value={photoDraft} onChange={(e) => setPhotoDraft(e.target.value)}
                           placeholder={t('search.photoPlaceholder')} aria-label={t('search.photoPlaceholder')} autoFocus
-                          className="w-full px-2.5 py-1.5 font-mono text-[11px] rounded focus:outline-none"
-                          style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }} />
+                          className="w-full px-2.5 py-1.5 font-mono text-[11px] rounded focus:outline-none focus:ring-2"
+                          style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }} />
                         <div className="flex gap-2">
                           <button type="button" onClick={handleSavePhoto}
                             className="flex-1 px-2 py-1 rounded font-mono text-[10px] uppercase tracking-wider"

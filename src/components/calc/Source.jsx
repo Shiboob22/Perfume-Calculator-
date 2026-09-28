@@ -18,7 +18,7 @@ export default function Source({ id }) {
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls={noteId}
         aria-label={t("calc.sources.label")}
         className="inline-grid place-items-center w-4 h-4 rounded-full text-[10px] font-mono not-italic"
-        style={{ border: `1px solid ${COLORS.dim}`, color: COLORS.inkSoft }}>
+        style={{ border: `1px solid ${COLORS.field}`, color: COLORS.inkSoft }}>
         i
       </button>
       {open && (

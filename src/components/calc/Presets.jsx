@@ -56,7 +56,7 @@ export default function Presets({ current, onApply }) {
           <span className="inline-flex gap-1">
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoFocus
               aria-label={t("calc.presets.name")} placeholder={t("calc.presets.name")}
-              className="px-2 py-1 font-mono text-[11px] border" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }} />
+              className="px-2 py-1 font-mono text-[11px] border" style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }} />
             <button type="button" onClick={handleSave} disabled={!name.trim()} className="px-2 py-1 text-[11px] font-semibold rounded disabled:opacity-50"
               style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("calc.presets.save")}</button>
           </span>

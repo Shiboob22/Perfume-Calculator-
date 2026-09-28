@@ -8,7 +8,7 @@ import { STRENGTHS } from "../../lib/formulation";
 // collect inputs and show results. `densities` = { oil, ethanol } in use.
 
 const inputCls = "w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2";
-const inputStyle = { borderColor: COLORS.line, color: COLORS.ink, backgroundColor: COLORS.cardHi };
+const inputStyle = { borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi };
 
 function Num({ id, label, value, onChange, step = "0.01", placeholder }) {
   return (

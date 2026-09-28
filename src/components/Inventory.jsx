@@ -112,7 +112,7 @@ export default function Inventory() {
                   value={restockAmounts[r.fragrance_id] || ""}
                   onChange={(e) => setRestockAmounts({ ...restockAmounts, [r.fragrance_id]: e.target.value })}
                   className="flex-1 min-w-0 px-3 py-1.5 font-mono text-xs border rounded"
-                  style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
+                  style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
                 />
                 <button
                   type="button"
@@ -128,7 +128,7 @@ export default function Inventory() {
                   defaultValue={r.low_stock_threshold_g}
                   onBlur={(e) => handleThresholdChange(r.fragrance_id, e.target.value)}
                   className="w-20 px-2 py-1.5 font-mono text-xs border rounded"
-                  style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
+                  style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
                 />
               </div>
             </div>

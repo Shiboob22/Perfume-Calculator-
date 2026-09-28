@@ -121,8 +121,8 @@ export default function PerfumerChat() {
           maxLength={2000}
           placeholder={t("chat.placeholder")}
           aria-label={t("chat.placeholder")}
-          className="flex-1 px-3 py-2 font-mono text-sm border rounded-lg resize-y focus:outline-none"
-          style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
+          className="flex-1 px-3 py-2 font-mono text-sm border rounded-lg resize-y focus:outline-none focus:ring-2"
+          style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
         />
         <button
           type="button"

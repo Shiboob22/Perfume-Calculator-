@@ -64,7 +64,7 @@ function Grams({ id, label, value, onChange }) {
       <label htmlFor={id} className="block text-sm mb-2" style={{ color: COLORS.ink }}>{label}</label>
       <input id={id} type="number" inputMode="decimal" step="0.01" min="0" value={value} onChange={(e) => onChange(e.target.value)}
         className="w-full px-4 py-4 font-mono text-3xl text-center border rounded-xl focus:outline-none focus:ring-2"
-        style={{ borderColor: COLORS.dim, background: COLORS.cardHi, color: COLORS.ink }} />
+        style={{ borderColor: COLORS.field, background: COLORS.cardHi, color: COLORS.ink }} />
     </div>
   );
 }
@@ -256,7 +256,7 @@ export default function BenchMode() {
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.bottle")}</dt><dd dir="ltr" className="text-start">{plan.amount} {unit}</dd>
               <dt style={{ color: COLORS.inkSoft }}><label htmlFor="bench-lot">{t("bench.label.lot")}</label></dt>
               <dd><input id="bench-lot" value={lot} onChange={(e) => setLot(e.target.value)} maxLength={60}
-                className="w-full px-2 py-1 font-mono text-sm border" style={{ borderColor: COLORS.dim, background: COLORS.cardHi, color: COLORS.ink }} /></dd>
+                className="w-full px-2 py-1 font-mono text-sm border" style={{ borderColor: COLORS.field, background: COLORS.cardHi, color: COLORS.ink }} /></dd>
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.date")}</dt><dd>{today()}</dd>
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.oil")}</dt><dd dir="ltr" className="text-start font-mono">{fmt2(labelled.oil)} g</dd>
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.alcohol")}</dt><dd dir="ltr" className="text-start font-mono">{fmt2(labelled.ethanol)} g</dd>
@@ -281,7 +281,7 @@ export default function BenchMode() {
 
       <footer className="sticky bottom-0 px-4 py-3 flex gap-3" style={{ background: COLORS.paper, borderTop: `1px solid ${COLORS.line}` }}>
         <button type="button" onClick={() => setI((n) => Math.max(n - 1, 0))} disabled={i === 0}
-          className="px-5 py-4 rounded-xl border disabled:opacity-30" style={{ borderColor: COLORS.dim, color: COLORS.ink }}>
+          className="px-5 py-4 rounded-xl border disabled:opacity-30" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
           {t("bench.back")}
         </button>
         {i < STEPS.length - 1 && (

@@ -165,8 +165,9 @@ export default function AuthGate({ children }) {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t('auth.emailPlaceholder')}
                     dir="ltr"
-                    className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
-                    style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}
+                    autoComplete="email"
+                    className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2"
+                    style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }}
                   />
                 </div>
                 <button

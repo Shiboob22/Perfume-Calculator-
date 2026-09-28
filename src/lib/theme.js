@@ -13,7 +13,7 @@ export const COLORS = {
   // text
   ink: "#F0E8D7",        // primary text (ivory)
   inkSoft: "#A79C82",    // muted text
-  dim: "#6E654F",        // faint captions
+  dim: "#918568",        // faint captions (≥4.5:1 on every ground, WCAG 1.4.3)
 
   // accent (amber)
   amber: "#E9C88A",
@@ -22,7 +22,9 @@ export const COLORS = {
   onAmber: "#201400",    // text on an amber fill
 
   // structure
-  line: "#2A2113",       // borders
+  line: "#2A2113",       // borders (decorative: card edges, dividers)
+  field: "#6E654F",      // form-control borders (≥3:1 on paper and card, WCAG 1.4.11)
+  focus: "#E9C88A",      // focus ring (amber, ≥10:1 on every ground)
   hair: "rgba(233,200,138,0.14)",
 
   danger: "#D98A6A",
