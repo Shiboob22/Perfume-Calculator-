@@ -2,7 +2,7 @@
 // readable without JavaScript and crawlable: per-page title, description,
 // canonical, hreflang en/ar and Open Graph, plus sitemap.xml and robots.txt.
 // The signed-in app (/app) gets the plain shell and renders in the browser.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -19,10 +19,21 @@ function write(file, html) {
   writeFileSync(file, html);
 }
 
+// The three faces above the fold: preloaded so first paint already uses
+// them. Without this, the headline reflows when Cormorant arrives and
+// pushes the page down (measured CLS 0.11 on the home page on Slow 4G).
+const CRITICAL_FONTS = ["cormorant-garamond-latin-500-italic-", "space-grotesk-latin-400-normal-", "ibm-plex-mono-latin-400-normal-"];
+const assets = readdirSync(join(DIST, "assets"));
+const preloads = CRITICAL_FONTS.map((prefix) => {
+  const file = assets.find((f) => f.startsWith(prefix) && f.endsWith(".woff2"));
+  if (!file) throw new Error(`prerender: no built font starting ${prefix}`);
+  return `<link rel="preload" href="/assets/${file}" as="font" type="font/woff2" crossorigin />`;
+}).join("\n    ");
+
 function page(url, head) {
   return template
     .replace('<html lang="en">', `<html lang="${head.locale}" dir="${head.dir}">`)
-    .replace("<title>The Scent Handbook</title>", headHtml(head))
+    .replace("<title>The Scent Handbook</title>", `${preloads}\n    ${headHtml(head)}`)
     .replace('<div id="root"></div>', `<div id="root">${render(url)}</div>`);
 }
 
