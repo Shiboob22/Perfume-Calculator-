@@ -370,9 +370,10 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         </div>
       )}
 
-      <div role="tablist" aria-label={t("calc.modes.label")} className="flex flex-wrap gap-2 mb-6">
+      {/* Toggle buttons: a real tablist would need arrow keys and tabpanels. */}
+      <div role="group" aria-label={t("calc.modes.label")} className="flex flex-wrap gap-2 mb-6">
         {MODES.map((m) => (
-          <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)}
+          <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}
             className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider border rounded-lg"
             style={{ borderColor: mode === m ? COLORS.amber : COLORS.line, color: mode === m ? COLORS.amber : COLORS.inkSoft }}>
             {t(`calc.modes.tabs.${m}`)}
@@ -490,6 +491,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
                 <button
                   key={amt}
                   type="button"
+                  aria-pressed={Number(batchSize) === amt}
                   onClick={() => { setBatchSize(amt); }}
                   className="px-2 py-1 text-[11px] font-mono border transition-opacity"
                   style={{ 

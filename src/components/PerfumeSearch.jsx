@@ -544,11 +544,18 @@ export function PerfumeSearch({ onSelectPerfume }) {
             style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }}
           />
           {loading && (
-            <span className="absolute end-3 top-3.5 text-xs font-mono animate-pulse" style={{ color: COLORS.inkSoft }}>
+            <span aria-hidden="true" className="absolute end-3 top-3.5 text-xs font-mono animate-pulse" style={{ color: COLORS.inkSoft }}>
               {t('search.searching')}
             </span>
           )}
         </div>
+        {/* What the search found, for screen readers (WCAG 4.1.3). */}
+        <p role="status" className="sr-only">
+          {browse || query.trim().length < 2 ? ''
+            : loading ? t('search.searching')
+            : results.length === 0 ? t('search.noMatch', { query })
+            : t('search.resultsCount', { count: results.length })}
+        </p>
         {browse && (
           <div className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5"
             style={{ border: `1px solid ${COLORS.amberDeep}`, background: 'rgba(233,200,138,0.06)' }}>
@@ -582,7 +589,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
             >
               {aiLoading ? t('search.askingGemini') : t('search.askGemini', { query: query.trim() })}
             </button>}
-            {aiMsg && <p className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>{aiMsg}</p>}
+            {aiMsg && <p role="status" className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>{aiMsg}</p>}
           </div>
         )}
 
@@ -634,7 +641,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                             className="px-2 py-1 rounded font-mono text-[10px] uppercase tracking-wider"
                             style={{ border: `1px solid ${COLORS.line}`, color: COLORS.inkSoft }}>{t('search.cancel')}</button>
                         </div>
-                        {photoMsg && <p className="font-mono text-[10px]" style={{ color: COLORS.danger }}>{photoMsg}</p>}
+                        {photoMsg && <p role="alert" className="font-mono text-[10px]" style={{ color: COLORS.danger }}>{photoMsg}</p>}
                       </div>
                     ) : (
                       <button type="button" onClick={() => setPhotoOpen(true)}
@@ -727,12 +734,12 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 </p>
               )}
               {saveMsg && (
-                <p className="text-xs font-mono mt-2" style={{ color: saveMsg.ok ? COLORS.amber : COLORS.danger }}>
+                <p role={saveMsg.ok ? "status" : "alert"} className="text-xs font-mono mt-2" style={{ color: saveMsg.ok ? COLORS.amber : COLORS.danger }}>
                   {saveMsg.text}
                 </p>
               )}
               {inventoryMsg && (
-                <p className="text-xs font-mono mt-2" style={{ color: inventoryMsg.ok ? COLORS.amber : COLORS.danger }}>
+                <p role={inventoryMsg.ok ? "status" : "alert"} className="text-xs font-mono mt-2" style={{ color: inventoryMsg.ok ? COLORS.amber : COLORS.danger }}>
                   {inventoryMsg.text}
                 </p>
               )}

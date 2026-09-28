@@ -24,9 +24,11 @@ export default function GuidesIndex() {
         <input id="guide-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("site.guides.search")}
           className="flex-1 px-4 py-3 rounded-lg text-sm focus:outline-none focus:ring-2"
           style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }} />
-        <div role="radiogroup" aria-label={t("site.guides.filter")} className="flex gap-2">
+        {/* Toggle buttons (aria-pressed), not radios: radios promise an
+            arrow-key model these buttons don't have. */}
+        <div role="group" aria-label={t("site.guides.filter")} className="flex gap-2">
           {["all", ...SECTIONS].map((s) => (
-            <button key={s} type="button" role="radio" aria-checked={section === s} onClick={() => setSection(s)}
+            <button key={s} type="button" aria-pressed={section === s} onClick={() => setSection(s)}
               className="px-3 py-2 rounded-lg text-sm" style={{ border: `1px solid ${section === s ? COLORS.amber : COLORS.line}`, color: section === s ? COLORS.amber : COLORS.inkSoft }}>
               {t(`site.guides.sections.${s}`)}
             </button>
@@ -34,7 +36,7 @@ export default function GuidesIndex() {
         </div>
       </div>
 
-      {shown.length === 0 && <p style={{ color: COLORS.inkSoft }}>{t("site.guides.noResults")}</p>}
+      <p role="status" style={{ color: COLORS.inkSoft }}>{shown.length === 0 ? t("site.guides.noResults") : ""}</p>
 
       {SECTIONS.map((s) => {
         const items = shown.filter((g) => g.section === s);

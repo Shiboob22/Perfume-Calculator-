@@ -90,7 +90,8 @@ export default function PerfumerChat() {
         </div>
       )}
 
-      <div className="space-y-3 mb-4">
+      {/* role=log: new replies are read out as they arrive. */}
+      <div role="log" aria-live="polite" aria-label={t("chat.title")} className="space-y-3 mb-4">
         {messages.map((m, i) => (
           <div
             key={i}
@@ -110,7 +111,7 @@ export default function PerfumerChat() {
         <div ref={endRef} />
       </div>
 
-      {error && <p className="text-sm font-mono mb-2" style={{ color: COLORS.danger }}>{error}</p>}
+      {error && <p role="alert" className="text-sm font-mono mb-2" style={{ color: COLORS.danger }}>{error}</p>}
 
       <div className="flex gap-2 items-end">
         <textarea

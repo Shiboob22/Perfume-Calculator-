@@ -42,9 +42,9 @@ function Strength({ id, label, value, onChange }) {
 function BasisToggle({ value, onChange }) {
   const { t } = useI18n();
   return (
-    <div role="radiogroup" aria-label={t("calc.modes.basis")} className="flex gap-2">
+    <div role="group" aria-label={t("calc.modes.basis")} className="flex gap-2">
       {["volume", "weight"].map((b) => (
-        <button key={b} type="button" role="radio" aria-checked={value === b} onClick={() => onChange(b)}
+        <button key={b} type="button" aria-pressed={value === b} onClick={() => onChange(b)}
           className="px-2 py-1 text-[11px] font-mono border"
           style={{ borderColor: value === b ? COLORS.amber : COLORS.line, color: value === b ? COLORS.amber : COLORS.ink }}>
           {t(`calc.modes.by.${b}`)}

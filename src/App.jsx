@@ -58,6 +58,13 @@ export default function App() {
   useEffect(() => { fetchPopular(); warmUp(); }, []);
   useEffect(installGlobalHandlers, []);
 
+  // Each tab is its own page to screen readers and the tab switcher.
+  const page = activeTab ?? tab;
+  useEffect(() => {
+    const name = TABS.includes(page) ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : null;
+    document.title = name ? `${name} — ${t("brand")}` : t("brand");
+  }, [page, t]);
+
   // Batches logged without a connection are sent when the app opens and
   // whenever the connection returns.
   useEffect(() => {
@@ -137,12 +144,13 @@ export default function App() {
           </div>
         </div>
 
-        <nav className="flex gap-2 border-b overflow-x-auto" style={{ borderColor: COLORS.line }}>
+        <nav aria-label={t("app.tabsLabel")} className="flex gap-2 border-b overflow-x-auto" style={{ borderColor: COLORS.line }}>
           {TABS.map((id) => (
             <button
               key={id}
               type="button"
               onClick={() => setActiveTab(id)}
+              aria-current={activeTab === id ? "page" : undefined}
               className="px-4 py-2 text-xs font-mono uppercase tracking-wider rtl:tracking-normal -mb-px border-b-2 transition-colors whitespace-nowrap"
               style={{
                 borderColor: activeTab === id ? COLORS.forest : "transparent",

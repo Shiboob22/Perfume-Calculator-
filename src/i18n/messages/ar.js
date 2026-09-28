@@ -4,6 +4,7 @@ export default {
   brand: "The Scent Handbook",
   language: { switchTo: "English", switchLabel: "التبديل إلى الإنجليزية" },
   app: {
+    tabsLabel: "الأقسام",
     loading: "جارٍ التحميل…",
     crash: { title: "حدث خطأ ما.", text: "واجهت هذه الشاشة خطأً وتم الإبلاغ عنه. خلطاتك المحفوظة في أمان.", retry: "حاول مرة أخرى", reload: "أعد التحميل" },
     signOut: "تسجيل الخروج",
@@ -350,6 +351,7 @@ export default {
     saveFailedGeneric: "تعذّر حفظ هذه الدفعة.",
   },
   search: {
+    resultsCount: { zero: "لا نتائج", one: "نتيجة واحدة", two: "نتيجتان", few: "{count} نتائج", many: "{count} نتيجة", other: "{count} نتيجة" },
     label: "ابحث في المكتبة",
     placeholder: "ابحث عن عطور أو دور عطور…",
     searching: "جارٍ البحث…",

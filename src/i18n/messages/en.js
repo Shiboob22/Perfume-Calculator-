@@ -3,6 +3,7 @@ export default {
   brand: "The Scent Handbook",
   language: { switchTo: "العربية", switchLabel: "Switch to Arabic" },
   app: {
+    tabsLabel: "Sections",
     loading: "Loading…",
     signOut: "Sign out",
     crash: { title: "Something went wrong.", text: "This screen hit an error and it has been reported. Your saved batches are safe.", retry: "Try again", reload: "Reload" },
@@ -349,6 +350,7 @@ export default {
     saveFailedGeneric: "Could not save this batch.",
   },
   search: {
+    resultsCount: { one: "{count} result", other: "{count} results" },
     label: "Search the library",
     placeholder: "Search perfumes or houses…",
     searching: "Searching…",
