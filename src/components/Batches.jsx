@@ -44,7 +44,7 @@ function BatchTiming({ batch }) {
 }
 
 export default function Batches() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const entitlements = useEntitlements();
   const capped = entitlements.loaded && !entitlements.features?.includes("batches.unlimited") && entitlements.batchCap != null;
   const [batches, setBatches] = useState([]);
@@ -189,7 +189,7 @@ export default function Batches() {
               <div className="flex items-center gap-3 shrink-0 ms-3">
                 <button
                   type="button"
-                  onClick={() => downloadBatchCard(b)}
+                  onClick={() => downloadBatchCard(b, { t, locale }).catch((e) => setError(t("batchCard.failed", { error: errorText(t, e) })))}
                   className="text-xs font-mono underline"
                   style={{ color: COLORS.forest }}
                 >

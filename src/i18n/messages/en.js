@@ -487,6 +487,16 @@ export default {
       failed: "Could not delete the account: {error}",
     },
   },
+  batchCard: {
+    gramsMl: "{g} g  /  {ml} mL",
+    grams: "{g} g",
+    actualPour: "Actual pour",
+    actualPourValue: "{oil} g  /  {ethanol} g",
+    actualRatioLabel: "Actual ratio",
+    actualRatio: { volume: "{pct}% oil by volume", weight: "{pct}% oil by weight", assumed: "{pct}% oil by volume (assumed)" },
+    oilType: "Oil type",
+    failed: "Could not create the card: {error}",
+  },
   settings: {
     digitsLabel: "Digit style",
     useArabicIndic: "Digits: ١٢٣",

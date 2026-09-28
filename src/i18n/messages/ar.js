@@ -488,6 +488,16 @@ export default {
       failed: "تعذّر حذف الحساب: {error}",
     },
   },
+  batchCard: {
+    gramsMl: "{g} غ  /  {ml} مل",
+    grams: "{g} غ",
+    actualPour: "الصبّ الفعلي",
+    actualPourValue: "{oil} غ  /  {ethanol} غ",
+    actualRatioLabel: "النسبة الفعلية",
+    actualRatio: { volume: "{pct}% زيت حجمًا", weight: "{pct}% زيت وزنًا", assumed: "{pct}% زيت حجمًا (بافتراض ذلك)" },
+    oilType: "نوع الزيت",
+    failed: "تعذّر إنشاء البطاقة: {error}",
+  },
   settings: {
     digitsLabel: "شكل الأرقام",
     useArabicIndic: "الأرقام: ١٢٣",

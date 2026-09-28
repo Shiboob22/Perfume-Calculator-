@@ -2,10 +2,14 @@
 // Zero-dependency on purpose: html2canvas/satori would add bundle weight for
 // what is a fixed, well-known layout. Colours/tiers come from the shared
 // theme so the exported card reads as the same product as the app.
+// The card follows the app's language: labels through t(), dates in the
+// locale, right-to-left layout and the Arabic brand fonts in Arabic.
 import { COLORS } from "./theme";
 import { TIERS, TIER_COLORS } from "./tiers";
 import { batchStartedAt, batchReadyAt, formatExact } from "./batchTiming";
 import { actualStrength } from "./calc";
+import { dirOf } from "../i18n/core";
+import { loadArabicFonts } from "../i18n/arabicFonts";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -20,6 +24,20 @@ const SCALE = 2;
 const PAD = 70; // outer paper margin around the inner frame
 const SERIF = "Georgia, 'Times New Roman', serif";
 const MONO = "'SF Mono', 'Roboto Mono', Menlo, Consolas, monospace";
+// Arabic: the app's faces (arabicFonts.js). Amiri's subset is Arabic only,
+// so Latin names fall through to Georgia. Labels use a proportional face:
+// monospaced Arabic stretches badly.
+const SERIF_AR = "Amiri, Georgia, 'Geeza Pro', 'Noto Naskh Arabic', serif";
+const LABEL_AR = "'IBM Plex Sans Arabic', 'Geeza Pro', 'Noto Sans Arabic', Tahoma, sans-serif";
+
+// Unicode isolates. Text from the user or the catalog (a Latin name like
+// "1 Million", notes ending in "."), and ISO dates, would otherwise be
+// reordered by the bidi algorithm inside a right-to-left line.
+const FSI = "⁨"; // first-strong isolate: direction from the text itself
+const LRI = "⁦"; // left-to-right isolate: dates, figures
+const PDI = "⁩";
+export const isolate = (s) => `${FSI}${s}${PDI}`;
+export const ltr = (s) => `${LRI}${s}${PDI}`;
 
 // Break `text` into lines that fit `maxWidth` at the ctx's current font.
 function wrapLines(ctx, text, maxWidth) {
@@ -39,17 +57,53 @@ function wrapLines(ctx, text, maxWidth) {
   return lines;
 }
 
+// The rows of the card as [label, value] pairs, translated. Pure, so it
+// can be tested without a canvas. Figures stay Western (round2 strings),
+// matching the scale, whatever the digit setting.
+export function cardRows(batch, { t, locale }) {
+  const rows = [
+    [t("batches.oil"), t("batchCard.gramsMl", { g: round2(batch.oil_g), ml: round2(batch.oil_ml) })],
+    [t("batches.ethanol"), t("batchCard.gramsMl", { g: round2(batch.ethanol_g), ml: round2(batch.ethanol_ml) })],
+    [t("batches.total"), t("batchCard.grams", { g: round2(batch.total_g) })],
+  ];
+  const actual = actualStrength(batch);
+  if (actual !== null) {
+    rows.push([t("batchCard.actualPour"), t("batchCard.actualPourValue", { oil: round2(Number(batch.actual_oil_g)), ethanol: round2(Number(batch.actual_ethanol_g)) })]);
+    rows.push([t("batchCard.actualRatioLabel"), t(`batchCard.actualRatio.${actual.basisKnown ? actual.basis : "assumed"}`, { pct: round2(actual.pct) })]);
+  }
+  if (batch.oil_cost) rows.push([t("calc.oilCost"), round2(batch.oil_cost)]);
+  if (batch.price_per_gram) rows.push([t("calc.pricePerGram"), round2(Number(batch.price_per_gram))]);
+  const started = batchStartedAt(batch);
+  const ready = batchReadyAt(batch);
+  if (started) rows.push([t("batches.created"), formatExact(started, locale)]);
+  if (ready) rows.push([t("batches.bestFrom"), formatExact(ready, locale)]);
+  if (batch.oil_type) rows.push([t("batchCard.oilType"), isolate(batch.oil_type)]);
+  if (batch.blended_by) rows.push([t("calc.blendedBy"), isolate(batch.blended_by)]);
+  return rows;
+}
+
 // Draw the card for one batch onto a fresh canvas and return it.
-export function renderBatchCard(batch) {
+export function renderBatchCard(batch, { t, locale = "en" }) {
+  const dir = dirOf(locale);
+  const rtl = dir === "rtl";
+  const serif = rtl ? SERIF_AR : SERIF;
+  const label = rtl ? LABEL_AR : MONO;
+  // Arabic has only upright faces; "italic" would make the browser slant
+  // the script mechanically.
+  const it = rtl ? "normal" : "italic";
+
   const canvas = document.createElement("canvas");
   canvas.width = W * SCALE;
   canvas.height = H * SCALE;
+  // A detached canvas does not inherit <html dir>; set it explicitly.
+  canvas.dir = dir;
   const ctx = canvas.getContext("2d");
+  ctx.direction = dir;
   ctx.scale(SCALE, SCALE);
   ctx.textBaseline = "alphabetic";
 
   const tierColor = TIER_COLORS[batch.tier] || COLORS.forest;
-  const tierLabel = TIERS[batch.tier]?.label || batch.tier || "";
+  const tierLabel = TIERS[batch.tier] ? t(`families.${batch.tier}.label`) : batch.tier || "";
 
   // Paper background + inner card frame.
   ctx.fillStyle = COLORS.paper;
@@ -93,21 +147,22 @@ export function renderBatchCard(batch) {
   // the name's cap height, so a wrapped 2-line title never collides with it.
   y += 116;
 
-  // Fragrance name (serif italic, wrapped, centred).
+  // Fragrance name (serif, wrapped, centred). Isolate each line after
+  // wrapping, so an isolate never spans two lines.
   ctx.fillStyle = COLORS.forestDeep;
   ctx.textAlign = "center";
-  ctx.font = `italic 600 52px ${SERIF}`;
-  const nameLines = wrapLines(ctx, batch.fragrance_name || "Untitled batch", inner);
+  ctx.font = `${it} 700 52px ${serif}`;
+  const nameLines = wrapLines(ctx, batch.fragrance_name || t("bench.untitled"), inner);
   for (const l of nameLines.slice(0, 3)) {
-    ctx.fillText(l, cx, y);
+    ctx.fillText(isolate(l), cx, y);
     y += 60;
   }
   y += 6;
 
   // Meta line: date · tier · concentration.
   ctx.fillStyle = COLORS.inkSoft;
-  ctx.font = `24px ${MONO}`;
-  const meta = [batch.blend_date, tierLabel, batch.concentration_pct != null ? `${batch.concentration_pct}%` : null]
+  ctx.font = `24px ${label}`;
+  const meta = [batch.blend_date && ltr(batch.blend_date), tierLabel, batch.concentration_pct != null ? ltr(`${batch.concentration_pct}%`) : null]
     .filter(Boolean)
     .join("  ·  ");
   ctx.fillText(meta, cx, y);
@@ -122,48 +177,33 @@ export function renderBatchCard(batch) {
   ctx.stroke();
   y += 60;
 
-  // Recipe rows: label left, value right, in the mono voice used in-app.
-  const rows = [
-    ["Oil", `${round2(batch.oil_g)} g  /  ${round2(batch.oil_ml)} mL`],
-    ["Ethanol", `${round2(batch.ethanol_g)} g  /  ${round2(batch.ethanol_ml)} mL`],
-    ["Total", `${round2(batch.total_g)} g`],
-  ];
-  const actual = actualStrength(batch);
-  if (actual !== null) {
-    rows.push(["Actual pour", `${round2(Number(batch.actual_oil_g))} g  /  ${round2(Number(batch.actual_ethanol_g))} g`]);
-    rows.push(["Actual ratio", `${round2(actual.pct)}% oil by ${actual.basis}${actual.basisKnown ? "" : " (assumed)"}`]);
-  }
-  if (batch.oil_cost) rows.push(["Oil cost", round2(batch.oil_cost)]);
-  if (batch.price_per_gram) rows.push(["Price / g", round2(Number(batch.price_per_gram))]);
-  const started = batchStartedAt(batch);
-  const ready = batchReadyAt(batch);
-  if (started) rows.push(["Created", formatExact(started)]);
-  if (ready) rows.push(["Best from", formatExact(ready)]);
-  if (batch.oil_type) rows.push(["Oil type", batch.oil_type]);
-  if (batch.blended_by) rows.push(["Blended by", batch.blended_by]);
-
+  // Recipe rows: label at the start edge, value at the end edge. With
+  // ctx.direction set, "start"/"end" follow the language; the x positions
+  // swap so the label sits on the right in Arabic.
   const rowLeft = fx + 50;
   const rowRight = fx + fw - 50;
-  ctx.font = `26px ${MONO}`;
-  for (const [label, value] of rows) {
-    ctx.textAlign = "left";
+  const startX = rtl ? rowRight : rowLeft;
+  const endX = rtl ? rowLeft : rowRight;
+  ctx.font = `26px ${label}`;
+  for (const [name, value] of cardRows(batch, { t, locale })) {
+    ctx.textAlign = "start";
     ctx.fillStyle = COLORS.inkSoft;
-    ctx.fillText(label, rowLeft, y);
-    ctx.textAlign = "right";
+    ctx.fillText(name, startX, y);
+    ctx.textAlign = "end";
     ctx.fillStyle = COLORS.ink;
-    ctx.fillText(String(value), rowRight, y);
+    ctx.fillText(String(value), endX, y);
     y += 48;
   }
 
-  // Notes, if any — italic serif, wrapped, a few lines max.
+  // Notes, if any — serif, wrapped, a few lines max.
   if (batch.notes) {
     y += 14;
-    ctx.textAlign = "left";
+    ctx.textAlign = "start";
     ctx.fillStyle = COLORS.inkSoft;
-    ctx.font = `italic 24px ${SERIF}`;
+    ctx.font = `${it} 24px ${serif}`;
     const noteLines = wrapLines(ctx, batch.notes, inner);
     for (const l of noteLines.slice(0, 4)) {
-      ctx.fillText(l, rowLeft, y);
+      ctx.fillText(isolate(l), startX, y);
       y += 34;
     }
   }
@@ -171,30 +211,49 @@ export function renderBatchCard(batch) {
   // Footer brand line, anchored to the bottom of the frame.
   ctx.textAlign = "center";
   ctx.fillStyle = COLORS.forestDeep;
-  ctx.font = `italic 26px ${SERIF}`;
-  ctx.fillText("The Scent Handbook", cx, fy + fh - 46);
+  ctx.font = `${it} 26px ${serif}`;
+  ctx.fillText(t("brand"), cx, fy + fh - 46);
 
   return canvas;
 }
 
-function safeFileName(batch) {
-  const base = (batch.fragrance_name || "batch").replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase();
+// A file name from the fragrance name, in any script ("عود الليل" →
+// "عود-الليل"); letters and digits only.
+export function safeFileName(batch) {
+  const base = String(batch.fragrance_name || "")
+    .normalize("NFC")
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
   const date = batch.blend_date || "";
   return `${base || "batch"}${date ? "-" + date : ""}-card.png`;
 }
 
+// Canvas text never waits for a webfont: load the Arabic faces the card
+// draws with first, or the first Arabic card falls back to a system font.
+async function arabicFontsReady() {
+  await loadArabicFonts();
+  if (!document.fonts?.load) return;
+  const sample = "عطر";
+  await Promise.all([
+    document.fonts.load("700 52px Amiri", sample),
+    document.fonts.load("400 24px Amiri", sample),
+    document.fonts.load("400 26px 'IBM Plex Sans Arabic'", sample),
+  ]).catch(() => {});
+}
+
 // Render + trigger a PNG download for one batch.
-export function downloadBatchCard(batch) {
-  const canvas = renderBatchCard(batch);
-  canvas.toBlob((blob) => {
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = safeFileName(batch);
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }, "image/png");
+export async function downloadBatchCard(batch, { t, locale = "en" }) {
+  if (dirOf(locale) === "rtl") await arabicFontsReady();
+  const canvas = renderBatchCard(batch, { t, locale });
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  if (!blob) throw new Error("Could not create the image.");
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = safeFileName(batch);
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
