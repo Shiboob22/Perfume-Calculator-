@@ -9,6 +9,8 @@ The product is **The Scent Handbook**. Use that name everywhere (titles, meta, e
 
 ## Current phase
 
+**Phase 5 — Launch hardening: built, in review (branch `phase-5-launch`, stacked on Phase 4).** Migrations 0010 (rate limits) and 0011 (batches/inventory writable only through `/api`) on staging only; RLS isolation test 42 checks. Rate limits (Ask, live lookups, batch logs, deletion, error reports); error boundary + `/api/log` client error reports; offline outbox never drops a batch unseen (keeps on 401/429/5xx, refused ones listed in Batches); batch delete confirms; WCAG 2.2 AA pass (contrast tokens `dim`/`field`/`focus`, amber focus ring, combobox, live regions, headings, targets) checked by axe in Playwright; EN/AR batch card; export with oil names and paging; font preloads (CLS 0.11 → 0); Playwright suite + CI job, opt-in signed-in journey against staging; `LAUNCH.md`. Open decisions specific to Phase 5: rate-limit numbers, label sizes (labels not built), whether to add Sentry-style monitoring beyond runtime logs.
+
 **Phase 4 — Site, account and billing seam: built, in review (branch `phase-4-site`, stacked on Phase 3).** Migrations 0007–0009 (profiles, pro_waitlist, billing seam) on staging only; RLS isolation test now 37 checks. Onboarding (3 questions → calculator opens at the answers), `/app/account` (plan + usage, Pro waitlist, preferences, JSON/CSV export, delete account via `DELETE /api/account` — email typed back, admins refused, immediate), billing seam (`api/_lib/billing.ts`, 501 webhook, `docs/billing.md`), draft `/privacy` + `/terms` (noindex, `[OWNER: …]` placeholders), Ask AI disclosure, safety notice on blending guides, empty-state actions, Vercel Web Analytics (needs switching on in the Vercel project). Open decisions specific to Phase 4: manual-grant vs provider-event precedence (`resolvePlan`), deletion grace period (built: immediate), provider choice/prices, all `[OWNER: …]` legal facts + lawyer review, landing copy approval.
 
 **Phase 3 — Library: built, in review (branch `phase-3-library`, stacked on Phase 2).** 15 guides EN/AR (3 Blending from Vol. III, 12 Wearing from Vol. I), search, evidence badges, JSON-LD, Pro printable cards at `/app/cards`. Choosing (Wardrobe) guides wait on neutral-example approval. Guide content lives in `src/content/` (JS modules; EN follows the handbook, AR drafts `needsReview`).
@@ -27,8 +29,6 @@ Waiting on the owner:
 5. Review of all Arabic strings and the three Arabic guide drafts; Arabic spelling of the byline.
 6. Landing copy (draft from the Phase 4 plan).
 Later phases: Wardrobe feature scope; catalog data licensing; hosting plans (Vercel Hobby is non-commercial; Supabase free has no backups).
-
-Not yet translated: the PNG batch card (canvas) is English-only until Phase 5 (EN/AR cards).
 
 Update this section at the end of every phase.
 
@@ -86,7 +86,10 @@ Billing: **free for now, billing-ready.** Plans + entitlements exist and gate fe
 - Arithmetic lives in `src/lib/calc/` (pure, 100% covered, enforced in CI). Components call `calculate()`, `solve*()`, `checkPour()`, `labelWeights()` and only format.
 - The service worker is built last (`scripts/build-sw.mjs`, after prerender); never cache `/api`. Offline batch logs go through `src/lib/outbox.js` with client ids (the API is idempotent on id).
 - `/dev/<screen>` renders app screens without sign-in under `vite dev` only, for visual checks.
+- Colours: text uses `ink`/`inkSoft`/`dim` (all ≥4.5:1), form borders `field` (≥3:1), focus `focus`; `line` is decorative only. `npx playwright test e2e/a11y.spec.js` (axe) guards it.
+- `npm run e2e` runs Playwright against `npm run build` output via `scripts/serve-dist.mjs` (mirrors Vercel routing).
 - Owner-only tables written straight from the browser (profiles, pro_waitlist) rely on RLS alone: add every such table to `supabase/tests/rls_isolation.sql`. Anything needing the service role (deleting a user, billing) goes through `api/`.
+- Batches and inventory are written only through `/api` (0011 revoked direct writes): the API is where the cap, rate limits and Pro gates live. Don't add browser writes to them.
 - Every user table references `auth.users` with ON DELETE CASCADE, so account deletion is one `auth.admin.deleteUser`. New user tables must do the same (and be added to `EXPORT_TABLES` in `src/lib/exportData.js`).
 
 ## Stack and layout (as of Phase 0)
