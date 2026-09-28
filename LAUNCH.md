@@ -52,19 +52,19 @@ depend on are settled. Nothing here touches production until step 4.
 
 ## 4. Production database (owner approves, then apply)
 
-Migrations 0001–0010 have run on **staging** only. They add tables, columns,
+Migrations 0001–0011 have run on **staging** only. They add tables, columns,
 policies and functions. They do not drop or rewrite user data, except in
 **0002**, which sets `user_id NOT NULL` and replaces foreign keys. Read 0002
 first.
 
 1. [ ] Take a backup (Supabase dashboard → Database → Backups, or `pg_dump`).
-2. [ ] Read each file in `supabase/migrations/0001…0010` and approve it.
+2. [ ] Read each file in `supabase/migrations/0001…0011` and approve it.
 3. [ ] Apply them in order, each in one transaction:
        `psql "$PROD" -1 -v ON_ERROR_STOP=1 -f supabase/migrations/00NN_*.sql`
        Then record the versions in `supabase_migrations.schema_migrations`,
        as was done on staging.
 4. [ ] Run `supabase/tests/rls_isolation.sql` against production. It rolls
-       back and must print `RLS_ISOLATION PASSED: 37 checks`.
+       back and must print `RLS_ISOLATION PASSED: 42 checks`.
 5. [ ] Check that the owner is an admin (`select * from admins`) and on Pro
        (`select * from user_plans`).
 

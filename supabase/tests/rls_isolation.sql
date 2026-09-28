@@ -14,6 +14,7 @@ do $$
 declare
   a uuid := gen_random_uuid();
   b uuid := gen_random_uuid();
+  c uuid := gen_random_uuid();  -- a user with no rows anywhere
   f_shared uuid;      -- an approved catalog row
   f_a_pending uuid;   -- a row user A added (pending)
   n int;
@@ -24,7 +25,8 @@ begin
   -- ---------------------------------------------------------- fixtures
   insert into auth.users (id, email, aud, role)
   values (a, 'rls-a-' || a || '@example.test', 'authenticated', 'authenticated'),
-         (b, 'rls-b-' || b || '@example.test', 'authenticated', 'authenticated');
+         (b, 'rls-b-' || b || '@example.test', 'authenticated', 'authenticated'),
+         (c, 'rls-c-' || c || '@example.test', 'authenticated', 'authenticated');
 
   insert into public.fragrances (name, tier, source, status, added_by)
   values ('RLS test shared ' || a, 'fresh', 'curated', 'approved', null)
@@ -78,22 +80,54 @@ begin
   begin perform 1 from public.billing_events limit 1;
   exception when insufficient_privilege then ok := true; end;
   if not ok then raise exception 'RLS_ISOLATION FAILED: a user can read billing events'; end if; checks := checks + 1;
+  -- Forge rows for a user with no row of their own yet, so only the WITH
+  -- CHECK policy (not a duplicate key) can refuse them.
   ok := false;
   begin
-    insert into public.pro_waitlist (user_id) values (a);
-  exception when insufficient_privilege or unique_violation then ok := true;
+    insert into public.pro_waitlist (user_id) values (c);
+  exception when insufficient_privilege then ok := true;
   end;
-  if not ok then raise exception 'RLS_ISOLATION FAILED: B joined the waitlist as A'; end if; checks := checks + 1;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B joined the waitlist as someone else'; end if; checks := checks + 1;
+  ok := false;
+  begin
+    insert into public.profiles (user_id, locale) values (c, 'en');
+  exception when insufficient_privilege then ok := true;
+  end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B created someone else''s profile'; end if; checks := checks + 1;
+  update public.profiles set locale = 'en' where user_id = a; get diagnostics n = row_count;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B edited A''s profile'; end if; checks := checks + 1;
+  insert into public.pro_waitlist (locale) values ('en');
+  select count(*) into n from public.pro_waitlist;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B could not join the waitlist itself'; end if; checks := checks + 1;
   select count(*) into n from public.fragrances where id = f_shared;
   if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B can''t read the shared catalog'; end if; checks := checks + 1;
 
+  -- Batches and inventory are written only through /api (0011): users
+  -- can't write them directly at all, not even their own rows.
+  ok := false;
+  begin update public.batches set notes = 'tampered' where user_id = a;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B could update batches directly'; end if; checks := checks + 1;
+  ok := false;
+  begin delete from public.batches where user_id = a;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B could delete batches directly'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.inventory set stock_g = 0 where user_id = a;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B could change stock directly'; end if; checks := checks + 1;
+  ok := false;
+  begin
+    insert into public.batches (user_id, fragrance_name, tier, concentration_pct, oil_g, oil_ml, ethanol_g, ethanol_ml, total_g, total_ml)
+    values (b, 'over the cap', 'fresh', 20, 1, 1, 1, 1, 2, 2);
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B logged its own batch around the API (cap bypass)'; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.inventory (user_id, fragrance_id, stock_g) values (b, f_a_pending, 1);
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B wrote its own inventory around the API (Pro gate bypass)'; end if; checks := checks + 1;
+
   -- Updates and deletes on A's rows touch nothing.
-  update public.batches set notes = 'tampered' where user_id = a; get diagnostics n = row_count;
-  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B updated A''s batches'; end if; checks := checks + 1;
-  delete from public.batches where user_id = a; get diagnostics n = row_count;
-  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B deleted A''s batches'; end if; checks := checks + 1;
-  update public.inventory set stock_g = 0 where user_id = a; get diagnostics n = row_count;
-  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B changed A''s stock'; end if; checks := checks + 1;
   delete from public.fragrance_notes where user_id = a; get diagnostics n = row_count;
   if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B deleted A''s notes'; end if; checks := checks + 1;
   update public.fragrances set tier = 'oriental' where id = f_shared; get diagnostics n = row_count;
