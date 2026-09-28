@@ -222,6 +222,7 @@ export default {
     fixAddEthanol: "أضف {grams} غ من الكحول لتصل إلى {target}%.",
     fixAddOil: "أضف {grams} غ من الزيت لتصل إلى {target}%.",
     presets: {
+      confirmDelete: "حذف؟",
       add: "+ احفظ كإعداد مسبق",
       name: "اسم الإعداد",
       save: "حفظ",

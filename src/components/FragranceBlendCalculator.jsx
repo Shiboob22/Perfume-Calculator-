@@ -42,12 +42,17 @@ function useDebouncedValue(value, delay) {
   return debounced;
 }
 
-function Field({ label, hint, htmlFor, children }) {
+// `extra` sits after the label, not inside it: a button inside a <label>
+// would become part of the control's accessible name.
+function Field({ label, extra, hint, htmlFor, children }) {
   return (
     <div className="mb-5">
-      <label htmlFor={htmlFor} className="block text-xs font-semibold mb-2 tracking-wide rtl:tracking-normal" style={{ color: COLORS.ink }}>
-        {label}
-      </label>
+      <div className="mb-2">
+        <label htmlFor={htmlFor} className="text-xs font-semibold tracking-wide rtl:tracking-normal" style={{ color: COLORS.ink }}>
+          {label}
+        </label>
+        {extra}
+      </div>
       {children}
       {hint ? (
         <p className="text-xs mt-1" style={{ color: COLORS.ink }}>
@@ -506,7 +511,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             </div>
           </Field>
 
-          <Field label={<>{t("calc.concentration", { pct: concPct })}<Source id="strengths" /></>} hint={t("calc.familyDefault", { pct: tier.defaultConc })} htmlFor="calc-conc">
+          <Field label={t("calc.concentration", { pct: concPct })} extra={<Source id="strengths" />} hint={t("calc.familyDefault", { pct: tier.defaultConc })} htmlFor="calc-conc">
             <div className="flex gap-2 mb-3">
               {STRENGTHS.map(({ pct: c, name }) => (
                 <button

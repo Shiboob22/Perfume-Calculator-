@@ -221,6 +221,7 @@ export default {
     fixAddEthanol: "Add {grams} g of alcohol to land at {target}%.",
     fixAddOil: "Add {grams} g of oil to land at {target}%.",
     presets: {
+      confirmDelete: "Delete?",
       add: "+ Save as preset",
       name: "Preset name",
       save: "Save",

@@ -11,6 +11,7 @@ export default function Presets({ current, onApply }) {
   const { t } = useI18n();
   const [presets, setPresets] = useState([]);
   const [naming, setNaming] = useState(false);
+  const [confirming, setConfirming] = useState(null); // preset id awaiting a second tap
   const [name, setName] = useState("");
   const [error, setError] = useState("");
 
@@ -45,11 +46,20 @@ export default function Presets({ current, onApply }) {
         {presets.map((p) => (
           <span key={p.id} className="inline-flex items-center rounded border text-[11px] font-mono" style={{ borderColor: COLORS.line }}>
             <button type="button" onClick={() => onApply({ amount: Number(p.amount), unit: p.unit, concPct: Number(p.concentration_pct) })}
-              className="px-2 py-1" style={{ color: COLORS.ink }}>
+              className="px-2 py-1 min-h-[28px]" style={{ color: COLORS.ink }}>
               {p.name} · {Number(p.amount)} {UNIT_LABELS[p.unit]} · {Number(p.concentration_pct)}%
             </button>
-            <button type="button" onClick={() => handleDelete(p.id)} aria-label={t("calc.presets.delete", { name: p.name })}
-              className="px-1.5 py-1" style={{ color: COLORS.dim, borderInlineStart: `1px solid ${COLORS.line}` }}>×</button>
+            {/* 28px target (WCAG 2.5.8), and a second tap to delete: it sits
+                right next to the preset people tap at the bench. */}
+            {confirming === p.id ? (
+              <button type="button" autoFocus onClick={() => { setConfirming(null); handleDelete(p.id); }} onBlur={() => setConfirming(null)}
+                className="px-2 min-h-[28px]" style={{ color: COLORS.danger, borderInlineStart: `1px solid ${COLORS.line}` }}>
+                {t("calc.presets.confirmDelete")}
+              </button>
+            ) : (
+              <button type="button" onClick={() => setConfirming(p.id)} aria-label={t("calc.presets.delete", { name: p.name })}
+                className="min-w-[28px] min-h-[28px] px-2" style={{ color: COLORS.dim, borderInlineStart: `1px solid ${COLORS.line}` }}>×</button>
+            )}
           </span>
         ))}
         {naming ? (
@@ -66,7 +76,7 @@ export default function Presets({ current, onApply }) {
           </button>
         )}
       </div>
-      {error && <p className="text-xs mt-1" style={{ color: COLORS.danger }}>{error}</p>}
+      {error && <p role="alert" className="text-xs mt-1" style={{ color: COLORS.danger }}>{error}</p>}
     </div>
   );
 }
