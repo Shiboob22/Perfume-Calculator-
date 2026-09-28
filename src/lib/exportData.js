@@ -6,8 +6,12 @@
 // outside this database.
 export const EXPORT_TABLES = ["batches", "inventory", "fragrance_notes", "calc_presets", "profiles"];
 
+// A catalog id means nothing outside this database either: rows fetched
+// with their fragrance ({ fragrances: { name } }) get a fragrance_name
+// column next to the id instead of the nested object.
 function strip(rows) {
-  return (rows || []).map(({ user_id: _omit, ...rest }) => rest);
+  return (rows || []).map(({ user_id: _omit, fragrances, ...rest }) =>
+    fragrances !== undefined ? { fragrance_name: fragrances?.name ?? null, ...rest } : rest);
 }
 
 export function toJson(data, exportedAt = new Date()) {

@@ -41,15 +41,27 @@ export async function joinWaitlist(locale) {
   if (error && error.code !== "23505") throw error;
 }
 
+// Tables keyed by a catalog id also fetch the fragrance's name.
+const SELECT = { inventory: "*, fragrances(name)", fragrance_notes: "*, fragrances(name)" };
+// The hosted API returns at most 1000 rows per request; page through, in a
+// stable order (a unique column) so no row moves between pages.
+const PAGE = 1000;
+const ORDER = { batches: "id", inventory: "fragrance_id", fragrance_notes: "fragrance_id", calc_presets: "id", profiles: "user_id" };
+
+async function fetchAll(table) {
+  const rows = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase.from(table).select(SELECT[table] || "*").order(ORDER[table]).range(from, from + PAGE - 1);
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < PAGE) return rows;
+  }
+}
+
 // Every row the user owns, table by table, for the export.
 export async function fetchExport() {
-  const results = await Promise.all(EXPORT_TABLES.map((table) => supabase.from(table).select("*")));
-  const data = {};
-  results.forEach(({ data: rows, error }, i) => {
-    if (error) throw error;
-    data[EXPORT_TABLES[i]] = rows;
-  });
-  return data;
+  const results = await Promise.all(EXPORT_TABLES.map(fetchAll));
+  return Object.fromEntries(EXPORT_TABLES.map((table, i) => [table, results[i]]));
 }
 
 export async function deleteAccount(confirm) {

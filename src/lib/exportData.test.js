@@ -11,6 +11,14 @@ describe("toJson", () => {
   });
 });
 
+describe("fragrance names", () => {
+  it("replaces the nested fragrance with its name", () => {
+    const out = JSON.parse(toJson({ inventory: [{ fragrance_id: "f1", stock_g: 40, user_id: "u", fragrances: { name: "Oud" } }, { fragrance_id: "f2", fragrances: null }] }));
+    expect(out.inventory).toEqual([{ fragrance_name: "Oud", fragrance_id: "f1", stock_g: 40 }, { fragrance_name: null, fragrance_id: "f2" }]);
+    expect(toCsv([{ fragrance_id: "f1", fragrances: { name: "Oud" } }]).split("\r\n")[0]).toBe("\uFEFFfragrance_name,fragrance_id");
+  });
+});
+
 describe("toCsv", () => {
   it("is empty for no rows", () => {
     expect(toCsv([])).toBe("");
