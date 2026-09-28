@@ -34,7 +34,7 @@ test("home: Arabic, right to left", async ({ page }) => {
 
 test("the language link keeps you on the same page", async ({ page }) => {
   await page.goto("/guides");
-  await page.getByRole("link", { name: en.site.nav.languageLabel }).first().click();
+  await page.getByRole("link", { name: en.site.nav.language, exact: true }).first().click();
   await expect(page).toHaveURL(/\/ar\/guides$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(ar.site.guides.title);
 });

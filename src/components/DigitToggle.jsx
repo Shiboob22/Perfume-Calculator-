@@ -12,7 +12,6 @@ export default function DigitToggle({ className = "" }) {
     <button
       type="button"
       onClick={() => setDigits(next)}
-      aria-label={t("settings.digitsLabel")}
       title={t("settings.digitsLabel")}
       className={`text-xs font-mono hover:underline ${className}`}
       style={{ color: COLORS.inkSoft }}

@@ -35,7 +35,7 @@ export default function PublicLayout({ children }) {
         <nav className="flex items-center gap-4 text-sm">
           <Link to={to("/guides")} className="hover:underline underline-offset-4" style={{ color: COLORS.ink }}>{t("site.nav.guides")}</Link>
           <Link to={to("/pricing")} className="hover:underline underline-offset-4" style={{ color: COLORS.ink }}>{t("site.nav.pricing")}</Link>
-          <Link to={localePath(other, path)} lang={other} aria-label={t("site.nav.languageLabel")}
+          <Link to={localePath(other, path)} lang={other} hrefLang={other} title={t("site.nav.languageLabel")}
             className="hover:underline underline-offset-4" style={{ color: COLORS.inkSoft }}>
             {t("site.nav.language")}
           </Link>
