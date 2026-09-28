@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
 import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
@@ -141,6 +141,11 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   const entitlements = useEntitlements();
   const [fragName, setFragName] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [listOpen, setListOpen] = useState(false);
+  const [activeOption, setActiveOption] = useState(-1);
+  // The name just picked from the list: don't search for it again (it
+  // matches itself, and the list would pop straight back open).
+  const pickedName = useRef(null);
   const [matched, setMatched] = useState(null); // resolved { id, name, tier } or null
   const debouncedName = useDebouncedValue(fragName, 200);
 
@@ -201,7 +206,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   useEffect(() => {
     let cancelled = false;
     async function run() {
-      if (!debouncedName.trim()) { setSuggestions([]); return; }
+      if (!debouncedName.trim() || debouncedName === pickedName.current) { setSuggestions([]); return; }
       try {
         const results = await searchFragrances(debouncedName, 6);
         if (!cancelled) setSuggestions(results);
@@ -210,6 +215,14 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
     run();
     return () => { cancelled = true; };
   }, [debouncedName]);
+
+  function pickSuggestion(s) {
+    pickedName.current = s.name;
+    setFragName(s.name);
+    setSuggestions([]);
+    setListOpen(false);
+    setActiveOption(-1);
+  }
 
   async function resolveAndLoad(name) {
     try {
@@ -392,23 +405,48 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
 
           <Field label={t("calc.name")} htmlFor="calc-name">
             <div className="relative">
-              <TextInput id="calc-name" value={fragName} onChange={(e) => setFragName(e.target.value)} placeholder={t("calc.namePlaceholder")} autoComplete="off" />
-              {suggestions.length > 0 && (
-                <div className="border mt-1" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
-                  {suggestions.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onMouseDown={(e) => { e.preventDefault(); setFragName(s.name); setSuggestions([]); }}
-                      onClick={() => { setFragName(s.name); setSuggestions([]); }}
-                      className="w-full text-start px-3 py-2 text-sm font-mono hover:opacity-70"
-                      style={{ color: COLORS.ink }}
-                    >
-                      {s.name} <span style={{ color: COLORS.ink }}>— {t(`families.${s.tier}.label`)}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+              {/* ARIA 1.2 combobox: focus stays in the input; arrows move
+                  through the list, Enter picks, Escape closes. */}
+              <TextInput id="calc-name" value={fragName} placeholder={t("calc.namePlaceholder")} autoComplete="off"
+                role="combobox" aria-autocomplete="list" aria-controls="calc-name-list"
+                aria-expanded={listOpen && suggestions.length > 0}
+                aria-activedescendant={listOpen && activeOption >= 0 ? `calc-name-opt-${activeOption}` : undefined}
+                onChange={(e) => { pickedName.current = null; setFragName(e.target.value); setListOpen(true); setActiveOption(-1); }}
+                onBlur={() => setListOpen(false)}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                    if (!suggestions.length) return;
+                    e.preventDefault();
+                    setListOpen(true);
+                    const step = e.key === "ArrowDown" ? 1 : -1;
+                    setActiveOption((i) => (i + step + suggestions.length) % suggestions.length);
+                  } else if (e.key === "Enter" && listOpen && activeOption >= 0) {
+                    e.preventDefault();
+                    pickSuggestion(suggestions[activeOption]);
+                  } else if (e.key === "Escape" && listOpen) {
+                    e.preventDefault();
+                    setListOpen(false);
+                  }
+                }} />
+              <ul id="calc-name-list" role="listbox" aria-label={t("calc.name")} hidden={!(listOpen && suggestions.length > 0)}
+                className="border mt-1" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
+                {suggestions.map((s, i) => (
+                  <li
+                    key={s.id}
+                    id={`calc-name-opt-${i}`}
+                    role="option"
+                    aria-selected={i === activeOption}
+                    onMouseDown={(e) => { e.preventDefault(); pickSuggestion(s); }}
+                    className="w-full text-start px-3 py-2 text-sm font-mono cursor-pointer"
+                    style={{ color: COLORS.ink, backgroundColor: i === activeOption ? COLORS.card : undefined, outline: i === activeOption ? `2px solid ${COLORS.focus}` : undefined, outlineOffset: -2 }}
+                  >
+                    {s.name} <span style={{ color: COLORS.inkSoft }}>— {t(`families.${s.tier}.label`)}</span>
+                  </li>
+                ))}
+              </ul>
+              <p role="status" className="sr-only">
+                {listOpen && suggestions.length > 0 ? t("calc.suggestions", { count: suggestions.length }) : ""}
+              </p>
             </div>
             {matched && (
               <p className="text-xs mt-1" style={{ color: COLORS.ink }}>
@@ -587,13 +625,12 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
           <ReadoutRow label={<>{t("calc.oil")}<Source id="oil" /></>} weight={result.shown.oilG} volume={result.shown.oilMl} />
           <ReadoutRow label={<>{t("calc.ethanol96")}<Source id="ethanol" /></>} weight={result.shown.ethanolG} volume={result.shown.ethanolMl} />
           <ReadoutRow label={<>{t("calc.total")}<Source id="total" /></>} weight={result.shown.totalG} volume={result.shown.totalMl} bold />
-          {result.warnings.length > 0 && (
-            <ul role="status" className="mt-3 space-y-1">
-              {result.warnings.map((w) => (
-                <li key={w.code} className="text-xs" style={{ color: COLORS.danger }}>{t(`calc.warnings.${w.code}`, w)}</li>
-              ))}
-            </ul>
-          )}
+          {/* Always mounted, so screen readers announce warnings as they appear. */}
+          <ul role="status" className={result.warnings.length ? "mt-3 space-y-1" : ""}>
+            {result.warnings.map((w) => (
+              <li key={w.code} className="text-xs" style={{ color: COLORS.danger }}>{t(`calc.warnings.${w.code}`, w)}</li>
+            ))}
+          </ul>
           <p className="text-[11px] font-mono mt-2" style={{ color: COLORS.inkSoft }}>
             {t(measuredDensityValue != null ? "calc.densitiesUsedMeasured" : "calc.densitiesUsed", { oil: result.densities.oil, ethanol: result.densities.ethanol })}
             <Source id="densities" />
@@ -677,17 +714,21 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
           >
             {logStatus === "saving" ? t("calc.saving") : t("calc.log")}
           </button>
-          {logStatus === "saved" && (
-            <p className="text-xs mt-2" style={{ color: COLORS.forest }}>
-              {t(matched ? "calc.saved" : "calc.savedNew")}
-            </p>
-          )}
-          {logStatus === "saved" && logNote && (
-            <p className="text-xs mt-1" style={{ color: COLORS.inkSoft }}>{logNote}</p>
-          )}
-          {logStatus === "error" && (
-            <p className="text-xs mt-2" style={{ color: COLORS.danger }}>{t("calc.saveFailed", { error: logError })}</p>
-          )}
+          {/* One live region, always mounted: "saved" and "could not save"
+              are announced, so nobody logs the same batch twice. */}
+          <div role="status">
+            {logStatus === "saved" && (
+              <p className="text-xs mt-2" style={{ color: COLORS.forest }}>
+                {t(matched ? "calc.saved" : "calc.savedNew")}
+              </p>
+            )}
+            {logStatus === "saved" && logNote && (
+              <p className="text-xs mt-1" style={{ color: COLORS.inkSoft }}>{logNote}</p>
+            )}
+            {logStatus === "error" && (
+              <p className="text-xs mt-2" style={{ color: COLORS.danger }}>{t("calc.saveFailed", { error: logError })}</p>
+            )}
+          </div>
         </div>
       </div>
       )}

@@ -310,6 +310,7 @@ export default {
     clear: "Clear",
     benchSheet: "Bench sheet",
     name: "Fragrance name",
+    suggestions: { one: "{count} suggestion; use the arrow keys to choose", other: "{count} suggestions; use the arrow keys to choose" },
     namePlaceholder: "The name on your oil",
     matched: "Matched in database → {family}",
     notMatched: "Not in database yet — logging a batch will add it as your own entry.",

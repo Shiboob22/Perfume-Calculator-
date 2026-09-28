@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { isAuthRetryableFetchError } from '@supabase/auth-js'
 import { supabase, signInWithEmail, signInWithProvider } from '../lib/auth'
 import { AUTH_STORAGE_KEY } from '../lib/supabaseClient'
@@ -24,8 +24,12 @@ export default function AuthGate({ children }) {
   const { t } = useI18n()
   const [session, setSession] = useState(storedSession)
   const [loading, setLoading] = useState(() => !session)
+  const inboxRef = useRef(null)
   const [email, setEmail] = useState('')
   const [sentMagicLink, setSentMagicLink] = useState(false)
+  // The form (and its focused button) is replaced by "Check your inbox":
+  // move focus there so screen readers announce it.
+  useEffect(() => { if (sentMagicLink) inboxRef.current?.focus() }, [sentMagicLink])
   const [errorMsg, setErrorMsg] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -106,14 +110,14 @@ export default function AuthGate({ children }) {
           </div>
 
           {errorMsg && (
-            <div className="mb-4 p-3 text-xs font-mono rounded-lg" style={{ border: `1px solid ${COLORS.danger}`, color: COLORS.danger, background: COLORS.dangerBg }}>
+            <div role="alert" className="mb-4 p-3 text-xs font-mono rounded-lg" style={{ border: `1px solid ${COLORS.danger}`, color: COLORS.danger, background: COLORS.dangerBg }}>
               {errorMsg}
             </div>
           )}
 
           {sentMagicLink ? (
             <div className="text-center py-6">
-              <p className="font-serif italic rtl:not-italic text-xl mb-2" style={{ color: COLORS.forestDeep }}>{t('auth.checkInbox')}</p>
+              <h2 ref={inboxRef} tabIndex={-1} className="font-serif italic rtl:not-italic text-xl mb-2" style={{ color: COLORS.forestDeep }}>{t('auth.checkInbox')}</h2>
               <p className="text-xs font-mono mb-6" style={{ color: COLORS.inkSoft }}>
                 {t('auth.sentLinkTo')} <span dir="ltr" style={{ color: COLORS.ink }}>{email}</span>.
               </p>
