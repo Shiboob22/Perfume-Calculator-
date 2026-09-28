@@ -351,6 +351,10 @@ export default {
     saveFailedGeneric: "تعذّر حفظ هذه الدفعة.",
   },
   search: {
+    radarAlt: "الطابع: {items}",
+    radarItem: "{label} {value} من 10",
+    listSep: "، ",
+    percent: "{value}٪",
     resultsCount: { zero: "لا نتائج", one: "نتيجة واحدة", two: "نتيجتان", few: "{count} نتائج", many: "{count} نتيجة", other: "{count} نتيجة" },
     label: "ابحث في المكتبة",
     placeholder: "ابحث عن عطور أو دور عطور…",

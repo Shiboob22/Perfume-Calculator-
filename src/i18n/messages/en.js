@@ -350,6 +350,10 @@ export default {
     saveFailedGeneric: "Could not save this batch.",
   },
   search: {
+    radarAlt: "Profile: {items}",
+    radarItem: "{label} {value} of 10",
+    listSep: ", ",
+    percent: "{value}%",
     resultsCount: { one: "{count} result", other: "{count} results" },
     label: "Search the library",
     placeholder: "Search perfumes or houses…",

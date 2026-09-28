@@ -133,10 +133,14 @@ function ClassificationRadar({ radar }) {
   const { t } = useI18n();
   const fill = radar.map((v, i) => pt(i, v).map((n) => Math.round(n * 10) / 10).join(',')).join(' ');
   const verts = radar.map((v, i) => pt(i, v));
+  // The chart as text for screen readers: each axis and its level.
+  const alt = t("search.radarAlt", {
+    items: radar.map((v, i) => t("search.radarItem", { label: t(`search.radar.${i}`), value: Math.round(v) })).join(t("search.listSep")),
+  });
   return (
     // Laid out left to right in both languages: the label anchors are computed
     // for LTR, and each Arabic word still shapes correctly inside its <text>.
-    <svg width="100%" viewBox="-48 0 476 390" aria-hidden="true" direction="ltr" style={{ direction: 'ltr' }}>
+    <svg width="100%" viewBox="-48 0 476 390" role="img" aria-label={alt} direction="ltr" style={{ direction: 'ltr' }}>
       {[10, 6.67, 3.33].map((v) => (
         <polygon key={v} points={ringPoints(v)} fill="none" stroke="rgba(233,200,138,0.13)" />
       ))}
@@ -248,20 +252,22 @@ function SeasonBar({ label, value }) {
   const { t } = useI18n();
   return (
     <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
-      <span style={{ fontSize: 16, color: value >= 70 ? COLORS.amber : COLORS.dim }}>{SEASON_ICON[label]}</span>
-      <span className="w-full relative overflow-hidden" style={{ maxWidth: 70, height: 90, borderRadius: 9, background: 'rgba(255,255,255,0.04)' }}>
+      <span aria-hidden="true" style={{ fontSize: 16, color: value >= 70 ? COLORS.amber : COLORS.dim }}>{SEASON_ICON[label]}</span>
+      <span aria-hidden="true" className="w-full relative overflow-hidden" style={{ maxWidth: 70, height: 90, borderRadius: 9, background: 'rgba(255,255,255,0.04)' }}>
         <span className="absolute bottom-0 left-0 right-0" style={{ height: `${value}%`, background: 'linear-gradient(180deg,#E9C88A,#A5673A)', opacity: 0.35 + value / 160 }} />
       </span>
-      <span className="font-mono" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#CDBF9E' }}>{t(`search.seasons.${label}`)}</span>
+      <span className="font-mono" style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#CDBF9E' }}>{t(`search.seasons.${label}`)}<span className="sr-only"> {t("search.percent", { value: Math.round(value) })}</span></span>
     </div>
   );
 }
 
+// A heading under the perfume's title (h3), so screen reader users can jump
+// between sections of the detail panel.
 function SectionLabel({ n, children }) {
   return (
-    <div className="font-mono" style={{ fontSize: 11, letterSpacing: '0.26em', textTransform: 'uppercase', color: COLORS.amberDeep }}>
-      {n ? `${n} — ` : ''}{children}
-    </div>
+    <h4 className="font-mono font-normal" style={{ fontSize: 11, letterSpacing: '0.26em', textTransform: 'uppercase', color: COLORS.amberDeep }}>
+      {n ? <span aria-hidden="true">{`${n} — `}</span> : ''}{children}
+    </h4>
   );
 }
 
@@ -271,7 +277,7 @@ function ResultRow({ item, active, onSelect }) {
   const { brand, title } = splitName(item);
   const f = familyOf(item.tier, t);
   return (
-    <button type="button" onClick={() => onSelect(item)}
+    <button type="button" onClick={() => onSelect(item)} aria-current={active ? "true" : undefined}
       className="w-full text-start px-3 py-2.5 flex items-center gap-3 transition-colors"
       style={{ background: active ? 'rgba(233,200,138,0.08)' : 'transparent', borderBottom: `1px solid ${COLORS.line}` }}>
       <BottlePhoto perfume={item} size="thumb" />
