@@ -141,7 +141,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => navigate("/app/account")}
-              className="text-xs font-mono hover:underline me-3"
+              className="text-xs font-mono hover:underline me-3 min-h-[24px]"
               style={{ color: tab === "account" ? COLORS.amber : COLORS.inkSoft }}
               aria-current={tab === "account" ? "page" : undefined}
             >
@@ -149,7 +149,7 @@ export default function App() {
             </button>
             <button
               onClick={() => signOut()}
-              className="text-xs font-mono hover:underline"
+              className="text-xs font-mono hover:underline min-h-[24px]"
               style={{ color: COLORS.inkSoft }}
             >
               {t("app.signOut")}

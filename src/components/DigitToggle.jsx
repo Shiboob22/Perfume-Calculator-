@@ -13,7 +13,7 @@ export default function DigitToggle({ className = "" }) {
       type="button"
       onClick={() => setDigits(next)}
       title={t("settings.digitsLabel")}
-      className={`text-xs font-mono hover:underline ${className}`}
+      className={`text-xs font-mono hover:underline min-h-[24px] ${className}`}
       style={{ color: COLORS.inkSoft }}
     >
       {t(next === "arab" ? "settings.useArabicIndic" : "settings.useWestern")}
