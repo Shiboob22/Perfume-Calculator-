@@ -52,7 +52,7 @@ depend on are settled. Nothing here touches production until step 4.
 
 ## 4. Production database (owner approves, then apply)
 
-**Done 2026-10-02** (owner approved): 0001–0011 applied in order, each atomic; pre-migration copies of the user tables and the catalog in schema `backup_20261002`; production schema fingerprint identical to staging; data counts unchanged (36 batches, 2 inventory, 14 notes, 81,823 catalog rows); owner is admin, Pro and onboarded. The steps below are kept for reference.
+**Done 2026-10-02** (owner approved): 0001–0011 applied in order, each atomic; pre-migration copies of the user tables and the catalog were kept in schema `backup_20261002`, then dropped on the owner's request; production schema fingerprint identical to staging; data counts unchanged (36 batches, 2 inventory, 14 notes, 81,823 catalog rows); owner is admin, Pro and onboarded. The steps below are kept for reference.
 
 Migrations 0001–0011 have run on **staging** only. They add tables, columns,
 policies and functions. They do not drop or rewrite user data, except in
