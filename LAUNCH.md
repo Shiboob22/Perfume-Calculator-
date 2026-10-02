@@ -21,7 +21,7 @@ depend on are settled. Nothing here touches production until step 4.
 | 9 | Review of every Arabic string, the Arabic guide drafts, and the Arabic byline | `src/i18n/messages/ar.js`, `src/content/` | open |
 | 10 | Landing copy approval | `src/i18n/messages/*.js` → `site.home` | open |
 | 11 | Neutral examples for the Choosing (Wardrobe) guides | Phase 3 | open |
-| 12 | Label sizes for printable labels | Phase 5 (not built until decided) | open |
+| 12 | Label sizes: built with defaults 50×30, 70×40, 90×50 mm + custom | `LABEL_SIZES` in `src/lib/labels.js` | confirm or replace |
 
 ## 2. Accounts and hosting (owner)
 
