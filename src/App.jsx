@@ -14,7 +14,8 @@ import { ProfileProvider, useProfile, needsOnboarding } from "./lib/useProfile";
 import { can } from "./lib/entitlements";
 import { fetchPopular, warmUp } from "./lib/searchApi";
 import { flush } from "./lib/outbox";
-import { logBatch } from "./lib/fragranceApi";
+import { logBatch, listBatches, saveCheckIn } from "./lib/fragranceApi";
+import { dueNow, JOURNAL_CHANGED } from "./lib/journal";
 import { installGlobalHandlers } from "./lib/reportError";
 
 // Search ships with the app shell; the other tabs load as separate chunks,
@@ -70,12 +71,25 @@ export default function App() {
   // whenever the connection returns.
   useEffect(() => {
     // Refused batches are kept (see outbox.js); tell the Batches tab.
-    const send = () => flush(logBatch)
+    // Queued journal check-ins go with them, in order; a point answered
+    // meanwhile on another device counts as sent.
+    const sendCheckIn = (c) => saveCheckIn(c).catch((e) => { if (e.code !== "already_answered") throw e; });
+    const send = () => flush({ batch: logBatch, checkin: sendCheckIn })
       .then((r) => { if (r.refused.length) window.dispatchEvent(new Event("sh-outbox-refused")); })
       .catch(() => {});
     send();
     window.addEventListener("online", send);
     return () => window.removeEventListener("online", send);
+  }, []);
+  // Check-ins due, for the badge on the Batches tab: counted once when the
+  // app opens, then kept in step by the Batches tab itself.
+  const [dueCount, setDueCount] = useState(0);
+  useEffect(() => {
+    let live = true;
+    listBatches(100).then((b) => live && setDueCount(dueNow(b).length)).catch(() => {});
+    const update = (e) => setDueCount(e.detail?.due ?? 0);
+    window.addEventListener(JOURNAL_CHANGED, update);
+    return () => { live = false; window.removeEventListener(JOURNAL_CHANGED, update); };
   }, []);
   useEffect(() => {
     if (window.location.hash && window.location.hash.includes('access_token')) {
@@ -159,6 +173,13 @@ export default function App() {
               }}
             >
               {t(`app.tabs.${id}`)}
+              {id === "batches" && dueCount > 0 && (
+                <span className="ms-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full text-[11px] font-semibold align-middle"
+                  style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+                  <span aria-hidden="true">{dueCount}</span>
+                  <span className="sr-only">{t("journal.tabBadge", { count: dueCount })}</span>
+                </span>
+              )}
             </button>
           ))}
         </nav>
