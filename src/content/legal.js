@@ -15,7 +15,7 @@ export const LEGAL = {
           "The Scent Handbook is run by [OWNER: legal name or trading name, country]. Contact: [OWNER: privacy email address].",
         ] },
         { id: "what", h: "What we store", p: [
-          "Your account: your email address, and the sign-in provider you used (email link, Google or Apple).",
+          "Your account: your email address, and the sign-in provider you used (email link or Google).",
           "What you save in the app: batches (fragrance name, weights, strength, dates, notes, cost fields you fill in), inventory, notes on fragrances, calculator presets, and your preferences (language, units, usual bottle size, digit style).",
           "Your plan (Free or Pro) and, if you join it, your place on the Pro waitlist.",
           "Fragrances you add to the shared catalog are stored with a link to your account until an admin approves them. If you delete your account the fragrance stays in the catalog without that link.",
@@ -35,7 +35,7 @@ export const LEGAL = {
         { id: "processors", h: "Who processes your data", p: [
           "Supabase (database and sign-in), hosted in the EU (Ireland).",
           "Vercel (hosting and the server functions), which run in the EU (Dublin). Vercel Web Analytics counts page views without cookies and without storing personal data.",
-          "Google (Gemini) only when you use Ask, as described above. Google and Apple, if you choose them to sign in.",
+          "Google (Gemini) only when you use Ask, as described above. Google, if you choose it to sign in.",
         ] },
         { id: "rights", h: "Your data, your choice", p: [
           "Account → Your data downloads everything you have saved, as JSON or CSV.",
@@ -55,7 +55,7 @@ export const LEGAL = {
           "يدير The Scent Handbook ‏[OWNER: الاسم القانوني أو التجاري، والبلد]. للتواصل: [OWNER: بريد الخصوصية].",
         ] },
         { id: "what", h: "ما الذي نحفظه", p: [
-          "حسابك: بريدك الإلكتروني، وطريقة تسجيل الدخول التي استخدمتها (رابط البريد أو Google أو Apple).",
+          "حسابك: بريدك الإلكتروني، وطريقة تسجيل الدخول التي استخدمتها (رابط البريد أو Google).",
           "ما تحفظه في التطبيق: الخلطات (اسم العطر والأوزان والتركيز والتواريخ والملاحظات وحقول التكلفة التي تملؤها)، والمخزون، وملاحظاتك على العطور، والإعدادات المحفوظة في الحاسبة، وتفضيلاتك (اللغة والوحدات وحجم الزجاجة المعتاد وشكل الأرقام).",
           "خطتك (المجانية أو Pro)، ومكانك في قائمة انتظار Pro إن انضممت إليها.",
           "العطور التي تضيفها إلى الفهرس المشترك تُحفظ مرتبطة بحسابك حتى يوافق عليها مشرف. إن حذفت حسابك يبقى العطر في الفهرس دون هذا الارتباط.",
@@ -75,7 +75,7 @@ export const LEGAL = {
         { id: "processors", h: "من يعالج بياناتك", p: [
           "Supabase (قاعدة البيانات وتسجيل الدخول)، مستضافة في الاتحاد الأوروبي (أيرلندا).",
           "Vercel (الاستضافة ووظائف الخادم)، وتعمل في الاتحاد الأوروبي (دبلن). تحصي تحليلات Vercel زيارات الصفحات دون ملفات تعريف ارتباط ودون حفظ بيانات شخصية.",
-          "Google ‏(Gemini) عند استخدامك «اسأل» فقط كما وُصف أعلاه. وGoogle وApple إن اخترتهما لتسجيل الدخول.",
+          "Google ‏(Gemini) عند استخدامك «اسأل» فقط كما وُصف أعلاه. وGoogle إن اخترته لتسجيل الدخول.",
         ] },
         { id: "rights", h: "بياناتك، واختيارك", p: [
           "الحساب ← بياناتك: نزّل كل ما حفظته بصيغة JSON أو CSV.",

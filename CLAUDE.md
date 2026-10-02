@@ -101,7 +101,7 @@ Billing: **free for now, billing-ready.** Plans + entitlements exist and gate fe
 ## Stack and layout (as of Phase 0)
 
 - Vite 5 + React 18 + Tailwind 3 SPA. No router: tabs are React state in `src/App.jsx`. No tests, no lint, no `tsconfig`.
-- Supabase: auth (magic link, Google, Apple OAuth via `src/components/AuthGate.jsx`) + Postgres. The browser client in `src/lib/supabaseClient.js` wires `AuthClient` + `PostgrestClient` by hand to keep supabase-js out of the bundle.
+- Supabase: auth (magic link, Google OAuth via `src/components/AuthGate.jsx`) + Postgres. The browser client in `src/lib/supabaseClient.js` wires `AuthClient` + `PostgrestClient` by hand to keep supabase-js out of the bundle.
 - Vercel functions in `api/*.ts`, region `dub1`. They use the **service-role key and bypass RLS**, so every handler must check auth and scope by `user_id` itself.
   - `api/batches.ts`, `api/inventory.ts` — authed, per-user.
   - `api/search.ts`, `api/similar.ts` — anonymous, CDN-cached catalog reads; `search` can live-scrape Parfumo and save to `fragrances` for signed-in callers.

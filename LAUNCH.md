@@ -87,7 +87,7 @@ test itself runs on staging only); data counts unchanged.
   - Site URL: `https://<domain>`;
   - Redirect URLs: `https://<domain>/app/**` and
     `https://scent-handbook-app.vercel.app/app/**`.
-- [ ] The Google and Apple OAuth apps list the same callback.
+- [ ] The Google OAuth app lists the same callback. (Apple sign-in removed 2026-10-03.)
 - [ ] Vercel Production env holds:
   - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`;
   - `SUPABASE_SERVICE_ROLE_KEY` (Secret);

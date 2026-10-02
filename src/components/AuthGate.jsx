@@ -135,20 +135,13 @@ export default function AuthGate({ children }) {
             ) : (
               <>
                 {/* OAuth Providers */}
-                <div className="space-y-3 mt-8">
+                <div className="mt-8">
                   <button
                     onClick={() => handleOAuth('google')}
                     className={`w-full py-2.5 px-4 border text-sm transition-colors ${SHAPE.control}`}
                     style={oauthBtn}
                   >
                     {t('auth.continueGoogle')}
-                  </button>
-                  <button
-                    onClick={() => handleOAuth('apple')}
-                    className={`w-full py-2.5 px-4 border text-sm transition-colors ${SHAPE.control}`}
-                    style={oauthBtn}
-                  >
-                    {t('auth.continueApple')}
                   </button>
                 </div>
 

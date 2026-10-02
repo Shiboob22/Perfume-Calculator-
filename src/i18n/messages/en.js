@@ -705,7 +705,6 @@ export default {
     sentLinkTo: "We sent a magic sign-in link to",
     useDifferent: "Use a different email or method",
     continueGoogle: "Continue with Google",
-    continueApple: "Continue with Apple",
     orMagicLink: "or magic link",
     emailLabel: "Email address",
     emailPlaceholder: "you@example.com",

@@ -706,7 +706,6 @@ export default {
     sentLinkTo: "أرسلنا رابط تسجيل الدخول إلى",
     useDifferent: "استخدم بريدًا أو طريقة أخرى",
     continueGoogle: "المتابعة باستخدام Google",
-    continueApple: "المتابعة باستخدام Apple",
     orMagicLink: "أو برابط سحري",
     emailLabel: "البريد الإلكتروني",
     emailPlaceholder: "you@example.com",
