@@ -158,10 +158,10 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   const [prefill] = useState(() => prefillFromQuery(searchParams));
   const { profile } = useProfile();
   const [start] = useState(() => startingBottle(prefill, profile));
-  const [tierKey, setTierKey] = useState("fresh");
+  const [tierKey, setTierKey] = useState(prefill.family ?? "fresh");
   const [batchSize, setBatchSize] = useState(start.size);
   const [batchUnit, setBatchUnit] = useState(start.unit); // ml | floz | g | oz
-  const [concPct, setConcPct] = useState(prefill.conc ?? 20);
+  const [concPct, setConcPct] = useState(prefill.conc ?? (prefill.family ? TIERS[prefill.family].defaultConc : 20));
   const [densities, setDensities] = useState(() => ({
     ...Object.fromEntries(Object.entries(TIERS).map(([k, t]) => [k, t.density])),
     ethanol: ETHANOL_DENSITY_DEFAULT,
