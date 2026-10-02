@@ -15,6 +15,13 @@ import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./index.css";
 
+// A sign-in link that lands on a public page (Supabase falls back to the
+// Site URL when /app isn't an allowed redirect) carries its tokens in the
+// hash; public pages never load the auth client, so hand it to the app.
+if (!location.pathname.startsWith("/app") && /(^|[#&])(access_token|error_description)=/.test(location.hash)) {
+  location.replace(`/app${location.search}${location.hash}`);
+}
+
 const tree = (
   <React.StrictMode>
     <BrowserRouter>

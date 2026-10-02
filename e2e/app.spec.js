@@ -20,3 +20,8 @@ test("the app shell opens offline once it has been visited", async ({ page, cont
   await expect(page.getByLabel(en.auth.emailLabel)).toBeVisible();
   await context.setOffline(false);
 });
+
+test("a sign-in link that lands on the home page is handed to the app", async ({ page }) => {
+  await page.goto("/#access_token=test&type=magiclink");
+  await expect(page).toHaveURL(/\/app#access_token=test/);
+});
