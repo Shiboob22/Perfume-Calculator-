@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { restDay, checkInSchedule, dueCheckIns, peakDay, peakPattern, type CheckIn } from "./journal";
+import { restDay, checkInSchedule, dueCheckIns, peakDay, peakPattern, familyPatterns, type CheckIn } from "./journal";
 
 const DAY = 24 * 60 * 60 * 1000;
 const start = new Date(2026, 0, 1, 9, 0);
@@ -101,5 +101,23 @@ describe("peakPattern", () => {
   });
   it("even count: the mean of the middle two, rounded to a day", () => {
     expect(peakPattern([batch(21), batch(24), batch(27), batch(42)])).toEqual({ day: 26, min: 21, max: 42, batches: 4 });
+  });
+});
+
+describe("familyPatterns", () => {
+  const rated = (tier: string, batch: string, peak: number) => [
+    { tier, batch_id: batch, day: 1, rating: 2 },
+    { tier, batch_id: batch, day: peak, rating: 5 },
+  ];
+
+  it("one pattern per family with enough batches, from that family only", () => {
+    const rows = [
+      ...rated("woody", "w1", 21), ...rated("woody", "w2", 28), ...rated("woody", "w3", 28),
+      ...rated("fresh", "f1", 7), ...rated("fresh", "f2", 14),
+    ];
+    expect(familyPatterns(rows)).toEqual({ woody: { day: 28, min: 21, max: 28, batches: 3 } });
+  });
+  it("empty without check-ins", () => {
+    expect(familyPatterns([])).toEqual({});
   });
 });

@@ -128,3 +128,27 @@ export function peakPattern(batchCheckIns: CheckIn[][]): PeakPattern | null {
   const median = peaks.length % 2 ? peaks[mid] : (peaks[mid - 1] + peaks[mid]) / 2;
   return { day: Math.round(median), min: peaks[0], max: peaks[peaks.length - 1], batches: peaks.length };
 }
+
+export interface FamilyCheckIn extends CheckIn {
+  /** The family of the batch the check-in belongs to. */
+  tier: string;
+}
+
+/**
+ * Patterns for every family that has enough data, from a user's check-ins
+ * across all their batches: { woody: { day, min, max, batches }, … }.
+ */
+export function familyPatterns(checkins: FamilyCheckIn[]): Record<string, PeakPattern> {
+  const byFamily = new Map<string, Map<string, CheckIn[]>>();
+  for (const c of checkins) {
+    const batches = byFamily.get(c.tier) ?? new Map<string, CheckIn[]>();
+    batches.set(c.batch_id, [...(batches.get(c.batch_id) ?? []), c]);
+    byFamily.set(c.tier, batches);
+  }
+  const out: Record<string, PeakPattern> = {};
+  for (const [tier, batches] of byFamily) {
+    const pattern = peakPattern([...batches.values()]);
+    if (pattern) out[tier] = pattern;
+  }
+  return out;
+}
