@@ -5,6 +5,7 @@ import { errorText } from "../../i18n/errorText";
 import { saveCheckIn } from "../../lib/fragranceApi";
 import { enqueueCheckIn, isOffline } from "../../lib/outbox";
 import { todayFor } from "../../lib/journal";
+import { isolate } from "../../lib/batchCard";
 
 const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, borderColor: COLORS.field };
 
@@ -47,7 +48,7 @@ export default function CheckInForm({ batch, scheduledDay = null, onDone, onCanc
   return (
     <form onSubmit={(e) => { e.preventDefault(); if (!empty) send(false); }} className="mt-2 space-y-2">
       <label htmlFor={`${uid}-note`} className="block text-xs" style={{ color: COLORS.inkSoft }}>
-        {t("journal.noteLabel", { name: batch.fragrance_name })}
+        {t("journal.noteLabel", { name: isolate(batch.fragrance_name) })}
       </label>
       <input id={`${uid}-note`} type="text" dir="auto" maxLength={280} value={note} onChange={(e) => setNote(e.target.value)}
         placeholder={t("journal.notePlaceholder")} autoComplete="off" enterKeyHint="done"
