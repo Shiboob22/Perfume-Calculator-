@@ -7,8 +7,9 @@
 // make text display differently from what it says. The marks LRM/RLM/ALM
 // stay: Arabic text with figures needs them. ZWNJ/ZWJ stay for the same
 // reason; zero-width space and BOM go.
-const BIDI_CONTROLS = /[‪-‮⁦-⁩​﻿]/g;
+const BIDI_CONTROLS = /[\u202A-\u202E\u2066-\u2069\u200B\uFEFF]/g;
 // C0/C1 controls except newline.
+// eslint-disable-next-line no-control-regex -- removing control characters is the point
 const CONTROLS = /[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g;
 const TAGS = /<\/?[a-z!][^>]*>/gi;
 
@@ -23,7 +24,7 @@ export function cleanText(input, max) {
     .replace(TAGS, "")
     .replace(CONTROLS, "")
     .replace(BIDI_CONTROLS, "")
-    .replace(/[ \t ]+/g, " ")
+    .replace(/[ \t\u00A0]+/g, " ")
     .replace(/ *\n */g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
