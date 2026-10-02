@@ -56,3 +56,16 @@ html[dir="rtl"] .font-mono {
   .no-print, header, nav { display: none !important; }
   .print-card { background: #fff; padding: 0; border-radius: 0; }
 }
+
+/* Printable bottle labels (/app/labels): true millimetre sizes. */
+.label-sheet { display: flex; flex-wrap: wrap; gap: 4mm; page: labels; }
+@page labels { size: A4; margin: 10mm; }
+.print-label { background: #F5EEDD; color: #1A1207; border: 0.3mm dashed #A79C82; padding: 2mm 2.5mm; overflow: hidden; display: flex; flex-direction: column; }
+.print-label-name { font-family: "Cormorant Garamond", "Amiri", Georgia, serif; font-style: italic; font-weight: 600; line-height: 1.1; margin-bottom: 1mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[dir="rtl"] .print-label-name { font-style: normal; }
+.print-label-row { display: flex; justify-content: space-between; gap: 2mm; line-height: 1.35; }
+.print-label-row dt { color: #4A3D25; }
+@media print {
+  .label-sheet { gap: 4mm; }
+  .print-label { border-color: #CDBF9E; break-inside: avoid; }
+}

@@ -11,6 +11,8 @@ import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import EmptyState from "./EmptyState";
 import { refusedBatches, dismissRefused } from "../lib/outbox";
+import { useNavigate } from "react-router-dom";
+import { can } from "../lib/entitlements";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -57,6 +59,7 @@ export default function Batches() {
   const [status, setStatus] = useState("");
   const [refused, setRefused] = useState(() => refusedBatches());
   const headingRef = useRef(null);
+  const navigate = useNavigate();
 
   async function handleInsights() {
     setInsightsLoading(true); setInsightsError("");
@@ -195,6 +198,12 @@ export default function Batches() {
                 >
                   {t("batches.exportCard")}
                 </button>
+                {can(entitlements, "export.labels") && (
+                  <button type="button" onClick={() => navigate(`/app/labels?batch=${b.id}`, { state: { batch: b } })}
+                    className="text-xs font-mono underline min-h-[24px]" style={{ color: COLORS.forest }}>
+                    {t("labels.open")}
+                  </button>
+                )}
                 {confirming === b.id ? (
                   <span className="flex items-center gap-2 text-xs font-mono">
                     <span style={{ color: COLORS.ink }}>{t("batches.confirmDelete")}</span>

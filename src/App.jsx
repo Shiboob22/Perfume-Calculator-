@@ -33,6 +33,7 @@ const PerfumerChat = lazy(loaders.ask);
 const BenchMode = lazy(() => import("./components/BenchMode"));
 const BenchCards = lazy(() => import("./components/BenchCards"));
 const Account = lazy(() => import("./components/Account"));
+const Labels = lazy(() => import("./components/Labels"));
 const Onboarding = lazy(() => import("./components/Onboarding"));
 
 function prefetchTabs() {
@@ -50,7 +51,7 @@ export default function App() {
   const navigate = useNavigate();
   const { tab } = useParams();
   // cards and account are pages of their own, reached from links, not tabs.
-  const activeTab = TABS.includes(tab) ? tab : tab === "cards" || tab === "account" ? null : DEFAULT_TAB;
+  const activeTab = TABS.includes(tab) ? tab : tab === "cards" || tab === "account" || tab === "labels" ? null : DEFAULT_TAB;
   const setActiveTab = (id) => navigate(`/app/${id}${id === "calculator" ? window.location.search : ""}`);
 
   // Start the search tab's popular shelf and wake the catalog functions
@@ -61,7 +62,7 @@ export default function App() {
   // Each tab is its own page to screen readers and the tab switcher.
   const page = activeTab ?? tab;
   useEffect(() => {
-    const name = TABS.includes(page) ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : null;
+    const name = TABS.includes(page) ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : page === "labels" ? t("labels.title") : null;
     document.title = name ? `${name} — ${t("brand")}` : t("brand");
   }, [page, t]);
 
@@ -167,6 +168,7 @@ export default function App() {
         <Suspense fallback={<TabLoading />}>
         {tab === "cards" && <BenchCards />}
         {tab === "account" && <Account user={user} />}
+        {tab === "labels" && <Labels />}
         {tab !== "cards" && activeTab === "search" && <PerfumeSearch onSelectPerfume={handleSelectPerfume} />}
         {activeTab === "calculator" && (
           <FragranceBlendCalculator

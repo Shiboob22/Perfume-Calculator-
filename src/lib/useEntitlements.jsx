@@ -25,6 +25,11 @@ export function EntitlementsProvider({ children }) {
   return <EntitlementsContext.Provider value={{ ...state, refresh }}>{children}</EntitlementsContext.Provider>;
 }
 
+// Fixed entitlements, for the /dev previews only (?pro=1).
+export function StaticEntitlements({ value, children }) {
+  return <EntitlementsContext.Provider value={{ batchesUsed: 0, loaded: true, refresh: () => {}, ...value }}>{children}</EntitlementsContext.Provider>;
+}
+
 export function useEntitlements() {
   return useContext(EntitlementsContext);
 }
