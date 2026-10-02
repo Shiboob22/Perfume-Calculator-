@@ -655,6 +655,8 @@ export default {
       core: "The calculator, the bench method and every guide",
       cap: "Up to {cap} saved batches",
       unlimited: "Unlimited saved batches",
+      journal: "A resting journal: short check-ins while each batch rests",
+      sharing: "Share a batch as a public recipe page",
       current: "Available now",
       notOnSale: "Not on sale yet",
       features: {

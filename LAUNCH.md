@@ -25,7 +25,7 @@ depend on are settled. Nothing here touches production until step 4.
 | 13 | Resting Journal: cadence (day 1 · rest start · rest end · end + 14), check-ins Free and outside the cap, patterns Pro | Phase 6 | **approved 2026-10-02** |
 | 14 | Per-batch "peak day" rule for patterns: the earliest day a batch reached its best rating | `peakDay()` in `src/lib/calc/journal.ts` | review |
 | 15 | Shared recipe names may name designer perfumes (trademark): with the lawyer, alongside `/terms` | Phase 6 | open, not blocking |
-| 16 | Pricing page: list the journal (Free), patterns (Pro) and recipe sharing (Free) | `site.pricing`, `src/site/plans.json` | open |
+| 16 | Pricing page lines for the journal and recipe sharing (both plans) and patterns (Pro) | `site.pricing` | drafted 2026-10-03; approve with the landing copy (#10) |
 
 ## 2. Accounts and hosting (owner)
 

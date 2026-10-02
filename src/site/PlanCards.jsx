@@ -46,6 +46,8 @@ export default function PlanCards({ compact = false }) {
             <ul className="space-y-2 text-sm" style={{ color: COLORS.ink }}>
               <li>· {t("site.pricing.core")}</li>
               <li>· {plan.batch_cap == null ? t("site.pricing.unlimited") : t("site.pricing.cap", { cap: plan.batch_cap })}</li>
+              <li>· {t("site.pricing.journal")}</li>
+              <li>· {t("site.pricing.sharing")}</li>
               {!compact && plan.features.filter((f) => f !== "batches.unlimited").map((f) => (
                 <li key={f}>· {t(`site.pricing.features.${f}`)}</li>
               ))}
