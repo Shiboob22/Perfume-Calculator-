@@ -1,7 +1,8 @@
 // Batches logged while offline wait here (in this browser) and are sent when
 // the connection returns. Each carries its own id, so a retry after a send
 // that did reach the server can't create a duplicate (the API treats a
-// repeated id as already logged).
+// repeated id as already logged). Journal check-ins queue here too, in the
+// same list, so a check-in is always sent after the batch it belongs to.
 const KEY = "sh-outbox";
 const REFUSED_KEY = "sh-outbox-refused";
 
@@ -29,6 +30,13 @@ export function enqueue(batch, storage = globalThis.localStorage) {
   return list.length;
 }
 
+export function enqueueCheckIn(checkin, storage = globalThis.localStorage) {
+  const list = read(storage);
+  list.push({ checkin, queuedAt: new Date().toISOString() });
+  write(storage, list);
+  return list.length;
+}
+
 // A failure that means "no connection", as opposed to the server refusing.
 export function isOffline(err) {
   return err instanceof TypeError || err?.name === "TypeError" || (typeof navigator !== "undefined" && navigator.onLine === false);
@@ -42,23 +50,28 @@ export function isRetryable(err) {
 }
 
 /**
- * Send queued batches in order with `send(batch)`. Stops at the first
- * connection failure or "not now" answer (and keeps the rest); drops a batch
- * the server refuses outright, so one bad entry can't block the queue
- * forever. Returns counts.
+ * Send queued items in order: batches with `send(batch)` (or `send.batch`),
+ * check-ins with `send.checkin`. Stops at the first connection failure or
+ * "not now" answer (and keeps the rest); takes out an item the server
+ * refuses outright, so one bad entry can't block the queue forever. A
+ * refused batch is kept aside (see refusedBatches); a refused check-in, a
+ * line of text, is let go. Returns counts.
  */
 export async function flush(send, storage = globalThis.localStorage) {
+  const senders = typeof send === "function" ? { batch: send } : send;
   let list = read(storage);
   let sent = 0;
   const refused = [];
   while (list.length) {
     const [item, ...rest] = list;
+    const kind = item.checkin ? "checkin" : "batch";
+    if (!senders[kind]) break;
     try {
-      await send(item.batch);
+      await senders[kind](item[kind]);
       sent += 1;
     } catch (err) {
       if (isOffline(err) || isRetryable(err) || needsSignIn(err)) break;
-      refused.push({ ...item, code: err?.code || null, error: err?.message || String(err) });
+      if (kind === "batch") refused.push({ ...item, code: err?.code || null, error: err?.message || String(err) });
     }
     list = rest;
     write(storage, list);

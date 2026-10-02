@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { enqueue, pending, flush, isOffline, refusedBatches, dismissRefused } from "./outbox";
+import { enqueue, enqueueCheckIn, pending, flush, isOffline, refusedBatches, dismissRefused } from "./outbox";
 
 function memory() {
   const m = new Map();
@@ -70,5 +70,38 @@ describe("outbox", () => {
   it("tells a lost connection from a refusal", () => {
     expect(isOffline(new TypeError("Failed to fetch"))).toBe(true);
     expect(isOffline(Object.assign(new Error("x"), { status: 400 }))).toBe(false);
+  });
+});
+
+describe("check-ins in the outbox", () => {
+  it("sends batches and check-ins in the order they were queued", async () => {
+    const storage = memory();
+    enqueue({ id: "b1" }, storage);
+    enqueueCheckIn({ id: "c1", batch_id: "b1" }, storage);
+    const order = [];
+    const r = await flush({ batch: async (b) => order.push(b.id), checkin: async (c) => order.push(c.id) }, storage);
+    expect(order).toEqual(["b1", "c1"]);
+    expect(r).toEqual({ sent: 2, refused: [], left: 0 });
+  });
+  it("keeps check-ins when only a batch sender is given", async () => {
+    const storage = memory();
+    enqueueCheckIn({ id: "c1" }, storage);
+    const r = await flush(async () => {}, storage);
+    expect(r.left).toBe(1);
+    expect(pending(storage)).toHaveLength(1);
+  });
+  it("lets a refused check-in go without listing it as a refused batch", async () => {
+    const storage = memory();
+    enqueueCheckIn({ id: "c1" }, storage);
+    enqueue({ id: "b2" }, storage);
+    const r = await flush({ batch: async () => {}, checkin: async () => { throw Object.assign(new Error("cap"), { status: 403 }); } }, storage);
+    expect(r).toEqual({ sent: 1, refused: [], left: 0 });
+    expect(refusedBatches(storage)).toEqual([]);
+  });
+  it("keeps a check-in for later when offline", async () => {
+    const storage = memory();
+    enqueueCheckIn({ id: "c1" }, storage);
+    const r = await flush({ checkin: async () => { throw new TypeError("Failed to fetch"); } }, storage);
+    expect(r.left).toBe(1);
   });
 });
