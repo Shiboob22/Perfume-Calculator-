@@ -172,11 +172,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const requested = parseInt(String(req.query.limit ?? ''), 10);
       const limit = Number.isFinite(requested) ? Math.min(Math.max(requested, 1), 500) : 20;
 
+      // Each batch comes with its journal check-ins (0012), oldest first.
       const { data, error } = await supabase
         .from('batches')
-        .select('*')
+        .select('*, batch_checkins ( id, day, scheduled_day, note, rating, skipped, created_at )')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
+        .order('created_at', { referencedTable: 'batch_checkins', ascending: true })
         .limit(limit);
 
       if (error) throw error;
