@@ -1,8 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// Per-action limits: [hits, window in seconds]. PROPOSED, pending the
-// owner; generous enough that a real blender never meets them.
+// Per-action limits: [hits, window in seconds]. Approved by the owner
+// 2026-10-02; generous enough that a real blender never meets them.
 export const LIMITS = {
   ai: [30, 3600],          // Ask / tips / insights / lookups: 30 an hour
   live: [20, 600],         // live Parfumo lookups: 20 per 10 minutes

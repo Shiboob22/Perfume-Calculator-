@@ -15,7 +15,7 @@ depend on are settled. Nothing here touches production until step 4.
 | 3 | Pour tolerance; density bounds; whether measured density / by-weight are Pro | calculator | open |
 | 4 | Manual Pro vs payment events (`resolvePlan`) | `docs/billing.md` | open |
 | 5 | Account deletion: immediate (built) or a grace period | `api/account.ts` | open |
-| 6 | Rate limits: Ask 30/h, live lookups 20/10 min, batch logs 60/10 min (proposed) | `api/_lib/rateLimit.ts` | open |
+| 6 | Rate limits: Ask 30/h, live lookups 20/10 min, batch logs 60/10 min, deletion 5/h, error reports 30/10 min | `api/_lib/rateLimit.ts` | **approved 2026-10-02** |
 | 7 | Gemini: paid key (prompts not used for training), or keep the free tier and its disclosure | `api/ai.ts`, privacy page | open |
 | 8 | Catalog data licensing (the Parfumo-derived catalog and live lookups) | `api/search.ts` | open — **blocks a commercial launch** |
 | 9 | Review of every Arabic string, the Arabic guide drafts, and the Arabic byline | `src/i18n/messages/ar.js`, `src/content/` | open |
