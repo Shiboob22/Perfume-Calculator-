@@ -5,6 +5,18 @@
   ],
   "rewrites": [
     {
+      "source": "/r/:slug",
+      "destination": "/api/recipe?slug=:slug&lang=en"
+    },
+    {
+      "source": "/ar/r/:slug",
+      "destination": "/api/recipe?slug=:slug&lang=ar"
+    },
+    {
+      "source": "/sitemap-recipes.xml",
+      "destination": "/api/recipe?sitemap=1"
+    },
+    {
       "source": "/app/:path*",
       "destination": "/app/index.html"
     }
@@ -34,6 +46,15 @@
         {
           "key": "Cache-Control",
           "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/r-assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     }

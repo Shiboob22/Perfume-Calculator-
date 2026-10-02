@@ -58,7 +58,19 @@ const entries = paths.filter((p) => !p.startsWith("/ar") && !headFor(p).noindex)
   const both = [h.alternates.en, h.alternates.ar];
   return both.map((loc) => `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>\n${alt}\n  </url>`).join("\n");
 });
-write(join(DIST, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${entries.join("\n")}\n</urlset>\n`);
+write(join(DIST, "sitemap-pages.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${entries.join("\n")}\n</urlset>\n`);
+// The sitemap index: the pages above, written now, and the shared recipes,
+// listed live by api/recipe.ts (they change between builds).
+write(join(DIST, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <sitemap><loc>${site}/sitemap-pages.xml</loc><lastmod>${today}</lastmod></sitemap>\n  <sitemap><loc>${site}/sitemap-recipes.xml</loc></sitemap>\n</sitemapindex>\n`);
 write(join(DIST, "robots.txt"), `User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /api/\n\nSitemap: ${site}/sitemap.xml\n`);
 
-console.log(`prerender: ${paths.length} pages, sitemap.xml, robots.txt, 404.html, app shell`);
+// The stylesheet for the server-rendered recipe pages (api/recipe.ts), at a
+// name that doesn't change between builds: the site CSS plus the Arabic
+// @font-face rules (fonts download only when Arabic text needs them).
+const css = assets.filter((f) => f.endsWith(".css"));
+const siteCss = css.filter((f) => f.startsWith("index-"));
+if (siteCss.length !== 1) throw new Error(`prerender: expected one index-*.css, found ${siteCss.length}`);
+const arabicCss = css.filter((f) => f.startsWith("arabic-"));
+write(join(DIST, "r-assets", "site.css"), [...siteCss, ...arabicCss].map((f) => readFileSync(join(DIST, "assets", f), "utf8")).join("\n"));
+
+console.log(`prerender: ${paths.length} pages, sitemap index, robots.txt, 404.html, app shell, recipe stylesheet`);
