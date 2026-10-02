@@ -95,6 +95,9 @@ describe("goneHtml", () => {
     expect(g).toContain('dir="rtl"');
     expect(g).toContain("noindex");
   });
+  it("says to try again when loading failed", () => {
+    expect(goneHtml({ lang: "en", stylesheet: "/s.css", failed: true })).toContain("could not be loaded");
+  });
 });
 
 describe("helpers", () => {

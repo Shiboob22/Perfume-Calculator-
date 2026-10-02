@@ -5,10 +5,10 @@
 // crawlers and link previews. Every value from the database is escaped
 // here, whatever was cleaned before it was stored.
 // Its Tailwind classes are picked up from this file at build time.
-import { createTranslator } from "../i18n/core";
-import en from "../i18n/messages/en";
-import ar from "../i18n/messages/ar";
-import { COLORS } from "./theme";
+import { createTranslator } from "../i18n/core.js";
+import en from "../i18n/messages/en.js";
+import ar from "../i18n/messages/ar.js";
+import { COLORS } from "./theme.js";
 
 const CATALOGS = { en, ar };
 const OG_LOCALE = { en: "en_US", ar: "ar_EG" };
@@ -163,23 +163,27 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
 `;
 }
 
-/** The page for a recipe that isn't (or is no longer) shared: a 404. */
-export function goneHtml({ lang = "en", stylesheet }) {
+/**
+ * The page for a recipe that isn't (or is no longer) shared (a 404), or,
+ * with failed: true, for one that couldn't be loaded just now.
+ */
+export function goneHtml({ lang = "en", stylesheet, failed = false }) {
   const locale = lang === "ar" ? "ar" : "en";
   const t = createTranslator(locale, CATALOGS);
+  const title = t(failed ? "recipe.errorTitle" : "recipe.goneTitle");
   return `<!doctype html>
 <html lang="${locale}" dir="${locale === "ar" ? "rtl" : "ltr"}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
-    <title>${esc(t("recipe.goneTitle"))} — The Scent Handbook</title>
+    <title>${esc(title)} — The Scent Handbook</title>
     <link rel="stylesheet" href="${esc(stylesheet)}" />
   </head>
   <body>
     <main class="min-h-screen max-w-2xl mx-auto px-4 sm:px-8 pt-16" style="background-color:${COLORS.paper};color:${COLORS.ink}">
-      <h1 class="text-3xl font-serif italic" style="color:${COLORS.forestDeep}">${esc(t("recipe.goneTitle"))}</h1>
-      <p class="mt-3 text-sm" style="color:${COLORS.inkSoft}">${esc(t("recipe.goneText"))}</p>
+      <h1 class="text-3xl font-serif italic" style="color:${COLORS.forestDeep}">${esc(title)}</h1>
+      <p class="mt-3 text-sm" style="color:${COLORS.inkSoft}">${esc(t(failed ? "recipe.errorText" : "recipe.goneText"))}</p>
       <p class="mt-6"><a href="${locale === "ar" ? "/ar" : "/"}" class="underline" style="color:${COLORS.amber}">${esc(t("brand"))}</a></p>
     </main>
   </body>

@@ -196,6 +196,8 @@ export default {
     reportSubject: "Report: shared recipe {slug}",
     goneTitle: "This recipe is not shared any more",
     goneText: "Its owner stopped sharing it, or the link is wrong.",
+    errorTitle: "This recipe could not be loaded",
+    errorText: "Something went wrong on our side. Try again in a minute.",
   },
   cards: {
     open: "Printable bench cards",
