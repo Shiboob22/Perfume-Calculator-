@@ -46,7 +46,7 @@ const SELECT = { inventory: "*, fragrances(name)", fragrance_notes: "*, fragranc
 // The hosted API returns at most 1000 rows per request; page through, in a
 // stable order (a unique column) so no row moves between pages.
 const PAGE = 1000;
-const ORDER = { batches: "id", inventory: "fragrance_id", fragrance_notes: "fragrance_id", calc_presets: "id", profiles: "user_id" };
+const ORDER = { batches: "id", batch_checkins: "id", shared_recipes: "batch_id", inventory: "fragrance_id", fragrance_notes: "fragrance_id", calc_presets: "id", profiles: "user_id" };
 
 async function fetchAll(table) {
   const rows = [];
