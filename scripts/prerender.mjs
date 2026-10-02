@@ -19,10 +19,10 @@ function write(file, html) {
   writeFileSync(file, html);
 }
 
-// The three faces above the fold: preloaded so first paint already uses
+// The faces above the fold (headline, body, buttons, figures): preloaded so first paint already uses
 // them. Without this, the headline reflows when Cormorant arrives and
 // pushes the page down (measured CLS 0.11 on the home page on Slow 4G).
-const CRITICAL_FONTS = ["cormorant-garamond-latin-500-italic-", "space-grotesk-latin-400-normal-", "ibm-plex-mono-latin-400-normal-"];
+const CRITICAL_FONTS = ["cormorant-garamond-latin-500-italic-", "space-grotesk-latin-400-normal-", "space-grotesk-latin-600-normal-", "ibm-plex-mono-latin-400-normal-"];
 const assets = readdirSync(join(DIST, "assets"));
 const preloads = CRITICAL_FONTS.map((prefix) => {
   const file = assets.find((f) => f.startsWith(prefix) && f.endsWith(".woff2"));
