@@ -74,13 +74,12 @@ first.
 5. [ ] Check that the owner is an admin (`select * from admins`) and on Pro
        (`select * from user_plans`).
 
-### Phase 6 (at its merge)
+### Phase 6
 
-1. [ ] Read and approve `supabase/migrations/0012_batch_checkins.sql` and
-       `0013_shared_recipes.sql` (new tables, functions and one unique
-       constraint on `batches(id, user_id)`; no existing rows change).
-2. [ ] Apply both in order, each in one transaction, and record them.
-3. [ ] Run `supabase/tests/rls_isolation.sql`: `RLS_ISOLATION PASSED: 55 checks`.
+**Done 2026-10-03** (owner approved): 0012 and 0013 applied to production
+through the Supabase connector (recorded as migrations); the new objects'
+fingerprint matches staging, where `rls_isolation.sql` passes 55 checks (the
+test itself runs on staging only); data counts unchanged.
 
 ## 5. Production configuration (owner)
 
