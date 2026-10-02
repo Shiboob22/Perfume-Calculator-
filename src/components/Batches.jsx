@@ -17,6 +17,7 @@ import { dueNow, JOURNAL_CHANGED } from "../lib/journal";
 import JournalDue from "./journal/JournalDue";
 import JournalPatterns from "./journal/JournalPatterns";
 import BatchJournal from "./journal/BatchJournal";
+import SharePanel from "./SharePanel";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -83,6 +84,10 @@ export default function Batches() {
     }));
     setStatus(queued ? t("journal.queued") : checkin.skipped ? t("journal.skipped") : t("journal.saved"));
     if (checkin.rating && !queued) setPatternsVersion((v) => v + 1);
+  }
+
+  function handleShared(batchId, share) {
+    setBatches((prev) => prev.map((b) => b.id === batchId ? { ...b, shared_recipes: share } : b));
   }
 
   function handleCheckInRemoved(batchId, id) {
@@ -280,6 +285,9 @@ export default function Batches() {
               <div className="text-sm italic mt-2" style={{ color: COLORS.inkSoft }}>{b.notes}</div>
             )}
             <BatchJournal batch={b} onDone={handleCheckIn} onRemoved={handleCheckInRemoved} />
+            <div className="mt-2">
+              <SharePanel batch={b} onShared={handleShared} onStatus={setStatus} />
+            </div>
           </div>
         ))}
       </div>

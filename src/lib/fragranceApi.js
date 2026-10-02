@@ -226,6 +226,24 @@ export async function journalPatterns() {
   return res.json();
 }
 
+/* ---------------- Shared recipes ---------------- */
+
+// Publish (or update) a batch's public recipe page; returns its share state
+// { slug, published, public_note, rest_days, indexable }.
+export async function shareBatch(id, { public_note, rest_days }) {
+  const headers = await authHeaders();
+  const res = await fetch('/api/batches', { method: 'PATCH', headers, body: JSON.stringify({ id, share: { public_note, rest_days } }) });
+  if (!res.ok) throw await apiError(res);
+  return (await res.json()).share;
+}
+
+export async function unshareBatch(id) {
+  const headers = await authHeaders();
+  const res = await fetch('/api/batches', { method: 'PATCH', headers, body: JSON.stringify({ id, share: false }) });
+  if (!res.ok) throw await apiError(res);
+  return (await res.json()).share;
+}
+
 /* ---------------- Inventory (stock on hand) ---------------- */
 
 export async function listInventory() {
