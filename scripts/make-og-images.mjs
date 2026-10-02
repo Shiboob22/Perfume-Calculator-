@@ -56,7 +56,7 @@ const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
 for (const family of Object.keys(TIER_COLORS)) {
   for (const lang of ["en", "ar"]) {
     await page.setContent(card(family, lang), { waitUntil: "load" });
-    await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(() => globalThis.document.fonts.ready);
     await page.screenshot({ path: `${out}/recipe-${family}-${lang}.png` });
   }
 }
