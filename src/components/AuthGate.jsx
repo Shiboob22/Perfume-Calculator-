@@ -6,6 +6,7 @@ import { COLORS } from '../lib/theme'
 import { useI18n } from '../i18n/I18nProvider'
 import { errorText } from '../i18n/errorText';
 import LanguageToggle from './LanguageToggle'
+import FlaconMark from './FlaconMark'
 
 // The session saved by the last visit, read synchronously so a returning user
 // sees the app on first render. getSession() below still confirms it — and
@@ -99,11 +100,8 @@ export default function AuthGate({ children }) {
 
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 mb-4 rounded-full"
-              style={{ border: `1px solid ${COLORS.amberDeep}`, background: 'rgba(233,200,138,0.06)' }}>
-              <svg width="18" height="24" viewBox="0 0 72 100" fill="none" aria-hidden="true">
-                <path d="M15 23 C15 20 22 21 24 19 L48 19 C50 21 57 20 57 23 L60 85 C60 92.7 54.7 98 47 98 L25 98 C17.3 98 12 92.7 12 85 Z" fill="none" stroke={COLORS.amberDeep} strokeWidth="3" />
-              </svg>
+            <div className="inline-flex items-center justify-center mb-4">
+              <FlaconMark size={34} />
             </div>
             <h1 className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>{t('brand')}</h1>
             <p className="text-[11px] font-mono uppercase tracking-[0.28em] rtl:tracking-normal mt-2" style={{ color: COLORS.amberDeep }}>{t('auth.signIn')}</p>
