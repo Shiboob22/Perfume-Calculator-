@@ -52,6 +52,8 @@ depend on are settled. Nothing here touches production until step 4.
 
 ## 4. Production database (owner approves, then apply)
 
+**Done 2026-10-02** (owner approved): 0001–0011 applied in order, each atomic; pre-migration copies of the user tables and the catalog in schema `backup_20261002`; production schema fingerprint identical to staging; data counts unchanged (36 batches, 2 inventory, 14 notes, 81,823 catalog rows); owner is admin, Pro and onboarded. The steps below are kept for reference.
+
 Migrations 0001–0011 have run on **staging** only. They add tables, columns,
 policies and functions. They do not drop or rewrite user data, except in
 **0002**, which sets `user_id NOT NULL` and replaces foreign keys. Read 0002
@@ -105,6 +107,8 @@ first.
 - [ ] `GET /api/ai` shows the Gemini key configured and the models answering.
 
 ## 7. Launch (owner)
+
+**Merged and deployed 2026-10-02** (fast-forward of `main` to the release branch). Sign-in links that fall back to the home page are forwarded to `/app`, but still add the `/app/**` redirect URLs in §5.
 
 1. Merge the phase PRs in order: 1 → 2 → 3 → 4 → 5.
 2. Watch the production deployment go green, then open `/`, `/ar` and `/app`.
