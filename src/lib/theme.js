@@ -35,3 +35,13 @@ export const COLORS = {
   forestDeep: "#F5EEDD", // headings → bright ivory
   brass: "#C9A15A",      // → amberDeep
 };
+
+// Corner radius by the element's role — not by screen. Pick the token that
+// matches what the element IS, so radius stays consistent as new screens are
+// built (Phase 7 UI pass).
+export const SHAPE = {
+  control: "rounded-lg",   // buttons, inputs, selects, toggles
+  panel: "rounded-2xl",    // a surface holding a live result (a card, a worked example)
+  row: "",                 // list rows — no radius, separated by a hairline rule instead
+  danger: "rounded-lg",    // the one boxed warning (delete account, etc.) — bordered, not just shaped differently
+};
