@@ -32,7 +32,9 @@ html[dir="rtl"] .font-mono {
 /* Guide tables become one card per row on a phone: no sideways scrolling.
    Each cell shows its column name from data-label. */
 @media (max-width: 480px) {
-  .stack-table thead { display: none; }
+  /* Hidden visually, not from screen readers: the cards still need headers. */
+  .stack-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .stack-table th[scope="row"] { display: flex; justify-content: space-between; padding: 0.2rem 0; font-weight: 600; text-align: start; border: 0 !important; }
   .stack-table tr { display: block; padding: 0.5rem 0; border-bottom: 1px solid #2A2113; }
   .stack-table td { display: flex; justify-content: space-between; gap: 1rem; border: 0 !important; padding: 0.2rem 0; }
   .stack-table td::before { content: attr(data-label); color: #A79C82; }

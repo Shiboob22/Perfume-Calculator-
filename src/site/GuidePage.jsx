@@ -71,19 +71,27 @@ function Block({ block }) {
   }
   if (block.table) {
     const { head, rows } = block.table;
+    // An empty first header means the first column names each row: those
+    // cells are row headers. Explicit roles keep table semantics when the
+    // phone layout turns rows into cards (display changes drop them in Safari).
+    const rowHeads = head[0] === "";
+    // Latin figures with units ("25 ml × 0.95") keep left-to-right order
+    // inside an Arabic page; cells with Arabic units ("25 مل × 0.95") are
+    // already ordered correctly by the page direction.
+    const show = (cell) => (!/[\u0600-\u06FF]/.test(cell) && /(^|\s)(g|g\/ml)$|× \d/.test(cell) ? <span dir="ltr">{cell}</span> : cell);
     return (
-      <table className="stack-table my-6 w-full text-sm" style={{ color: COLORS.ink }}>
-        <thead>
-          <tr>{head.map((h, i) => <th key={i} className="text-start py-2 pe-4 font-mono text-[11px] uppercase tracking-wider" style={{ color: COLORS.amberDeep, borderBottom: `1px solid ${COLORS.line}` }}>{h}</th>)}</tr>
+      <table role="table" className="stack-table my-6 w-full text-sm" style={{ color: COLORS.ink }}>
+        <thead role="rowgroup">
+          <tr role="row">{head.map((h, i) => (rowHeads && i === 0
+            ? <td key={i} role="cell" style={{ borderBottom: `1px solid ${COLORS.line}` }} />
+            : <th key={i} role="columnheader" scope="col" className="text-start py-2 pe-4 font-mono text-[11px] uppercase tracking-wider" style={{ color: COLORS.amberDeep, borderBottom: `1px solid ${COLORS.line}` }}>{h}</th>))}</tr>
         </thead>
-        <tbody>
+        <tbody role="rowgroup">
           {rows.map((row, r) => (
-            <tr key={r}>
-              {row.map((cell, c) => (
-                <td key={c} data-label={head[c]} className="py-2 pe-4" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
-                  {/(^|\s)(g|g\/ml)$|× \d/.test(cell) ? <span dir="ltr">{cell}</span> : cell}
-                </td>
-              ))}
+            <tr key={r} role="row">
+              {row.map((cell, c) => (rowHeads && c === 0
+                ? <th key={c} role="rowheader" scope="row" className="text-start py-2 pe-4 font-semibold" style={{ borderBottom: `1px solid ${COLORS.line}` }}>{show(cell)}</th>
+                : <td key={c} role="cell" data-label={head[c]} className="py-2 pe-4" style={{ borderBottom: `1px solid ${COLORS.line}` }}>{show(cell)}</td>))}
             </tr>
           ))}
         </tbody>
