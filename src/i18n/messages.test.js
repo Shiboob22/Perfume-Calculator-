@@ -32,6 +32,17 @@ describe("message catalogs", () => {
   });
 });
 
+describe("plan features", () => {
+  it("each has a pricing-page line in both languages", async () => {
+    const { FEATURES } = await import("../lib/entitlements");
+    const get = (obj, key) => key.split(".").reduce((o, k) => o?.[k], obj);
+    for (const f of FEATURES) {
+      expect(typeof get(en.site.pricing.features, f), f).toBe("string");
+      expect(typeof get(ar.site.pricing.features, f), f).toBe("string");
+    }
+  });
+});
+
 describe("family texts", () => {
   it("match the numbers module word for word in English", async () => {
     const { FAMILIES } = await import("../lib/formulation");

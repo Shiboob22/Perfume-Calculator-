@@ -665,6 +665,7 @@ export default {
         export: { labels: "ملصقات قابلة للطباعة" },
         calculator: { advanced: "حاسبة متقدمة" },
         cards: { download: "بطاقات دفعات للتنزيل والمشاركة" },
+        journal: { insights: "أنماط من دفتر الراحة الخاص بك" },
       },
     },
     notFound: { title: "الصفحة غير موجودة", home: "العودة إلى الصفحة الرئيسية" },

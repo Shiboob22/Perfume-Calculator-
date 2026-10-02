@@ -664,6 +664,7 @@ export default {
         export: { labels: "Printable labels" },
         calculator: { advanced: "Advanced calculator" },
         cards: { download: "Batch cards to download and share" },
+        journal: { insights: "Patterns from your own resting journal" },
       },
     },
     notFound: { title: "Page not found", home: "Back to the home page" },
