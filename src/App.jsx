@@ -81,15 +81,13 @@ export default function App() {
     window.addEventListener("online", send);
     return () => window.removeEventListener("online", send);
   }, []);
-  // Check-ins due, for the badge on the Batches tab: counted once when the
-  // app opens, then kept in step by the Batches tab itself.
+  // Check-ins due, for the badge on the Batches tab: counted once signed in
+  // (CountDueCheckIns), then kept in step by the Batches tab itself.
   const [dueCount, setDueCount] = useState(0);
   useEffect(() => {
-    let live = true;
-    listBatches(100).then((b) => live && setDueCount(dueNow(b).length)).catch(() => {});
     const update = (e) => setDueCount(e.detail?.due ?? 0);
     window.addEventListener(JOURNAL_CHANGED, update);
-    return () => { live = false; window.removeEventListener(JOURNAL_CHANGED, update); };
+    return () => window.removeEventListener(JOURNAL_CHANGED, update);
   }, []);
   useEffect(() => {
     if (window.location.hash && window.location.hash.includes('access_token')) {
@@ -114,6 +112,7 @@ export default function App() {
         <EntitlementsProvider>
         <ProfileProvider>
         <OnboardingGate>
+        <CountDueCheckIns />
         {tab === "bench" ? (
           // Bench mode is full screen: no header or tabs at the scale.
           <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
@@ -243,6 +242,18 @@ function Gate({ feature, children }) {
   const entitlements = useEntitlements();
   if (!entitlements.loaded) return <TabLoading />;
   return can(entitlements, feature) ? children : <ProLocked feature={feature} />;
+}
+
+// Counts the check-ins due once there is a session (it renders nothing).
+// Inside AuthGate on purpose: asking for batches before sign-in would make
+// the auth client read, and clear, a sign-in link's #access_token first.
+function CountDueCheckIns() {
+  useEffect(() => {
+    listBatches(100)
+      .then((b) => window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: dueNow(b).length } })))
+      .catch(() => {});
+  }, []);
+  return null;
 }
 
 function TabLoading() {
