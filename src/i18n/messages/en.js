@@ -607,6 +607,9 @@ export default {
   auth: {
     loading: "Loading The Scent Handbook…",
     signIn: "Sign in",
+    heading: "Sign in to your bench.",
+    lead: "Batches, journal and stock stay with your account.",
+    backToGuides: "Back to the guides",
     checkInbox: "Check your inbox",
     sentLinkTo: "We sent a magic sign-in link to",
     useDifferent: "Use a different email or method",

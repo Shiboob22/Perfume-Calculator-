@@ -3,7 +3,7 @@ import en from "../src/i18n/messages/en.js";
 
 test("the app asks you to sign in, and is kept out of search", async ({ page }) => {
   await page.goto("/app/calculator?size=50&unit=ml&conc=20");
-  await expect(page.getByText(en.auth.signIn, { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: en.auth.heading })).toBeVisible();
   await expect(page.getByLabel(en.auth.emailLabel)).toBeVisible();
   await expect(page.getByRole("button", { name: en.auth.continueGoogle })).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex");

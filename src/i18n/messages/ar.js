@@ -608,6 +608,9 @@ export default {
   auth: {
     loading: "جارٍ تحميل The Scent Handbook…",
     signIn: "تسجيل الدخول",
+    heading: "سجّل الدخول إلى منضدتك.",
+    lead: "الدفعات واليوميات والمخزون تبقى مرتبطة بحسابك.",
+    backToGuides: "العودة إلى الأدلة",
     checkInbox: "تفقّد بريدك الإلكتروني",
     sentLinkTo: "أرسلنا رابط تسجيل الدخول إلى",
     useDifferent: "استخدم بريدًا أو طريقة أخرى",
