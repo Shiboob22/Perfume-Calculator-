@@ -94,6 +94,8 @@ Billing: **free for now, billing-ready.** Plans + entitlements exist and gate fe
 - `npm run e2e` runs Playwright against `npm run build` output via `scripts/serve-dist.mjs` (mirrors Vercel routing).
 - Owner-only tables written straight from the browser (profiles, pro_waitlist) rely on RLS alone: add every such table to `supabase/tests/rls_isolation.sql`. Anything needing the service role (deleting a user, billing) goes through `api/`.
 - Batches and inventory are written only through `/api` (0011 revoked direct writes): the API is where the cap, rate limits and Pro gates live. Don't add browser writes to them.
+- Shared recipe pages (`/r/<slug>`, `/ar/r/<slug>`) are rendered per request by `api/recipe.ts` from `src/lib/recipePage.js` (plain HTML, no script) with the stable stylesheet `/r-assets/site.css` the prerender writes; they read only through `recipe_by_slug()` / `recipe_sitemap()` with the anon key. `/sitemap.xml` is an index of `sitemap-pages.xml` (build) and `sitemap-recipes.xml` (live). Preview images: `npx vite-node scripts/make-og-images.mjs` → `public/og/`.
+- `src/` files that `api/` imports need `.js` on their relative imports too; `api/imports.test.ts` follows API imports into `src/`.
 - Every user table references `auth.users` with ON DELETE CASCADE, so account deletion is one `auth.admin.deleteUser`. New user tables must do the same (and be added to `EXPORT_TABLES` in `src/lib/exportData.js`).
 
 ## Stack and layout (as of Phase 0)
