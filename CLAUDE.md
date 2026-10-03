@@ -84,7 +84,7 @@ Billing: **free for now, billing-ready.** Plans + entitlements exist and gate fe
 
 ## Engineering notes learned the hard way
 
-- `api/*.ts` run as native ES modules on Vercel: relative imports need the `.js` extension (`./_lib/x.js`), or the function crashes at runtime with ERR_MODULE_NOT_FOUND. `api/imports.test.ts` enforces it. Files under `api/_lib/` are helpers, not routes.
+- `api/*.ts` run as native ES modules on Vercel: relative imports need the `.js` extension (`./_lib/x.js`), or the function crashes at runtime with ERR_MODULE_NOT_FOUND. `api/_lib/imports.test.ts` enforces it. Files under `api/_lib/` are helpers, not routes; every other .ts/.js under `api/` is deployed as a function (Hobby: 12 max, guarded by `api/_lib/functionBudget.test.ts`), so tests live under `api/_lib/`.
 - The browser client has no fallback project: `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` must be set (Preview env → staging, Production → production, local `.env.local` → staging).
 - Catalog writes from users go through `ensure_fragrance()` / `add_fragrance_photo()`; users have no UPDATE/DELETE on `fragrances`. Server code that reads the catalog must filter `status = 'approved'`.
 - Public pages must not import Supabase or app code (they are prerendered and hydrated); the app lives behind a lazy import in `src/Root.jsx`.
@@ -98,7 +98,7 @@ Billing: **free for now, billing-ready.** Plans + entitlements exist and gate fe
 - Owner-only tables written straight from the browser (profiles, pro_waitlist) rely on RLS alone: add every such table to `supabase/tests/rls_isolation.sql`. Anything needing the service role (deleting a user, billing) goes through `api/`.
 - Batches and inventory are written only through `/api` (0011 revoked direct writes): the API is where the cap, rate limits and Pro gates live. Don't add browser writes to them.
 - Shared recipe pages (`/r/<slug>`, `/ar/r/<slug>`) are rendered per request by `api/recipe.ts` from `src/lib/recipePage.js` (plain HTML, no script) with the stable stylesheet `/r-assets/site.css` the prerender writes; they read only through `recipe_by_slug()` / `recipe_sitemap()` with the anon key. `/sitemap.xml` is an index of `sitemap-pages.xml` (build) and `sitemap-recipes.xml` (live). Preview images: `npx vite-node scripts/make-og-images.mjs` → `public/og/`.
-- `src/` files that `api/` imports need `.js` on their relative imports too; `api/imports.test.ts` follows API imports into `src/`.
+- `src/` files that `api/` imports need `.js` on their relative imports too; `api/_lib/imports.test.ts` follows API imports into `src/`.
 - Every user table references `auth.users` with ON DELETE CASCADE, so account deletion is one `auth.admin.deleteUser`. New user tables must do the same (and be added to `EXPORT_TABLES` in `src/lib/exportData.js`).
 
 ## Stack and layout (as of Phase 0)
