@@ -22,6 +22,10 @@ depend on are settled. Nothing here touches production until step 4.
 | 10 | Landing copy approval | `src/i18n/messages/*.js` → `site.home` | open |
 | 11 | Neutral examples for the Choosing (Wardrobe) guides | Phase 3 | open |
 | 12 | Label sizes: built with defaults 50×30, 70×40, 90×50 mm + custom | `LABEL_SIZES` in `src/lib/labels.js` | confirm or replace |
+| 13 | Resting Journal: cadence (day 1 · rest start · rest end · end + 14), check-ins Free and outside the cap, patterns Pro | Phase 6 | **approved 2026-10-02** |
+| 14 | Per-batch "peak day" rule for patterns: the earliest day a batch reached its best rating | `peakDay()` in `src/lib/calc/journal.ts` | review |
+| 15 | Shared recipe names may name designer perfumes (trademark): with the lawyer, alongside `/terms` | Phase 6 | open, not blocking |
+| 16 | Pricing page lines for the journal and recipe sharing (both plans) and patterns (Pro) | `site.pricing` | drafted 2026-10-03; approve with the landing copy (#10) |
 
 ## 2. Accounts and hosting (owner)
 
@@ -70,6 +74,13 @@ first.
 5. [ ] Check that the owner is an admin (`select * from admins`) and on Pro
        (`select * from user_plans`).
 
+### Phase 6
+
+**Done 2026-10-03** (owner approved): 0012 and 0013 applied to production
+through the Supabase connector (recorded as migrations); the new objects'
+fingerprint matches staging, where `rls_isolation.sql` passes 55 checks (the
+test itself runs on staging only); data counts unchanged.
+
 ## 5. Production configuration (owner)
 
 - [ ] Supabase Auth → URL configuration:
@@ -81,7 +92,9 @@ first.
   - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`;
   - `SUPABASE_SERVICE_ROLE_KEY` (Secret);
   - `GEMINI_API_KEY` (Secret), optionally `GEMINI_MODEL`;
-  - `VITE_SITE_URL`.
+  - `VITE_SITE_URL`;
+  - `REPORT_EMAIL`: where "Report this recipe" on shared recipe pages
+    writes to. Without it the link is left off the page.
 - [ ] Staging Auth also allows preview redirects:
       `https://scent-handbook-*-shiboob22s-projects.vercel.app/**`. This is
       needed for the signed-in e2e run in step 6.
@@ -126,6 +139,11 @@ first.
   status ≥ 500 (functions).
 - **Latency:** Supabase → Logs → edge logs (see the notes in `CLAUDE.md`).
 - **Pro waitlist:** see the query in `docs/billing.md`.
+- **Reported recipes:** unpublish one with
+  `update shared_recipes set published = false where slug = '<slug>'`
+  (the page goes within 5 minutes; the owner can share it again).
+- **Email reminders for due check-ins:** a fast-follow once SMTP (§2) is
+  set up. Today the app shows them on the Batches tab only.
 - **Pending catalog entries** added by users:
   `select * from fragrances where status = 'pending'`. Approve with
   `update … set status = 'approved'` as an admin.

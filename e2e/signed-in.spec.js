@@ -3,7 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import en from "../src/i18n/messages/en.js";
 
 // The signed-in journey, against a deployed preview and the STAGING
-// Supabase project: onboarding → waitlist → export → delete account.
+// Supabase project: onboarding → waitlist → export → journal and sharing →
+// delete account.
 // Runs only when all three are set (never against production):
 //   E2E_BASE_URL          a preview URL, e.g. https://scent-handbook-xxxx.vercel.app
 //   E2E_SUPABASE_URL      the staging project URL
@@ -69,6 +70,52 @@ test("export includes the profile", async ({ page }) => {
   const json = JSON.parse(await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString("utf8")));
   expect(json.profiles[0]).toMatchObject({ default_unit: "g", default_bottle: 30 });
   expect(JSON.stringify(json)).not.toContain(user.id);
+});
+
+test("journal and sharing work against the real API and database", async ({ page }) => {
+  // A batch made 22 days ago (written as the service role, as /api would),
+  // so its rest-start check-in (Woody: day 21) is due now.
+  const started = new Date(Date.now() - 22 * 86400000 - 3600000);
+  const local = `${started.getFullYear()}-${String(started.getMonth() + 1).padStart(2, "0")}-${String(started.getDate()).padStart(2, "0")}`;
+  const { data: batch, error } = await admin.from("batches").insert({
+    user_id: user.id, fragrance_name: "E2E Oud", tier: "woody", blend_date: local, created_at: started.toISOString(),
+    concentration_pct: 25, oil_g: 23.75, oil_ml: 25, ethanol_g: 60.75, ethanol_ml: 75, total_g: 84.5, total_ml: 100,
+    oil_cost: 99.99, notes: "E2E PRIVATE NOTE", oil_type: "E2E SUPPLIER", basis: "volume",
+  }).select().single();
+  if (error) throw error;
+
+  await signIn(page, "/app/batches");
+  const due = page.getByRole("region", { name: "1 batch is due for a check-in" });
+  await due.getByLabel(/How does/).fill("Softer now");
+  await due.getByRole("radio", { name: "4 of 5" }).check({ force: true });
+  await due.getByRole("button", { name: en.journal.save }).click();
+  await expect(due).toBeHidden();
+  const { data: checkins } = await admin.from("batch_checkins").select("*").eq("batch_id", batch.id);
+  expect(checkins).toMatchObject([{ user_id: user.id, scheduled_day: 21, rating: 4, note: "Softer now" }]);
+
+  // The check-in comes back with the batch list (the embed) after a reload.
+  await page.reload();
+  await expect(page.getByText("Softer now")).toBeVisible();
+
+  await page.getByRole("button", { name: en.share.open }).click();
+  const panel = page.getByRole("region", { name: en.share.title });
+  await panel.getByLabel(en.share.noteLabel).fill("Sharp for two weeks, then the oud rounds out beautifully.");
+  await panel.getByRole("button", { name: en.share.publish }).click();
+  const link = panel.getByRole("link", { name: /\/r\// });
+  await expect(link).toBeVisible();
+  const path = new URL(await link.getAttribute("href")).pathname;
+
+  const recipe = await page.request.get(`${E2E_BASE_URL}${path}`);
+  expect(recipe.status()).toBe(200);
+  const html = await recipe.text();
+  expect(html).toContain("E2E Oud");
+  expect(html).not.toContain("noindex");
+  for (const secret of ["99.99", "E2E PRIVATE NOTE", "E2E SUPPLIER", user.id, email]) expect(html).not.toContain(secret);
+
+  await panel.getByRole("button", { name: en.share.stop }).click();
+  await expect(page.getByRole("status").filter({ hasText: en.share.stopped })).toBeAttached();
+  // Past the CDN's cached copy: the function no longer serves it.
+  expect((await page.request.get(`${E2E_BASE_URL}${path}?after-unshare=${Date.now()}`)).status()).toBe(404);
 });
 
 test("deleting the account removes the user", async ({ page }) => {

@@ -4,7 +4,7 @@
 // The tables a user owns, in the order the export lists them. user_id is
 // dropped from every row: it is the same on all of them and means nothing
 // outside this database.
-export const EXPORT_TABLES = ["batches", "inventory", "fragrance_notes", "calc_presets", "profiles"];
+export const EXPORT_TABLES = ["batches", "batch_checkins", "shared_recipes", "inventory", "fragrance_notes", "calc_presets", "profiles"];
 
 // A catalog id means nothing outside this database either: rows fetched
 // with their fragrance ({ fragrances: { name } }) get a fragrance_name

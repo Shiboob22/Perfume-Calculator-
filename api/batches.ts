@@ -2,6 +2,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { loadEntitlements, canLogBatch } from './_lib/entitlements.js';
 import { overLimit } from './_lib/rateLimit.js';
+import { randomBytes } from 'node:crypto';
+import { shareRow } from './_lib/share.js';
+// @ts-ignore: plain JS shared with the browser
+import { recipeSlug } from '../src/lib/publicText.js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -22,7 +26,7 @@ function setCors(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
 }
 
@@ -172,11 +176,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const requested = parseInt(String(req.query.limit ?? ''), 10);
       const limit = Number.isFinite(requested) ? Math.min(Math.max(requested, 1), 500) : 20;
 
+      // Each batch comes with its journal check-ins (0012), oldest first,
+      // and its shared recipe if it was ever shared (0013).
       const { data, error } = await supabase
         .from('batches')
-        .select('*')
+        .select('*, batch_checkins ( id, day, scheduled_day, note, rating, skipped, created_at ), shared_recipes ( slug, published, public_note, rest_days, indexable, updated_at )')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
+        .order('created_at', { referencedTable: 'batch_checkins', ascending: true })
         .limit(limit);
 
       if (error) throw error;
@@ -185,6 +192,56 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } catch (err: any) {
       if (isTimeout(err)) return res.status(503).json({ error: SLOW_READ });
       return res.status(500).json({ error: err.message || 'Failed to fetch batches' });
+    }
+  }
+
+  // Share a batch as a public recipe, update it, or stop sharing:
+  //   PATCH /api/batches { id, share: { public_note, rest_days } }
+  //   PATCH /api/batches { id, share: false }
+  // The slug is made once and kept, so sharing again brings back the same URL.
+  if (req.method === 'PATCH') {
+    try {
+      const b = req.body || {};
+      const id = typeof b.id === 'string' ? b.id : '';
+      if (!id || b.share === undefined) return res.status(400).json({ error: 'Missing batch ID or share.' });
+      if (await overLimit(supabase, res, 'share', userId)) return;
+
+      const { data: batch, error: batchError } = await supabase
+        .from('batches').select('*').eq('id', id).eq('user_id', userId).maybeSingle();
+      if (batchError) throw batchError;
+      if (!batch) return res.status(404).json({ error: 'Batch not found.', code: 'not_found' });
+
+      const { data: existing, error: existingError } = await supabase
+        .from('shared_recipes').select('slug').eq('batch_id', id).eq('user_id', userId).maybeSingle();
+      if (existingError) throw existingError;
+
+      const columns = 'slug, published, public_note, rest_days, indexable, updated_at';
+      if (b.share === false) {
+        if (!existing) return res.status(200).json({ share: null });
+        const { data, error } = await supabase
+          .from('shared_recipes').update({ published: false, updated_at: new Date().toISOString() })
+          .eq('batch_id', id).eq('user_id', userId).select(columns).single();
+        if (error) throw error;
+        return res.status(200).json({ share: data });
+      }
+
+      const built = shareRow(batch, b.share);
+      if ('error' in built) return res.status(400).json(built);
+      // A new slug only on the first share; retry on the (unlikely) clash.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const slug = existing?.slug ?? recipeSlug(batch.fragrance_name, randomBytes);
+        const { data, error } = await supabase
+          .from('shared_recipes')
+          .upsert({ ...built.row, slug, published: true, updated_at: new Date().toISOString() }, { onConflict: 'batch_id' })
+          .select(columns).single();
+        if (error?.code === '23505' && !existing) continue;
+        if (error) throw error;
+        return res.status(200).json({ share: data });
+      }
+      return res.status(503).json({ error: 'Could not make a link — please try again.' });
+    } catch (err: any) {
+      if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
+      return res.status(500).json({ error: err.message || 'Failed to update sharing' });
     }
   }
 

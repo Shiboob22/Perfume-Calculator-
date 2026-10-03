@@ -17,6 +17,10 @@ declare
   c uuid := gen_random_uuid();  -- a user with no rows anywhere
   f_shared uuid;      -- an approved catalog row
   f_a_pending uuid;   -- a row user A added (pending)
+  batch_a uuid;
+  batch_b uuid;
+  slug_a text := 'a-indexed-' || substr(md5(random()::text), 1, 6);
+  slug_b text := 'b-unlisted-' || substr(md5(random()::text), 1, 6);
   n int;
   checks int := 0;
   ok boolean;
@@ -45,6 +49,19 @@ begin
   insert into public.profiles (user_id, locale, default_unit) values (a, 'ar', 'g');
   insert into public.pro_waitlist (user_id, locale) values (a, 'ar');
   insert into public.billing_events (provider, event_id, payload) values ('test', 'evt_' || a, '{}');
+  select id into batch_a from public.batches where user_id = a;
+  select id into batch_b from public.batches where user_id = b;
+  insert into public.batch_checkins (id, batch_id, user_id, day, scheduled_day, note, rating)
+  values (gen_random_uuid(), batch_a, a, 1, 1, 'A day one', 3);
+  -- A check-in can't belong to somebody else's batch (0012's composite key).
+  ok := false;
+  begin
+    insert into public.batch_checkins (id, batch_id, user_id, day, note) values (gen_random_uuid(), batch_b, a, 2, 'cross');
+  exception when foreign_key_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a check-in was attached to another user''s batch'; end if; checks := checks + 1;
+  insert into public.shared_recipes (batch_id, user_id, slug, fragrance_name, tier, concentration_pct, total_ml, total_g, oil_g, ethanol_g, public_note, note_lang)
+  values (batch_a, a, slug_a, 'A batch', 'fresh', 25, 100, 84.5, 23.75, 60.75, 'A public note long enough to be indexed by search engines.', 'en'),
+         (batch_b, b, slug_b, 'B batch', 'fresh', 20, 100, 83.8, 19, 64.8, null, null);
 
   -- ------------------------------------------------------ act as user B
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
@@ -101,6 +118,23 @@ begin
   if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B could not join the waitlist itself'; end if; checks := checks + 1;
   select count(*) into n from public.fragrances where id = f_shared;
   if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B can''t read the shared catalog'; end if; checks := checks + 1;
+
+  -- Check-ins and shared recipes (0012, 0013): own rows only, written
+  -- only through /api, public recipes only through the slug functions.
+  select count(*) into n from public.batch_checkins;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees % of A''s check-ins', n; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.batch_checkins (id, batch_id, user_id, day, note) values (gen_random_uuid(), batch_b, b, 1, 'direct');
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B wrote a check-in around the API'; end if; checks := checks + 1;
+  select count(*) into n from public.shared_recipes;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B sees % shared recipe rows, expected its own 1', n; end if; checks := checks + 1;
+  ok := false;
+  begin update public.shared_recipes set published = true where batch_id = batch_b;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B changed a shared recipe around the API'; end if; checks := checks + 1;
+  select count(*) into n from public.recipe_by_slug(slug_a);
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: a signed-in user can''t open a published recipe'; end if; checks := checks + 1;
 
   -- Batches and inventory are written only through /api (0011): users
   -- can't write them directly at all, not even their own rows.
@@ -221,6 +255,36 @@ begin
   begin perform 1 from public.fragrances limit 1;
   exception when insufficient_privilege then ok := true; end;
   if not ok then raise exception 'RLS_ISOLATION FAILED: anon can query the catalog table directly'; end if; checks := checks + 1;
+
+  ok := false;
+  begin perform 1 from public.shared_recipes limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can list shared recipes'; end if; checks := checks + 1;
+  ok := false;
+  begin perform 1 from public.batch_checkins limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can query check-ins'; end if; checks := checks + 1;
+  select count(*) into n from public.recipe_by_slug(slug_a);
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: anon can''t open a published recipe'; end if; checks := checks + 1;
+  select count(*) into n from public.recipe_by_slug(slug_b);
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: an unlisted recipe doesn''t open by its link'; end if; checks := checks + 1;
+  select count(*) into n from public.recipe_sitemap() s where s.slug in (slug_a, slug_b);
+  if n <> 1 or not exists (select 1 from public.recipe_sitemap() s where s.slug = slug_a) then
+    raise exception 'RLS_ISOLATION FAILED: the sitemap lists % of the 2 test recipes, expected only the indexed one', n;
+  end if; checks := checks + 1;
+  -- The public recipe shape carries no cost, price, supplier, private
+  -- note or owner, whatever the table gains later.
+  if exists (select 1 from pg_proc where proname in ('recipe_by_slug', 'recipe_sitemap')
+             and pg_get_function_result(oid) ~* '(cost|price|oil_type|blended_by|user_id|batch_id|[^_]notes)') then
+    raise exception 'RLS_ISOLATION FAILED: a public recipe function returns a private field';
+  end if; checks := checks + 1;
+
+  -- Unshared: the link stops working.
+  perform set_config('role', 'none', true);
+  update public.shared_recipes set published = false where batch_id = batch_b;
+  perform set_config('role', 'anon', true);
+  select count(*) into n from public.recipe_by_slug(slug_b);
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: an unshared recipe still opens'; end if; checks := checks + 1;
 
   raise exception 'RLS_ISOLATION PASSED: % checks (rolled back, nothing kept)', checks;
 end

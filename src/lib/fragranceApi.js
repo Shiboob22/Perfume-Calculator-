@@ -200,6 +200,50 @@ export async function deleteBatch(id) {
   if (!res.ok) throw await apiError(res);
 }
 
+/* ---------------- Resting Journal (check-ins) ---------------- */
+
+// A check-in or skip. A point already answered elsewhere comes back as
+// code "already_answered" with the stored check-in.
+export async function saveCheckIn(checkin) {
+  const headers = await authHeaders();
+  const res = await fetch('/api/checkins', { method: 'POST', headers, body: JSON.stringify(checkin) });
+  if (!res.ok) throw await apiError(res);
+  return (await res.json()).checkin;
+}
+
+export async function deleteCheckIn(id) {
+  const headers = await authHeaders();
+  const res = await fetch(`/api/checkins?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers });
+  if (!res.ok) throw await apiError(res);
+}
+
+// { patterns: { woody: { day, min, max, batches } }, locked: false } on Pro;
+// { ready: ["woody"], locked: true } otherwise.
+export async function journalPatterns() {
+  const headers = await authHeaders();
+  const res = await fetch('/api/checkins', { headers });
+  if (!res.ok) throw await apiError(res);
+  return res.json();
+}
+
+/* ---------------- Shared recipes ---------------- */
+
+// Publish (or update) a batch's public recipe page; returns its share state
+// { slug, published, public_note, rest_days, indexable }.
+export async function shareBatch(id, { public_note, rest_days }) {
+  const headers = await authHeaders();
+  const res = await fetch('/api/batches', { method: 'PATCH', headers, body: JSON.stringify({ id, share: { public_note, rest_days } }) });
+  if (!res.ok) throw await apiError(res);
+  return (await res.json()).share;
+}
+
+export async function unshareBatch(id) {
+  const headers = await authHeaders();
+  const res = await fetch('/api/batches', { method: 'PATCH', headers, body: JSON.stringify({ id, share: false }) });
+  if (!res.ok) throw await apiError(res);
+  return (await res.json()).share;
+}
+
 /* ---------------- Inventory (stock on hand) ---------------- */
 
 export async function listInventory() {

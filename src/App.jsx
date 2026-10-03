@@ -14,7 +14,8 @@ import { ProfileProvider, useProfile, needsOnboarding } from "./lib/useProfile";
 import { can } from "./lib/entitlements";
 import { fetchPopular, warmUp } from "./lib/searchApi";
 import { flush } from "./lib/outbox";
-import { logBatch } from "./lib/fragranceApi";
+import { logBatch, listBatches, saveCheckIn } from "./lib/fragranceApi";
+import { dueNow, JOURNAL_CHANGED } from "./lib/journal";
 import { installGlobalHandlers } from "./lib/reportError";
 
 // Search ships with the app shell; the other tabs load as separate chunks,
@@ -70,12 +71,23 @@ export default function App() {
   // whenever the connection returns.
   useEffect(() => {
     // Refused batches are kept (see outbox.js); tell the Batches tab.
-    const send = () => flush(logBatch)
+    // Queued journal check-ins go with them, in order; a point answered
+    // meanwhile on another device counts as sent.
+    const sendCheckIn = (c) => saveCheckIn(c).catch((e) => { if (e.code !== "already_answered") throw e; });
+    const send = () => flush({ batch: logBatch, checkin: sendCheckIn })
       .then((r) => { if (r.refused.length) window.dispatchEvent(new Event("sh-outbox-refused")); })
       .catch(() => {});
     send();
     window.addEventListener("online", send);
     return () => window.removeEventListener("online", send);
+  }, []);
+  // Check-ins due, for the badge on the Batches tab: counted once signed in
+  // (CountDueCheckIns), then kept in step by the Batches tab itself.
+  const [dueCount, setDueCount] = useState(0);
+  useEffect(() => {
+    const update = (e) => setDueCount(e.detail?.due ?? 0);
+    window.addEventListener(JOURNAL_CHANGED, update);
+    return () => window.removeEventListener(JOURNAL_CHANGED, update);
   }, []);
   useEffect(() => {
     if (window.location.hash && window.location.hash.includes('access_token')) {
@@ -100,6 +112,7 @@ export default function App() {
         <EntitlementsProvider>
         <ProfileProvider>
         <OnboardingGate>
+        <CountDueCheckIns />
         {tab === "bench" ? (
           // Bench mode is full screen: no header or tabs at the scale.
           <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
@@ -128,7 +141,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => navigate("/app/account")}
-              className="text-xs font-mono hover:underline me-3"
+              className="text-xs font-mono hover:underline me-3 min-h-[24px]"
               style={{ color: tab === "account" ? COLORS.amber : COLORS.inkSoft }}
               aria-current={tab === "account" ? "page" : undefined}
             >
@@ -136,7 +149,7 @@ export default function App() {
             </button>
             <button
               onClick={() => signOut()}
-              className="text-xs font-mono hover:underline"
+              className="text-xs font-mono hover:underline min-h-[24px]"
               style={{ color: COLORS.inkSoft }}
             >
               {t("app.signOut")}
@@ -159,6 +172,13 @@ export default function App() {
               }}
             >
               {t(`app.tabs.${id}`)}
+              {id === "batches" && dueCount > 0 && (
+                <span className="ms-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full text-[11px] font-semibold align-middle"
+                  style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+                  <span aria-hidden="true">{dueCount}</span>
+                  <span className="sr-only">{t("journal.tabBadge", { count: dueCount })}</span>
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -222,6 +242,18 @@ function Gate({ feature, children }) {
   const entitlements = useEntitlements();
   if (!entitlements.loaded) return <TabLoading />;
   return can(entitlements, feature) ? children : <ProLocked feature={feature} />;
+}
+
+// Counts the check-ins due once there is a session (it renders nothing).
+// Inside AuthGate on purpose: asking for batches before sign-in would make
+// the auth client read, and clear, a sign-in link's #access_token first.
+function CountDueCheckIns() {
+  useEffect(() => {
+    listBatches(100)
+      .then((b) => window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: dueNow(b).length } })))
+      .catch(() => {});
+  }, []);
+  return null;
 }
 
 function TabLoading() {

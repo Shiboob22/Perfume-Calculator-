@@ -11,7 +11,9 @@ function useLivePlans() {
   useEffect(() => {
     const url = import.meta.env.VITE_SUPABASE_URL;
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    if (!url || !key) return;
+    // Only a real project (CI builds with a placeholder URL), as in
+    // scripts/fetch-plans.mjs.
+    if (!url || !key || !/^https:\/\/[a-z0-9]+\.supabase\.co$/.test(url)) return;
     let cancelled = false;
     fetch(`${url}/rest/v1/plans?select=id,name,features,batch_cap,sort&order=sort`, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
@@ -44,6 +46,8 @@ export default function PlanCards({ compact = false }) {
             <ul className="space-y-2 text-sm" style={{ color: COLORS.ink }}>
               <li>· {t("site.pricing.core")}</li>
               <li>· {plan.batch_cap == null ? t("site.pricing.unlimited") : t("site.pricing.cap", { cap: plan.batch_cap })}</li>
+              <li>· {t("site.pricing.journal")}</li>
+              <li>· {t("site.pricing.sharing")}</li>
               {!compact && plan.features.filter((f) => f !== "batches.unlimited").map((f) => (
                 <li key={f}>· {t(`site.pricing.features.${f}`)}</li>
               ))}

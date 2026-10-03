@@ -14,7 +14,7 @@ export default function LanguageToggle({ className = "" }) {
       onClick={() => setLocale(other)}
       title={t("language.switchLabel")}
       lang={other}
-      className={`text-xs font-mono hover:underline ${className}`}
+      className={`text-xs font-mono hover:underline min-h-[24px] ${className}`}
       style={{ color: COLORS.inkSoft }}
     >
       {t("language.switchTo")}

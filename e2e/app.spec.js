@@ -22,6 +22,14 @@ test("the app shell opens offline once it has been visited", async ({ page, cont
 });
 
 test("a sign-in link that lands on the home page is handed to the app", async ({ page }) => {
+  // The auth client reads the token and clears it from the address as soon
+  // as the app starts, so check the address each page opened at instead.
+  await page.addInitScript(() => {
+    const seen = JSON.parse(sessionStorage.getItem("opened-at") || "[]");
+    sessionStorage.setItem("opened-at", JSON.stringify([...seen, location.pathname + location.hash]));
+  });
   await page.goto("/#access_token=test&type=magiclink");
-  await expect(page).toHaveURL(/\/app#access_token=test/);
+  await expect(page).toHaveURL(/\/app/);
+  const opened = await page.evaluate(() => JSON.parse(sessionStorage.getItem("opened-at")));
+  expect(opened).toContain("/app#access_token=test&type=magiclink");
 });

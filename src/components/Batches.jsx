@@ -13,6 +13,11 @@ import EmptyState from "./EmptyState";
 import { refusedBatches, dismissRefused } from "../lib/outbox";
 import { useNavigate } from "react-router-dom";
 import { can } from "../lib/entitlements";
+import { dueNow, JOURNAL_CHANGED } from "../lib/journal";
+import JournalDue from "./journal/JournalDue";
+import JournalPatterns from "./journal/JournalPatterns";
+import BatchJournal from "./journal/BatchJournal";
+import SharePanel from "./SharePanel";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -58,8 +63,38 @@ export default function Batches() {
   const [confirming, setConfirming] = useState(null); // id awaiting "Delete for good?"
   const [status, setStatus] = useState("");
   const [refused, setRefused] = useState(() => refusedBatches());
+  const [patternsVersion, setPatternsVersion] = useState(0);
   const headingRef = useRef(null);
   const navigate = useNavigate();
+  const due = loading || error ? [] : dueNow(batches);
+
+  // The app header shows how many check-ins are due; keep it in step.
+  useEffect(() => {
+    if (!loading && !error) window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: due.length } }));
+  }, [due.length, loading, error]);
+
+  // A check-in saved (or queued offline) on one batch: show it straight
+  // away, replacing an earlier answer to the same point.
+  function handleCheckIn(batchId, checkin, { queued }) {
+    setBatches((prev) => prev.map((b) => {
+      if (b.id !== batchId) return b;
+      const rest = (b.batch_checkins || []).filter((c) => c.id !== checkin.id &&
+        !(checkin.scheduled_day != null && c.scheduled_day === checkin.scheduled_day));
+      return { ...b, batch_checkins: [...rest, checkin] };
+    }));
+    setStatus(queued ? t("journal.queued") : checkin.skipped ? t("journal.skipped") : t("journal.saved"));
+    if (checkin.rating && !queued) setPatternsVersion((v) => v + 1);
+  }
+
+  function handleShared(batchId, share) {
+    setBatches((prev) => prev.map((b) => b.id === batchId ? { ...b, shared_recipes: share } : b));
+  }
+
+  function handleCheckInRemoved(batchId, id) {
+    setBatches((prev) => prev.map((b) => b.id === batchId ? { ...b, batch_checkins: (b.batch_checkins || []).filter((c) => c.id !== id) } : b));
+    setStatus(t("journal.removed"));
+    setPatternsVersion((v) => v + 1);
+  }
 
   async function handleInsights() {
     setInsightsLoading(true); setInsightsError("");
@@ -173,6 +208,9 @@ export default function Batches() {
         </div>
       )}
 
+      <JournalDue due={due} onDone={handleCheckIn} />
+      {!loading && batches.length > 0 && <JournalPatterns version={patternsVersion} />}
+
       {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
       {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && batches.length === 0 && (
@@ -246,6 +284,10 @@ export default function Batches() {
             {b.notes && (
               <div className="text-sm italic mt-2" style={{ color: COLORS.inkSoft }}>{b.notes}</div>
             )}
+            <BatchJournal batch={b} onDone={handleCheckIn} onRemoved={handleCheckInRemoved} />
+            <div className="mt-2">
+              <SharePanel batch={b} onShared={handleShared} onStatus={setStatus} />
+            </div>
           </div>
         ))}
       </div>

@@ -69,7 +69,12 @@ test("draft legal pages say so and stay out of search", async ({ page, request }
   }
   await page.goto("/privacy");
   await expect(page.getByRole("note").first()).toHaveText(en.site.legal.draft);
-  const sitemap = await (await request.get("/sitemap.xml")).text();
+  // sitemap.xml is an index: the build-time pages and the live recipes.
+  const index = await (await request.get("/sitemap.xml")).text();
+  expect(index).toContain("<sitemapindex");
+  expect(index).toContain("/sitemap-pages.xml");
+  expect(index).toContain("/sitemap-recipes.xml");
+  const sitemap = await (await request.get("/sitemap-pages.xml")).text();
   expect(sitemap).not.toContain("/privacy");
   expect(sitemap).toContain("/guides/the-calculation");
 });
