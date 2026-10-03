@@ -27,7 +27,7 @@ function useLivePlans() {
 }
 
 export default function PlanCards({ compact = false }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const plans = useLivePlans();
 
   return (
@@ -43,17 +43,17 @@ export default function PlanCards({ compact = false }) {
                 {isFree ? t("site.pricing.current") : t("site.pricing.notOnSale")}
               </span>
             </div>
-            <ul className="space-y-2 text-sm" style={{ color: COLORS.ink }}>
-              <li>· {t("site.pricing.core")}</li>
-              <li>· {plan.batch_cap == null ? t("site.pricing.unlimited") : t("site.pricing.cap", { cap: plan.batch_cap })}</li>
-              <li>· {t("site.pricing.journal")}</li>
-              <li>· {t("site.pricing.sharing")}</li>
+            <ul className="space-y-2 text-sm list-disc ps-5 marker:text-[color:var(--marker)]" style={{ color: COLORS.ink, "--marker": COLORS.amberDeep }}>
+              <li>{t("site.pricing.core")}</li>
+              <li>{plan.batch_cap == null ? t("site.pricing.unlimited") : t("site.pricing.cap", { cap: plan.batch_cap })}</li>
+              <li>{t("site.pricing.journal")}</li>
+              <li>{t("site.pricing.sharing")}</li>
               {!compact && plan.features.filter((f) => f !== "batches.unlimited").map((f) => (
-                <li key={f}>· {t(`site.pricing.features.${f}`)}</li>
+                <li key={f}>{t(`site.pricing.features.${f}`)}</li>
               ))}
               {compact && plan.features.filter((f) => f !== "batches.unlimited").length > 0 && (
                 <li style={{ color: COLORS.inkSoft }}>
-                  · {plan.features.filter((f) => f !== "batches.unlimited").map((f) => t(`site.pricing.features.${f}`)).join(" · ")}
+                  {new Intl.ListFormat(locale === "ar" ? "ar" : "en-GB", { type: "conjunction" }).format(plan.features.filter((f) => f !== "batches.unlimited").map((f) => t(`site.pricing.features.${f}`)))}
                 </li>
               )}
             </ul>
