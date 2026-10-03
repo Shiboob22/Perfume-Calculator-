@@ -47,7 +47,7 @@ export default function Presets({ current, onApply }) {
           <span key={p.id} className="inline-flex items-center rounded border text-[11px] font-mono" style={{ borderColor: COLORS.line }}>
             <button type="button" onClick={() => onApply({ amount: Number(p.amount), unit: p.unit, concPct: Number(p.concentration_pct) })}
               className="px-2 py-1 min-h-[28px]" style={{ color: COLORS.ink }}>
-              {p.name} · {Number(p.amount)} {UNIT_LABELS[p.unit]} · {Number(p.concentration_pct)}%
+              <span className="font-sans">{p.name}</span> <span style={{ color: COLORS.inkSoft }}>{Number(p.amount)} {UNIT_LABELS[p.unit]}, {Number(p.concentration_pct)}%</span>
             </button>
             {/* 28px target (WCAG 2.5.8), and a second tap to delete: it sits
                 right next to the preset people tap at the bench. */}

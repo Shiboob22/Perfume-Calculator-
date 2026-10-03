@@ -282,7 +282,7 @@ function ResultRow({ item, active, onSelect }) {
       <span className="min-w-0 flex-1">
         <span className="block font-serif text-[15px] leading-tight truncate" style={{ color: COLORS.forestDeep }}>{title}</span>
         <span className="block font-mono text-[10px] uppercase tracking-wider truncate mt-0.5" style={{ color: COLORS.inkSoft }}>
-          {[brand, item.year].filter(Boolean).join(' · ') || f.label}
+          {[brand, item.year].filter(Boolean).join(', ') || f.label}
         </span>
         {item.rating ? <span className="block mt-1"><RatingLine perfume={item} size={11} compact /></span> : null}
       </span>
@@ -675,7 +675,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   </h2>
                   {meta.length > 0 && (
                     <div className="mt-3 font-mono text-[12px] tracking-wide" style={{ color: '#CDBF9E' }}>
-                      {meta.join('  ·  ')}
+                      {meta.join(', ')}
                     </div>
                   )}
                   {p.rating ? <div className="mt-3"><RatingLine perfume={p} size={18} /></div> : null}
@@ -694,7 +694,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   </div>
                   {p.perfumers && p.perfumers.length > 0 && (
                     <p className="mt-3 font-mono text-[12px]" style={{ color: COLORS.inkSoft }}>
-                      {t('search.perfumer', { count: p.perfumers.length })} · <span style={{ color: COLORS.ink }}>{p.perfumers.join(', ')}</span>
+                      {t('search.perfumer', { count: p.perfumers.length })}:{' '}<span style={{ color: COLORS.ink }}>{p.perfumers.join(', ')}</span>
                     </p>
                   )}
                 </div>
