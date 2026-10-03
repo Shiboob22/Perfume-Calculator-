@@ -51,6 +51,13 @@ depend on are settled. Nothing here touches production until step 4.
       Gemini tier, backup retention, supervisory authority, liability and
       governing law.
 - [ ] Lawyer review of `/privacy` and `/terms`, EN and AR.
+- [ ] Tell the lawyer about the 2026-10-03 change (Apple sign-in removed).
+      `/privacy` now reads, in "What we collect": "the sign-in provider you
+      used (email link or Google)" (was "email link, Google or Apple"), and in
+      "Who we share it with": "Google, if you choose it to sign in" (was
+      "Google and Apple, if you choose them to sign in"). Arabic changed to
+      match. Apple is not enabled in Supabase Auth on production or staging
+      (checked 2026-10-03), so nobody can sign in with Apple.
 - [ ] Set `draft: false` on both pages. That removes the banner and the
       `noindex`, and adds them to the sitemap.
 
