@@ -149,25 +149,26 @@ export default function GuidePage() {
 
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-8 pt-8">
-      <Link to={to("/guides")} className="font-mono text-xs uppercase tracking-wider hover:underline" style={{ color: COLORS.amberDeep }}>
+      <Link to={to("/guides")} className="text-sm hover:underline underline-offset-4 min-h-[24px] inline-block" style={{ color: COLORS.amberDeep }}>
         <span aria-hidden="true" className="inline-block rtl:-scale-x-100">←</span> {t("site.guides.all")}
       </Link>
       <h1 className="font-serif italic text-5xl leading-tight mt-4" style={{ color: COLORS.forestDeep }}>{g.title}</h1>
       <p className="mt-4 text-lg leading-relaxed" style={{ color: COLORS.inkSoft }}>{g.summary}</p>
       <p className="mt-4 text-sm" style={{ color: COLORS.inkSoft }}>
-        {t("site.guides.minutes", { count: readingMinutes(g) })} · {t("site.guides.by")} · {t("site.guides.from", {
+        {t("site.guides.from", {
           volume: guide.source.volume,
           book: t(`site.guides.books.${guide.source.book}`),
           sections: new Intl.ListFormat(locale === "en" ? "en-GB" : locale, { type: "unit", style: "short" }).format(guide.source.sections),
-        })}
+        })}. {t("site.guides.by")}.
+        <span className="block mt-1" style={{ color: COLORS.dim }}>{t("site.guides.minutes", { count: readingMinutes(g) })}</span>
       </p>
       {g.needsReview && (
         <p className="mt-4 p-3 rounded-lg text-sm" style={{ border: `1px dashed ${COLORS.amberDeep}`, color: COLORS.amber }}>{t("site.guides.reviewNote")}</p>
       )}
 
       {sections.length > 2 && (
-        <nav aria-label={t("site.guides.toc")} className="mt-8 p-5 rounded-xl" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] mb-3" style={{ color: COLORS.amberDeep }}>{t("site.guides.toc")}</p>
+        <nav aria-label={t("site.guides.toc")} className="mt-8 ps-5 py-1 border-s-2" style={{ borderColor: COLORS.amberDeep }}>
+          <p className="text-sm font-semibold mb-2" style={{ color: COLORS.amberDeep }}>{t("site.guides.toc")}</p>
           <ol className="space-y-1.5 text-sm">
             {sections.map((s) => <li key={s.id}><a href={`#${s.id}`} className="hover:underline" style={{ color: COLORS.ink }}>{s.h2}</a></li>)}
           </ol>
