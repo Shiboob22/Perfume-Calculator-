@@ -40,6 +40,9 @@ export function headFor(pathname) {
   let type = "website";
   let guideTitle = null;
   let noindex = false;
+  // An Arabic guide awaiting the author's review stays reachable (with its
+  // draft banner) but out of search: noindex, no hreflang, not in the sitemap.
+  let arDraft = false;
 
   if (path === "/") {
     title = t("site.home.metaTitle");
@@ -58,6 +61,8 @@ export function headFor(pathname) {
     description = g.summary;
     type = "article";
     guideTitle = g.title;
+    arDraft = Boolean(guide.ar.needsReview);
+    noindex = locale === "ar" && arDraft;
   } else if (LEGAL_PAGES.includes(path.slice(1))) {
     const doc = LEGAL[path.slice(1)];
     title = `${doc[locale].title} — The Scent Handbook`;
@@ -82,7 +87,7 @@ export function headFor(pathname) {
     canonical,
     alternates: {
       en: SITE_URL + localePath("en", path),
-      ar: SITE_URL + localePath("ar", path),
+      ...(arDraft ? {} : { ar: SITE_URL + localePath("ar", path) }),
       "x-default": SITE_URL + localePath("en", path),
     },
   };

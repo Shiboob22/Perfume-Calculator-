@@ -68,3 +68,29 @@ describe("guide pages' head", () => {
     expect(headHtml(headFor("/pricing"))).not.toContain("ld+json");
   });
 });
+
+describe("Arabic guide drafts", () => {
+  it("stay out of search until the author has reviewed them", async () => {
+    const { headFor, headHtml } = await import("../site/meta");
+    const draft = GUIDES.find((g) => g.ar.needsReview);
+    const ar = headFor(`/ar/guides/${draft.slug}`);
+    const en = headFor(`/guides/${draft.slug}`);
+    expect(ar.noindex).toBe(true);
+    expect(headHtml(ar)).toContain('<meta name="robots" content="noindex" />');
+    expect(en.noindex).toBe(false);
+    expect(en.alternates.ar).toBeUndefined();
+    expect(headHtml(en)).not.toContain('hreflang="ar"');
+  });
+  it("are listed once reviewed", async () => {
+    const { headFor } = await import("../site/meta");
+    const g = GUIDES[0];
+    const saved = g.ar.needsReview;
+    g.ar.needsReview = false;
+    try {
+      expect(headFor(`/ar/guides/${g.slug}`).noindex).toBe(false);
+      expect(headFor(`/guides/${g.slug}`).alternates.ar).toContain(`/ar/guides/${g.slug}`);
+    } finally {
+      g.ar.needsReview = saved;
+    }
+  });
+});
