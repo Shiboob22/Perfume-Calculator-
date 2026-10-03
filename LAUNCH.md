@@ -137,8 +137,12 @@ test itself runs on staging only); data counts unchanged.
 **Rollback:**
 - The app: Vercel → Deployments → previous → *Instant Rollback*.
 - The database: migrations are additive, so the old app runs against the new
-  schema. Don't reverse migrations by hand; restore the backup from step 4
-  only if data is wrong.
+  schema. Don't reverse migrations by hand.
+- **There is no database backup.** The pre-migration `backup_20261002` schema
+  was dropped on 2026-10-02 at the owner's request, and the Supabase free plan
+  keeps none. Wrong or lost data cannot be restored until Supabase Pro (daily
+  backups, §2) is on. Until then, export your own account from
+  `/app/account` before risky changes.
 
 ## 8. After launch
 
