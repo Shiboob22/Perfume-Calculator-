@@ -55,7 +55,7 @@ function Field({ label, extra, hint, htmlFor, children }) {
       </div>
       {children}
       {hint ? (
-        <p className="text-xs mt-1" style={{ color: COLORS.ink }}>
+        <p className="text-xs mt-1" style={{ color: COLORS.inkSoft }}>
           {hint}
         </p>
       ) : null}
@@ -379,8 +379,8 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
       <div role="group" aria-label={t("calc.modes.label")} className="flex flex-wrap gap-2 mb-6">
         {MODES.map((m) => (
           <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}
-            className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider border rounded-lg"
-            style={{ borderColor: mode === m ? COLORS.amber : COLORS.line, color: mode === m ? COLORS.amber : COLORS.inkSoft }}>
+            className="px-3 py-1.5 text-sm border rounded-lg min-h-[32px]"
+            style={{ borderColor: mode === m ? COLORS.amber : COLORS.field, color: mode === m ? COLORS.amber : COLORS.inkSoft }}>
             {t(`calc.modes.tabs.${m}`)}
           </button>
         ))}
@@ -665,7 +665,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             type="button"
             onClick={handleAdvise}
             disabled={!fragName.trim() || tipsLoading}
-            className="mt-4 px-4 py-2 text-xs font-mono uppercase tracking-wider rtl:tracking-normal border rounded-lg disabled:opacity-50"
+            className="mt-4 px-4 py-2 text-sm border rounded-lg disabled:opacity-50"
             style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
           >
             {tipsLoading ? t("calc.asking") : t("calc.advise")}
