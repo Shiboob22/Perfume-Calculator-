@@ -1,11 +1,20 @@
 // Fails the build if anything secret reached the browser bundle in dist/.
 // Publishable/anon keys are fine by design; service-role keys, secret keys
 // and Gemini keys are not. Every JWT found is decoded and must be role=anon.
+// The owner's private handbook material (scripts/private-terms.mjs) may not
+// appear anywhere in the built site either.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { privateTermsIn } from "./private-terms.mjs";
 
 const DIST = "dist";
 const files = [];
+function walkAll(dir) {
+  return readdirSync(dir).flatMap((name) => {
+    const p = join(dir, name);
+    return statSync(p).isDirectory() ? walkAll(p) : [p];
+  });
+}
 (function walk(dir) {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
@@ -36,6 +45,13 @@ for (const file of files) {
   }
 }
 
+// Handbook PDFs are private source material and never part of the site.
+for (const file of [...files, ...walkAll(DIST)].filter((f) => /\.pdf$/i.test(f))) problems.push(`${file}: a PDF in the built site`);
+for (const file of files) {
+  const hits = privateTermsIn(readFileSync(file, "utf8"));
+  if (hits.length) problems.push(`${file}: private handbook terms ${hits.join(", ")}`);
+}
+
 // Public pages are prerendered and must stay light: the entry bundle (the
 // one every public page loads) may not carry the sign-in client.
 for (const file of files.filter((f) => /assets\/index-[^/]+\.js$/.test(f))) {
@@ -48,4 +64,4 @@ if (problems.length) {
   console.error("Secret check failed:\n" + problems.map((p) => "  - " + p).join("\n"));
   process.exit(1);
 }
-console.log(`Secret check passed: ${files.length} files in ${DIST}/, no secrets.`);
+console.log(`Secret check passed: ${files.length} files in ${DIST}/, no secrets, no private handbook terms.`);
