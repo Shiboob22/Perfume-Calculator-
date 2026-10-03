@@ -42,6 +42,16 @@ export function formatExact(date, locale = "en") {
   });
 }
 
+// A blend date ("2026-09-10", a calendar day with no time zone) as
+// "10 Sept 2026" / "10 سبتمبر 2026", Latin digits as elsewhere on the card.
+export function formatDay(isoDate, locale = "en") {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate || "");
+  if (!m) return isoDate || "";
+  return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString(locale, {
+    year: "numeric", month: "short", day: "numeric", numberingSystem: "latn",
+  });
+}
+
 // Time left until `readyAt`, as a message key and count for t():
 // { key: "ready" } | { key: "inDays", count } | { key: "inHours", count }.
 export function readyCountdown(readyAt, now = new Date()) {

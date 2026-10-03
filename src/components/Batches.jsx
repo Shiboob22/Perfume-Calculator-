@@ -5,7 +5,7 @@ import { listBatches, deleteBatch } from "../lib/fragranceApi";
 import { downloadBatchCard } from "../lib/batchCard";
 import { actualStrength } from "../lib/calc";
 import { batchInsights } from "../lib/aiApi";
-import { batchStartedAt, batchReadyAt, formatExact, readyCountdown } from "../lib/batchTiming";
+import { batchStartedAt, batchReadyAt, formatDay, formatExact, readyCountdown } from "../lib/batchTiming";
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
@@ -42,7 +42,7 @@ function BatchTiming({ batch }) {
           <span style={{ color: COLORS.inkSoft }}>{t("batches.bestFrom")} </span>
           <span style={{ color: COLORS.ink }}>{formatExact(ready, locale)}</span>
           {countdown && (
-            <span style={{ color: isReady ? COLORS.forest : COLORS.amberDeep }}> · {t(`batches.countdown.${countdown.key}`, { count: countdown.count })}</span>
+            <span className="ms-2" style={{ color: isReady ? COLORS.forest : COLORS.amberDeep }}>({t(`batches.countdown.${countdown.key}`, { count: countdown.count })})</span>
           )}
         </div>
       )}
@@ -156,7 +156,7 @@ export default function Batches() {
               type="button"
               onClick={handleInsights}
               disabled={insightsLoading}
-              className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider rtl:tracking-normal border rounded-lg disabled:opacity-50"
+              className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-50"
               style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
             >
               {insightsLoading ? t("batches.thinking") : t("batches.insights")}
@@ -168,7 +168,7 @@ export default function Batches() {
       {capped && (
         <p className="text-xs font-mono mb-4" style={{ color: batches.length >= entitlements.batchCap ? COLORS.danger : COLORS.inkSoft }}>
           {t("plan.usage", { used: batches.length, cap: entitlements.batchCap })}
-          {batches.length >= entitlements.batchCap ? ` · ${t("plan.batchCap", { plan: t(`plan.names.${entitlements.plan}`), cap: entitlements.batchCap })}` : ""}
+          {batches.length >= entitlements.batchCap ? ` ${t("plan.batchCap", { plan: t(`plan.names.${entitlements.plan}`), cap: entitlements.batchCap })}` : ""}
         </p>
       )}
 
@@ -176,7 +176,7 @@ export default function Batches() {
       {insights && (
         <div className="mb-6 p-4 border rounded-lg whitespace-pre-wrap text-sm" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card, color: COLORS.ink }}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-mono uppercase tracking-wider rtl:tracking-normal" style={{ color: COLORS.amberDeep }}>{t("batches.insightsLabel")}</span>
+            <span className="text-sm font-semibold" style={{ color: COLORS.amberDeep }}>{t("batches.insightsLabel")}</span>
             <button type="button" onClick={() => setInsights("")} className="text-xs font-mono underline" style={{ color: COLORS.inkSoft }}>
               {t("batches.hide")}
             </button>
@@ -223,8 +223,8 @@ export default function Batches() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-sm font-serif font-semibold" style={{ color: COLORS.forestDeep }}>{b.fragrance_name}</div>
-                <div className="text-xs font-mono mt-0.5" style={{ color: COLORS.inkSoft }}>
-                  {b.blend_date} · {TIERS[b.tier] ? t(`families.${b.tier}.label`) : b.tier} · {b.concentration_pct}%
+                <div className="text-xs mt-0.5" style={{ color: COLORS.inkSoft }}>
+                  {t("batches.meta", { family: TIERS[b.tier] ? t(`families.${b.tier}.label`) : b.tier, pct: b.concentration_pct, date: formatDay(b.blend_date, locale) })}
                 </div>
               </div>
               <div className="flex items-center gap-3 shrink-0 ms-3">
@@ -264,12 +264,22 @@ export default function Batches() {
                 )}
               </div>
             </div>
-            <div className="mt-2 text-sm font-mono" style={{ color: COLORS.ink }}>
-              {t("batches.oil")} {round2(b.oil_g)} g / {round2(b.oil_ml)} mL &nbsp;·&nbsp; {t("batches.ethanol")} {round2(b.ethanol_g)} g / {round2(b.ethanol_ml)} mL
-              &nbsp;·&nbsp; {t("batches.total")} {round2(b.total_g)} g
-              {b.oil_cost ? <> &nbsp;·&nbsp; {t("batches.cost")} {round2(b.oil_cost)}</> : null}
-              {b.price_per_gram ? <> ({round2(Number(b.price_per_gram))}{t("batches.perGram")})</> : null}
-            </div>
+            {/* The weights are the record: a labelled grid, numbers in mono. */}
+            <dl className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
+              {[
+                [t("batches.oil"), `${round2(b.oil_g)} g`, `${round2(b.oil_ml)} mL`],
+                [t("batches.ethanol"), `${round2(b.ethanol_g)} g`, `${round2(b.ethanol_ml)} mL`],
+                [t("batches.total"), `${round2(b.total_g)} g`, null],
+                b.oil_cost ? [t("batches.cost"), round2(b.oil_cost), b.price_per_gram ? `${round2(Number(b.price_per_gram))}${t("batches.perGram")}` : null] : null,
+              ].filter(Boolean).map(([label, value, sub]) => (
+                <div key={label}>
+                  <dt className="text-xs" style={{ color: COLORS.inkSoft }}>{label}</dt>
+                  <dd dir="ltr" className="font-mono text-sm text-start rtl:text-end" style={{ color: COLORS.ink }}>
+                    {value}{sub && <span className="ms-1.5 text-xs" style={{ color: COLORS.inkSoft }}>{sub}</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
             {actualStrength(b) !== null && (
               <div className="text-xs font-mono mt-1" style={{ color: COLORS.ink }}>
                 {t(`batches.actualPour.${actualStrength(b).basisKnown ? actualStrength(b).basis : "assumed"}`, { oil: round2(Number(b.actual_oil_g)), ethanol: round2(Number(b.actual_ethanol_g)), pct: round2(actualStrength(b).pct), target: b.concentration_pct })}
@@ -278,7 +288,8 @@ export default function Batches() {
             <BatchTiming batch={b} />
             {(b.oil_type || b.blended_by) && (
               <div className="text-xs font-mono mt-1" style={{ color: COLORS.inkSoft }}>
-                {b.oil_type}{b.oil_type && b.blended_by ? " · " : ""}{b.blended_by ? t("batches.by", { name: b.blended_by }) : ""}
+                {b.oil_type && <span className="me-4">{b.oil_type}</span>}
+                {b.blended_by && <span>{t("batches.by", { name: b.blended_by })}</span>}
               </div>
             )}
             {b.notes && (

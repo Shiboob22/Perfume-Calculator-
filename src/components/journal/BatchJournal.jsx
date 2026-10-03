@@ -27,17 +27,18 @@ export default function BatchJournal({ batch, onDone, onRemoved }) {
     <div className="mt-3 pt-3 border-t" style={{ borderColor: COLORS.line }}>
       {entries.length > 0 && (
         <>
-          <h4 className="text-[11px] font-mono uppercase tracking-wider rtl:tracking-normal mb-1" style={{ color: COLORS.amberDeep }}>{t("journal.title")}</h4>
-          <ul className="space-y-1 text-sm">
+          <h4 className="text-sm font-semibold mb-2" style={{ color: COLORS.amberDeep }}>{t("journal.title")}</h4>
+          {/* A small timeline: the rest day in a fixed start column, then the
+              rating and the note. */}
+          <ul className="text-sm">
             {entries.map((c) => (
-              <li key={c.id} className="flex items-start justify-between gap-3">
+              <li key={c.id} className="grid grid-cols-[6.5rem_minmax(0,1fr)_auto] gap-3 py-1.5 border-t first:border-t-0" style={{ borderColor: COLORS.line }}>
+                <span className="font-mono text-xs pt-0.5" style={{ color: COLORS.inkSoft }}>{t("journal.restDay", { day: c.day })}</span>
                 <span>
-                  <span className="font-mono text-xs" style={{ color: COLORS.inkSoft }}>{t("journal.restDay", { day: c.day })}</span>
-                  {" · "}
-                  <span style={{ color: COLORS.amber }} aria-label={c.rating ? t("journal.ratingValue", { n: c.rating }) : t("journal.noRating")}>
+                  <span className="block" style={{ color: COLORS.amber }} aria-label={c.rating ? t("journal.ratingValue", { n: c.rating }) : t("journal.noRating")}>
                     {c.rating ? "★".repeat(c.rating) : "–"}
                   </span>
-                  {c.note && <> · <bdi dir="auto" style={{ color: COLORS.ink }}>{c.note}</bdi></>}
+                  {c.note && <bdi dir="auto" className="block" style={{ color: COLORS.ink }}>{c.note}</bdi>}
                 </span>
                 <button type="button" onClick={() => remove(c.id)} className="text-xs font-mono underline shrink-0 min-h-[24px]" style={{ color: COLORS.inkSoft }}>
                   {t("journal.remove")}

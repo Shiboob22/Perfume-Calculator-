@@ -21,8 +21,8 @@ export default function JournalDue({ due, onDone }) {
             <div className="text-sm font-serif font-semibold" style={{ color: COLORS.forestDeep }}>
               <bdi>{d.batch.fragrance_name}</bdi>
             </div>
-            <div className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>
-              {t("journal.restDay", { day: d.day })} · {TIERS[d.batch.tier] ? t(`families.${d.batch.tier}.label`) : d.batch.tier}
+            <div className="text-xs" style={{ color: COLORS.inkSoft }}>
+              {t("journal.dueMeta", { day: d.day, family: TIERS[d.batch.tier] ? t(`families.${d.batch.tier}.label`) : d.batch.tier })}
             </div>
             <CheckInForm batch={d.batch} scheduledDay={d.scheduledDay} onDone={(c, meta) => onDone(d.batch.id, c, meta)} />
           </li>

@@ -95,7 +95,7 @@ test("journal: a due check-in is saved from the Batches tab", async ({ page }) =
   await expect(tab).toContainText("1 check-in due");
   const due = page.getByRole("region", { name: "1 batch is due for a check-in" });
   await expect(due).toBeVisible();
-  await expect(due).toContainText("Day 22 of rest · Woody");
+  await expect(due).toContainText("Woody, day 22 of rest");
 
   await due.getByLabel(/How does .*Oud Nights.* smell today\?/).fill("Softer, the oud is coming forward");
   await due.getByRole("radio", { name: "4 of 5" }).check({ force: true });

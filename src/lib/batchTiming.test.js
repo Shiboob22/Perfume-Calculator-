@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readyCountdown, batchReadyAt, formatExact } from "./batchTiming";
+import { readyCountdown, batchReadyAt, formatExact, formatDay } from "./batchTiming";
 
 const now = new Date(2026, 8, 27, 12, 0);
 
@@ -28,5 +28,17 @@ describe("formatExact", () => {
   it("uses Western digits in Arabic", () => {
     expect(formatExact(now, "ar")).toMatch(/2026/);
     expect(formatExact(now, "ar")).not.toMatch(/[٠-٩]/);
+  });
+});
+
+describe("formatDay", () => {
+  it("formats a calendar day without shifting it across time zones", () => {
+    expect(formatDay("2026-09-10", "en-GB")).toBe("10 Sept 2026");
+    expect(formatDay("2026-01-01", "en")).toContain("2026");
+    expect(formatDay("2026-01-01", "ar")).toMatch(/1.*2026/);
+  });
+  it("passes through anything that is not a date", () => {
+    expect(formatDay("", "en")).toBe("");
+    expect(formatDay("soon", "en")).toBe("soon");
   });
 });
