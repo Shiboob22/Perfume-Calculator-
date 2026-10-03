@@ -10,7 +10,7 @@ export default function WorkedExample({ className = "" }) {
   const { t } = useI18n();
   return (
     <figure className={`p-6 ${SHAPE.panel} ${className}`} style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
-      <figcaption className="font-mono text-xs uppercase tracking-wider mb-4" style={{ color: COLORS.amberDeep }}>{t("site.home.exampleLabel")}</figcaption>
+      <figcaption className="font-mono text-sm mb-4" style={{ color: COLORS.amberDeep }}>{t("site.home.exampleLabel")}</figcaption>
       {[["exampleOil", EXAMPLE.oil], ["exampleAlcohol", EXAMPLE.alcohol], ["exampleTotal", EXAMPLE.total]].map(([key, grams], i) => (
         <div key={key} className="flex justify-between items-baseline py-3"
           style={{ borderTop: i === 2 ? `1px solid ${COLORS.inkSoft}` : "none", borderBottom: i < 1 ? `1px solid ${COLORS.line}` : "none" }}>

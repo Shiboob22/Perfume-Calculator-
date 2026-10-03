@@ -2,12 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
-import { GUIDES } from "../content/guides";
 import { localePath } from "./meta";
 import PlanCards from "./PlanCards";
 import WorkedExample from "../components/WorkedExample";
-
-const BLENDING_SLUGS = ["why-weigh", "the-calculation", "at-the-bench"];
+import MethodSequence from "./MethodSequence";
 
 function SectionTitle({ children }) {
   return <h2 className="font-serif italic text-3xl sm:text-4xl mb-4" style={{ color: COLORS.forestDeep }}>{children}</h2>;
@@ -18,7 +16,6 @@ export default function Home() {
   const to = (p) => localePath(locale, p);
   const benefits = t.raw("site.home.benefits") || [];
   const faq = t.raw("site.home.faq") || [];
-  const blending = BLENDING_SLUGS.map((slug) => GUIDES.find((g) => g.slug === slug)).filter(Boolean);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-8">
@@ -43,7 +40,7 @@ export default function Home() {
       {/* Quote */}
       <blockquote className="py-12 text-center" style={{ borderTop: `1px solid ${COLORS.line}`, borderBottom: `1px solid ${COLORS.line}` }}>
         <p className="font-serif italic text-2xl sm:text-3xl max-w-3xl mx-auto leading-snug" style={{ color: COLORS.forestDeep }}>“{t("site.home.quote")}”</p>
-        <footer className="mt-4 font-mono text-xs uppercase tracking-wider" style={{ color: COLORS.amberDeep }}>{t("site.home.quoteSource")}</footer>
+        <footer className="mt-4 text-sm" style={{ color: COLORS.amberDeep }}>{t("site.home.quoteSource")}</footer>
       </blockquote>
 
       {/* Benefits */}
@@ -60,18 +57,8 @@ export default function Home() {
       <section className="py-12" style={{ borderTop: `1px solid ${COLORS.line}` }}>
         <SectionTitle>{t("site.home.guidesTitle")}</SectionTitle>
         <p className="mb-8" style={{ color: COLORS.inkSoft }}>{t("site.home.guidesLead")}</p>
-        <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {blending.map((g, i) => (
-            <li key={g.slug}>
-              <Link to={to(`/guides/${g.slug}`)} className="block group">
-                <span className="block font-mono text-xs mb-2" style={{ color: COLORS.amberDeep }}>{String(i + 1).padStart(2, "0")}</span>
-                <span className="block font-serif text-xl mb-2 group-hover:underline" style={{ color: COLORS.forestDeep }}>{g[locale].title}</span>
-                <span className="block text-sm leading-relaxed" style={{ color: COLORS.inkSoft }}>{g[locale].summary}</span>
-              </Link>
-            </li>
-          ))}
-        </ol>
-        <Link to={to("/guides")} className="inline-block mt-8 font-mono text-xs uppercase tracking-wider hover:underline" style={{ color: COLORS.amber }}>
+        <MethodSequence />
+        <Link to={to("/guides")} className="inline-block mt-10 text-sm underline underline-offset-4" style={{ color: COLORS.amber }}>
           {t("site.home.allGuides")}
         </Link>
       </section>
@@ -81,7 +68,7 @@ export default function Home() {
         <SectionTitle>{t("site.home.pricingTitle")}</SectionTitle>
         <p className="mb-8" style={{ color: COLORS.inkSoft }}>{t("site.home.pricingLead")}</p>
         <PlanCards compact />
-        <Link to={to("/pricing")} className="inline-block mt-6 font-mono text-xs uppercase tracking-wider hover:underline" style={{ color: COLORS.amber }}>
+        <Link to={to("/pricing")} className="inline-block mt-6 text-sm underline underline-offset-4" style={{ color: COLORS.amber }}>
           {t("site.home.seePricing")}
         </Link>
       </section>
