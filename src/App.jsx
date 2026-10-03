@@ -128,9 +128,6 @@ export default function App() {
             >
               {t("brand")}
             </h1>
-            <p className="text-xs font-mono tracking-wide mt-1" style={{ color: COLORS.inkSoft }}>
-              {TABS.map((id) => t(`app.tabs.${id}`)).join(" · ")}
-            </p>
           </div>
           <div className="text-end">
             {user?.email && (
@@ -165,7 +162,7 @@ export default function App() {
               type="button"
               onClick={() => setActiveTab(id)}
               aria-current={activeTab === id ? "page" : undefined}
-              className="px-4 py-2 text-xs font-mono uppercase tracking-wider rtl:tracking-normal -mb-px border-b-2 transition-colors whitespace-nowrap"
+              className="px-3 py-2 text-sm -mb-px border-b-2 transition-colors whitespace-nowrap"
               style={{
                 borderColor: activeTab === id ? COLORS.forest : "transparent",
                 color: activeTab === id ? COLORS.forestDeep : COLORS.inkSoft,
