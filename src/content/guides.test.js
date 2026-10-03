@@ -37,18 +37,24 @@ describe("guides", () => {
 
 describe("private content", () => {
   // The owner's own collection (Vol. I Part X, most of Vol. II) is never
-  // published. Any of these names in public content is a leak.
-  const BOTTLES = [
-    /\bIcon\b/, /Sedley/, /YSL Y\b/, /MYSLF/i, /Wulong Cha/i, /Rain Tea/i, /Tea Storm/i, /Blue Talisman/i, /Alth[aä]ïr|Althair/i,
-    /Layton/i, /Pegasus/i, /40 Knots/i, /Herod/i, /Naxos/i, /Code Parfum/i, /Tobacco RWA|Rich Warm Addictive/i,
-    /1 Million|One Million/i, /God of Fire/i, /Black XS/i, /Desire (Red|for a Man)/i, /Le Beau/i,
-  ];
-
-  it("names none of the owner's bottles in any guide or UI string", async () => {
+  // published. Any private term in public content is a leak.
+  it("names none of the owner's bottles, profiles or scores in any guide, UI string or legal page", async () => {
+    const { privateTermsIn } = await import("../../scripts/private-terms.mjs");
     const en = (await import("../i18n/messages/en")).default;
     const ar = (await import("../i18n/messages/ar")).default;
-    const text = JSON.stringify([GUIDES, en, ar]);
-    for (const re of BOTTLES) expect(text, String(re)).not.toMatch(re);
+    const { LEGAL } = await import("./legal");
+    const text = JSON.stringify([GUIDES, en, ar, LEGAL]);
+    expect(privateTermsIn(text, { scores: true })).toEqual([]);
+  });
+
+  it("the check itself catches each kind of leak", async () => {
+    const { privateTermsIn } = await import("../../scripts/private-terms.mjs");
+    for (const leak of ["PDM Layton", "Tobacco RWA", "a Y EDP", "Xerjoff Naxos", "THE CAIRO WEAPON", "the Core Five", "Overall 9.3 / 10", "Date 8 / 10"]) {
+      expect(privateTermsIn(leak, { scores: true }), leak).not.toEqual([]);
+    }
+    for (const fine of ["Cairo heat", "100 ml at 25%", "1/10 of the batch", "an icon"]) {
+      expect(privateTermsIn(fine, { scores: true }), fine).toEqual([]);
+    }
   });
 });
 
