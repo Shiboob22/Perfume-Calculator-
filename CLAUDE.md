@@ -112,7 +112,7 @@ Billing: **free for now, billing-ready.** Plans + entitlements exist and gate fe
 - Tabs: Search (`PerfumeSearch.jsx`), Calculator (`FragranceBlendCalculator.jsx`), Batches, Inventory, Ask (`PerfumerChat.jsx`).
 - Batch PNG card: `src/lib/batchCard.js` (Canvas 2D, no deps). Timing: `src/lib/batchTiming.js`.
 - Visual identity: `src/lib/theme.js` (warm near-black ground, ivory text, one amber accent; legacy aliases `forest`/`forestDeep`/`brass` kept). Fonts: Cormorant Garamond, Space Grotesk, IBM Plex Mono (latin subsets only). Mark: `FlaconMark.jsx`.
-- Handbook PDFs: `content-src/` in the **main checkout only** (untracked). Identical copies in `~/Downloads`.
+- Handbook PDFs: `content-src/` in the **main checkout only**, git-ignored (they were committed by mistake in `e0deb7c` while the repo was public; untracked in Phase 8, history not rewritten, so the repo must stay private). Backups in `~/Documents/scent-handbook-pdfs/` and `~/Downloads`. Never commit them.
 
 ### Database — repo SQL does not match live
 
