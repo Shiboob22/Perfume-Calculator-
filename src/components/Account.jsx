@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { COLORS } from "../lib/theme";
+import { COLORS, SHAPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
@@ -20,16 +20,26 @@ function download(name, text, type) {
 
 const stamp = () => new Date().toISOString().slice(0, 10);
 
+// Sections are separated by a rule, not boxed: only the danger zone is a
+// bordered box, so it is the one thing on the page that looks different.
 function Section({ title, children, danger = false, id }) {
+  if (danger) {
+    return (
+      <section id={id} className={`mt-8 p-5 sm:p-6 ${SHAPE.danger}`} style={{ background: COLORS.dangerBg, border: `1px solid ${COLORS.danger}` }}>
+        <h2 className="font-serif text-2xl mb-3" style={{ color: COLORS.danger }}>{title}</h2>
+        {children}
+      </section>
+    );
+  }
   return (
-    <section id={id} className="p-5 sm:p-6 rounded-xl mb-5" style={{ background: danger ? COLORS.dangerBg : COLORS.card, border: `1px solid ${danger ? COLORS.danger : COLORS.line}` }}>
-      <h2 className="font-serif text-2xl mb-3" style={{ color: danger ? COLORS.danger : COLORS.forestDeep }}>{title}</h2>
+    <section id={id} className="py-7 border-t" style={{ borderColor: COLORS.line }}>
+      <h2 className="font-serif text-2xl mb-3" style={{ color: COLORS.forestDeep }}>{title}</h2>
       {children}
     </section>
   );
 }
 
-const buttonStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.line}` };
+const buttonStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` };
 const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` };
 
 // /app/account: plan and usage, the Pro waitlist, preferences, data export
@@ -46,7 +56,7 @@ export default function Account({ user }) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 sm:px-8 py-6">
-      <h1 className="font-serif italic text-4xl mb-1" style={{ color: COLORS.forestDeep }}>{t("account.title")}</h1>
+      <h1 className="font-serif italic text-3xl sm:text-4xl mb-1" style={{ color: COLORS.forestDeep }}>{t("account.title")}</h1>
       <p className="text-sm mb-6 font-mono" style={{ color: COLORS.inkSoft }}>{t("account.signedInAs", { email: user.email })}</p>
 
       <Section title={t("account.plan.title")}>
