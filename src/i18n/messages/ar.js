@@ -77,7 +77,7 @@ export default {
   },
   batches: {
     title: "سجل الدفعات",
-    summary: { zero: "لا دفعات", one: "دفعة واحدة · {cost} إجمالي تكلفة الزيت", two: "دفعتان · {cost} إجمالي تكلفة الزيت", few: "{count} دفعات · {cost} إجمالي تكلفة الزيت", many: "{count} دفعة · {cost} إجمالي تكلفة الزيت", other: "{count} دفعة · {cost} إجمالي تكلفة الزيت" },
+    summary: { zero: "لا دفعات", one: "دفعة واحدة، {cost} إجمالي تكلفة الزيت", two: "دفعتان، {cost} إجمالي تكلفة الزيت", few: "{count} دفعات، {cost} إجمالي تكلفة الزيت", many: "{count} دفعة، {cost} إجمالي تكلفة الزيت", other: "{count} دفعة، {cost} إجمالي تكلفة الزيت" },
     insights: "تحليلات الذكاء الاصطناعي",
     thinking: "جارٍ التفكير…",
     insightsLabel: "تحليلات من Gemini",
@@ -219,7 +219,7 @@ export default {
     step: "الخطوة {n} من {total}",
     next: "التالي",
     back: "رجوع",
-    batch: "{name} · {size} {unit} بتركيز {pct}%",
+    batch: "{name}، {size} {unit} بتركيز {pct}%",
     untitled: "خلطة بلا اسم",
     noPlan: "جهّز دفعة في الحاسبة أولًا، ثم ابدأ وضع العمل من هناك.",
     awake: "تبقى الشاشة مضاءة أثناء العمل.",

@@ -76,7 +76,7 @@ export default {
   },
   batches: {
     title: "Batch history",
-    summary: { one: "{count} batch · {cost} total oil cost", other: "{count} batches · {cost} total oil cost" },
+    summary: { one: "{count} batch, {cost} total oil cost", other: "{count} batches, {cost} total oil cost" },
     insights: "AI insights",
     thinking: "Thinking…",
     insightsLabel: "Insights from Gemini",
@@ -218,7 +218,7 @@ export default {
     step: "Step {n} of {total}",
     next: "Next",
     back: "Back",
-    batch: "{name} · {size} {unit} at {pct}%",
+    batch: "{name}, {size} {unit} at {pct}%",
     untitled: "Untitled blend",
     noPlan: "Set up a batch in the calculator first, then start bench mode from there.",
     awake: "The screen stays on while you work.",

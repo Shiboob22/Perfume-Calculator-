@@ -26,8 +26,8 @@ function Contents({ guides }) {
         const parts = g.source.sections;
         return (
           <li key={g.slug} className={`border-t ${SHAPE.row}`} style={{ borderColor: COLORS.line }}>
-            <Link to={localePath(locale, `/guides/${g.slug}`)} className="group grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 py-5">
-              <span className="font-mono text-xs pt-1.5" style={{ color: COLORS.dim }}>
+            <Link to={localePath(locale, `/guides/${g.slug}`)} className="group grid sm:grid-cols-[6.5rem_minmax(0,1fr)] gap-1 sm:gap-3 py-5">
+              <span className="font-mono text-xs sm:pt-1.5 whitespace-nowrap" style={{ color: COLORS.dim }}>
                 {t(parts.length > 1 ? "site.guides.parts" : "site.guides.part", { n: partNumbers(parts) })}
               </span>
               <span>

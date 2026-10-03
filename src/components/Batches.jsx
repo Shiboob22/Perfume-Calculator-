@@ -145,11 +145,11 @@ export default function Batches() {
 
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 mb-6">
         <h2 ref={headingRef} tabIndex={-1} className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>{t("batches.title")}</h2>
         {batches.length > 0 && (
           <div className="flex items-center gap-3">
-            <span className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>
+            <span className="text-xs" style={{ color: COLORS.inkSoft }}>
               {t("batches.summary", { count: batches.length, cost: round2(totalOilCost) })}
             </span>
             {entitlements.features?.includes("ai.ask") && <button
@@ -220,14 +220,14 @@ export default function Batches() {
       <div className="space-y-3">
         {batches.map((b) => (
           <div key={b.id} className="p-4 border" style={{ borderColor: COLORS.line, backgroundColor: COLORS.card }}>
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
               <div>
                 <div className="text-sm font-serif font-semibold" style={{ color: COLORS.forestDeep }}>{b.fragrance_name}</div>
                 <div className="text-xs mt-0.5" style={{ color: COLORS.inkSoft }}>
                   {t("batches.meta", { family: TIERS[b.tier] ? t(`families.${b.tier}.label`) : b.tier, pct: b.concentration_pct, date: formatDay(b.blend_date, locale) })}
                 </div>
               </div>
-              <div className="flex items-center gap-3 shrink-0 ms-3">
+              <div className="flex items-center gap-3 shrink-0 sm:ms-3">
                 <button
                   type="button"
                   onClick={() => downloadBatchCard(b, { t, locale }).catch((e) => setError(t("batchCard.failed", { error: errorText(t, e) })))}
