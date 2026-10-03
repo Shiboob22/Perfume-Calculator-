@@ -33,7 +33,7 @@ function today() {
 function Big({ label, grams }) {
   return (
     <div className="my-6 text-center">
-      <p className="font-mono text-xs uppercase tracking-[0.2em]" style={{ color: COLORS.amberDeep }}>{label}</p>
+      <p className="text-base" style={{ color: COLORS.amberDeep }}>{label}</p>
       <p dir="ltr" className="font-mono font-semibold leading-none mt-2" style={{ fontSize: "clamp(56px, 18vw, 96px)", color: COLORS.forestDeep }}>
         {grams}<span className="text-2xl ms-2" style={{ color: COLORS.inkSoft }}>g</span>
       </p>
@@ -49,7 +49,7 @@ function Rules({ step }) {
     <ul className="mt-6 space-y-2">
       {rules.map((n) => (
         <li key={n} className="p-3 rounded-lg text-sm" style={{ border: `1px solid ${COLORS.line}`, color: COLORS.ink }}>
-          <span className="font-mono text-[11px] uppercase me-2" style={{ color: COLORS.amberDeep }}>{t("bench.rule", { n })}</span>
+          <span className="font-semibold me-2" style={{ color: COLORS.amberDeep }}>{t("bench.rule", { n })}</span>
           {t(`bench.rules.${n}`)}{" "}
           <a href={`/guides/at-the-bench#rule-${n}`} className="underline text-xs" style={{ color: COLORS.amber }}>{t("bench.readRule")}</a>
         </li>
@@ -159,7 +159,7 @@ export default function BenchMode() {
     <div className="min-h-screen flex flex-col" style={{ background: COLORS.paper, color: COLORS.ink }}>
       <header className="px-4 pt-4 pb-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
         <div className="flex-1 min-w-0">
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em]" style={{ color: COLORS.amberDeep }}>
+          <p className="text-sm" style={{ color: COLORS.amberDeep }}>
             {t("bench.step", { n: i + 1, total: STEPS.length })}
           </p>
           <p className="text-sm truncate" style={{ color: COLORS.inkSoft }}>
@@ -179,7 +179,7 @@ export default function BenchMode() {
 
         {step === "prepare" && (
           <>
-            <h2 className="mt-6 font-mono text-xs uppercase tracking-wider" style={{ color: COLORS.amberDeep }}>{t("bench.prepare.equipment")}</h2>
+            <h2 className="mt-6 font-serif italic text-xl" style={{ color: COLORS.amberDeep }}>{t("bench.prepare.equipment")}</h2>
             <ul className="mt-2 space-y-1 ps-5 list-disc">{(t.raw("bench.prepare.equipmentList") || []).map((x) => <li key={x}>{x}</li>)}</ul>
             <p className="mt-4">{t("bench.prepare.area")}</p>
             <div role="alert" className="mt-5 p-4 rounded-xl" style={{ border: `1px solid ${COLORS.danger}`, background: COLORS.dangerBg }}>
