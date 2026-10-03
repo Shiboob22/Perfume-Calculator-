@@ -49,11 +49,11 @@ async function signedIn(page, { onboarded = true } = {}) {
       access_token: "preview-token", token_type: "bearer", expires_in: 3600,
       expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: "preview-refresh", user,
     });
-    const getItem = Storage.prototype.getItem;
-    Storage.prototype.getItem = function (key) {
+    const getItem = globalThis.Storage.prototype.getItem;
+    globalThis.Storage.prototype.getItem = function (key) {
       return /^sb-.+-auth-token$/.test(key) ? session : getItem.call(this, key);
     };
-    sessionStorage.setItem("sh-bench", JSON.stringify(plan));
+    globalThis.sessionStorage.setItem("sh-bench", JSON.stringify(plan));
   }, { user: USER, plan: { name: "Oud Nights", fragranceId: null, tier: "woody", amount: 100, unit: "ml", concPct: 25, densities: { oil: 0.95, ethanol: 0.81 } } });
 
   const json = (route, body) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
@@ -89,7 +89,7 @@ for (const [size, width, height] of [["phone", 390, 844], ["desktop", 1280, 900]
     const page = await context.newPage();
     if (setup) await setup(page);
     await page.goto(base + path, { waitUntil: "networkidle" }).catch(() => {});
-    await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(() => globalThis.document.fonts.ready);
     await page.waitForTimeout(500);
     await page.screenshot({ path: `${out}/${name}-${size}.png`, fullPage: true });
     await context.close();
@@ -98,7 +98,7 @@ for (const [size, width, height] of [["phone", 390, 844], ["desktop", 1280, 900]
   for (const [name, path] of Object.entries(APP)) await shoot(name, path, (p) => signedIn(p));
   await shoot("onboarding", "/app/calculator", (p) => signedIn(p, { onboarded: false }));
   // The app's language is the saved preference, not the URL.
-  const arabic = (p) => p.addInitScript(() => localStorage.setItem("sh-locale", "ar"));
+  const arabic = (p) => p.addInitScript(() => globalThis.localStorage.setItem("sh-locale", "ar"));
   await shoot("signin-ar", "/app", arabic);
   await shoot("batches-ar", "/app/batches", async (p) => { await arabic(p); await signedIn(p); });
 }
