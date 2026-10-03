@@ -146,7 +146,7 @@ export default function Batches() {
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <div className="flex items-center justify-between mb-6">
-        <h2 ref={headingRef} tabIndex={-1} className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>{t("batches.title")}</h2>
+        <h2 ref={headingRef} tabIndex={-1} className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>{t("batches.title")}</h2>
         {batches.length > 0 && (
           <div className="flex items-center gap-3">
             <span className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>

@@ -50,7 +50,7 @@ export default function PerfumerChat() {
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>{t("chat.title")}</h2>
+        <h2 className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>{t("chat.title")}</h2>
         {messages.length > 0 && (
           <button
             type="button"
@@ -70,7 +70,7 @@ export default function PerfumerChat() {
 
       {messages.length === 0 && (
         <div className="mb-6">
-          <p className="text-sm font-mono mb-3" style={{ color: COLORS.inkSoft }}>
+          <p className="text-sm mb-3" style={{ color: COLORS.inkSoft }}>
             {t("chat.intro")}
           </p>
           <div className="flex flex-col gap-2">
@@ -111,7 +111,7 @@ export default function PerfumerChat() {
         <div ref={endRef} />
       </div>
 
-      {error && <p role="alert" className="text-sm font-mono mb-2" style={{ color: COLORS.danger }}>{error}</p>}
+      {error && <p role="alert" className="text-sm mb-2" style={{ color: COLORS.danger }}>{error}</p>}
 
       <div className="flex gap-2 items-end">
         <textarea
@@ -122,7 +122,7 @@ export default function PerfumerChat() {
           maxLength={2000}
           placeholder={t("chat.placeholder")}
           aria-label={t("chat.placeholder")}
-          className="flex-1 px-3 py-2 font-mono text-sm border rounded-lg resize-y focus:outline-none focus:ring-2"
+          className="flex-1 px-3 py-2 text-sm border rounded-lg resize-y focus:outline-none focus:ring-2"
           style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
         />
         <button
@@ -135,7 +135,7 @@ export default function PerfumerChat() {
           {t("chat.send")}
         </button>
       </div>
-      <p className="text-[10px] font-mono mt-2" style={{ color: COLORS.dim }}>
+      <p className="text-xs mt-2" style={{ color: COLORS.dim }}>
         {t("chat.footnote")}
       </p>
     </div>

@@ -48,7 +48,7 @@ export default function Labels() {
     <div className="max-w-3xl mx-auto p-6">
       <div className="no-print">
         <h2 className="font-serif italic text-3xl mb-4" style={{ color: COLORS.forestDeep }}>{t("labels.title")}</h2>
-        {!id && <p style={{ color: COLORS.inkSoft }}>{t("labels.pick")}</p>}
+        {!id && <p className="mb-6" style={{ color: COLORS.inkSoft }}>{t("labels.pick")}</p>}
         {error && <p role="alert" style={{ color: COLORS.danger }}>{error}</p>}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -77,9 +77,9 @@ export default function Labels() {
           </fieldset>
           <div className="grid gap-3 content-start">
             <label className="text-sm" style={{ color: COLORS.ink }}>{t("bench.label.lot")}
-              <input value={lot} maxLength={40} onChange={(e) => setLot(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg font-mono" style={inputStyle} /></label>
+              <input value={lot} maxLength={40} onChange={(e) => setLot(e.target.value)} className="block mt-1 w-full px-3 py-2 rounded-lg font-mono" style={inputStyle} /></label>
             <label className="text-sm" style={{ color: COLORS.ink }}>{t("labels.copies")}
-              <input type="number" min="1" max={MAX_COPIES} value={copies} onChange={(e) => setCopies(e.target.value)} className="mt-1 w-24 px-3 py-2 rounded-lg font-mono" style={inputStyle} /></label>
+              <input type="number" min="1" max={MAX_COPIES} value={copies} onChange={(e) => setCopies(e.target.value)} className="block mt-1 w-24 px-3 py-2 rounded-lg font-mono" style={inputStyle} /></label>
           </div>
         </div>
         <button type="button" disabled={!label || !size} onClick={() => window.print()}

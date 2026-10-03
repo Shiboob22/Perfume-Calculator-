@@ -60,17 +60,17 @@ export default function Inventory() {
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-serif font-semibold" style={{ color: COLORS.forestDeep }}>{t("inventory.title")}</h2>
+        <h2 className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>{t("inventory.title")}</h2>
         {rows.length > 0 && (
           <span className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>{t("inventory.tracked", { count: rows.length })}</span>
         )}
       </div>
-      <p className="text-xs font-mono mb-6" style={{ color: COLORS.inkSoft }}>
+      <p className="text-sm mb-6" style={{ color: COLORS.inkSoft }}>
         {t("inventory.intro")}
       </p>
 
-      {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
-      {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
+      {loading && <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
+      {error && <p className="text-sm" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && rows.length === 0 && (
         <EmptyState text={t("inventory.empty")} action={t("inventory.emptyAction")} to="/app/search" />
       )}
