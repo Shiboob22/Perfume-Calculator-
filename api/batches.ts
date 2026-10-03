@@ -1,86 +1,30 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { loadEntitlements, canLogBatch } from './_lib/entitlements.js';
 import { overLimit } from './_lib/rateLimit.js';
 import { randomBytes } from 'node:crypto';
 import { shareRow } from './_lib/share.js';
+import { setCors, serviceClient, requireUser, isTimeout, SLOW_READ, SLOW_WRITE, UUID } from './_lib/http.js';
 // @ts-ignore: plain JS shared with the browser
 import { recipeSlug } from '../src/lib/publicText.js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
-
-// Reflect the request Origin only when it is one of the app's own domains.
-// Same-origin requests (the app calling its own /api) ignore CORS entirely, so
-// this does not affect the app — it just stops arbitrary cross-origin sites
-// from scripting these authenticated endpoints, which the previous `*` allowed.
-const ALLOWED_ORIGINS = [
-  'https://scent-handbook-app.vercel.app',
-  'https://scent-handbook-app-shiboob22s-projects.vercel.app',
-];
-
-function setCors(req: VercelRequest, res: VercelResponse) {
-  const origin = req.headers.origin;
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-}
-
-// Supabase calls must never hang a request: on 2026-09-24 some calls stalled
-// 18-153 s on the network path before reaching Supabase. Reads get 5 s per
-// try (PostgREST retries GETs on its own); writes get 15 s and are not
-// retried, because a stalled write can still land later.
-function timedFetch(input: Parameters<typeof fetch>[0], init: RequestInit = {}) {
-  const method = (init.method || 'GET').toUpperCase();
-  const ms = method === 'GET' || method === 'HEAD' ? 5_000 : 15_000;
-  // Nothing here passes its own abort signal; if something ever does, keep it.
-  return fetch(input, { ...init, signal: init.signal ?? AbortSignal.timeout(ms) });
-}
-
-function isTimeout(err: any) {
-  return /TimeoutError/.test(String(err?.message ?? ''));
-}
-
-const SLOW_READ = 'Database is slow to respond — please try again.';
-const SLOW_WRITE = 'Database is slow to respond. The change may still save — refresh before trying again.';
-
+// Batches: log (POST), list (GET), share (PATCH) and delete (DELETE), for the
+// signed-in user only. Uses the service role, so every query scopes by
+// user_id. CORS, the 5 s / 15 s Supabase timeouts and auth come from
+// _lib/http.ts (on 2026-09-24 some Supabase calls stalled 18-153 s).
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  setCors(req, res);
+  setCors(req, res, 'GET, POST, PATCH, DELETE');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, { global: { fetch: timedFetch } });
-  
-  let userId: string | null = null;
-  if (token) {
-    const { data: { user }, error: authError } = await createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` }, fetch: timedFetch }
-    }).auth.getUser();
-
-    // A network failure is not a bad token — don't report it as 401.
-    if (authError && isAuthRetryableFetchError(authError)) {
-      return res.status(503).json({ error: SLOW_READ });
-    }
-    if (user) userId = user.id;
-  }
-
-  if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
-  }
+  const userId = await requireUser(req, res);
+  if (!userId) return;
+  const supabase = serviceClient();
 
   if (req.method === 'POST') {
     try {
       const b = req.body || {};
-      const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       const clientId = typeof b.id === 'string' && UUID.test(b.id) ? b.id : null;
 
       // A re-sent offline batch that already landed: answer before the cap
