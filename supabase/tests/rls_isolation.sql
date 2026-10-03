@@ -49,6 +49,8 @@ begin
   insert into public.profiles (user_id, locale, default_unit) values (a, 'ar', 'g');
   insert into public.pro_waitlist (user_id, locale) values (a, 'ar');
   insert into public.billing_events (provider, event_id, payload) values ('test', 'evt_' || a, '{}');
+  insert into public.user_plans (user_id, plan_id) values (a, 'pro');
+  insert into public.rate_limits (key, window_start, hits) values ('test:' || a, now(), 1);
   select id into batch_a from public.batches where user_id = a;
   select id into batch_b from public.batches where user_id = b;
   insert into public.batch_checkins (id, batch_id, user_id, day, scheduled_day, note, rating)
@@ -118,6 +120,41 @@ begin
   if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B could not join the waitlist itself'; end if; checks := checks + 1;
   select count(*) into n from public.fragrances where id = f_shared;
   if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B can''t read the shared catalog'; end if; checks := checks + 1;
+
+  -- Plans, admins and rate limits (0001, 0003, 0010): nobody grants
+  -- themselves Pro or admin, or resets their own rate limit.
+  select count(*) into n from public.user_plans;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees % plan rows of other users', n; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.user_plans (user_id, plan_id) values (b, 'pro');
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B gave itself Pro'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.user_plans set plan_id = 'free' where user_id = a; get diagnostics n = row_count; ok := n = 0;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B changed A''s plan'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.plans set features = array['inventory'] where id = 'free'; get diagnostics n = row_count; ok := n = 0;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B changed what a plan includes'; end if; checks := checks + 1;
+  select count(*) into n from public.plans where id in ('free', 'pro');
+  if n <> 2 then raise exception 'RLS_ISOLATION FAILED: B can''t read the plans'; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.admins (user_id) values (b);
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B made itself an admin'; end if; checks := checks + 1;
+  ok := false;
+  begin perform 1 from public.admins limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a user can list the admins'; end if; checks := checks + 1;
+  ok := false;
+  begin delete from public.rate_limits;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a user can clear the rate limits'; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.billing_events (provider, event_id, payload) values ('test', 'forged_' || b, '{}');
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a user can forge a billing event'; end if; checks := checks + 1;
 
   -- Check-ins and shared recipes (0012, 0013): own rows only, written
   -- only through /api, public recipes only through the slug functions.
