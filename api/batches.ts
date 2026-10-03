@@ -7,6 +7,18 @@ import { setCors, serviceClient, requireUser, isTimeout, SLOW_READ, SLOW_WRITE, 
 // @ts-ignore: plain JS shared with the browser
 import { recipeSlug } from '../src/lib/publicText.js';
 
+// Every error answer carries a code the app translates (errors.<code> in
+// src/i18n/messages); the English message is for logs and old clients.
+// A 500 never returns database text: the detail goes to the server log.
+function fail(res: VercelResponse, status: number, code: string, error: string, extra: Record<string, unknown> = {}) {
+  return res.status(status).json({ error, code, ...extra });
+}
+function failFrom(res: VercelResponse, err: any, write: boolean, context: string) {
+  if (isTimeout(err)) return fail(res, 503, write ? 'slow_write' : 'slow_read', write ? SLOW_WRITE : SLOW_READ);
+  console.error(JSON.stringify({ at: 'api/batches', context, message: String(err?.message ?? err), code: err?.code }));
+  return fail(res, 500, 'server_error', 'Something went wrong. Please try again.');
+}
+
 // Batches: log (POST), list (GET), share (PATCH) and delete (DELETE), for the
 // signed-in user only. Uses the service role, so every query scopes by
 // user_id. CORS, the 5 s / 15 s Supabase timeouts and auth come from
@@ -48,11 +60,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .eq('user_id', userId);
       if (countError) throw countError;
       if (!canLogBatch(entitlements, used ?? 0)) {
-        return res.status(403).json({
-          error: `Your ${entitlements.name} plan keeps up to ${entitlements.batchCap} batches.`,
-          code: 'batch_cap',
-          cap: entitlements.batchCap,
-        });
+        return fail(res, 403, 'batch_cap', `Your ${entitlements.name} plan keeps up to ${entitlements.batchCap} batches.`,
+          { cap: entitlements.batchCap, plan: entitlements.name });
       }
 
       // Required (NOT NULL) columns on the batches table.
@@ -62,7 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ];
       const missing = required.filter((k) => b[k] === undefined || b[k] === null || b[k] === '');
       if (missing.length) {
-        return res.status(400).json({ error: `Missing required batch fields: ${missing.join(', ')}` });
+        return fail(res, 400, 'missing_fields', `Missing required batch fields: ${missing.join(', ')}`, { fields: missing });
       }
 
       // Whitelist only real columns; user_id + created_at are server-set.
@@ -108,8 +117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       return res.status(201).json({ success: true, batch: data[0] });
     } catch (err: any) {
-      if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
-      return res.status(500).json({ error: err.message || 'Failed to log batch' });
+      return failFrom(res, err, true, 'log');
     }
   }
 
@@ -134,8 +142,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       return res.status(200).json({ batches: data || [] });
     } catch (err: any) {
-      if (isTimeout(err)) return res.status(503).json({ error: SLOW_READ });
-      return res.status(500).json({ error: err.message || 'Failed to fetch batches' });
+      return failFrom(res, err, false, 'list');
     }
   }
 
@@ -147,13 +154,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const b = req.body || {};
       const id = typeof b.id === 'string' ? b.id : '';
-      if (!id || b.share === undefined) return res.status(400).json({ error: 'Missing batch ID or share.' });
+      if (!UUID.test(id) || b.share === undefined) return fail(res, 400, 'invalid_id', 'Missing batch ID or share.');
       if (await overLimit(supabase, res, 'share', userId)) return;
 
       const { data: batch, error: batchError } = await supabase
         .from('batches').select('*').eq('id', id).eq('user_id', userId).maybeSingle();
       if (batchError) throw batchError;
-      if (!batch) return res.status(404).json({ error: 'Batch not found.', code: 'not_found' });
+      if (!batch) return fail(res, 404, 'not_found', 'Batch not found.');
 
       const { data: existing, error: existingError } = await supabase
         .from('shared_recipes').select('slug').eq('batch_id', id).eq('user_id', userId).maybeSingle();
@@ -182,31 +189,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (error) throw error;
         return res.status(200).json({ share: data });
       }
-      return res.status(503).json({ error: 'Could not make a link — please try again.' });
+      return fail(res, 503, 'share_link_failed', 'Could not make a link — please try again.');
     } catch (err: any) {
-      if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
-      return res.status(500).json({ error: err.message || 'Failed to update sharing' });
+      return failFrom(res, err, true, 'share');
     }
   }
 
   if (req.method === 'DELETE') {
     try {
-      const id = req.query.id || req.body?.id;
-      if (!id) return res.status(400).json({ error: 'Missing batch ID' });
+      const id = String(req.query.id || req.body?.id || '');
+      if (!UUID.test(id)) return fail(res, 400, 'invalid_id', 'Missing or invalid batch ID');
 
       const { error } = await supabase
         .from('batches')
         .delete()
-        .eq('id', id as string)
+        .eq('id', id)
         .eq('user_id', userId);
 
       if (error) throw error;
       return res.status(200).json({ success: true });
     } catch (err: any) {
-      if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
-      return res.status(500).json({ error: err.message || 'Failed to delete batch' });
+      return failFrom(res, err, true, 'delete');
     }
   }
 
-  return res.status(405).json({ error: 'Method not allowed' });
+  return fail(res, 405, 'method_not_allowed', 'Method not allowed');
 }

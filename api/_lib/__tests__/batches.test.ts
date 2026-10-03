@@ -110,3 +110,39 @@ describe('PATCH /api/batches (share)', () => {
     expect(res.statusCode).toBe(404);
   });
 });
+
+describe('errors', () => {
+  it('rejects a malformed id on DELETE without touching the database', async () => {
+    const res = await call('DELETE', { query: { id: 'not-a-uuid' } });
+    expect(res.statusCode).toBe(400);
+    expect(res.body.code).toBe('invalid_id');
+    expect(db.writes).toEqual([]);
+  });
+
+  it('never returns database text on a 500', async () => {
+    db.fail('batches', 'select', { message: 'relation "secret_table" does not exist' });
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await call('GET');
+    spy.mockRestore();
+    expect(res.statusCode).toBe(500);
+    expect(res.body.code).toBe('server_error');
+    expect(JSON.stringify(res.body)).not.toContain('secret_table');
+  });
+
+  it('has an English and an Arabic message for every code the batch endpoints send', async () => {
+    const { readFileSync } = await import('node:fs');
+    const en = (await import('../../../src/i18n/messages/en.js')).default as any;
+    const ar = (await import('../../../src/i18n/messages/ar.js')).default as any;
+    const files = ['api/batches.ts', 'api/_lib/http.ts', 'api/_lib/share.ts', 'api/_lib/rateLimit.ts', 'api/_lib/entitlements.ts'];
+    const codes = new Set<string>();
+    for (const f of files) {
+      const src = readFileSync(f, 'utf8');
+      for (const m of src.matchAll(/code: '([a-z_]+)'/g)) codes.add(m[1]);
+      for (const m of src.matchAll(/fail\(res, \d+, '([a-z_]+)'/g)) codes.add(m[1]);
+      for (const m of src.matchAll(/'(slow_read|slow_write)'/g)) codes.add(m[1]);
+    }
+    expect(codes.size).toBeGreaterThan(10);
+    const missing = [...codes].filter((c) => !en.errors[c] || !ar.errors[c]);
+    expect(missing).toEqual([]);
+  });
+});

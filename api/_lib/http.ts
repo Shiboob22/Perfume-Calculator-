@@ -61,11 +61,11 @@ export async function requireUser(req: VercelRequest, res: VercelResponse): Prom
       global: { headers: { Authorization: `Bearer ${token}` }, fetch: timedFetch },
     }).auth.getUser();
     if (error && isAuthRetryableFetchError(error)) {
-      res.status(503).json({ error: SLOW_READ });
+      res.status(503).json({ error: SLOW_READ, code: 'slow_read' });
       return null;
     }
     if (user) return user.id;
   }
-  res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
+  res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.', code: 'not_authenticated' });
   return null;
 }
