@@ -263,11 +263,9 @@ function SeasonBar({ label, value }) {
 
 // A heading under the perfume's title (h2), so screen reader users can jump
 // between sections of the detail panel.
-function SectionLabel({ n, children }) {
+function SectionLabel({ children }) {
   return (
-    <h3 className="font-mono font-normal" style={{ fontSize: 11, letterSpacing: '0.26em', textTransform: 'uppercase', color: COLORS.amberDeep }}>
-      {n ? <span aria-hidden="true">{`${n} — `}</span> : ''}{children}
-    </h3>
+    <h3 className="font-serif italic text-xl" style={{ color: COLORS.amberDeep }}>{children}</h3>
   );
 }
 
@@ -536,7 +534,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
       style={{ colorScheme: 'dark' }}>
       {/* ---------------- Search column ---------------- */}
       <div ref={searchColRef} className="space-y-4 md:sticky md:top-4 md:self-start scroll-mt-4">
-        <label htmlFor="search-input" className="block font-mono text-[11px] uppercase tracking-[0.2em]" style={{ color: COLORS.amberDeep }}>
+        <label htmlFor="search-input" className="block text-sm font-semibold" style={{ color: COLORS.amberDeep }}>
           {t('search.label')}
         </label>
         <div className="relative">
@@ -566,43 +564,43 @@ export function PerfumeSearch({ onSelectPerfume }) {
           <div className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5"
             style={{ border: `1px solid ${COLORS.amberDeep}`, background: 'rgba(233,200,138,0.06)' }}>
             <span className="min-w-0">
-              <span className="block font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: COLORS.amberDeep }}>
+              <span className="block text-xs" style={{ color: COLORS.amberDeep }}>
                 {t('search.browsing')}
               </span>
               <span className="block font-serif text-[17px] truncate" style={{ color: COLORS.forestDeep }}>{browseTitle}</span>
             </span>
-            <button type="button" onClick={() => setBrowse(null)} className="shrink-0 font-mono text-[11px] uppercase tracking-wider px-2 py-1 rounded"
-              style={{ color: COLORS.amber, border: `1px solid ${COLORS.line}` }} aria-label={t('search.clearBrowse')}>
+            <button type="button" onClick={() => setBrowse(null)} className="shrink-0 text-sm px-2 py-1 rounded min-h-[24px]"
+              style={{ color: COLORS.amber, border: `1px solid ${COLORS.field}` }} aria-label={t('search.clearBrowse')}>
               {t('search.clear')}
             </button>
           </div>
         )}
         {!browse && query.trim().length < 2 && (
-          <p className="text-xs font-mono leading-relaxed" style={{ color: COLORS.inkSoft }}>
+          <p className="text-sm leading-relaxed" style={{ color: COLORS.inkSoft }}>
             {t('search.intro')}
           </p>
         )}
 
         {!browse && query.trim().length >= 2 && results.length === 0 && !loading && (
           <div className="space-y-3">
-            <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t('search.noMatch', { query })}</p>
+            <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t('search.noMatch', { query })}</p>
             {can(entitlements, 'ai.ask') && <button
               type="button"
               onClick={handleAskGemini}
               disabled={aiLoading}
-              className="w-full px-4 py-3 rounded-lg font-mono text-xs uppercase tracking-wider disabled:opacity-50"
+              className="w-full px-4 py-3 rounded-lg text-sm disabled:opacity-50"
               style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber, background: 'rgba(233,200,138,0.06)' }}
             >
               {aiLoading ? t('search.askingGemini') : t('search.askGemini', { query: query.trim() })}
             </button>}
-            {aiMsg && <p role="status" className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>{aiMsg}</p>}
+            {aiMsg && <p role="status" className="text-xs" style={{ color: COLORS.inkSoft }}>{aiMsg}</p>}
           </div>
         )}
 
         {results.length > 0 && (
           <div>
             {matchKind === 'fuzzy' && (
-              <p className="text-xs font-mono mb-2" style={{ color: COLORS.inkSoft }}>{t('search.closest')}</p>
+              <p className="text-xs mb-2" style={{ color: COLORS.inkSoft }}>{t('search.closest')}</p>
             )}
             <div className="rounded-lg overflow-hidden md:max-h-[70vh] md:overflow-y-auto" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
               {results.map((item) => (
@@ -610,7 +608,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
               ))}
               {hasMore && (
                 <button type="button" onClick={loadMore} disabled={loadingMore}
-                  className="w-full px-4 py-3 font-mono text-[11px] uppercase tracking-wider disabled:opacity-50"
+                  className="w-full px-4 py-3 text-sm disabled:opacity-50"
                   style={{ color: COLORS.amber, background: 'rgba(233,200,138,0.04)' }}>
                   {loadingMore ? t('app.loading') : t('search.showMore')}
                 </button>
@@ -641,17 +639,17 @@ export function PerfumeSearch({ onSelectPerfume }) {
                           style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }} />
                         <div className="flex gap-2">
                           <button type="button" onClick={handleSavePhoto}
-                            className="flex-1 px-2 py-1 rounded font-mono text-[10px] uppercase tracking-wider"
+                            className="flex-1 px-2 py-1 rounded text-xs min-h-[24px]"
                             style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t('search.save')}</button>
                           <button type="button" onClick={() => { setPhotoOpen(false); setPhotoMsg(''); }}
-                            className="px-2 py-1 rounded font-mono text-[10px] uppercase tracking-wider"
-                            style={{ border: `1px solid ${COLORS.line}`, color: COLORS.inkSoft }}>{t('search.cancel')}</button>
+                            className="px-2 py-1 rounded text-xs min-h-[24px]"
+                            style={{ border: `1px solid ${COLORS.field}`, color: COLORS.inkSoft }}>{t('search.cancel')}</button>
                         </div>
                         {photoMsg && <p role="alert" className="font-mono text-[10px]" style={{ color: COLORS.danger }}>{photoMsg}</p>}
                       </div>
                     ) : (
                       <button type="button" onClick={() => setPhotoOpen(true)}
-                        className="font-mono text-[10px] uppercase tracking-wider hover:underline underline-offset-4"
+                        className="text-xs underline underline-offset-4 min-h-[24px]"
                         style={{ color: COLORS.inkSoft }}>
                         {t('search.addPhoto')}
                       </button>
@@ -759,7 +757,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
               {/* Accords + profile */}
               <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_280px] gap-8 items-start">
                 <div>
-                  <SectionLabel n="01">{t('search.mainAccords')}</SectionLabel>
+                  <SectionLabel>{t('search.mainAccords')}</SectionLabel>
                   <div className="mt-5 flex flex-col gap-2">
                     {accords.length > 0
                       ? accords.slice(0, 10).map((a, i) => <AccordBar key={a} name={a} rank={i} onBrowse={browseBy} />)
@@ -776,7 +774,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
 
               {/* Note pyramid */}
               <div>
-                <SectionLabel n="02">{flatNotes ? t('search.notes') : t('search.pyramid')}</SectionLabel>
+                <SectionLabel>{flatNotes ? t('search.notes') : t('search.pyramid')}</SectionLabel>
                 {allNotes.length === 0 ? (
                   <p className="mt-5 font-serif italic" style={{ color: COLORS.dim }}>{t('search.noNotes')}</p>
                 ) : (
@@ -799,7 +797,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
 
               {/* Character (estimated) */}
               <div>
-                <SectionLabel n="03">{t(`search.whenToWear.${character.basis === 'accords' ? 'accords' : 'family'}`)}</SectionLabel>
+                <SectionLabel>{t(`search.whenToWear.${character.basis === 'accords' ? 'accords' : 'family'}`)}</SectionLabel>
                 <div className="mt-6 flex justify-between items-end gap-2 sm:gap-4">
                   {Object.entries(character.seasons).map(([label, value], i) => (
                     <React.Fragment key={label}>
@@ -819,7 +817,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 <>
                   <div style={{ height: 1, background: COLORS.hair }} />
                   <div>
-                    <SectionLabel n="04">{related.basis === 'family' ? t('search.popularInFamily', { family: fam.label.toLowerCase() }) : t('search.remindsMe')}</SectionLabel>
+                    <SectionLabel>{related.basis === 'family' ? t('search.popularInFamily', { family: fam.label.toLowerCase() }) : t('search.remindsMe')}</SectionLabel>
                     <div className="mt-5">
                       {related.loading ? <CardSkeleton /> : related.error ? (
                         <p className="text-xs font-mono" style={{ color: COLORS.danger }}>{related.error}</p>
@@ -833,10 +831,10 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   {names.brand && (related.loading || related.sameBrand.length > 0) && (
                     <div>
                       <div className="flex items-center justify-between gap-3">
-                        <SectionLabel n="05">{t('search.moreFrom', { brand: names.brand })}</SectionLabel>
+                        <SectionLabel>{t('search.moreFrom', { brand: names.brand })}</SectionLabel>
                         {p.brand && (
                           <button type="button" onClick={() => browseBy('brand', p.brand)}
-                            className="shrink-0 font-mono text-[11px] uppercase tracking-wider hover:underline underline-offset-4"
+                            className="shrink-0 text-sm underline underline-offset-4 min-h-[24px]"
                             style={{ color: COLORS.amber }}>
                             {t('search.seeAll')}
                           </button>
@@ -850,7 +848,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 </>
               )}
 
-              <div className="pt-3 flex flex-wrap gap-2 justify-between font-mono text-[10px] uppercase tracking-wider" style={{ color: COLORS.dim, borderTop: `1px solid ${COLORS.hair}` }}>
+              <div className="pt-3 flex flex-wrap gap-2 justify-between font-mono text-xs" style={{ color: COLORS.dim, borderTop: `1px solid ${COLORS.hair}` }}>
                 <span>{t('search.source', { source: p.source || t('search.database') })}</span>
                 <span>{p.id ? t('search.id', { id: String(p.id).substring(0, 8) }) : t('search.notSaved')}</span>
               </div>
