@@ -545,7 +545,6 @@ export default {
     admin_cannot_delete: "Admin accounts cannot be deleted from the app.",
   },
   onboarding: {
-    eyebrow: "Welcome",
     title: "Three questions, then the calculator.",
     step: "Question {n} of 3",
     unit: { question: "How do you measure?", ml: "Millilitres (mL)", floz: "Fluid ounces (fl oz)", g: "Grams (g)", oz: "Ounces (oz)", hint: "Grams are the most accurate on a 0.01 g scale. You can change this any time." },
@@ -612,7 +611,6 @@ export default {
     home: {
       metaTitle: "The Scent Handbook — a fragrance blending calculator by weight",
       metaDescription: "Dilute fragrance oil with 96% ethanol by weight. Exact grams for a 0.01 g scale, the bench method step by step, and a free library of guides.",
-      eyebrow: "The Scent Handbook",
       title: "Blend your own fragrance by weight.",
       lead: "A calculator and bench guide for diluting fragrance oil with 96% ethanol. Choose a bottle size and a strength, and get the two numbers to put on the scale.",
       ctaApp: "Open the calculator",

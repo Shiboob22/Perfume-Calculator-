@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { COLORS } from "../lib/theme";
+import { COLORS, SHAPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { useProfile } from "../lib/useProfile";
 import { UNIT_LABELS } from "../lib/calcPrefill";
@@ -49,19 +49,25 @@ export default function Onboarding() {
   const choice = (selected) => ({
     background: selected ? COLORS.amber : COLORS.cardHi,
     color: selected ? COLORS.onAmber : COLORS.ink,
-    border: `1px solid ${selected ? COLORS.amber : COLORS.line}`,
+    border: `1px solid ${selected ? COLORS.amber : COLORS.field}`,
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ background: COLORS.paper }}>
-      <div className="w-full max-w-md p-6 sm:p-8 rounded-2xl" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
-        <div className="flex items-center gap-3 mb-6">
-          <FlaconMark size={28} />
-          <p className="text-[11px] font-mono uppercase tracking-wider rtl:tracking-normal" style={{ color: COLORS.amber }}>
-            {t("onboarding.eyebrow")} · {t("onboarding.step", { n: step })}
-          </p>
+    <div className="min-h-screen flex flex-col" style={{ background: COLORS.paper }}>
+      {/* Same frame as sign-in, which comes just before it: the wordmark
+          on the start edge, the questions on the page, no centred card. */}
+      <header className="flex items-center gap-2 px-4 sm:px-8 py-5">
+        <FlaconMark size={24} />
+        <span className="font-serif italic text-lg" style={{ color: COLORS.forestDeep }}>{t("brand")}</span>
+      </header>
+      <div className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 py-6 md:py-10">
+      <div className="w-full max-w-md">
+        {/* The questions really are a sequence, so they get a step indicator. */}
+        <p className="text-sm" style={{ color: COLORS.amberDeep }}>{t("onboarding.step", { n: step })}</p>
+        <div aria-hidden="true" className="mt-2 mb-6 grid grid-cols-3 gap-1.5">
+          {[1, 2, 3].map((n) => <span key={n} className="h-1" style={{ background: n <= step ? COLORS.amber : COLORS.line }} />)}
         </div>
-        <h1 className="font-serif italic text-3xl mb-6" style={{ color: COLORS.forestDeep }}>{t("onboarding.title")}</h1>
+        <h1 className="font-serif italic text-3xl sm:text-4xl leading-tight mb-8" style={{ color: COLORS.forestDeep }}>{t("onboarding.title")}</h1>
 
         <fieldset>
           {step === 1 && (
@@ -70,7 +76,7 @@ export default function Onboarding() {
               <div className="grid grid-cols-2 gap-2">
                 {UNITS.map((u) => (
                   <button key={u} type="button" aria-pressed={unit === u} onClick={() => { setUnit(u); setBottle(DEFAULT_SIZE[u]); setCustom(""); }}
-                    className="px-3 py-3 rounded-lg text-sm text-start" style={choice(unit === u)}>
+                    className={`px-3 py-3 text-sm text-start ${SHAPE.control}`} style={choice(unit === u)}>
                     {t(`onboarding.unit.${u}`)}
                   </button>
                 ))}
@@ -84,7 +90,7 @@ export default function Onboarding() {
               <div className="flex flex-wrap gap-2">
                 {SIZES[unit].map((s) => (
                   <button key={s} type="button" aria-pressed={!custom && bottle === s} onClick={() => { setBottle(s); setCustom(""); }}
-                    className="px-4 py-2 rounded-full text-sm font-mono" style={choice(!custom && bottle === s)}>
+                    className={`px-4 py-2 text-sm font-mono ${SHAPE.control}`} style={choice(!custom && bottle === s)}>
                     {t("onboarding.bottle.size", { size: s, unit: UNIT_LABELS[unit] })}
                   </button>
                 ))}
@@ -120,6 +126,7 @@ export default function Onboarding() {
             : <button type="button" disabled={saving} onClick={() => finish(false)}
                 className="px-5 py-2 rounded-lg text-sm font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("onboarding.finish")}</button>}
         </div>
+      </div>
       </div>
     </div>
   );
