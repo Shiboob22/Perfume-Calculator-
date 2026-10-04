@@ -7,7 +7,9 @@ import { useWakeLock } from "../lib/useWakeLock";
 import { solveBottle, alcoholForOil, checkPour, labelWeights, fmt2 } from "../lib/calc";
 import { UNIT_LABELS } from "../lib/calcPrefill";
 import { logBatch } from "../lib/fragranceApi";
-import { buildBatch } from "../lib/batchPayload";
+import { buildBatch, usedOil } from "../lib/batchPayload";
+import { useEntitlements } from "../lib/useEntitlements";
+import { can } from "../lib/entitlements";
 import { enqueue, isOffline } from "../lib/outbox";
 
 // The handbook's Bench Workflow, one step per screen, big numbers, for a
@@ -17,6 +19,17 @@ import { enqueue, isOffline } from "../lib/outbox";
 const STEPS = ["prepare", "tare", "oil", "tareAgain", "alcohol", "mix", "qc", "label"];
 const RULES_AT = { prepare: [4], tare: [1], oil: [2, 3, 5], tareAgain: [1], alcohol: [2, 3, 5] };
 const SESSION_KEY = "sh-bench";
+// Where this bench run is (step, pours, checks, lot), so a reload or a
+// locked phone doesn't send the user back to step 1. Tied to the run.
+const PROGRESS_KEY = "sh-bench-progress";
+
+function loadProgress(plan) {
+  try {
+    const p = JSON.parse(sessionStorage.getItem(PROGRESS_KEY));
+    return p && p.run === runOf(plan) ? p : null;
+  } catch { return null; }
+}
+const runOf = (plan) => JSON.stringify(plan);
 
 function loadPlan(state) {
   if (state?.plan) {
@@ -43,7 +56,8 @@ function Big({ label, grams }) {
 }
 
 function Rules({ step }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const guide = `${locale === "ar" ? "/ar" : ""}/guides/at-the-bench`;
   const rules = RULES_AT[step] || [];
   if (!rules.length) return null;
   return (
@@ -52,7 +66,10 @@ function Rules({ step }) {
         <li key={n} className="p-3 rounded-lg text-sm" style={{ border: `1px solid ${COLORS.line}`, color: COLORS.ink }}>
           <span className="font-semibold me-2" style={{ color: COLORS.amberDeep }}>{t("bench.rule", { n })}</span>
           {t(`bench.rules.${n}`)}{" "}
-          <a href={`/guides/at-the-bench#rule-${n}`} className="underline text-xs" style={{ color: COLORS.amber }}>{t("bench.readRule")}</a>
+          {/* A new tab: leaving would end the bench run on this screen. */}
+          <a href={`${guide}#rule-${n}`} target="_blank" rel="noopener noreferrer" className="underline text-xs" style={{ color: COLORS.amber }}>
+            {t("bench.readRule")}<span className="sr-only"> {t("bench.newTab")}</span>
+          </a>
         </li>
       ))}
     </ul>
@@ -75,7 +92,8 @@ export default function BenchMode() {
   const navigate = useNavigate();
   const location = useLocation();
   const [plan] = useState(() => loadPlan(location.state));
-  const [i, setI] = useState(0);
+  const [saved] = useState(() => (plan ? loadProgress(plan) : null));
+  const [i, setI] = useState(saved?.i ?? 0);
   // A new step replaces the whole screen: move focus to its title so screen
   // readers read the new instruction (not on the first render).
   const titleRef = useRef(null);
@@ -84,14 +102,35 @@ export default function BenchMode() {
     if (firstStep.current) { firstStep.current = false; return; }
     titleRef.current?.focus();
   }, [i]);
-  const [cautionRead, setCautionRead] = useState(false);
-  const [oilG, setOilG] = useState("");
-  const [alcoholG, setAlcoholG] = useState("");
-  const [lot, setLot] = useState("");
-  const [qc, setQc] = useState(() => new Set());
+  const [cautionRead, setCautionRead] = useState(saved?.cautionRead ?? false);
+  const [oilG, setOilG] = useState(saved?.oilG ?? "");
+  const [alcoholG, setAlcoholG] = useState(saved?.alcoholG ?? "");
+  const [lot, setLot] = useState(saved?.lot ?? "");
+  const [qc, setQc] = useState(() => new Set(saved?.qc ?? []));
   const [timer, setTimer] = useState(null); // seconds left, or null
-  const [status, setStatus] = useState(null); // null | saving | saved | queued | error
+  // A run that was logged stays logged after a reload: no second log.
+  const [status, setStatus] = useState(saved?.status === "saved" || saved?.status === "queued" ? saved.status : null); // null | saving | saved | queued | error
   const [error, setError] = useState("");
+  const [stockNote, setStockNote] = useState("");
+  const entitlements = useEntitlements();
+  // One id per run, kept across retries, so a retry can't log it twice.
+  const logId = useRef(saved?.logId ?? null);
+
+  useEffect(() => {
+    if (!plan) return;
+    try {
+      sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
+        run: runOf(plan), i, cautionRead, oilG, alcoholG, lot, qc: [...qc], status, logId: logId.current,
+      }));
+    } catch { /* full or blocked: progress just isn't kept */ }
+  }, [plan, i, cautionRead, oilG, alcoholG, lot, qc, status]);
+
+  function startAnother() {
+    try { sessionStorage.removeItem(PROGRESS_KEY); } catch {}
+    logId.current = null;
+    setI(0); setCautionRead(false); setOilG(""); setAlcoholG(""); setLot(""); setQc(new Set());
+    setStatus(null); setError(""); setStockNote("");
+  }
   const { supported, held } = useWakeLock(true);
 
   useEffect(() => {
@@ -121,15 +160,24 @@ export default function BenchMode() {
   async function handleLog() {
     setStatus("saving");
     setError("");
-    const batch = buildBatch({
-      id: crypto.randomUUID(), fragranceId: plan.fragranceId, name: plan.name || t("bench.untitled"), tier: plan.tier,
-      blendDate: today(), concPct: plan.concPct, target, densities: plan.densities,
-      actualOilG: actualOil, actualEthG: alcoholG,
-      notes: lot ? `${t("bench.label.lot")}: ${lot}` : null,
-    });
+    logId.current ??= crypto.randomUUID();
+    const tracksStock = can(entitlements, "inventory") && plan.fragranceId;
+    const batch = {
+      ...buildBatch({
+        id: logId.current, fragranceId: plan.fragranceId, name: plan.name || t("bench.untitled"), tier: plan.tier,
+        blendDate: today(), concPct: plan.concPct, target, densities: plan.densities,
+        actualOilG: actualOil, actualEthG: alcoholG,
+        oilType: plan.oilType, pricePerGram: plan.pricePerGram, blendedBy: plan.blendedBy,
+        lot, amount: plan.amount, unit: plan.unit,
+      }),
+      // The server takes the oil out of stock for a Pro user's tracked oil.
+      ...(tracksStock ? { deduct_oil_g: usedOil(target, actualOil) } : {}),
+    };
     try {
-      await logBatch(batch);
+      const logged = await logBatch(batch);
       setStatus("saved");
+      if (logged.stock === "not_tracked") setStockNote(t("calculator.log.untracked"));
+      if (logged.stock === "failed") setStockNote(t("calculator.log.stockFailed", { error: t("errors.server_error") }));
     } catch (e) {
       if (isOffline(e)) {
         enqueue(batch);
@@ -276,6 +324,28 @@ export default function BenchMode() {
               {status === "queued" && t("bench.label.queued")}
               {status === "error" && t("bench.label.failed", { error })}
             </p>
+            {stockNote && <p className="mt-1 text-xs" style={{ color: COLORS.inkSoft }}>{stockNote}</p>}
+            {(status === "saved" || status === "queued") && (
+              <nav aria-label={t("bench.after.title")} className="mt-6 grid gap-2">
+                <h2 className="font-serif italic text-xl" style={{ color: COLORS.amberDeep }}>{t("bench.after.title")}</h2>
+                {status === "saved" && (
+                  <button type="button" onClick={() => navigate("/app/batches")} className="py-3 rounded-xl border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+                    {t("bench.after.batches")}
+                  </button>
+                )}
+                {status === "saved" && can(entitlements, "export.labels") && (
+                  <button type="button" onClick={() => navigate("/app/labels")} className="py-3 rounded-xl border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+                    {t("bench.after.label")}
+                  </button>
+                )}
+                <button type="button" onClick={startAnother} className="py-3 rounded-xl border text-start px-4" style={{ borderColor: COLORS.amber, color: COLORS.amber }}>
+                  {t("bench.label.again")}
+                </button>
+                <button type="button" onClick={() => navigate("/app/calculator")} className="py-3 rounded-xl border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+                  {t("bench.after.calculator")}
+                </button>
+              </nav>
+            )}
           </>
         )}
 

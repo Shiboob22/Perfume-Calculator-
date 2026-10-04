@@ -3,15 +3,23 @@
 const pos = (v) => (Number(v) > 0 ? Number(v) : null);
 const text = (v) => (typeof v === "string" && v.trim() ? v.trim() : null);
 
+/** The oil a batch used: what was poured when recorded, else the target. */
+export function usedOil(target, actualOilG) {
+  return pos(actualOilG) ?? target.exact.oilG;
+}
+
 /**
  * `target` is the solved bottle ({ exact, basis }), `densities` the
  * { oil, ethanol } it was solved with. Optional fields left out are null.
+ * Without an `oilCost`, the cost is the oil used times the price per gram.
  */
 export function buildBatch({
   id, fragranceId, name, tier, blendDate, concPct, target, densities,
-  actualOilG, actualEthG, oilType, pricePerGram, oilCost, notes, blendedBy,
+  actualOilG, actualEthG, oilType, pricePerGram, oilCost, notes, blendedBy, lot, amount, unit,
 }) {
   const e = target.exact;
+  const price = pos(pricePerGram);
+  const cost = oilCost === undefined ? (price ? usedOil(target, actualOilG) * price : null) : oilCost;
   return {
     id,
     fragrance_id: fragranceId || null,
@@ -23,8 +31,8 @@ export function buildBatch({
     ethanol_g: e.ethanolG, ethanol_ml: e.ethanolMl,
     total_g: e.totalG, total_ml: e.totalMl,
     oil_type: text(oilType),
-    price_per_gram: pos(pricePerGram),
-    oil_cost: Number.isFinite(oilCost) ? oilCost : null,
+    price_per_gram: price,
+    oil_cost: Number.isFinite(cost) ? cost : null,
     notes: text(notes),
     blended_by: text(blendedBy),
     actual_oil_g: pos(actualOilG),
@@ -32,5 +40,8 @@ export function buildBatch({
     basis: target.basis,
     oil_density: densities.oil,
     ethanol_density: densities.ethanol,
+    lot: text(lot),
+    amount: pos(amount),
+    unit: unit || null,
   };
 }

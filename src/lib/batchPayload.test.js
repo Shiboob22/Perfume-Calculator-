@@ -18,6 +18,14 @@ describe("buildBatch", () => {
     const b = buildBatch({ ...base, fragranceId: "", actualOilG: "0", actualEthG: "", pricePerGram: "", oilCost: NaN, notes: "  ", oilType: " Supplier ", blendedBy: undefined });
     expect(b).toMatchObject({ fragrance_id: null, actual_oil_g: null, actual_ethanol_g: null, price_per_gram: null, oil_cost: null, notes: null, oil_type: "Supplier", blended_by: null });
   });
+  it("costs the oil used when no cost is given", () => {
+    expect(buildBatch({ ...base, pricePerGram: "2", actualOilG: "24" }).oil_cost).toBeCloseTo(48);
+    expect(buildBatch({ ...base, pricePerGram: "2" }).oil_cost).toBeCloseTo(47.5);
+    expect(buildBatch({ ...base }).oil_cost).toBeNull();
+  });
+  it("carries the lot and the bottle as entered", () => {
+    expect(buildBatch({ ...base, lot: " L1 ", amount: "50", unit: "g" })).toMatchObject({ lot: "L1", amount: 50, unit: "g" });
+  });
   it("is the same row from the calculator and from bench mode", () => {
     const calc = buildBatch({ ...base, actualOilG: "23.8", actualEthG: "60.7" });
     const bench = buildBatch({ ...base, actualOilG: 23.8, actualEthG: 60.7 });

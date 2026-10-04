@@ -214,6 +214,8 @@ export default {
     byline: "بقلم Hisham Shiboob",
   },
   bench: {
+    newTab: "(تُفتح في علامة تبويب جديدة)",
+    after: { title: "التالي", batches: "اعرضها في دفعاتك، ويمكنك مشاركتها من هناك", label: "اطبع ملصقًا", calculator: "العودة إلى الحاسبة" },
     title: "وضع العمل",
     start: "ابدأ وضع العمل",
     exit: "اخرج من وضع العمل",

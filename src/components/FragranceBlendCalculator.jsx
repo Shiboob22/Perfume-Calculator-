@@ -322,7 +322,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     const row = (fragranceId) => buildBatch({
       id: logId.current, fragranceId, name: fragName.trim(), tier: tierKey, blendDate, concPct,
       target: result, densities: result.densities, actualOilG, actualEthG,
-      oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy,
+      oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit,
     });
     try {
       let fragrance = matched;
@@ -753,6 +753,10 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               unit: batchUnit,
               concPct: Number(concPct),
               densities: result.densities,
+              // The rest of the record, so a bench log is as full as one from here.
+              oilType, pricePerGram, blendedBy,
+              // A new start, even of the same blend, starts a new bench run.
+              startedAt: Date.now(),
             } } })}
             disabled={!(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
             className="w-full mt-5 px-4 py-3 text-sm font-semibold border disabled:opacity-50"

@@ -213,6 +213,8 @@ export default {
     byline: "By Hisham Shiboob",
   },
   bench: {
+    newTab: "(Opens in a new tab)",
+    after: { title: "Next", batches: "See it in your batches, where you can also share it", label: "Print a label", calculator: "Back to the calculator" },
     title: "Bench mode",
     start: "Start bench mode",
     exit: "Exit bench mode",
