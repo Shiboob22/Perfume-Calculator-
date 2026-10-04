@@ -703,6 +703,7 @@ export default {
     },
     notFound: { title: "الصفحة غير موجودة", home: "العودة إلى الصفحة الرئيسية" },
     guides: {
+      eyebrow: "Guide {n} of {total} · {minutes} min", tryBench: "Try it on the bench",
       metaTitle: "الأدلة — Scent Ledger",
       metaDescription: "الطريقة من The Scent Handbook: خلط العطر بالوزن، ووضعه كما ينبغي. بقلم Hisham Shiboob، مجانية للقراءة.",
       title: "الأدلة",

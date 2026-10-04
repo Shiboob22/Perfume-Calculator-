@@ -702,6 +702,7 @@ export default {
     },
     notFound: { title: "Page not found", home: "Back to the home page" },
     guides: {
+      eyebrow: "Guide {n} of {total} · {minutes} min", tryBench: "Try it on the bench",
       metaTitle: "Guides — Scent Ledger",
       metaDescription: "The method from The Scent Handbook: blending fragrance by weight, and wearing it well. By Hisham Shiboob, free to read.",
       title: "Guides",

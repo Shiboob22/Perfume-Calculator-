@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { COLORS, TYPE } from "../lib/theme";
 import { ChapterMark, Folio } from "./editorial";
@@ -6,6 +6,9 @@ import { useI18n } from "../i18n/I18nProvider";
 import { guideBySlug, GUIDES } from "../content/guides";
 import { readingMinutes } from "../content/search";
 import { localePath } from "./meta";
+import { IconArrow, IconBalance, IconBook, IconCrosshair, IconDiamondAlert, IconFlameTriangle, IconTile } from "../components/icons";
+
+const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
 
 // Badge colours for the handbook's evidence labels. The label text is always
 // the handbook's own; the tone grouping is a proposal pending the author.
@@ -19,19 +22,19 @@ const TONE = {
 
 const CALLOUT = {
   caution: { border: COLORS.danger, label: COLORS.danger },
-  important: { border: COLORS.amberDeep, label: COLORS.amber },
-  rule: { border: COLORS.line, label: COLORS.amberDeep },
+  important: { border: COLORS.ink, label: COLORS.ink },
+  rule: { border: COLORS.ink, label: COLORS.forest },
 };
 
-function Block({ block }) {
+function Block({ block, rule }) {
   if (block.h2) {
     return (
-      <h2 id={block.id} className="font-serif italic text-3xl mt-12 mb-4 scroll-mt-6" style={{ color: COLORS.forestDeep }}>
+      <h2 id={block.id} className="text-3xl font-medium tracking-[-0.03em] rtl:tracking-normal mt-14 mb-4 scroll-mt-24">
         <a href={`#${block.id}`} className="hover:underline underline-offset-4">{block.h2}</a>
       </h2>
     );
   }
-  if (block.p) return <p className="leading-relaxed my-4 text-[17px]" style={{ color: COLORS.ink }}>{block.p}</p>;
+  if (block.p) return <p className="font-serif text-[19px] leading-[1.7] my-5" style={{ color: COLORS.inkSoft }}>{block.p}</p>;
   if (block.quote) {
     return (
       <blockquote className="my-8 ps-5 font-serif italic text-2xl leading-snug" style={{ borderInlineStart: `2px solid ${COLORS.amberDeep}`, color: COLORS.forestDeep }}>
@@ -64,8 +67,8 @@ function Block({ block }) {
   }
   if (block.formula) {
     return (
-      <pre dir="ltr" className="my-6 p-5 rounded-none font-mono text-sm leading-7 overflow-x-auto text-left"
-        style={{ background: COLORS.card, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}>
+      <pre dir="ltr" className="my-8 py-5 font-mono text-[15px] leading-8 overflow-x-auto text-left"
+        style={{ borderBlock: `1px solid ${COLORS.ink}`, color: COLORS.ink }}>
         {block.formula.join("\n")}
       </pre>
     );
@@ -114,14 +117,59 @@ function Block({ block }) {
   if (block.callout) {
     const c = block.callout;
     const style = CALLOUT[c.kind] || CALLOUT.rule;
+    if (c.kind === "rule") {
+      return (
+        <aside className="my-8 p-5 flex gap-5 items-start" style={{ background: COLORS.card, border: `1px solid ${COLORS.ink}` }}>
+          <IconTile icon={IconCrosshair} size={56} border={COLORS.forest} />
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-2" style={{ color: style.label }}>
+              {c.title}{rule && rule.total > 1 && <span dir="ltr" className="font-mono ms-2">{rule.n} / {rule.total}</span>}
+            </p>
+            <p className="font-serif italic text-xl leading-relaxed">{c.text}</p>
+          </div>
+        </aside>
+      );
+    }
     return (
-      <aside className="my-6 p-5 rounded-none" style={{ background: COLORS.card, border: `1px solid ${style.border}` }}>
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] mb-2" style={{ color: style.label }}>{c.title}</p>
+      <aside className="my-6 p-5" style={{ background: c.kind === "caution" ? COLORS.dangerBg : COLORS.card, border: `1px solid ${c.kind === "caution" ? COLORS.dangerLine : style.border}` }}>
+        <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-2" style={{ color: style.label }}>
+          {c.kind === "caution" && <IconDiamondAlert size={18} />}{c.title}
+        </p>
         <p className="leading-relaxed" style={{ color: COLORS.ink }}>{c.text}</p>
       </aside>
     );
   }
   return null;
+}
+
+// The contents rail: i–iv, with a forest bar on the section being read.
+function Contents({ sections, label }) {
+  const [active, setActive] = useState(sections[0]?.id);
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return undefined;
+    const io = new IntersectionObserver((entries) => {
+      const seen = entries.filter((e) => e.isIntersecting).map((e) => e.target.id);
+      if (seen.length) setActive(seen[0]);
+    }, { rootMargin: "0px 0px -70% 0px" });
+    sections.forEach((s) => { const el = document.getElementById(s.id); if (el) io.observe(el); });
+    return () => io.disconnect();
+  }, [sections]);
+  return (
+    <nav aria-label={label}>
+      <p className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-3" style={{ color: COLORS.dim }}>{label}</p>
+      <ol className="text-sm">
+        {sections.map((s, i) => (
+          <li key={s.id}>
+            <a href={`#${s.id}`} aria-current={active === s.id ? "location" : undefined}
+              className="grid grid-cols-[2rem_minmax(0,1fr)] py-2 ps-3 min-h-[44px] items-baseline"
+              style={{ borderInlineStart: `2px solid ${active === s.id ? COLORS.forest : COLORS.line}`, color: active === s.id ? COLORS.forest : COLORS.ink }}>
+              <span className="font-serif italic" dir="ltr">{ROMAN[i] ?? i + 1}</span><span>{s.h2}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
 }
 
 export default function GuidePage() {
@@ -148,52 +196,57 @@ export default function GuidePage() {
   const calc = guide.calculator;
   const calcHref = calc ? `/app/calculator?${new URLSearchParams({ size: calc.size, unit: calc.unit, conc: calc.conc, ref: "guide" })}` : null;
 
+  const rules = g.body.filter((b) => b.callout?.kind === "rule");
+  const ruleOf = (b) => (b.callout?.kind === "rule" ? { n: rules.indexOf(b) + 1, total: rules.length } : null);
+  const bench = calcHref ?? "/app/calculator?ref=guide";
+
   return (
-    <article className="max-w-3xl mx-auto px-4 sm:px-8 pt-8">
+    <article className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 pt-10">
       <div aria-hidden="true" className="read-progress" />
-      <Link to={to("/guides")} className="text-sm hover:underline underline-offset-4 min-h-[24px] inline-block" style={{ color: COLORS.amberDeep }}>
-        <span aria-hidden="true" className="inline-block rtl:-scale-x-100">←</span> {t("site.guides.all")}
-      </Link>
-      <ChapterMark volume={guide.source.volume} label={t(`site.guides.books.${guide.source.book}`)} numeral={String(at + 1).padStart(2, "0")} className="mt-8 mb-4" />
-      <h1 className={TYPE.display} style={{ color: COLORS.forestDeep, viewTransitionName: "guide-title" }}>{g.title}</h1>
-      <p className={`mt-5 ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{g.summary}</p>
-      <p className="mt-4 text-sm" style={{ color: COLORS.inkSoft }}>
+      <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
+        <IconBook size={18} />
+        {t("site.guides.eyebrow", { n: ROMAN[at]?.toUpperCase() ?? at + 1, total: ROMAN[inSection.length - 1]?.toUpperCase() ?? inSection.length, minutes: readingMinutes(g) })}
+      </p>
+      <h1 className={`${TYPE.display} mt-5 max-w-[14ch]`} style={{ viewTransitionName: "guide-title" }}>{g.title}</h1>
+      <p className={`mt-6 measure italic ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{g.summary}</p>
+      <p className="mt-4 text-sm" style={{ color: COLORS.dim }}>
         {t("site.guides.from", {
           volume: guide.source.volume,
           book: t(`site.guides.books.${guide.source.book}`),
           sections: new Intl.ListFormat(locale === "en" ? "en-GB" : locale, { type: "unit", style: "short" }).format(guide.source.sections),
         })}. {t("site.guides.by")}.
-        <span className="block mt-1" style={{ color: COLORS.dim }}>{t("site.guides.minutes", { count: readingMinutes(g) })}</span>
       </p>
       {g.needsReview && (
-        <p className="mt-4 p-3 rounded-none text-sm" style={{ border: `1px dashed ${COLORS.amberDeep}`, color: COLORS.amber }}>{t("site.guides.reviewNote")}</p>
+        <p className="mt-4 p-3 text-sm" style={{ border: `1px dashed ${COLORS.field}`, color: COLORS.inkSoft }}>{t("site.guides.reviewNote")}</p>
       )}
 
-      {sections.length > 2 && (
-        <nav aria-label={t("site.guides.toc")} className="mt-8 ps-5 py-1 border-s-2" style={{ borderColor: COLORS.amberDeep }}>
-          <p className="text-sm font-semibold mb-2" style={{ color: COLORS.amberDeep }}>{t("site.guides.toc")}</p>
-          <ol className="space-y-1.5 text-sm">
-            {sections.map((s) => <li key={s.id}><a href={`#${s.id}`} className="hover:underline" style={{ color: COLORS.ink }}>{s.h2}</a></li>)}
-          </ol>
-        </nav>
-      )}
-
-      <div className="guide-body mt-6">{g.body.map((b, i) => <Block key={i} block={b} />)}</div>
+      <div className="mt-10 pt-8 grid grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] gap-10 lg:gap-16" style={{ borderTop: `1px solid ${COLORS.ink}` }}>
+      <aside className="lg:sticky lg:top-6 self-start grid gap-6">
+        {sections.length > 1 && <Contents sections={sections} label={t("site.guides.toc")} />}
+        <a href={bench} className="inline-flex items-center gap-2 px-4 min-h-[48px] text-sm font-medium" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+          <IconBalance size={18} /> {t("site.guides.tryBench")}
+        </a>
+      </aside>
+      <div className="max-w-[44rem]">
+      <div className="guide-body">{g.body.map((b, i) => <Block key={i} block={b} rule={ruleOf(b)} />)}</div>
 
       {/* The app's own safety notice, not handbook text: shown on every
           blending guide, styled apart from the author's callouts. */}
       {guide.section === "blending" && (
-        <aside role="note" className="mt-10 p-4 rounded-none text-sm leading-relaxed" style={{ background: COLORS.dangerBg, border: `1px solid ${COLORS.danger}`, color: COLORS.ink }}>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] rtl:tracking-normal mb-2" style={{ color: COLORS.danger }}>{t("site.safety.title")}</p>
+        <aside role="note" className="mt-10 p-5 flex gap-4 text-sm leading-relaxed" style={{ background: COLORS.dangerBg, border: `1px solid ${COLORS.dangerLine}`, color: COLORS.ink }}>
+          <IconFlameTriangle size={32} />
+          <div>
+          <p className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-2" style={{ color: COLORS.danger }}>{t("site.safety.title")}</p>
           {t("site.safety.text")}{" "}
-          <Link to={to("/terms") + "#safety"} className="underline" style={{ color: COLORS.amber }}>{t("site.safety.more")}</Link>
+          <Link to={to("/terms") + "#safety"} className="underline" style={{ color: COLORS.danger }}>{t("site.safety.more")}</Link>
+          </div>
         </aside>
       )}
 
       {guide.benchCta && (
         <p className="mt-10">
           <a href="/app/calculator?ref=guide" className="inline-block px-5 py-3 rounded-none font-semibold"
-            style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}>
+            style={{ background: COLORS.amber, color: COLORS.onAmber }}>
             {t("site.guides.benchCta")}
           </a>
           <span className="block mt-2 text-sm" style={{ color: COLORS.inkSoft }}>{t("site.guides.benchCtaLead")}</span>
@@ -201,24 +254,26 @@ export default function GuidePage() {
       )}
       {calcHref && (
         <a href={calcHref} className="inline-block mt-10 px-5 py-3 rounded-none font-semibold"
-          style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}>
+          style={{ background: COLORS.amber, color: COLORS.onAmber }}>
           {t("site.guides.openCalc")}
         </a>
       )}
       <nav aria-label={t("site.guides.more")} className="mt-14 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
         {prev ? (
-          <Link to={to(`/guides/${prev.slug}`)} viewTransition className="block p-4 rounded-none" style={{ border: `1px solid ${COLORS.line}` }}>
-            <span className="block font-mono text-[11px] uppercase" style={{ color: COLORS.amberDeep }}>{t("site.guides.previous")}</span>
-            <span className="block mt-1 font-serif text-lg" style={{ color: COLORS.forestDeep }}>{prev[locale].title}</span>
+          <Link to={to(`/guides/${prev.slug}`)} viewTransition className="block p-5 hover:bg-[color:var(--c-sand)]" style={{ border: `1px solid ${COLORS.ink}` }}>
+            <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}><IconArrow size={18} className="-scale-x-100 rtl:scale-x-100" />{t("site.guides.previous")}</span>
+            <span className="block mt-2 text-lg font-medium">{prev[locale].title}</span>
           </Link>
         ) : <span />}
         {next && (
-          <Link to={to(`/guides/${next.slug}`)} viewTransition className="block p-4 rounded-none text-end" style={{ border: `1px solid ${COLORS.line}` }}>
-            <span className="block font-mono text-[11px] uppercase" style={{ color: COLORS.amberDeep }}>{t("site.guides.next")}</span>
-            <span className="block mt-1 font-serif text-lg" style={{ color: COLORS.forestDeep }}>{next[locale].title}</span>
+          <Link to={to(`/guides/${next.slug}`)} viewTransition className="block p-5 text-end hover:bg-[color:var(--c-sand)]" style={{ border: `1px solid ${COLORS.ink}` }}>
+            <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("site.guides.next")}<IconArrow size={18} /></span>
+            <span className="block mt-2 text-lg font-medium">{next[locale].title}</span>
           </Link>
         )}
       </nav>
+      </div>
+      </div>
       <Folio>
         <span><span dir="ltr">{guide.source.volume}</span> · {t(`site.guides.books.${guide.source.book}`)}</span>
         <span dir="ltr">{String(at + 1).padStart(2, "0")}</span>
