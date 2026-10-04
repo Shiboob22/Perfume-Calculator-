@@ -91,7 +91,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-      <Folio><span>{t("brand")}</span><span>Hisham Shiboob</span></Folio>
+      <Folio><span>{t("brand")}</span><span>{t("site.guides.by")}</span></Folio>
     </div>
   );
 }

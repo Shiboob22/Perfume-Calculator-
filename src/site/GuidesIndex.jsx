@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { COLORS, SHAPE } from "../lib/theme";
+import { COLORS, SHAPE, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { GUIDES, SECTIONS } from "../content/guides";
 import { searchGuides } from "../content/search";
 import { localePath } from "./meta";
 import MethodSequence from "./MethodSequence";
+import { Folio } from "./editorial";
 
 // The two sections are different kinds of reading, so they look different:
 // Blending is one method in order (numbered steps); Wearing is a set of
@@ -51,8 +52,9 @@ export default function GuidesIndex() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-10">
-      <h1 className="font-serif italic text-5xl mb-3" style={{ color: COLORS.forestDeep }}>{t("site.guides.title")}</h1>
-      <p className="text-lg max-w-2xl" style={{ color: COLORS.inkSoft }}>{t("site.guides.lead")} {t("site.guides.by")}.</p>
+      <p className={`${TYPE.runningHead} mb-4`} style={{ color: COLORS.amberDeep }}>{t("site.home.contents")}</p>
+      <h1 className={`${TYPE.display} mb-5`} style={{ color: COLORS.forestDeep }}>{t("site.guides.title")}</h1>
+      <p className={`measure ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{t("site.guides.lead")} {t("site.guides.by")}.</p>
 
       <div className="mt-8 mb-12 flex flex-col md:flex-row md:items-center gap-4">
         <label htmlFor="guide-search" className="sr-only">{t("site.guides.search")}</label>
@@ -73,13 +75,16 @@ export default function GuidesIndex() {
 
       <p role="status" style={{ color: COLORS.inkSoft }}>{shown.length === 0 ? t("site.guides.noResults") : ""}</p>
 
-      {SECTIONS.map((s) => {
+      {SECTIONS.map((s, part) => {
         const items = shown.filter((g) => g.section === s);
         if (!items.length) return null;
         const first = items[0].source;
         return (
-          <section key={s} aria-labelledby={`guides-${s}`} className="mb-16">
-            <h2 id={`guides-${s}`} className="font-serif italic text-3xl sm:text-4xl" style={{ color: COLORS.forestDeep }}>{t(`site.guides.sections.${s}`)}</h2>
+          <section key={s} aria-labelledby={`guides-${s}`} className="reveal mb-16 pt-8" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+            <div className="flex items-baseline gap-4">
+              <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-5xl`} style={{ color: COLORS.amberDeep }}>{["I", "II", "III"][part]}</span>
+              <h2 id={`guides-${s}`} className={TYPE.title} style={{ color: COLORS.forestDeep }}>{t(`site.guides.sections.${s}`)}</h2>
+            </div>
             <p className="mt-2 mb-8 max-w-2xl" style={{ color: COLORS.inkSoft }}>
               {t(`site.guides.intro.${s}`, { source: t("site.guides.fromShort", { volume: first.volume, book: t(`site.guides.books.${first.book}`) }) })}
             </p>
@@ -87,6 +92,7 @@ export default function GuidesIndex() {
           </section>
         );
       })}
+      <Folio><span>{t("brand")}</span><span>{t("site.guides.by")}</span></Folio>
     </div>
   );
 }

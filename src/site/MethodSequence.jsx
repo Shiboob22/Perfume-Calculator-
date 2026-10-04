@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { COLORS } from "../lib/theme";
+import { COLORS, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { GUIDES } from "../content/guides";
 import { localePath } from "./meta";
@@ -27,7 +27,7 @@ export default function MethodSequence({ guides = METHOD, showCalculator = false
         const last = i === guides.length - 1;
         return (
           <li key={g.slug} className="grid grid-cols-[2.75rem_minmax(0,1fr)] md:block md:pe-8">
-            <span aria-hidden="true" dir="ltr" className="font-mono text-sm pt-1 md:block md:pt-0 md:pb-3 md:border-b" style={{ color: COLORS.amberDeep, borderColor: COLORS.field }}>{n}</span>
+            <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-3xl md:text-5xl md:block md:pb-3 md:border-b`} style={{ color: COLORS.amberDeep, borderColor: COLORS.field }}>{n}</span>
             <div className={`ps-5 border-s md:border-s-0 md:ps-0 md:pt-4 md:pb-0 ${last ? "pb-0" : "pb-8"}`} style={{ borderColor: COLORS.line }}>
               <Link to={localePath(locale, `/guides/${g.slug}`)} className="group block">
                 <span className="block font-serif text-2xl leading-snug group-hover:underline underline-offset-4" style={{ color: COLORS.forestDeep }}>{g[locale].title}</span>
