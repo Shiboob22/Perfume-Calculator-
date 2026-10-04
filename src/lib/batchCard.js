@@ -4,7 +4,10 @@
 // theme so the exported card reads as the same product as the app.
 // The card follows the app's language: labels through t(), dates in the
 // locale, right-to-left layout and the Arabic brand fonts in Arabic.
-import { COLORS } from "./theme";
+import { PALETTES } from "./theme";
+
+// A canvas can't read CSS variables: the shared card is always on paper.
+const COLORS = PALETTES.light;
 import { TIERS, TIER_COLORS } from "./tiers";
 import { batchStartedAt, batchReadyAt, formatExact } from "./batchTiming";
 import { actualStrength } from "./calc";
@@ -22,13 +25,13 @@ const W = 1000;
 const H = 1400;
 const SCALE = 2;
 const PAD = 70; // outer paper margin around the inner frame
-const SERIF = "Georgia, 'Times New Roman', serif";
-const MONO = "'SF Mono', 'Roboto Mono', Menlo, Consolas, monospace";
+const SERIF = "Lora, Georgia, 'Times New Roman', serif";
+const MONO = "'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace";
 // Arabic: the app's faces (arabicFonts.js). Amiri's subset is Arabic only,
 // so Latin names fall through to Georgia. Labels use a proportional face:
 // monospaced Arabic stretches badly.
 const SERIF_AR = "Amiri, Georgia, 'Geeza Pro', 'Noto Naskh Arabic', serif";
-const LABEL_AR = "'IBM Plex Sans Arabic', 'Geeza Pro', 'Noto Sans Arabic', Tahoma, sans-serif";
+const LABEL_AR = "Tajawal, 'Geeza Pro', 'Noto Sans Arabic', Tahoma, sans-serif";
 
 // Unicode isolates. Text from the user or the catalog (a Latin name like
 // "1 Million", notes ending in "."), and ISO dates, would otherwise be

@@ -4,15 +4,15 @@
 
 body {
   margin: 0;
-  background: #100E0A;
-  color: #F0E8D7;
-  font-family: "Space Grotesk", "IBM Plex Sans Arabic", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  background: var(--c-paper);
+  color: var(--c-ink);
+  font-family: Poppins, Tajawal, "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Range inputs pick up the amber accent on the dark ground */
+/* Range inputs pick up the action colour */
 input[type="range"] {
-  accent-color: #E9C88A;
+  accent-color: var(--c-amber);
 }
 
 /* Arabic letters join; any letter-spacing breaks the joins. Many labels set
@@ -26,7 +26,7 @@ html[dir="rtl"] body * {
    word spaces from IBM Plex Mono (fixed-width, so gaps look wide); use the
    proportional UI fonts instead. */
 html[dir="rtl"] .font-mono {
-  font-family: "IBM Plex Sans Arabic", "Space Grotesk", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  font-family: Tajawal, Poppins, "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
 }
 
 /* Guide tables become one card per row on a phone: no sideways scrolling.
@@ -35,15 +35,15 @@ html[dir="rtl"] .font-mono {
   /* Hidden visually, not from screen readers: the cards still need headers. */
   .stack-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .stack-table th[scope="row"] { display: flex; justify-content: space-between; padding: 0.2rem 0; font-weight: 600; text-align: start; border: 0 !important; }
-  .stack-table tr { display: block; padding: 0.5rem 0; border-bottom: 1px solid #2A2113; }
+  .stack-table tr { display: block; padding: 0.5rem 0; border-bottom: 1px solid var(--c-line); }
   .stack-table td { display: flex; justify-content: space-between; gap: 1rem; border: 0 !important; padding: 0.2rem 0; }
-  .stack-table td::before { content: attr(data-label); color: #A79C82; }
+  .stack-table td::before { content: attr(data-label); color: var(--c-dim); }
   .stack-table td:empty, .stack-table td[data-label=""]::before { display: none; }
 }
 
 /* Printable bench cards (/app/cards): readable on screen, clean on paper. */
-.print-card { background: #F5EEDD; color: #1A1207; padding: 2rem; border-radius: 0.75rem; }
-.print-card h2 { font-family: "Cormorant Garamond", "Amiri", Georgia, serif; font-size: 1.9rem; font-style: italic; margin-bottom: 1rem; }
+.print-card { background: #FBF8F2; color: #100E0A; padding: 2rem; border: 1px solid #100E0A; }
+.print-card h2 { font-family: Poppins, Tajawal, sans-serif; font-weight: 500; letter-spacing: -0.02em; font-size: 1.9rem; font-style: italic; margin-bottom: 1rem; }
 .print-brand { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: #6E5A35; margin-bottom: 0.5rem; }
 .print-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 .print-table th, .print-table td { text-align: start; padding: 0.35rem 0.5rem; border-bottom: 1px solid #CDBF9E; }
@@ -60,8 +60,8 @@ html[dir="rtl"] .font-mono {
 /* Printable bottle labels (/app/labels): true millimetre sizes. */
 .label-sheet { display: flex; flex-wrap: wrap; gap: 4mm; page: labels; }
 @page labels { size: A4; margin: 10mm; }
-.print-label { background: #F5EEDD; color: #1A1207; border: 0.3mm dashed #A79C82; padding: 2mm 2.5mm; overflow: hidden; display: flex; flex-direction: column; }
-.print-label-name { font-family: "Cormorant Garamond", "Amiri", Georgia, serif; font-style: italic; font-weight: 600; line-height: 1.1; margin-bottom: 1mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.print-label { background: #FBF8F2; color: #100E0A; border: 0.3mm dashed #A79C82; padding: 2mm 2.5mm; overflow: hidden; display: flex; flex-direction: column; }
+.print-label-name { font-family: Poppins, Tajawal, sans-serif; font-weight: 500; line-height: 1.1; margin-bottom: 1mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html[dir="rtl"] .print-label-name { font-style: normal; }
 .print-label-row { display: flex; justify-content: space-between; gap: 2mm; line-height: 1.35; }
 .print-label-row dt { color: #4A3D25; }
@@ -77,10 +77,10 @@ html[dir="rtl"] .print-label-name { font-style: normal; }
 
 /* Drop caps are a Latin book convention; Arabic gets an ornament instead. */
 html[lang="en"] .dropcap::first-letter, html[lang="en"] .guide-body > p:first-of-type::first-letter {
-  float: left; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic;
-  font-size: 4.2em; line-height: 0.8; padding: 0.06em 0.12em 0 0; color: #E9C88A;
+  float: left; font-family: Lora, Georgia, serif;
+  font-size: 4.2em; line-height: 0.8; padding: 0.06em 0.12em 0 0; color: var(--c-amber);
 }
-html[dir="rtl"] .dropcap::before, html[dir="rtl"] .guide-body > p:first-of-type::before { content: "۞ "; color: #C9A15A; }
+html[dir="rtl"] .dropcap::before, html[dir="rtl"] .guide-body > p:first-of-type::before { content: "۞ "; color: var(--c-brass); }
 
 /* Sections ease in as they reach the reader, where the browser can tie the
    animation to scrolling; elsewhere they are simply there. */
@@ -89,7 +89,7 @@ html[dir="rtl"] .dropcap::before, html[dir="rtl"] .guide-body > p:first-of-type:
   @keyframes reveal { from { opacity: 0; transform: translateY(1.25rem); } to { opacity: 1; transform: none; } }
 }
 /* A hairline that fills as a guide is read. */
-.read-progress { position: fixed; inset-inline: 0; top: 0; height: 2px; background: #E9C88A; transform: scaleX(0); transform-origin: left; z-index: 50; }
+.read-progress { position: fixed; inset-inline: 0; top: 0; height: 2px; background: var(--c-amber); transform: scaleX(0); transform-origin: left; z-index: 50; }
 html[dir="rtl"] .read-progress { transform-origin: right; }
 @supports (animation-timeline: scroll()) {
   .read-progress { animation: read linear both; animation-timeline: scroll(root); }
@@ -98,14 +98,25 @@ html[dir="rtl"] .read-progress { transform-origin: right; }
 @supports not (animation-timeline: scroll()) { .read-progress { display: none; } }
 
 /* The live bench: pour columns and the scale's readout. */
-.pour { transform-origin: bottom; transition: transform 640ms cubic-bezier(.2,.7,.1,1); }
+.pour { transform-origin: bottom; transition: transform 480ms cubic-bezier(.2,0,0,1); }
 .readout { font-variant-numeric: tabular-nums; animation: tick 160ms ease-out; }
 @keyframes tick { from { opacity: 0.25; transform: translateY(-0.12em); } }
 
 /* Turning a page between guides (View Transitions, where supported). */
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: 320ms; animation-timing-function: cubic-bezier(.2,.7,.1,1); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 320ms; animation-timing-function: cubic-bezier(.2,0,0,1); }
+
+/* v3: labels in spaced capitals become plain in Arabic; display type gets air. */
+html[dir="rtl"] h1, html[dir="rtl"] h2 { line-height: 1.3; }
+html[dir="rtl"] .uppercase { text-transform: none; }
+
+/* Hover and colour changes ease at 180ms; fills and bars at 480ms. */
+a, button, summary { transition: color 180ms cubic-bezier(.2,0,0,1), background-color 180ms cubic-bezier(.2,0,0,1), border-color 180ms cubic-bezier(.2,0,0,1); }
+.fill-anim { transition: height 480ms cubic-bezier(.2,0,0,1), width 480ms cubic-bezier(.2,0,0,1), transform 480ms cubic-bezier(.2,0,0,1), y 480ms cubic-bezier(.2,0,0,1); }
+*:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 3px; }
+summary::-webkit-details-marker { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
+  a, button, summary, .fill-anim { transition: none !important; }
   .reveal, .read-progress, .pour, .readout { animation: none !important; transition: none !important; }
   .read-progress { display: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }

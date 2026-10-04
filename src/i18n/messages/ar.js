@@ -624,6 +624,7 @@ export default {
     copies: "عدد النسخ",
   },
   settings: {
+    theme: { label: "التبديل بين الفاتح والداكن", light: "فاتح", dark: "داكن" },
     digitsLabel: "شكل الأرقام",
     useArabicIndic: "الأرقام: ١٢٣",
     useWestern: "الأرقام: 123",

@@ -623,6 +623,7 @@ export default {
     copies: "Copies",
   },
   settings: {
+    theme: { label: "Switch between light and dark", light: "Light", dark: "Dark" },
     digitsLabel: "Digit style",
     useArabicIndic: "Digits: ١٢٣",
     useWestern: "Digits: 123",
