@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { loadEntitlements, canLogBatch } from './_lib/entitlements.js';
+import { loadEntitlements, canLogBatch, can } from './_lib/entitlements.js';
 import { overLimit } from './_lib/rateLimit.js';
 import { randomBytes } from 'node:crypto';
 import { shareRow } from './_lib/share.js';
@@ -17,6 +17,30 @@ function failFrom(res: VercelResponse, err: any, write: boolean, context: string
   if (isTimeout(err)) return fail(res, 503, write ? 'slow_write' : 'slow_read', write ? SLOW_WRITE : SLOW_READ);
   console.error(JSON.stringify({ at: 'api/batches', context, message: String(err?.message ?? err), code: err?.code }));
   return fail(res, 500, 'server_error', 'Something went wrong. Please try again.');
+}
+
+// Stock taken out for a freshly logged batch, when the client asks with
+// deduct_oil_g. Only on a new insert (a replay or a 23505 returns earlier,
+// so a re-sent batch never deducts twice), only on a plan with inventory,
+// only for an oil the user tracks. The batch is saved either way, so this
+// never throws: it answers how the stock step went.
+//   deducted | not_tracked | locked | failed | client (STOCK_ON_LOG=client:
+//   the kill switch, the app deducts the old way)
+async function deductOnLog(supabase: any, userId: string, entitlements: any, fragranceId: unknown, grams: unknown) {
+  if (grams == null) return undefined;
+  if (process.env.STOCK_ON_LOG === 'client') return 'client';
+  if (!can(entitlements, 'inventory')) return 'locked';
+  const g = Number(grams);
+  if (typeof fragranceId !== 'string' || !UUID.test(fragranceId) || !(g > 0 && g <= 100000)) return 'not_tracked';
+  try {
+    const { data, error } = await supabase.rpc('restock_inventory', { p_user_id: userId, p_fragrance_id: fragranceId, p_delta: -g });
+    if (error) throw error;
+    // No inventory row: null, or an object of nulls (see api/inventory.ts).
+    return !data || data.fragrance_id == null ? 'not_tracked' : 'deducted';
+  } catch (err: any) {
+    console.error(JSON.stringify({ at: 'api/batches', context: 'deduct', message: String(err?.message ?? err), code: err?.code }));
+    return 'failed';
+  }
 }
 
 // Batches: log (POST), list (GET), share (PATCH) and delete (DELETE), for the
@@ -115,7 +139,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       if (error) throw error;
 
-      return res.status(201).json({ success: true, batch: data[0] });
+      const stock = await deductOnLog(supabase, userId, entitlements, row.fragrance_id, b.deduct_oil_g);
+      return res.status(201).json({ success: true, batch: data[0], ...(stock ? { stock } : {}) });
     } catch (err: any) {
       return failFrom(res, err, true, 'log');
     }

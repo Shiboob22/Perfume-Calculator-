@@ -85,6 +85,60 @@ describe('POST /api/batches', () => {
   });
 });
 
+describe('POST /api/batches stock deduction', () => {
+  const FRAG = '22222222-2222-4222-8222-222222222222';
+  const tracked = () => { db.rpcHandlers.restock_inventory = (a: any) => ({ data: { fragrance_id: a.p_fragrance_id, stock_g: 76.25 }, error: null }); };
+  const deducts = () => db.rpcs.filter((r) => r.name === 'restock_inventory');
+
+  it('deducts the oil for a Pro user on a fresh log', async () => {
+    tracked();
+    const res = await call('POST', { body: { ...BATCH, id: ID, fragrance_id: FRAG, deduct_oil_g: 23.75 } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.stock).toBe('deducted');
+    expect(deducts()).toEqual([{ name: 'restock_inventory', args: { p_user_id: USER, p_fragrance_id: FRAG, p_delta: -23.75 } }]);
+  });
+
+  it('never deducts twice for a re-sent batch', async () => {
+    tracked();
+    await call('POST', { body: { ...BATCH, id: ID, fragrance_id: FRAG, deduct_oil_g: 23.75 } });
+    const res = await call('POST', { body: { ...BATCH, id: ID, fragrance_id: FRAG, deduct_oil_g: 23.75 } });
+    expect(res.body.duplicate).toBe(true);
+    expect(res.body.stock).toBeUndefined();
+    expect(deducts()).toHaveLength(1);
+  });
+
+  it('answers not_tracked for an oil without stock, and locked on Free', async () => {
+    let res = await call('POST', { body: { ...BATCH, fragrance_id: FRAG, deduct_oil_g: 10 } });
+    expect(res.body.stock).toBe('not_tracked');
+    db = dbFor('free');
+    res = await call('POST', { body: { ...BATCH, fragrance_id: FRAG, deduct_oil_g: 10 } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.stock).toBe('locked');
+    expect(deducts()).toEqual([]);
+  });
+
+  it('keeps the batch when the stock step fails', async () => {
+    db.rpcHandlers.restock_inventory = () => ({ data: null, error: { message: 'boom' } });
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await call('POST', { body: { ...BATCH, fragrance_id: FRAG, deduct_oil_g: 10 } });
+    spy.mockRestore();
+    expect(res.statusCode).toBe(201);
+    expect(res.body.stock).toBe('failed');
+    expect(db.rows('batches')).toHaveLength(1);
+  });
+
+  it('leaves stock to the app with the kill switch, and alone when not asked', async () => {
+    tracked();
+    process.env.STOCK_ON_LOG = 'client';
+    let res = await call('POST', { body: { ...BATCH, fragrance_id: FRAG, deduct_oil_g: 10 } });
+    delete process.env.STOCK_ON_LOG;
+    expect(res.body.stock).toBe('client');
+    res = await call('POST', { body: { ...BATCH, fragrance_id: FRAG } });
+    expect(res.body.stock).toBeUndefined();
+    expect(deducts()).toEqual([]);
+  });
+});
+
 describe('GET /api/batches', () => {
   it("lists only the user's own batches", async () => {
     db = dbFor('pro', { batches: [{ id: 'a', user_id: USER, created_at: '2026-10-01' }, { id: 'b', user_id: OTHER, created_at: '2026-10-02' }] });
