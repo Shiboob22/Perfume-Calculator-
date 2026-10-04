@@ -19,6 +19,22 @@ function failFrom(res: VercelResponse, err: any, write: boolean, context: string
   return fail(res, 500, 'server_error', 'Something went wrong. Please try again.');
 }
 
+// The bottle as entered and its lot (0015). Anything malformed is dropped
+// rather than refused: these fields are extras, never a reason to lose a log.
+const UNITS = ['ml', 'floz', 'g', 'oz'];
+export function batchRecord(b: any) {
+  const lot = typeof b.lot === 'string' ? b.lot.trim().slice(0, 60) : '';
+  const amount = Number(b.amount);
+  const rec = {
+    lot: lot || null,
+    amount: amount > 0 && amount <= 100000 ? amount : null,
+    unit: UNITS.includes(b.unit) ? b.unit : null,
+  };
+  // Only the fields given, so a log without them works on a database that
+  // hasn't had 0015 yet.
+  return Object.fromEntries(Object.entries(rec).filter(([, v]) => v != null));
+}
+
 // Stock taken out for a freshly logged batch, when the client asks with
 // deduct_oil_g. Only on a new insert (a replay or a 23505 returns earlier,
 // so a re-sent batch never deducts twice), only on a plan with inventory,
@@ -124,6 +140,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         basis: b.basis === 'volume' || b.basis === 'weight' ? b.basis : null,
         oil_density: Number(b.oil_density) > 0 ? Number(b.oil_density) : null,
         ethanol_density: Number(b.ethanol_density) > 0 ? Number(b.ethanol_density) : null,
+        ...batchRecord(b),
         created_at: new Date().toISOString(),
       };
 

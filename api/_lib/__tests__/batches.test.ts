@@ -139,6 +139,20 @@ describe('POST /api/batches stock deduction', () => {
   });
 });
 
+describe('POST /api/batches record fields', () => {
+  it('stores the lot and the bottle as entered', async () => {
+    const res = await call('POST', { body: { ...BATCH, lot: '  L-0412 ', amount: 50, unit: 'g' } });
+    expect(res.body.batch).toMatchObject({ lot: 'L-0412', amount: 50, unit: 'g' });
+  });
+  it('drops malformed extras instead of refusing the log', async () => {
+    const res = await call('POST', { body: { ...BATCH, lot: 'x'.repeat(80), amount: -3, unit: 'gallon' } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.batch).not.toHaveProperty('amount');
+    expect(res.body.batch).not.toHaveProperty('unit');
+    expect(res.body.batch.lot).toHaveLength(60);
+  });
+});
+
 describe('GET /api/batches', () => {
   it("lists only the user's own batches", async () => {
     db = dbFor('pro', { batches: [{ id: 'a', user_id: USER, created_at: '2026-10-01' }, { id: 'b', user_id: OTHER, created_at: '2026-10-02' }] });
