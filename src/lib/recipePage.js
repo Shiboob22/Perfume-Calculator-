@@ -8,7 +8,7 @@
 import { createTranslator } from "../i18n/core.js";
 import en from "../i18n/messages/en.js";
 import ar from "../i18n/messages/ar.js";
-import { COLORS } from "./theme.js";
+import { COLORS, TYPE } from "./theme.js";
 import { cleanName } from "./cleanName.js";
 
 const CATALOGS = { en, ar };
@@ -136,7 +136,7 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
       <main class="flex-1 w-full">
         <article class="w-full max-w-2xl mx-auto px-4 sm:px-8 pt-8">
           <p class="text-xs font-mono uppercase tracking-wider" style="color:${COLORS.amberDeep}">${esc(t("recipe.eyebrow"))}</p>
-          <h1 class="mt-2 text-4xl font-serif italic" style="color:${COLORS.forestDeep}"><bdi>${esc(r.fragrance_name)}</bdi></h1>
+          <h1 class="mt-3 ${TYPE.display}" style="color:${COLORS.forestDeep}"><bdi>${esc(r.fragrance_name)}</bdi></h1>
           <p class="mt-2 text-sm font-mono" style="color:${COLORS.inkSoft}">${esc(family)} · ${esc(t(`recipe.strengthValue.${basis}`, { pct }))}</p>
           <table class="mt-8 w-full text-sm border-collapse">
             <tbody>
