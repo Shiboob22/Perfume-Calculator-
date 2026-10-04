@@ -1,4 +1,4 @@
-# Launch checklist — The Scent Handbook
+# Launch checklist — Scent Ledger
 
 Work top to bottom. **Owner** items need a decision or an account only you
 hold; **Claude** items can be done in a session once the owner items they

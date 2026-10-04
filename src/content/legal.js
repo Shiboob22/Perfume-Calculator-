@@ -9,10 +9,10 @@ export const LEGAL = {
     updated: "2026-09-27",
     en: {
       title: "Privacy",
-      summary: "What The Scent Handbook stores about you, why, who processes it, and how to get it or delete it.",
+      summary: "What Scent Ledger stores about you, why, who processes it, and how to get it or delete it.",
       sections: [
         { id: "who", h: "Who we are", p: [
-          "The Scent Handbook is run by [OWNER: legal name or trading name, country]. Contact: [OWNER: privacy email address].",
+          "Scent Ledger is run by [OWNER: legal name or trading name, country]. Contact: [OWNER: privacy email address].",
         ] },
         { id: "what", h: "What we store", p: [
           "Your account: your email address, and the sign-in provider you used (email link or Google).",
@@ -50,10 +50,10 @@ export const LEGAL = {
     },
     ar: {
       title: "الخصوصية",
-      summary: "ما الذي يحفظه The Scent Handbook عنك، ولماذا، ومن يعالجه، وكيف تحصل عليه أو تحذفه.",
+      summary: "ما الذي يحفظه Scent Ledger عنك، ولماذا، ومن يعالجه، وكيف تحصل عليه أو تحذفه.",
       sections: [
         { id: "who", h: "من نحن", p: [
-          "يدير The Scent Handbook ‏[OWNER: الاسم القانوني أو التجاري، والبلد]. للتواصل: [OWNER: بريد الخصوصية].",
+          "يدير Scent Ledger ‏[OWNER: الاسم القانوني أو التجاري، والبلد]. للتواصل: [OWNER: بريد الخصوصية].",
         ] },
         { id: "what", h: "ما الذي نحفظه", p: [
           "حسابك: بريدك الإلكتروني، وطريقة تسجيل الدخول التي استخدمتها (رابط البريد أو Google).",
@@ -95,10 +95,10 @@ export const LEGAL = {
     updated: "2026-09-27",
     en: {
       title: "Terms",
-      summary: "The terms for using The Scent Handbook: the calculator, the guides and the app.",
+      summary: "The terms for using Scent Ledger: the calculator, the guides and the app.",
       sections: [
         { id: "service", h: "The service", p: [
-          "The Scent Handbook is a calculator, a bench guide and a record-keeping app for people who dilute fragrance oil with perfumer's alcohol at home. It is run by [OWNER: legal name, country].",
+          "Scent Ledger is a calculator, a bench guide and a record-keeping app for people who dilute fragrance oil with perfumer's alcohol at home. It is run by [OWNER: legal name, country].",
           "The Free plan is free. Pro is in early access and not on sale; if it goes on sale, prices and payment terms will be shown before you pay anything.",
         ] },
         { id: "safety", h: "Safety is yours", p: [
@@ -129,10 +129,10 @@ export const LEGAL = {
     },
     ar: {
       title: "الشروط",
-      summary: "شروط استخدام The Scent Handbook: الحاسبة والأدلة والتطبيق.",
+      summary: "شروط استخدام Scent Ledger: الحاسبة والأدلة والتطبيق.",
       sections: [
         { id: "service", h: "الخدمة", p: [
-          "The Scent Handbook حاسبة ودليل عمل وتطبيق لتسجيل الخلطات لمن يخفّفون زيت العطر بكحول العطور في المنزل. يديره [OWNER: الاسم القانوني، والبلد].",
+          "Scent Ledger حاسبة ودليل عمل وتطبيق لتسجيل الخلطات لمن يخفّفون زيت العطر بكحول العطور في المنزل. يديره [OWNER: الاسم القانوني، والبلد].",
           "الخطة المجانية مجانية. خطة Pro في مرحلة الوصول المبكر وليست معروضة للبيع؛ وإن طُرحت للبيع فستُعرض الأسعار وشروط الدفع قبل أن تدفع أي شيء.",
         ] },
         { id: "safety", h: "السلامة مسؤوليتك", p: [

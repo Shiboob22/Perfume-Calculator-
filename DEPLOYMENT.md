@@ -1,4 +1,4 @@
-# Deploying The Scent Handbook — free, on your Mac
+# Deploying Scent Ledger — free, on your Mac
 
 Your app is a static Vite/React build — no server needed, since Supabase
 already is the backend. That makes it a perfect fit for Vercel's free

@@ -1,9 +1,9 @@
-# The Scent Handbook — working brief
+# Scent Ledger — working brief
 
 Repo `Shiboob22/Perfume-Calculator-` · live at `scent-handbook-app-shiboob22s-projects.vercel.app` (alias `scent-handbook-app.vercel.app`).
 Owner and author of the handbooks: Hisham Shiboob.
 
-The product is **The Scent Handbook**. Use that name everywhere (titles, meta, emails, cards). "Atelier Noir" is only the internal name of the visual theme in `src/lib/theme.js`; it never appears in the UI.
+The product is **Scent Ledger** (renamed from "The Scent Handbook" in Phase 10, owner's decision 2026-10-04; tagline "The bench handbook"). Use that name everywhere (titles, meta, emails, cards). "The Scent Handbook" now names only the owner's printed books (Vol. I–III): keep it in citations ("From The Scent Handbook, Vol. III"). The repo, Vercel project and domain keep their old names. Visual design: Scent Ledger v3 (`Design/Scent Ledger v3 Final Prompt.md`), light paper/ink with a dark edition behind a toggle.
 
 ---
 

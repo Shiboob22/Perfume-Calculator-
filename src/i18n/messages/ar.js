@@ -1,7 +1,8 @@
 // Arabic UI strings — drafts, pending the owner's review.
 // The product name stays in English until the owner picks an Arabic name.
 export default {
-  brand: "The Scent Handbook",
+  brand: "Scent Ledger",
+  brandTagline: "دليل طاولة الخلط",
   language: { switchTo: "English", switchLabel: "التبديل إلى الإنجليزية" },
   app: {
     tabsLabel: "الأقسام",
@@ -182,8 +183,8 @@ export default {
     close: "إغلاق",
   },
   recipe: {
-    metaTitle: "{name} بتركيز {pct}% — وصفة مُشاركة · The Scent Handbook",
-    metaDescription: "خلطة من عائلة {family} بتركيز {pct}% زيت في زجاجة {size}، شاركها أحد مستخدمي The Scent Handbook.",
+    metaTitle: "{name} بتركيز {pct}% — وصفة مُشاركة · Scent Ledger",
+    metaDescription: "خلطة من عائلة {family} بتركيز {pct}% زيت في زجاجة {size}، شاركها أحد مستخدمي Scent Ledger.",
     eyebrow: "وصفة مُشاركة",
     strength: "التركيز",
     strengthValue: { volume: "{pct}% زيت حجمًا", weight: "{pct}% زيت وزنًا" },
@@ -196,7 +197,7 @@ export default {
     rested: "مدة الراحة",
     restedValue: { zero: "{count} يوم", one: "يوم واحد", two: "يومان", few: "{count} أيام", many: "{count} يومًا", other: "{count} يوم" },
     note: "ملاحظة صاحب الخلطة",
-    disclaimer: "شاركها أحد مستخدمي The Scent Handbook: دفعته وملاحظاته هو، لا نصيحة من الكتيّبات. تحقّق من كل وزن على ميزانك.",
+    disclaimer: "شاركها أحد مستخدمي Scent Ledger: دفعته وملاحظاته هو، لا نصيحة من الكتيّبات. تحقّق من كل وزن على ميزانك.",
     cta: "اصنع هذه الخلطة",
     ctaLead: "يفتح الحاسبة على هذه العائلة والتركيز وحجم الزجاجة.",
     method: "كيف تخلط بالوزن",
@@ -630,12 +631,12 @@ export default {
     useWestern: "الأرقام: 123",
   },
   site: {
-    nav: { privacy: "الخصوصية", terms: "الشروط", guides: "الأدلة", pricing: "الخطط", openApp: "افتح التطبيق", home: "The Scent Handbook، الصفحة الرئيسية", language: "English", languageLabel: "اقرأ هذه الصفحة بالإنجليزية" },
+    nav: { privacy: "الخصوصية", terms: "الشروط", guides: "الأدلة", pricing: "الخطط", openApp: "افتح التطبيق", home: "Scent Ledger، الصفحة الرئيسية", language: "English", languageLabel: "اقرأ هذه الصفحة بالإنجليزية" },
     legal: { draft: "مسودة لم تُراجَع بعد. قد تتغير هذه الصفحة قبل الإطلاق.", updated: "آخر تحديث {date}" },
     safety: { title: "السلامة", text: "كحول العطور سريع الاشتعال: اخلط بعيدًا عن اللهب والحرارة، في غرفة جيدة التهوية، وبعيدًا عن متناول الأطفال. قد تهيّج زيوت العطر الجلد والعينين — ارتدِ قفازات واقرأ صحيفة بيانات السلامة لكل مادة. الأرقام هنا نقاط انطلاق؛ تحقّق من كل وزن على ميزانك.", more: "السلامة والمسؤولية" },
-    footer: { by: "بقلم Hisham Shiboob", rights: "© 2026 The Scent Handbook" },
+    footer: { by: "بقلم Hisham Shiboob", rights: "© 2026 Scent Ledger" },
     home: {
-      metaTitle: "The Scent Handbook — حاسبة لخلط العطور بالوزن",
+      metaTitle: "Scent Ledger — حاسبة لخلط العطور بالوزن",
       metaDescription: "خفّف زيت العطر بإيثانول 96% بالوزن. غرامات دقيقة لميزان 0.01 غ، وطريقة العمل خطوة بخطوة، ومكتبة أدلة مجانية.",
       title: "اخلط عطرك بنفسك، بالوزن.",
       lead: "حاسبة ودليل عمل لتخفيف زيت العطر بإيثانول 96%. اختر حجم الزجاجة والتركيز، واحصل على الرقمين اللذين تضعهما على الميزان.",
@@ -674,8 +675,8 @@ export default {
       waitlistTitle: "تريد Pro عند إطلاقها؟",
       waitlistLead: "انضم إلى قائمة الانتظار من حسابك، وستكون أول من يعلم عند طرح Pro للبيع. لن نطلب أي بيانات دفع.",
       waitlistCta: "انضم إلى قائمة انتظار Pro",
-      metaTitle: "الخطط — The Scent Handbook",
-      metaDescription: "الخطة المجانية وخطة Pro في The Scent Handbook. خطة Pro في مرحلة الوصول المبكر وليست متاحة للشراء بعد.",
+      metaTitle: "الخطط — Scent Ledger",
+      metaDescription: "الخطة المجانية وخطة Pro في Scent Ledger. خطة Pro في مرحلة الوصول المبكر وليست متاحة للشراء بعد.",
       title: "الخطط",
       lead: "يبدأ الجميع بالخطة المجانية. خطة Pro في مرحلة الوصول المبكر وليست متاحة للشراء بعد.",
       core: "الحاسبة وطريقة العمل وكل الأدلة",
@@ -697,7 +698,7 @@ export default {
     },
     notFound: { title: "الصفحة غير موجودة", home: "العودة إلى الصفحة الرئيسية" },
     guides: {
-      metaTitle: "الأدلة — The Scent Handbook",
+      metaTitle: "الأدلة — Scent Ledger",
       metaDescription: "الطريقة من The Scent Handbook: خلط العطر بالوزن، ووضعه كما ينبغي. بقلم Hisham Shiboob، مجانية للقراءة.",
       title: "الأدلة",
       lead: "الطريقة من The Scent Handbook، مجانية للقراءة.",
@@ -730,7 +731,7 @@ export default {
     },
   },
   auth: {
-    loading: "جارٍ تحميل The Scent Handbook…",
+    loading: "جارٍ تحميل Scent Ledger…",
     signIn: "تسجيل الدخول",
     heading: "سجّل الدخول إلى منضدتك.",
     lead: "الدفعات واليوميات والمخزون تبقى مرتبطة بحسابك.",
