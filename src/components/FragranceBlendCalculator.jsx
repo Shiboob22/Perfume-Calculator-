@@ -717,13 +717,13 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           <h2 className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-5" style={{ color: COLORS.dim }}>{t("calc.readout")}</h2>
           <div className="flex gap-6 items-end mb-5">
             <BottleFill oilShare={weightShare(result.shown.oilG, result.shown.ethanolG)} height={190} />
-            <div className="grid gap-4 flex-1 min-w-0 overflow-hidden">
+            <div className="grid gap-4 flex-1 min-w-0">
               {[["calc.oil", result.shown.oilG, COLORS.oil], ["calc.ethanol96", result.shown.ethanolG, COLORS.mist]].map(([k, g, sw]) => (
                 <div key={k}>
                   <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
                     <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: sw, border: `1px solid ${COLORS.ink}` }} />{t(k)}
                   </span>
-                  <span dir="ltr" className="readout block font-mono leading-none tracking-[-0.03em] text-[clamp(2rem,3.4vw,3rem)] whitespace-nowrap" key={g}>{fmt2(g)}<span className="text-2xl ms-1">g</span></span>
+                  <span dir="ltr" className="readout block font-mono leading-[1.15] tracking-[-0.03em] text-[clamp(2rem,3.4vw,3rem)] whitespace-nowrap" key={g}>{fmt2(g)}<span className="text-2xl ms-1">g</span></span>
                 </div>
               ))}
             </div>
