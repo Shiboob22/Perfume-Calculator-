@@ -4,7 +4,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { localePath } from "./meta";
 import { GUIDES } from "../content/guides";
 import { readingMinutes } from "../content/search";
-import LiveBench from "./LiveBench";
+import LedgerBench from "./LedgerBench";
 
 // The Scent Ledger landing page (redesign/scent-ledger). Paper, ink and one
 // forest green; 1px rules instead of boxes or shadows (tokens in index.css,
@@ -80,7 +80,7 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <LiveBench />
+          <LedgerBench />
         </section>
 
         <Fleuron />

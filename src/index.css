@@ -145,3 +145,8 @@ html[dir="rtl"] .ledger .serif { font-family: "Amiri", "Lora", serif; font-style
 .ledger .ledger-foot { color: var(--paper); }
 .ledger .ledger-foot:hover { color: #C9C1B3; }
 .ledger nav a:hover { color: var(--forest); }
+.ledger .ledger-seg { display: grid; gap: 2px; place-content: center; border-top: 0; border-bottom: 0; border-inline-end: 0; font: inherit; cursor: pointer; transition: background var(--dur-micro) var(--ease), color var(--dur-micro) var(--ease); }
+.ledger .ledger-roll { transition-property: transform; transition-timing-function: var(--ease); }
+.ledger .ledger-copy { min-height: 44px; padding: 0 16px; border: 1px solid var(--ink); background: transparent; color: var(--ink); font: inherit; font-size: 13px; cursor: pointer; transition: background var(--dur-micro) var(--ease); }
+.ledger .ledger-copy:hover { background: var(--paper-2); }
+html[dir="rtl"] .ledger { --ratio-origin: 100% 50%; }
