@@ -88,6 +88,21 @@ through the Supabase connector (recorded as migrations); the new objects'
 fingerprint matches staging, where `rls_isolation.sql` passes 55 checks (the
 test itself runs on staging only); data counts unchanged.
 
+### Phase 8
+
+Migrations **0014–0016** have run on **staging** (advisors re-checked;
+`rls_isolation.sql` passes 64 checks). All additive, no data rewritten:
+
+- `0014_advisor_fixes` — four foreign-key indexes; `restock_inventory` gets a
+  fixed `search_path`.
+- `0015_batch_record` — `batches.lot`, `amount`, `unit` (nullable, checked).
+- `0016_signup_sources` — `profiles.signup_ref`, `pro_waitlist.source`
+  (nullable short slugs); RLS unchanged.
+
+Apply them to production **before** the Phase 8 code deploys (the app sends
+the new columns), only after the owner reads and approves the SQL; then
+compare the fingerprint with staging and check the data counts.
+
 ## 5. Production configuration (owner)
 
 - [ ] Supabase Auth → URL configuration:
@@ -149,7 +164,13 @@ test itself runs on staging only); data counts unchanged.
 - **Errors:** Vercel → Logs, filter `client_error` (browser reports) and
   status ≥ 500 (functions).
 - **Latency:** Supabase → Logs → edge logs (see the notes in `CLAUDE.md`).
-- **Pro waitlist:** see the query in `docs/billing.md`.
+- **Pro waitlist:** see the query in `docs/billing.md`. Where people join
+  from, in totals only:
+  `select coalesce(source, 'account') as source, count(*) from pro_waitlist group by 1 order by 2 desc`.
+- **Sign-up sources**, in totals only (never per person):
+  `select coalesce(signup_ref, 'direct') as ref, count(*) from profiles group by 1 order by 2 desc`.
+- **Stock on log:** if Pro logs report stock problems, set `STOCK_ON_LOG=client`
+  in Vercel and redeploy; the app goes back to deducting from the browser.
 - **Reported recipes:** unpublish one with
   `update shared_recipes set published = false where slug = '<slug>'`
   (the page goes within 5 minutes; the owner can share it again).

@@ -2,8 +2,8 @@
 // decide. Needs Node 23.6+ (imports the .ts module directly).
 import { differences, REFERENCE, FAMILIES, STRENGTHS } from "../src/lib/formulation.ts";
 
-// Presets the calculator offers today (FragranceBlendCalculator.jsx).
-const CALCULATOR_PRESETS = [20, 22, 25, 30];
+// Presets the calculator offers today: the handbook's named strengths.
+const CALCULATOR_PRESETS = STRENGTHS.map((s) => s.pct);
 
 const fmt = (v) => (v === undefined ? "—" : Array.isArray(v) ? v.join("–") : String(v));
 const rows = differences();
