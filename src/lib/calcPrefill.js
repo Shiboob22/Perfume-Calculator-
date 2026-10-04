@@ -2,7 +2,19 @@ import { TIER_KEYS } from "./formulation";
 
 export const UNIT_LABELS = { ml: "mL", floz: "fl oz", g: "g", oz: "oz" };
 
-// Starting values from the URL (?size=100&unit=ml&conc=25&family=woody),
+// A fragrance name from a link: no control or bidi-override characters,
+// single spaces, at most 120 characters. Empty means none.
+export function cleanName(raw) {
+  const name = String(raw ?? "")
+    .replace(/[\u0000-\u001f\u007f\u202a-\u202e\u2066-\u2069]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120)
+    .trim();
+  return name || null;
+}
+
+// Starting values from the URL (?size=100&unit=ml&conc=25&family=woody&name=…),
 // e.g. a guide's "Open in calculator" link or a shared recipe's "Make this
 // blend". Anything missing or out of range is ignored.
 export function prefillFromQuery(params) {
@@ -15,7 +27,26 @@ export function prefillFromQuery(params) {
     unit: Object.hasOwn(UNIT_LABELS, unit) ? unit : null,
     conc: Number.isFinite(conc) && conc >= 1 && conc <= 100 ? conc : null,
     family: TIER_KEYS.includes(family) ? family : null,
+    name: cleanName(params.get("name")),
   };
+}
+
+// Where onboarding sends someone who arrived on a calculator link: the
+// link's values win, and the onboarding answers fill only the bottle the
+// link left out. Without a link it is the answers' bottle, as before.
+export function afterOnboardingPath(search, answers = {}) {
+  const link = prefillFromQuery(new URLSearchParams(search));
+  const linkBottle = link.size != null || link.unit != null;
+  const size = linkBottle ? link.size : Number(answers.default_bottle);
+  const unit = linkBottle ? link.unit : answers.default_unit;
+  const q = new URLSearchParams();
+  if (Number.isFinite(size) && size > 0 && size <= 100000) q.set("size", String(size));
+  if (Object.hasOwn(UNIT_LABELS, unit ?? "")) q.set("unit", unit);
+  if (link.conc != null) q.set("conc", String(link.conc));
+  if (link.family) q.set("family", link.family);
+  if (link.name) q.set("name", link.name);
+  const query = q.toString();
+  return query ? `/app/calculator?${query}` : "/app/calculator";
 }
 
 // Where the calculator opens: a link's size/unit wins; otherwise the
