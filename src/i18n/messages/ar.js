@@ -29,6 +29,7 @@ export default {
     batchCap: "تحتفظ خطة {plan} بما يصل إلى {cap} دفعة. لن يُحذف شيء؛ تسجيل المزيد يتطلب خطة Pro.",
   },
   calculator: {
+    draft: { startOver: "ابدأ من جديد" },
     log: {
       untracked: "هذا الزيت غير موجود في مخزونك، لذلك لم يُخصم شيء من الكمية.",
       stockFailed: "حُفظت دفعتك، لكن تعذّر تحديث المخزون: {error}",

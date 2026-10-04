@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
+import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
 import { STRENGTHS } from "../lib/formulation";
 import MeasuredDensity from "./calc/MeasuredDensity";
@@ -140,16 +141,33 @@ function ReadoutRow({ label, weight, volume, bold }) {
  * manual-density-only version and the HTML tool's localStorage-only
  * personal log — this is now the single source of truth.
  */
-export default function FragranceBlendCalculator({ selectedPerfume, onClearSelection }) {
+// "Start over" remounts the calculator without the link or the draft.
+export default function FragranceBlendCalculator(props) {
+  const navigate = useNavigate();
+  const [run, setRun] = useState(0);
+  function startOver() {
+    clearDraft();
+    navigate("/app/calculator", { replace: true });
+    setRun((n) => n + 1);
+  }
+  return <Calculator key={run} {...props} fresh={run > 0} onStartOver={startOver} />;
+}
+
+function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const entitlements = useEntitlements();
   const [searchParams] = useSearchParams();
-  const [prefill] = useState(() => prefillFromQuery(searchParams));
-  const [fragName, setFragName] = useState(prefill.name ?? "");
+  const [prefill] = useState(() => prefillFromQuery(fresh ? new URLSearchParams() : searchParams));
+  // What this tab last had in the calculator, unless a link brought values.
+  const [draft] = useState(() => (fresh || linkCarriesValues(prefill) ? null : loadDraft()));
+  const [fragName, setFragName] = useState(draft?.fragName ?? prefill.name ?? "");
+  // The draft already holds the restored oil's supplier, price and notes,
+  // perhaps edited and unsaved: its first name match must not reload them.
+  const restoring = useRef(draft?.fragName || null);
   // A family or strength set by a link, a preset or the user. A catalog
   // name match fills only what nobody chose; it never overwrites a choice.
-  const chosen = useRef({ family: prefill.family != null, conc: prefill.conc != null });
+  const chosen = useRef({ family: draft?.chosenFamily ?? prefill.family != null, conc: draft?.chosenConc ?? prefill.conc != null });
   const [suggestions, setSuggestions] = useState([]);
   const [listOpen, setListOpen] = useState(false);
   const [activeOption, setActiveOption] = useState(-1);
@@ -161,30 +179,41 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
 
   const { profile } = useProfile();
   const [start] = useState(() => startingBottle(prefill, profile));
-  const [tierKey, setTierKey] = useState(prefill.family ?? "fresh");
-  const [batchSize, setBatchSize] = useState(start.size);
-  const [batchUnit, setBatchUnit] = useState(start.unit); // ml | floz | g | oz
-  const [concPct, setConcPct] = useState(prefill.conc ?? (prefill.family ? TIERS[prefill.family].defaultConc : 20));
+  const [tierKey, setTierKey] = useState(TIERS[draft?.tierKey] ? draft.tierKey : prefill.family ?? "fresh");
+  const [batchSize, setBatchSize] = useState(draft?.batchSize ?? start.size);
+  const [batchUnit, setBatchUnit] = useState(UNIT_LABELS[draft?.batchUnit] ? draft.batchUnit : start.unit); // ml | floz | g | oz
+  const [concPct, setConcPct] = useState(draft?.concPct ?? prefill.conc ?? (prefill.family ? TIERS[prefill.family].defaultConc : 20));
   const [densities, setDensities] = useState(() => ({
     ...Object.fromEntries(Object.entries(TIERS).map(([k, t]) => [k, t.density])),
     ethanol: ETHANOL_DENSITY_DEFAULT,
+    ...draft?.densities,
   }));
 
   // This user's measured density for the matched oil, if any: it replaces
   // the family's reference density (the handbook: a measured density wins).
-  const [measuredDensityValue, setMeasuredDensity] = useState(null);
-  const [mode, setMode] = useState("bottle"); // bottle | fromOil | adjust | run
-  const [ethanolPricePerL, setEthanolPricePerL] = useState("");
-  const [bottleCost, setBottleCost] = useState("");
-  const [bottles, setBottles] = useState("1");
-  const [oilType, setOilType] = useState("");
-  const [pricePerGram, setPricePerGram] = useState("");
-  const [notes, setNotes] = useState("");
+  const [measuredDensityValue, setMeasuredDensity] = useState(draft?.measuredDensity ?? null);
+  const [mode, setMode] = useState(MODES.includes(draft?.mode) ? draft.mode : "bottle"); // bottle | fromOil | adjust | run
+  const [ethanolPricePerL, setEthanolPricePerL] = useState(draft?.ethanolPricePerL ?? "");
+  const [bottleCost, setBottleCost] = useState(draft?.bottleCost ?? "");
+  const [bottles, setBottles] = useState(draft?.bottles ?? "1");
+  const [oilType, setOilType] = useState(draft?.oilType ?? "");
+  const [pricePerGram, setPricePerGram] = useState(draft?.pricePerGram ?? "");
+  const [notes, setNotes] = useState(draft?.notes ?? "");
   // What was really poured on the scale — often off the target by a little.
-  const [actualOilG, setActualOilG] = useState("");
-  const [actualEthG, setActualEthG] = useState("");
-  const [blendedBy, setBlendedBy] = useState("");
-  const [blendDate, setBlendDate] = useState(todayISO());
+  const [actualOilG, setActualOilG] = useState(draft?.actualOilG ?? "");
+  const [actualEthG, setActualEthG] = useState(draft?.actualEthG ?? "");
+  const [blendedBy, setBlendedBy] = useState(draft?.blendedBy ?? "");
+  const [blendDate, setBlendDate] = useState(draft?.blendDate ?? todayISO());
+
+  useEffect(() => {
+    saveDraft({
+      fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles,
+      oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities,
+      measuredDensity: measuredDensityValue ?? undefined,
+      chosenFamily: chosen.current.family, chosenConc: chosen.current.conc,
+    });
+  }, [fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles,
+    oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities, measuredDensityValue]);
 
   const [logStatus, setLogStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
   // Suppliers this user has typed before, newest first, as input suggestions.
@@ -236,6 +265,9 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
     try {
       const found = await getFragranceByExactName(name);
       setMatched(found);
+      const restored = restoring.current === name;
+      restoring.current = null;
+      if (restored) return;
       if (found) {
         // Defensive: only trust found.tier if it's actually a valid tier
         // key. Guards against a malformed row (bad manual DB edit, future
@@ -389,6 +421,9 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             {t(`calc.modes.tabs.${m}`)}
           </button>
         ))}
+        <button type="button" onClick={onStartOver} className="ms-auto px-3 py-1.5 text-sm underline min-h-[32px]" style={{ color: COLORS.inkSoft }}>
+          {t("calculator.draft.startOver")}
+        </button>
       </div>
 
       {mode !== "bottle" ? (

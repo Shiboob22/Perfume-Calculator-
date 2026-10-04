@@ -28,6 +28,7 @@ export default {
     batchCap: "Your {plan} plan keeps up to {cap} batches. Nothing is deleted; logging more needs Pro.",
   },
   calculator: {
+    draft: { startOver: "Start over" },
     log: {
       untracked: "This oil isn't in your inventory, so no stock was deducted.",
       stockFailed: "Your batch is saved, but the inventory couldn't be updated: {error}",
