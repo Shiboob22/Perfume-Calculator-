@@ -12,7 +12,7 @@ export default {
     tabs: {
       search: "بحث",
       calculator: "الحاسبة",
-      batches: "الدفعات",
+      batches: "الدفتر",
       inventory: "المخزون",
       ask: "اسأل",
     },
@@ -631,10 +631,10 @@ export default {
     useWestern: "الأرقام: 123",
   },
   site: {
-    nav: { privacy: "الخصوصية", terms: "الشروط", guides: "الأدلة", pricing: "الخطط", openApp: "افتح التطبيق", home: "Scent Ledger، الصفحة الرئيسية", language: "English", languageLabel: "اقرأ هذه الصفحة بالإنجليزية" },
+    nav: { main: "التنقل الرئيسي", calculator: "الحاسبة", journal: "الدفتر", privacy: "الخصوصية", terms: "الشروط", guides: "الأدلة", pricing: "الخطط", openApp: "افتح التطبيق", home: "Scent Ledger، الصفحة الرئيسية", language: "English", languageLabel: "اقرأ هذه الصفحة بالإنجليزية" },
     legal: { draft: "مسودة لم تُراجَع بعد. قد تتغير هذه الصفحة قبل الإطلاق.", updated: "آخر تحديث {date}" },
     safety: { title: "السلامة", text: "كحول العطور سريع الاشتعال: اخلط بعيدًا عن اللهب والحرارة، في غرفة جيدة التهوية، وبعيدًا عن متناول الأطفال. قد تهيّج زيوت العطر الجلد والعينين — ارتدِ قفازات واقرأ صحيفة بيانات السلامة لكل مادة. الأرقام هنا نقاط انطلاق؛ تحقّق من كل وزن على ميزانك.", more: "السلامة والمسؤولية" },
-    footer: { by: "بقلم Hisham Shiboob", rights: "© 2026 Scent Ledger" },
+    footer: { line: "نشأ Scent Ledger من The Scent Handbook، كتيّب مطبوع في ثلاثة مجلدات: الاستعمال، والخزانة، والتركيب.", credit: "Hisham Shiboob · Scent Ledger", safety: "الإيثانول شديد الاشتعال. أبعده عن اللهب والحرارة والأطفال.", by: "بقلم Hisham Shiboob", rights: "© 2026 Scent Ledger" },
     home: {
       metaTitle: "Scent Ledger — حاسبة لخلط العطور بالوزن",
       metaDescription: "خفّف زيت العطر بإيثانول 96% بالوزن. غرامات دقيقة لميزان 0.01 غ، وطريقة العمل خطوة بخطوة، ومكتبة أدلة مجانية.",

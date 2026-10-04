@@ -1,6 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import FlaconMark from "./components/FlaconMark";
+import { SiteFooter, SiteHeader } from "./components/SiteChrome";
 import PerfumeSearch from "./components/PerfumeSearch";
 import { COLORS } from "./lib/theme";
 import AuthGate from "./components/AuthGate";
@@ -48,7 +48,7 @@ const DEFAULT_TAB = "calculator";
 
 // The signed-in app, at /app/<tab>.
 export default function App() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { tab } = useParams();
   // cards and account are pages of their own, reached from links, not tabs.
@@ -118,47 +118,20 @@ export default function App() {
           <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
         ) : (
         <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }}>
-      <header className="max-w-3xl mx-auto px-6 sm:px-8 pt-10 pb-4">
-        <div className="flex items-center gap-4 mb-6">
-          <FlaconMark size={32} />
-          <div className="flex-1">
-            <h1
-              className="text-2xl font-serif italic leading-tight"
-              style={{ color: COLORS.forestDeep }}
-            >
-              {t("brand")}
-            </h1>
-          </div>
-          <div className="text-end">
-            {user?.email && (
-              <div className="text-xs font-mono mb-1" style={{ color: COLORS.inkSoft }}>
-                {user.email}
-              </div>
-            )}
-            {/* The guides are public pages: a full page load, in the app's language. */}
-            <a href={locale === "ar" ? "/ar/guides" : "/guides"} className="text-xs font-mono hover:underline me-3 min-h-[24px]" style={{ color: COLORS.inkSoft }}>
-              {t("site.nav.guides")}
-            </a>
-            <button
-              type="button"
-              onClick={() => navigate("/app/account")}
-              className="text-xs font-mono hover:underline me-3 min-h-[24px]"
-              style={{ color: tab === "account" ? COLORS.amber : COLORS.inkSoft }}
-              aria-current={tab === "account" ? "page" : undefined}
-            >
-              {t("account.link")}
-            </button>
-            <button
-              onClick={() => signOut()}
-              className="text-xs font-mono hover:underline min-h-[24px]"
-              style={{ color: COLORS.inkSoft }}
-            >
-              {t("app.signOut")}
-            </button>
-            <div className="flex gap-3 justify-end"><DigitToggle /><LanguageToggle /></div>
-          </div>
-        </div>
-
+      <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "batches" ? "journal" : undefined}
+        language={<><LanguageToggle /><DigitToggle /></>}
+        extra={<>
+          <button type="button" onClick={() => navigate("/app/account")}
+            className="text-sm hover:underline underline-offset-4 min-h-[44px]"
+            style={{ color: tab === "account" ? COLORS.forest : COLORS.inkSoft }}
+            aria-current={tab === "account" ? "page" : undefined}>
+            {t("account.link")}
+          </button>
+          <button type="button" onClick={() => signOut()} className="text-sm hover:underline underline-offset-4 min-h-[44px]" style={{ color: COLORS.inkSoft }}>
+            {t("app.signOut")}
+          </button>
+        </>} />
+      <header className="max-w-3xl mx-auto px-4 sm:px-8 pt-6">
         <nav aria-label={t("app.tabsLabel")} className="flex gap-2 border-b overflow-x-auto" style={{ borderColor: COLORS.line }}>
           {TABS.map((id) => (
             <button
@@ -207,6 +180,7 @@ export default function App() {
         )}
         </Suspense>
       </main>
+      <SiteFooter />
     </div>
         )}
         </OnboardingGate>
