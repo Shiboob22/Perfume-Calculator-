@@ -559,6 +559,7 @@ export default {
     share_family: "Only a batch in one of the five families can be shared.",
     share_name: "The batch needs a name to be shared.",
     share_rest: "Rest days must be a whole number from 0 to 365.",
+    invalid_edit: "Check the changes: one of the values is not allowed.",
     server_error: "Something went wrong on our side. Please try again.",
     method_not_allowed: "That action isn't supported.",
   },

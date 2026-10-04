@@ -35,6 +35,41 @@ export function batchRecord(b: any) {
   return Object.fromEntries(Object.entries(rec).filter(([, v]) => v != null));
 }
 
+// What a user may change on a logged batch: the record around the blend,
+// never the planned recipe (Make again covers a different recipe). Only the
+// fields sent change; an empty value clears an optional field.
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+export function editRow(edit: any): { row: Record<string, unknown> } | { error: string; field: string } {
+  if (!edit || typeof edit !== 'object' || Array.isArray(edit)) return { error: 'Nothing to change.', field: 'edit' };
+  const row: Record<string, unknown> = {};
+  const textField = (k: string, max: number, required = false) => {
+    if (!(k in edit)) return null;
+    const v = edit[k] == null ? '' : String(edit[k]).trim();
+    if (!v && required) return k;
+    if (v.length > max) return k;
+    row[k] = v || null;
+    return null;
+  };
+  const gramsField = (k: string) => {
+    if (!(k in edit)) return null;
+    if (edit[k] === null || edit[k] === '') { row[k] = null; return null; }
+    const g = Number(edit[k]);
+    if (!(g > 0 && g <= 100000)) return k;
+    row[k] = g;
+    return null;
+  };
+  const bad = textField('fragrance_name', 120, true) || textField('notes', 2000) || textField('blended_by', 120)
+    || textField('oil_type', 120) || textField('lot', 60) || gramsField('actual_oil_g') || gramsField('actual_ethanol_g');
+  if (bad) return { error: `Check ${bad}.`, field: bad };
+  if ('blend_date' in edit) {
+    const d = String(edit.blend_date ?? '');
+    if (!DATE.test(d) || Number.isNaN(Date.parse(`${d}T00:00:00Z`))) return { error: 'Check blend_date.', field: 'blend_date' };
+    row.blend_date = d;
+  }
+  if (!Object.keys(row).length) return { error: 'Nothing to change.', field: 'edit' };
+  return { row };
+}
+
 // Stock taken out for a freshly logged batch, when the client asks with
 // deduct_oil_g. Only on a new insert (a replay or a 23505 returns earlier,
 // so a re-sent batch never deducts twice), only on a plan with inventory,
@@ -172,10 +207,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // Each batch comes with its journal check-ins (0012), oldest first,
       // and its shared recipe if it was ever shared (0013).
-      const { data, error } = await supabase
+      let query = supabase
         .from('batches')
         .select('*, batch_checkins ( id, day, scheduled_day, note, rating, skipped, created_at ), shared_recipes ( slug, published, public_note, rest_days, indexable, updated_at )')
-        .eq('user_id', userId)
+        .eq('user_id', userId);
+      // One batch (labels), or the batches of one oil (its history): by
+      // catalog id, or by name for batches logged without one.
+      const one = String(req.query.id ?? '');
+      const oil = String(req.query.fragrance_id ?? '');
+      const name = typeof req.query.name === 'string' ? req.query.name.trim().slice(0, 120) : '';
+      if (one) { if (!UUID.test(one)) return fail(res, 400, 'invalid_id', 'Invalid batch ID.'); query = query.eq('id', one); }
+      if (oil) { if (!UUID.test(oil)) return fail(res, 400, 'invalid_id', 'Invalid fragrance ID.'); query = query.eq('fragrance_id', oil); }
+      if (name) query = query.ilike('fragrance_name', name.replace(/[\\%_]/g, (c) => `\\${c}`));
+      const { data, error } = await query
         .order('created_at', { ascending: false })
         .order('created_at', { referencedTable: 'batch_checkins', ascending: true })
         .limit(limit);
@@ -196,7 +240,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const b = req.body || {};
       const id = typeof b.id === 'string' ? b.id : '';
-      if (!UUID.test(id) || b.share === undefined) return fail(res, 400, 'invalid_id', 'Missing batch ID or share.');
+      if (!UUID.test(id) || (b.share === undefined && b.edit === undefined)) return fail(res, 400, 'invalid_id', 'Missing batch ID, share or edit.');
+
+      if (b.edit !== undefined) {
+        const edited = editRow(b.edit);
+        if ('error' in edited) return fail(res, 400, 'invalid_edit', edited.error, { field: edited.field });
+        if (await overLimit(supabase, res, 'batch', userId)) return;
+        const { data, error } = await supabase
+          .from('batches').update(edited.row).eq('id', id).eq('user_id', userId).select('*').maybeSingle();
+        if (error) throw error;
+        if (!data) return fail(res, 404, 'not_found', 'Batch not found.');
+        return res.status(200).json({ batch: data });
+      }
+
       if (await overLimit(supabase, res, 'share', userId)) return;
 
       const { data: batch, error: batchError } = await supabase

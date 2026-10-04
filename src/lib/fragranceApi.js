@@ -185,12 +185,23 @@ export async function logBatch(batch) {
   return Object.assign(data.batch ?? {}, { stock: data.stock, duplicate: Boolean(data.duplicate) });
 }
 
-export async function listBatches(limit = 100) {
+// `filters`: { id } for one batch, { fragrance_id } or { name } for one oil's.
+export async function listBatches(limit = 100, filters = {}) {
   const headers = await authHeaders();
-  const res = await fetch(`/api/batches?limit=${limit}`, { headers });
+  const q = new URLSearchParams({ limit: String(limit) });
+  for (const [k, v] of Object.entries(filters)) if (v) q.set(k, v);
+  const res = await fetch(`/api/batches?${q}`, { headers });
   if (!res.ok) throw await apiError(res);
   const data = await res.json();
   return data.batches || [];
+}
+
+// Change the record around a logged batch (see editRow in api/batches.ts).
+export async function editBatch(id, edit) {
+  const headers = await authHeaders();
+  const res = await fetch('/api/batches', { method: 'PATCH', headers, body: JSON.stringify({ id, edit }) });
+  if (!res.ok) throw await apiError(res);
+  return (await res.json()).batch;
 }
 
 export async function deleteBatch(id) {

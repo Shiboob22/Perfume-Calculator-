@@ -179,6 +179,51 @@ describe('PATCH /api/batches (share)', () => {
   });
 });
 
+describe('PATCH /api/batches (edit)', () => {
+  it('changes only the record fields sent, for the owner', async () => {
+    db = dbFor('pro', { batches: [{ id: ID, user_id: USER, ...BATCH, notes: 'old' }] });
+    const res = await call('PATCH', { body: { id: ID, edit: { fragrance_name: ' Oud II ', lot: 'L2', notes: '', actual_oil_g: '24.1', blend_date: '2026-09-30', oil_g: 1, user_id: OTHER } } });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.batch).toMatchObject({ fragrance_name: 'Oud II', lot: 'L2', notes: null, actual_oil_g: 24.1, blend_date: '2026-09-30', oil_g: 23.75, user_id: USER });
+  });
+  it("answers 404 for another user's batch and changes nothing", async () => {
+    db = dbFor('pro', { batches: [{ id: ID, user_id: OTHER, ...BATCH }] });
+    const res = await call('PATCH', { body: { id: ID, edit: { fragrance_name: 'Mine now' } } });
+    expect(res.statusCode).toBe(404);
+    expect(db.rows('batches')[0].fragrance_name).toBe('Oud Nights');
+  });
+  it('refuses a bad value with the field', async () => {
+    for (const edit of [{ fragrance_name: '' }, { blend_date: '2026-13-45' }, { actual_oil_g: -1 }, { lot: 'x'.repeat(61) }, {}, [1]]) {
+      const res = await call('PATCH', { body: { id: ID, edit } });
+      expect(res.statusCode).toBe(400);
+      expect(res.body.code).toBe('invalid_edit');
+    }
+    expect(db.writes).toEqual([]);
+  });
+});
+
+describe('GET /api/batches filters', () => {
+  const FRAG = '22222222-2222-4222-8222-222222222222';
+  beforeEach(() => {
+    db = dbFor('pro', { batches: [
+      { id: ID, user_id: USER, fragrance_id: FRAG, fragrance_name: 'Oud Nights', created_at: '1' },
+      { id: 'b', user_id: USER, fragrance_id: null, fragrance_name: 'oud nights', created_at: '2' },
+      { id: 'c', user_id: USER, fragrance_id: null, fragrance_name: 'Rose', created_at: '3' },
+      { id: 'd', user_id: OTHER, fragrance_id: FRAG, fragrance_name: 'Oud Nights', created_at: '4' },
+    ] });
+  });
+  const ids = (res: any) => res.body.batches.map((x: any) => x.id);
+  it('by id, by oil and by name, only the user\'s own', async () => {
+    expect(ids(await call('GET', { query: { id: ID } }))).toEqual([ID]);
+    expect(ids(await call('GET', { query: { fragrance_id: FRAG } }))).toEqual([ID]);
+    expect(ids(await call('GET', { query: { name: 'OUD NIGHTS' } }))).toEqual(['b', ID]);
+  });
+  it('refuses a malformed id', async () => {
+    expect((await call('GET', { query: { id: 'x' } })).statusCode).toBe(400);
+    expect((await call('GET', { query: { fragrance_id: 'x' } })).statusCode).toBe(400);
+  });
+});
+
 describe('errors', () => {
   it('rejects a malformed id on DELETE without touching the database', async () => {
     const res = await call('DELETE', { query: { id: 'not-a-uuid' } });
