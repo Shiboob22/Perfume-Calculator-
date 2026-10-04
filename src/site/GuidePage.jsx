@@ -187,6 +187,15 @@ export default function GuidePage() {
         </aside>
       )}
 
+      {guide.benchCta && (
+        <p className="mt-10">
+          <a href="/app/calculator?ref=guide" className="inline-block px-5 py-3 rounded-xl font-semibold"
+            style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}>
+            {t("site.guides.benchCta")}
+          </a>
+          <span className="block mt-2 text-sm" style={{ color: COLORS.inkSoft }}>{t("site.guides.benchCtaLead")}</span>
+        </p>
+      )}
       {calcHref && (
         <a href={calcHref} className="inline-block mt-10 px-5 py-3 rounded-xl font-semibold"
           style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}>

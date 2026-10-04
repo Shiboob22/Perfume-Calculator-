@@ -700,6 +700,8 @@ export default {
       by: "By Hisham Shiboob",
       from: "From The Scent Handbook, Vol. {volume} — {book}, sections {sections}",
       openCalc: "Open in calculator",
+      benchCta: "Weigh your next batch in the app",
+      benchCtaLead: "Set the bottle in the calculator, then Start bench mode: one step per screen, big numbers, for a phone next to the scale.",
       reviewNote: "This Arabic translation is a draft awaiting the author's review.",
       toc: "On this page",
       all: "All guides",

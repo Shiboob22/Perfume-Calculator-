@@ -48,7 +48,7 @@ const DEFAULT_TAB = "calculator";
 
 // The signed-in app, at /app/<tab>.
 export default function App() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const navigate = useNavigate();
   const { tab } = useParams();
   // cards and account are pages of their own, reached from links, not tabs.
@@ -135,6 +135,10 @@ export default function App() {
                 {user.email}
               </div>
             )}
+            {/* The guides are public pages: a full page load, in the app's language. */}
+            <a href={locale === "ar" ? "/ar/guides" : "/guides"} className="text-xs font-mono hover:underline me-3 min-h-[24px]" style={{ color: COLORS.inkSoft }}>
+              {t("site.nav.guides")}
+            </a>
             <button
               type="button"
               onClick={() => navigate("/app/account")}

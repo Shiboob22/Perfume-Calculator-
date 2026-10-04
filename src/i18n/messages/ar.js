@@ -701,6 +701,8 @@ export default {
       by: "بقلم Hisham Shiboob",
       from: "من The Scent Handbook، المجلد {volume} — {book}، الأقسام {sections}",
       openCalc: "افتح في الحاسبة",
+      benchCta: "زِن دفعتك التالية في التطبيق",
+      benchCtaLead: "حدّد الزجاجة في الحاسبة، ثم ابدأ وضع العمل: خطوة في كل شاشة وأرقام كبيرة، لهاتف بجوار الميزان.",
       reviewNote: "هذه الترجمة العربية مسودة بانتظار مراجعة المؤلف.",
       toc: "في هذه الصفحة",
       all: "كل الأدلة",

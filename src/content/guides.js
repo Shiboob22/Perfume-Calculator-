@@ -132,6 +132,8 @@ const BLENDING = [
     section: "blending",
     source: { volume: "III", book: "Formulation", sections: ["04", "05", "06", "07", "08", "09", "10"] },
     calculator: null,
+    // No numbers of its own: the call to action opens the app's bench mode route.
+    benchCta: true,
     en: {
       title: "At the bench",
       summary: "Setup, weighing the oil and the alcohol, mixing, the Five Precision Rules and quality control: the method on one page.",
