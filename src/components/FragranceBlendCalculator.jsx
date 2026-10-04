@@ -331,11 +331,12 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         setMatched(fragrance);
       }
       await saveFragranceNotes(fragrance.id, { oilType, pricePerGram: pricePerGram || null, notes, measuredDensity: measuredDensityValue });
-      await logBatch(row(fragrance.id));
+      const tracksStock = can(entitlements, "inventory");
+      const saved = await logBatch({ ...row(fragrance.id), ...(tracksStock ? { deduct_oil_g: result.usedOilG } : {}) });
       logId.current = null;
       // The batch is saved from here on: nothing below may report it as unsaved,
       // or a retry would log it twice.
-      await deductStock(fragrance.id, result.usedOilG);
+      if (tracksStock && !saved.duplicate) await stockOutcome(saved.stock, fragrance.id, result.usedOilG);
       // Actual pours belong to this batch only — clear them so the next
       // log doesn't silently reuse them.
       setActualOilG(""); setActualEthG("");
@@ -345,7 +346,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       if (isOffline(e)) {
         // No connection: the batch waits in this browser and is sent when
         // the connection returns (with this id, so never twice).
-        enqueue(row(matched?.id ?? null));
+        enqueue({ ...row(matched?.id ?? null), ...(can(entitlements, "inventory") ? { deduct_oil_g: result.usedOilG } : {}) });
         logId.current = null;
         setActualOilG(""); setActualEthG("");
         setLogStatus("queued");
@@ -358,10 +359,19 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     }
   }
 
+  // The server takes the oil out of stock as it logs the batch and says
+  // how that went. A server without that step (or with its kill switch on,
+  // "client") leaves it to the old path below. Never throws.
+  async function stockOutcome(stock, fragranceId, grams) {
+    if (stock === "deducted" || stock === "locked") return;
+    if (stock === "not_tracked") return setLogNote(t("calculator.log.untracked"));
+    if (stock === "failed") return setLogNote(t("calculator.log.stockFailed", { error: t("errors.server_error") }));
+    await deductStock(fragranceId, grams);
+  }
+
   // Take the oil used by a just-saved batch out of inventory. Never throws:
   // the batch is already saved, so every outcome here ends in a note at most.
   async function deductStock(fragranceId, grams) {
-    if (!can(entitlements, "inventory")) return; // no stock tracking on this plan
     // An untracked oil stays untracked: creating a row here would start it at
     // 0 g, and a stock figure the user never entered is worse than none.
     try {

@@ -180,7 +180,9 @@ export async function logBatch(batch) {
   });
   if (!res.ok) throw await apiError(res);
   const data = await res.json();
-  return data.batch;
+  // How the server's stock step went (see api/batches.ts), and whether this
+  // was a re-send of a batch already logged. Not columns of the batch.
+  return Object.assign(data.batch ?? {}, { stock: data.stock, duplicate: Boolean(data.duplicate) });
 }
 
 export async function listBatches(limit = 100) {
