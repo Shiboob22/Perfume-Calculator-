@@ -92,7 +92,7 @@ export default function Inventory() {
                     {r.fragrances?.name || t("inventory.unknown")}
                   </div>
                   <div className="text-xs font-mono mt-0.5" style={{ color: COLORS.inkSoft }}>
-                    {TIERS[r.fragrances?.tier]?.label || r.fragrances?.tier}
+                    {TIERS[r.fragrances?.tier] ? t(`families.${r.fragrances.tier}.label`) : r.fragrances?.tier}
                   </div>
                 </div>
                 <div className="text-end">
