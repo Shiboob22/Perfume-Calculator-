@@ -99,9 +99,10 @@ Migrations **0014–0016** have run on **staging** (advisors re-checked;
 - `0016_signup_sources` — `profiles.signup_ref`, `pro_waitlist.source`
   (nullable short slugs); RLS unchanged.
 
-Apply them to production **before** the Phase 8 code deploys (the app sends
-the new columns), only after the owner reads and approves the SQL; then
-compare the fingerprint with staging and check the data counts.
+**Done 2026-10-04** (owner delegated the approval): applied to production
+before the Phase 8 code deployed; new columns, checks, indexes and the
+function's `search_path` confirmed; data counts unchanged (36 batches,
+81,823 catalog rows; owner on Pro).
 
 ## 5. Production configuration (owner)
 
