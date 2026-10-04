@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { prefillFromQuery, startingBottle, afterOnboardingPath, cleanName } from "./calcPrefill";
+import { prefillFromQuery, startingBottle, afterOnboardingPath, cleanName, refFrom } from "./calcPrefill";
 
 const q = (s) => prefillFromQuery(new URLSearchParams(s));
 
@@ -27,6 +27,15 @@ describe("names in links", () => {
     expect(cleanName("x".repeat(200))).toHaveLength(120);
     expect(cleanName("   ")).toBeNull();
     expect(cleanName(null)).toBeNull();
+  });
+});
+
+describe("refFrom", () => {
+  it("reads a short slug and nothing else", () => {
+    expect(refFrom("?size=50&ref=recipe")).toBe("recipe");
+    expect(refFrom("?ref=Home")).toBeNull();
+    expect(refFrom("?ref=" + "a".repeat(61))).toBeNull();
+    expect(refFrom("")).toBeNull();
   });
 });
 

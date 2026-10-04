@@ -25,7 +25,7 @@ export default function Home() {
           <h1 className="font-serif italic text-5xl sm:text-6xl leading-[1.02]" style={{ color: COLORS.forestDeep }}>{t("site.home.title")}</h1>
           <p className="mt-5 text-lg leading-relaxed" style={{ color: COLORS.inkSoft }}>{t("site.home.lead")}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="/app/calculator" className="px-5 py-3 rounded-xl font-semibold" style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}>
+            <a href="/app/calculator?ref=home" className="px-5 py-3 rounded-xl font-semibold" style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}>
               {t("site.home.ctaApp")}
             </a>
             <Link to={to("/guides")} className="px-5 py-3 rounded-xl font-semibold" style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}>

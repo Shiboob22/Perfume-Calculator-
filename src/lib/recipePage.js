@@ -41,6 +41,7 @@ export function calculatorHref(r) {
   });
   const name = cleanName(r.fragrance_name);
   if (name) q.set("name", name);
+  q.set("ref", "recipe"); // where a sign-up came from (profiles.signup_ref)
   return `/app/calculator?${q}`;
 }
 

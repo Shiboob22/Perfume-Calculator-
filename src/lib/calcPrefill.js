@@ -22,6 +22,13 @@ export function prefillFromQuery(params) {
   };
 }
 
+// The public page that brought a new user (?ref=recipe|guide|home), as
+// a short slug for profiles.signup_ref; null when absent or malformed.
+export function refFrom(search) {
+  const ref = new URLSearchParams(search).get("ref");
+  return ref && /^[a-z0-9_-]{1,60}$/.test(ref) ? ref : null;
+}
+
 // Where onboarding sends someone who arrived on a calculator link: the
 // link's values win, and the onboarding answers fill only the bottle the
 // link left out. Without a link it is the answers' bottle, as before.

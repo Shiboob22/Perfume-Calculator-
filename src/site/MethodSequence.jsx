@@ -14,7 +14,7 @@ const METHOD = GUIDES.filter((g) => g.section === "blending");
 
 export function calculatorHref(guide) {
   const c = guide.calculator;
-  return c ? `/app/calculator?${new URLSearchParams({ size: c.size, unit: c.unit, conc: c.conc })}` : null;
+  return c ? `/app/calculator?${new URLSearchParams({ size: c.size, unit: c.unit, conc: c.conc, ref: "guide" })}` : null;
 }
 
 export default function MethodSequence({ guides = METHOD, showCalculator = false }) {

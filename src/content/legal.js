@@ -17,7 +17,8 @@ export const LEGAL = {
         { id: "what", h: "What we store", p: [
           "Your account: your email address, and the sign-in provider you used (email link or Google).",
           "What you save in the app: batches (fragrance name, weights, strength, dates, notes, cost fields you fill in), inventory, notes on fragrances, calculator presets, and your preferences (language, units, usual bottle size, digit style).",
-          "Your plan (Free or Pro) and, if you join it, your place on the Pro waitlist.",
+          "Your plan (Free or Pro) and, if you join it, your place on the Pro waitlist and the screen you joined it from.",
+          "If you signed up from a recipe page, a guide or the home page, which of the three. We only look at it as totals, never per person.",
           "Fragrances you add to the shared catalog are stored with a link to your account until an admin approves them. If you delete your account the fragrance stays in the catalog without that link.",
         ] },
         { id: "not", h: "What we do not do", p: [
@@ -25,7 +26,7 @@ export const LEGAL = {
           "The public pages (the home page, pricing and guides) do not load the sign-in system at all.",
         ] },
         { id: "device", h: "Stored on your device", p: [
-          "Your browser keeps your sign-in session, your language and digit choices, and batches you logged while offline until they are sent. These stay on your device and are cleared when you sign out or clear site data.",
+          "Your browser keeps your sign-in session, your language and digit choices, batches you logged while offline until they are sent, and, for the open tab only, the calculator's inputs and a bench run in progress. These stay on your device and are cleared when you sign out or clear site data.",
         ] },
         { id: "ai", h: "Ask (AI)", p: [
           "Ask is a Pro feature that sends your question, the conversation so far, and your 30 most recent batches (date, fragrance name, family, strength, size, oil weight, oil type, price and cost fields, and notes) to Google's Gemini API to write an answer. Your email address is not sent.",
@@ -57,7 +58,8 @@ export const LEGAL = {
         { id: "what", h: "ما الذي نحفظه", p: [
           "حسابك: بريدك الإلكتروني، وطريقة تسجيل الدخول التي استخدمتها (رابط البريد أو Google).",
           "ما تحفظه في التطبيق: الخلطات (اسم العطر والأوزان والتركيز والتواريخ والملاحظات وحقول التكلفة التي تملؤها)، والمخزون، وملاحظاتك على العطور، والإعدادات المحفوظة في الحاسبة، وتفضيلاتك (اللغة والوحدات وحجم الزجاجة المعتاد وشكل الأرقام).",
-          "خطتك (المجانية أو Pro)، ومكانك في قائمة انتظار Pro إن انضممت إليها.",
+          "خطتك (المجانية أو Pro)، ومكانك في قائمة انتظار Pro إن انضممت إليها والشاشة التي انضممت منها.",
+          "إن سجّلت من صفحة وصفة أو دليل أو من الصفحة الرئيسية، فأيّها كان. لا ننظر إلى ذلك إلا كمجاميع، لا لكل شخص.",
           "العطور التي تضيفها إلى الفهرس المشترك تُحفظ مرتبطة بحسابك حتى يوافق عليها مشرف. إن حذفت حسابك يبقى العطر في الفهرس دون هذا الارتباط.",
         ] },
         { id: "not", h: "ما لا نفعله", p: [
@@ -65,7 +67,7 @@ export const LEGAL = {
           "الصفحات العامة (الرئيسية والخطط والأدلة) لا تحمّل نظام تسجيل الدخول أصلًا.",
         ] },
         { id: "device", h: "ما يُحفظ على جهازك", p: [
-          "يحتفظ متصفحك بجلسة تسجيل الدخول، واختيارك للغة وشكل الأرقام، والخلطات التي سجّلتها دون اتصال حتى تُرسَل. تبقى هذه على جهازك وتُمسح عند تسجيل الخروج أو مسح بيانات الموقع.",
+          "يحتفظ متصفحك بجلسة تسجيل الدخول، واختيارك للغة وشكل الأرقام، والخلطات التي سجّلتها دون اتصال حتى تُرسَل، ولعلامة التبويب المفتوحة فقط مدخلات الحاسبة وجلسة العمل الجارية. تبقى هذه على جهازك وتُمسح عند تسجيل الخروج أو مسح بيانات الموقع.",
         ] },
         { id: "ai", h: "اسأل (الذكاء الاصطناعي)", p: [
           "ميزة «اسأل» جزء من Pro، وهي ترسل سؤالك والمحادثة حتى الآن وآخر 30 خلطة لك (التاريخ واسم العطر والعائلة والتركيز والحجم ووزن الزيت ونوعه وحقول السعر والتكلفة والملاحظات) إلى واجهة Gemini من Google لكتابة الإجابة. لا يُرسَل بريدك الإلكتروني.",

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { COLORS, SHAPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { useProfile } from "../lib/useProfile";
-import { UNIT_LABELS, afterOnboardingPath } from "../lib/calcPrefill";
+import { UNIT_LABELS, afterOnboardingPath, refFrom } from "../lib/calcPrefill";
 import FlaconMark from "./FlaconMark";
 
 const UNITS = ["ml", "floz", "g", "oz"];
@@ -31,7 +31,9 @@ export default function Onboarding() {
   async function finish(skipped) {
     setSaving(true);
     setError(null);
-    const answers = { ...(skipped ? {} : { default_unit: unit, default_bottle: size, locale }), onboarded_at: new Date().toISOString() };
+    // Onboarding runs once per user, so the page that brought them is saved once.
+    const ref = refFrom(window.location.search);
+    const answers = { ...(skipped ? {} : { default_unit: unit, default_bottle: size, locale }), ...(ref ? { signup_ref: ref } : {}), onboarded_at: new Date().toISOString() };
     try {
       await save(answers);
     } catch {

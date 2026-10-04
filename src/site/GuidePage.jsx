@@ -145,7 +145,7 @@ export default function GuidePage() {
   const next = inSection[at + 1];
   const sections = g.body.filter((b) => b.h2);
   const calc = guide.calculator;
-  const calcHref = calc ? `/app/calculator?${new URLSearchParams({ size: calc.size, unit: calc.unit, conc: calc.conc })}` : null;
+  const calcHref = calc ? `/app/calculator?${new URLSearchParams({ size: calc.size, unit: calc.unit, conc: calc.conc, ref: "guide" })}` : null;
 
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-8 pt-8">
