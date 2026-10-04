@@ -10,6 +10,7 @@ export const FEATURES = [
   "calculator.advanced",
   "cards.download",
   "journal.insights",
+  "journal.checkins",
 ];
 
 // What a user gets when no plan row can be loaded: Free, with nothing extra.

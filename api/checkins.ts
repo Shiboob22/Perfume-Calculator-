@@ -1,12 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { setCors, serviceClient, requireUser, isTimeout, SLOW_READ, SLOW_WRITE, UUID } from './_lib/http.js';
 import { overLimit } from './_lib/rateLimit.js';
-import { loadEntitlements, can } from './_lib/entitlements.js';
+import { loadEntitlements, can, lockedFeature } from './_lib/entitlements.js';
 import { parseCheckIn } from './_lib/checkin.js';
 import { familyPatterns, MAX_CHECKINS_PER_BATCH } from '../src/lib/calc/journal.js';
 
 // The Resting Journal.
 //   POST   /api/checkins       a check-in (or a skip) on one of the caller's batches
+//                              (Pro: journal.checkins; earlier check-ins stay
+//                              readable, deletable and exported on Free)
 //   DELETE /api/checkins?id=   remove one of the caller's check-ins
 //   GET    /api/checkins       the caller's per-family patterns: the days for
 //                              Pro (journal.insights), only which families
@@ -31,6 +33,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from('batch_checkins').select('*').eq('id', row.id).eq('user_id', userId).maybeSingle();
       if (sameError) throw sameError;
       if (same) return res.status(200).json({ checkin: same, duplicate: true });
+
+      // The resting journal is Pro. Checked here, not only in the app.
+      if (!can(await loadEntitlements(supabase, userId), 'journal.checkins')) return res.status(403).json(lockedFeature('journal.checkins'));
 
       if (await overLimit(supabase, res, 'checkin', userId)) return;
 
