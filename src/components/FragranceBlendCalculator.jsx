@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
+import { enqueue, isOffline } from "../lib/outbox";
 import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
 import { STRENGTHS } from "../lib/formulation";
 import MeasuredDensity from "./calc/MeasuredDensity";
@@ -309,9 +310,20 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     bottles,
   }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG, ethanolPricePerL, bottleCost, bottles]);
 
+  // One id per batch the user means to log, kept across retries: if a
+  // send reached the server but the answer was lost, the retry is
+  // recognised as the same batch instead of logging it twice.
+  const logId = useRef(null);
+
   async function handleLogBatch() {
     if (!fragName.trim()) return;
     setLogStatus("saving"); setLogError(""); setLogNote("");
+    logId.current ??= crypto.randomUUID();
+    const row = (fragranceId) => buildBatch({
+      id: logId.current, fragranceId, name: fragName.trim(), tier: tierKey, blendDate, concPct,
+      target: result, densities: result.densities, actualOilG, actualEthG,
+      oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy,
+    });
     try {
       let fragrance = matched;
       if (!fragrance) {
@@ -319,11 +331,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         setMatched(fragrance);
       }
       await saveFragranceNotes(fragrance.id, { oilType, pricePerGram: pricePerGram || null, notes, measuredDensity: measuredDensityValue });
-      await logBatch(buildBatch({
-        fragranceId: fragrance.id, name: fragName.trim(), tier: tierKey, blendDate, concPct,
-        target: result, densities: result.densities, actualOilG, actualEthG,
-        oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy,
-      }));
+      await logBatch(row(fragrance.id));
+      logId.current = null;
       // The batch is saved from here on: nothing below may report it as unsaved,
       // or a retry would log it twice.
       await deductStock(fragrance.id, result.usedOilG);
@@ -333,6 +342,15 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       setLogStatus("saved");
       entitlements.refresh();
     } catch (e) {
+      if (isOffline(e)) {
+        // No connection: the batch waits in this browser and is sent when
+        // the connection returns (with this id, so never twice).
+        enqueue(row(matched?.id ?? null));
+        logId.current = null;
+        setActualOilG(""); setActualEthG("");
+        setLogStatus("queued");
+        return;
+      }
       setLogStatus("error");
       setLogError(e.code === "batch_cap"
         ? t("plan.batchCap", { plan: t(`plan.names.${entitlements.plan}`), cap: e.detail?.cap ?? entitlements.batchCap })
@@ -757,6 +775,9 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             )}
             {logStatus === "saved" && logNote && (
               <p className="text-xs mt-1" style={{ color: COLORS.inkSoft }}>{logNote}</p>
+            )}
+            {logStatus === "queued" && (
+              <p className="text-xs mt-2" style={{ color: COLORS.inkSoft }}>{t("calc.queued")}</p>
             )}
             {logStatus === "error" && (
               <p className="text-xs mt-2" style={{ color: COLORS.danger }}>{t("calc.saveFailed", { error: logError })}</p>

@@ -435,6 +435,7 @@ export default {
     saving: "Saving…",
     saved: "Saved — added to batch history.",
     savedNew: "Saved — added to batch history and to your fragrances.",
+    queued: "No connection: saved on this device. It will be logged when you're back online.",
     saveFailed: "Could not save: {error}",
     saveFailedGeneric: "Could not save this batch.",
   },
