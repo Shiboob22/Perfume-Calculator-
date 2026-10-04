@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
+import { buildBatch } from "../lib/batchPayload";
 import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
 import { STRENGTHS } from "../lib/formulation";
 import MeasuredDensity from "./calc/MeasuredDensity";
@@ -318,26 +319,11 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         setMatched(fragrance);
       }
       await saveFragranceNotes(fragrance.id, { oilType, pricePerGram: pricePerGram || null, notes, measuredDensity: measuredDensityValue });
-      await logBatch({
-        fragrance_id: fragrance.id,
-        fragrance_name: fragName.trim(),
-        tier: tierKey,
-        blend_date: blendDate,
-        concentration_pct: Number(concPct),
-        oil_g: result.exact.oilG, oil_ml: result.exact.oilMl,
-        ethanol_g: result.exact.ethanolG, ethanol_ml: result.exact.ethanolMl,
-        total_g: result.exact.totalG, total_ml: result.exact.totalMl,
-        oil_type: oilType || null,
-        price_per_gram: pricePerGram || null,
-        oil_cost: result.oilCost,
-        notes: notes || null,
-        blended_by: blendedBy || null,
-        actual_oil_g: Number(actualOilG) > 0 ? Number(actualOilG) : null,
-        actual_ethanol_g: Number(actualEthG) > 0 ? Number(actualEthG) : null,
-        basis: result.basis,
-        oil_density: result.densities.oil,
-        ethanol_density: result.densities.ethanol,
-      });
+      await logBatch(buildBatch({
+        fragranceId: fragrance.id, name: fragName.trim(), tier: tierKey, blendDate, concPct,
+        target: result, densities: result.densities, actualOilG, actualEthG,
+        oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy,
+      }));
       // The batch is saved from here on: nothing below may report it as unsaved,
       // or a retry would log it twice.
       await deductStock(fragrance.id, result.usedOilG);

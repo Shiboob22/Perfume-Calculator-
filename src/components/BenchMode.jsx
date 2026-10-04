@@ -7,6 +7,7 @@ import { useWakeLock } from "../lib/useWakeLock";
 import { solveBottle, alcoholForOil, checkPour, labelWeights, fmt2 } from "../lib/calc";
 import { UNIT_LABELS } from "../lib/calcPrefill";
 import { logBatch } from "../lib/fragranceApi";
+import { buildBatch } from "../lib/batchPayload";
 import { enqueue, isOffline } from "../lib/outbox";
 
 // The handbook's Bench Workflow, one step per screen, big numbers, for a
@@ -120,23 +121,12 @@ export default function BenchMode() {
   async function handleLog() {
     setStatus("saving");
     setError("");
-    const batch = {
-      id: crypto.randomUUID(),
-      fragrance_id: plan.fragranceId || null,
-      fragrance_name: plan.name || t("bench.untitled"),
-      tier: plan.tier,
-      blend_date: today(),
-      concentration_pct: plan.concPct,
-      oil_g: target.exact.oilG, oil_ml: target.exact.oilMl,
-      ethanol_g: target.exact.ethanolG, ethanol_ml: target.exact.ethanolMl,
-      total_g: target.exact.totalG, total_ml: target.exact.totalMl,
-      actual_oil_g: actualOil,
-      actual_ethanol_g: Number(alcoholG) || null,
+    const batch = buildBatch({
+      id: crypto.randomUUID(), fragranceId: plan.fragranceId, name: plan.name || t("bench.untitled"), tier: plan.tier,
+      blendDate: today(), concPct: plan.concPct, target, densities: plan.densities,
+      actualOilG: actualOil, actualEthG: alcoholG,
       notes: lot ? `${t("bench.label.lot")}: ${lot}` : null,
-      basis: target.basis,
-      oil_density: plan.densities.oil,
-      ethanol_density: plan.densities.ethanol,
-    };
+    });
     try {
       await logBatch(batch);
       setStatus("saved");
