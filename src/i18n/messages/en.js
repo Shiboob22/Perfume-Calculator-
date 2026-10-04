@@ -121,7 +121,8 @@ export default {
     deleteFailed: "Could not delete that batch.",
   },
   journal: {
-    title: "Resting journal",
+    listTitle: "Batches", newBatch: "New batch", ready: "Ready", resting: "Resting", dayOf: "day {day} / {target}", dayOnly: "day {day}", timeline: "Rest timeline", legendPast: "Rested", legendToday: "Today", legendFuture: "To come", legendCheckIn: "Check-in", proOnly: "New check-ins are part of Pro. Your earlier notes stay here.",
+        title: "Resting journal",
     due: {
       title: { one: "{count} batch is due for a check-in", other: "{count} batches are due for a check-in" },
       lead: "One line and a rating, if you have a moment. Skip any you like.",

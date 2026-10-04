@@ -13,7 +13,8 @@ import EmptyState from "./EmptyState";
 import { refusedBatches, dismissRefused } from "../lib/outbox";
 import { useNavigate } from "react-router-dom";
 import { can } from "../lib/entitlements";
-import { dueNow, JOURNAL_CHANGED } from "../lib/journal";
+import { dueNow, JOURNAL_CHANGED, restTimeline } from "../lib/journal";
+import { IconHourglass, IconSeal, IconDrop, IconToday, IconPlus } from "./icons";
 import JournalDue from "./journal/JournalDue";
 import JournalPatterns from "./journal/JournalPatterns";
 import BatchJournal from "./journal/BatchJournal";
@@ -53,6 +54,100 @@ function BatchTiming({ batch }) {
   );
 }
 
+// The journal's list: one row per batch, resting (hourglass) or ready
+// (forest seal), today's rest day against the family's full rest.
+function BatchList({ batches, selectedId, onSelect }) {
+  const { t } = useI18n();
+  const navigate = useNavigate();
+  return (
+    <nav aria-label={t("journal.listTitle")} style={{ border: `1px solid ${COLORS.ink}`, background: COLORS.card }}>
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid ${COLORS.ink}` }}>
+        <span className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("journal.listTitle")}</span>
+        <span dir="ltr" className="font-mono text-xs" style={{ color: COLORS.dim }}>{batches.length}</span>
+      </div>
+      <ul>
+        {batches.map((b) => {
+          const tl = restTimeline(b);
+          const on = b.id === selectedId;
+          return (
+            <li key={b.id} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+              <button type="button" onClick={() => onSelect(b.id)} aria-current={on ? "true" : undefined}
+                className="w-full grid grid-cols-[36px_minmax(0,1fr)_auto] gap-3 items-center px-4 py-3 text-start min-h-[60px]"
+                style={{ background: on ? COLORS.sand : "transparent", borderInlineStart: `3px solid ${on ? COLORS.forest : "transparent"}` }}>
+                <span className="inline-flex items-center justify-center w-9 h-9" style={{ border: `1px solid ${COLORS.ink}`, background: COLORS.card }}>
+                  {tl?.ready ? <IconSeal size={22} accent={COLORS.forest} /> : <IconHourglass size={22} />}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate font-medium">{b.fragrance_name}</span>
+                  <span dir="ltr" className="block font-mono text-xs text-start rtl:text-end" style={{ color: COLORS.dim }}>
+                    {Number(b.concentration_pct)}% · {round2(b.total_g)} g
+                  </span>
+                </span>
+                <span className="text-end">
+                  {tl && <span dir="ltr" className="block font-mono text-xs">{tl.target ? t("journal.dayOf", { day: tl.day, target: tl.target }) : t("journal.dayOnly", { day: tl.day })}</span>}
+                  <span className="block text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: tl?.ready ? COLORS.forest : COLORS.dim }}>
+                    {t(tl?.ready ? "journal.ready" : "journal.resting")}
+                  </span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <button type="button" onClick={() => navigate("/app/calculator")} className="w-full inline-flex items-center gap-2 px-4 min-h-[52px] text-sm font-medium" style={{ color: COLORS.forest }}>
+        <IconPlus size={18} /> {t("journal.newBatch")}
+      </button>
+    </nav>
+  );
+}
+
+// The selected batch's rest: day against target, and a bar per day —
+// oil for days rested, forest for today, a rule for days to come — with a
+// drop over each check-in.
+function RestPanel({ batch }) {
+  const { t } = useI18n();
+  const tl = restTimeline(batch);
+  return (
+    <div className="p-5 sm:p-6" style={{ border: `1px solid ${COLORS.ink}`, background: COLORS.card }}>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h3 className="text-2xl font-medium tracking-[-0.03em] rtl:tracking-normal">{batch.fragrance_name}</h3>
+          <p dir="ltr" className="mt-1 font-mono text-sm text-start rtl:text-end" style={{ color: COLORS.inkSoft }}>
+            {Number(batch.concentration_pct)}% · {round2(batch.oil_g)} g + {round2(batch.ethanol_g)} g
+          </p>
+        </div>
+        {tl && (
+          <p dir="ltr" className="font-mono leading-none tracking-[-0.03em] text-5xl">
+            {tl.day}<span className="text-2xl" style={{ color: COLORS.dim }}>{tl.target ? ` / ${tl.target} d` : " d"}</span>
+          </p>
+        )}
+      </div>
+      {tl && (
+        <figure className="mt-6">
+          <figcaption className="sr-only">{t("journal.timeline")}</figcaption>
+          <div dir="ltr" className="flex items-end gap-[2px] h-28" aria-hidden="true">
+            {tl.bars.map((bar) => (
+              <div key={bar.day} className="flex-1 flex flex-col items-center justify-end h-full gap-1">
+                {bar.state === "today" ? <IconToday size={14} /> : bar.checkIn ? <IconDrop size={14} /> : null}
+                <span className="fill-anim block w-full" style={{
+                  height: `${Math.max(6, bar.height * 80)}%`,
+                  background: bar.state === "past" ? COLORS.oil : bar.state === "today" ? COLORS.forest : COLORS.line,
+                }} />
+              </div>
+            ))}
+          </div>
+          <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs" style={{ color: COLORS.dim }}>
+            {[["oil", "legendPast"], ["forest", "legendToday"], ["line", "legendFuture"]].map(([c, k]) => (
+              <li key={k} className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5" style={{ background: COLORS[c] }} />{t(`journal.${k}`)}</li>
+            ))}
+            <li className="inline-flex items-center gap-1.5"><IconDrop size={14} />{t("journal.legendCheckIn")}</li>
+          </ul>
+        </figure>
+      )}
+    </div>
+  );
+}
+
 export default function Batches() {
   const { t, locale } = useI18n();
   const entitlements = useEntitlements();
@@ -67,6 +162,7 @@ export default function Batches() {
   const [status, setStatus] = useState("");
   const [refused, setRefused] = useState(() => refusedBatches());
   const [patternsVersion, setPatternsVersion] = useState(0);
+  const [selectedId, setSelectedId] = useState(null);
   const headingRef = useRef(null);
   const navigate = useNavigate();
   const due = loading || error ? [] : dueNow(batches);
@@ -151,83 +247,8 @@ export default function Batches() {
 
   const totalOilCost = batches.reduce((sum, b) => sum + (b.oil_cost || 0), 0);
 
-  return (
-    <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 mb-6">
-        <h2 ref={headingRef} tabIndex={-1} className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>{t("batches.title")}</h2>
-        {batches.length > 0 && (
-          <div className="flex items-center gap-3">
-            <span className="text-xs" style={{ color: COLORS.inkSoft }}>
-              {t("batches.summary", { count: batches.length, cost: round2(totalOilCost) })}
-            </span>
-            {entitlements.features?.includes("ai.ask") && <button
-              type="button"
-              onClick={handleInsights}
-              disabled={insightsLoading}
-              className="px-3 py-1.5 text-sm border rounded-none disabled:opacity-50"
-              style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
-            >
-              {insightsLoading ? t("batches.thinking") : t("batches.insights")}
-            </button>}
-          </div>
-        )}
-      </div>
-
-      {capped && (
-        <p className="text-xs font-mono mb-4" style={{ color: batches.length >= entitlements.batchCap ? COLORS.danger : COLORS.inkSoft }}>
-          {t("plan.usage", { used: batches.length, cap: entitlements.batchCap })}
-          {batches.length >= entitlements.batchCap ? ` ${t("plan.batchCap", { plan: t(`plan.names.${entitlements.plan}`), cap: entitlements.batchCap })}` : ""}
-        </p>
-      )}
-      {capped && batches.length >= entitlements.batchCap && <WaitlistButton source="batch_cap" />}
-
-      {insightsError && <p className="text-sm font-mono mb-4" style={{ color: COLORS.danger }}>{insightsError}</p>}
-      {insights && (
-        <div className="mb-6 p-4 border rounded-none whitespace-pre-wrap text-sm" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card, color: COLORS.ink }}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold" style={{ color: COLORS.amberDeep }}>{t("batches.insightsLabel")}</span>
-            <button type="button" onClick={() => setInsights("")} className="text-xs font-mono underline" style={{ color: COLORS.inkSoft }}>
-              {t("batches.hide")}
-            </button>
-          </div>
-          {insights}
-        </div>
-      )}
-
-      <p role="status" className="sr-only">{status}</p>
-
-      {refused.length > 0 && (
-        <div role="alert" className="mb-6 p-4 border rounded-none text-sm" style={{ borderColor: COLORS.danger, backgroundColor: COLORS.dangerBg, color: COLORS.ink }}>
-          <p className="font-semibold mb-2">{t("batches.refused.title", { count: refused.length })}</p>
-          <ul className="space-y-2">
-            {refused.map((item) => (
-              <li key={item.batch?.id} className="flex items-start justify-between gap-3 font-mono text-xs">
-                <span>{t("batches.refused.item", {
-                  name: item.batch?.fragrance_name || t("bench.untitled"),
-                  oil: round2(Number(item.batch?.actual_oil_g ?? item.batch?.oil_g)),
-                  ethanol: round2(Number(item.batch?.actual_ethanol_g ?? item.batch?.ethanol_g)),
-                  error: errorText(t, { code: item.code, message: item.error }),
-                })}</span>
-                <button type="button" onClick={() => setRefused(dismissRefused(item.batch?.id))} className="underline shrink-0 min-h-[24px]" style={{ color: COLORS.inkSoft }}>
-                  {t("batches.refused.dismiss")}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <JournalDue due={due} onDone={handleCheckIn} />
-      {!loading && batches.length > 0 && <JournalPatterns version={patternsVersion} />}
-
-      {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
-      {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
-      {!loading && !error && batches.length === 0 && (
-        <EmptyState text={t("batches.empty")} action={t("batches.emptyAction")} to="/app/calculator" />
-      )}
-
-      <div className="space-y-3">
-        {batches.map((b) => (
+  const selected = batches.find((b) => b.id === selectedId) ?? batches[0];
+  const card = (b) => (
           <div key={b.id} className="p-4 border" style={{ borderColor: COLORS.line, backgroundColor: COLORS.card }}>
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
               <div>
@@ -310,13 +331,97 @@ export default function Batches() {
             {b.notes && (
               <div className="text-sm italic mt-2" style={{ color: COLORS.inkSoft }}>{b.notes}</div>
             )}
-            <BatchJournal batch={b} onDone={handleCheckIn} onRemoved={handleCheckInRemoved} />
+            <BatchJournal batch={b} canAdd={can(entitlements, "journal.checkins")} onDone={handleCheckIn} onRemoved={handleCheckInRemoved} />
             <div className="mt-2">
               <SharePanel batch={b} onShared={handleShared} onStatus={setStatus} />
             </div>
           </div>
-        ))}
+  );
+
+  return (
+    <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 py-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 mb-6">
+        <h2 ref={headingRef} tabIndex={-1} className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>{t("batches.title")}</h2>
+        {batches.length > 0 && (
+          <div className="flex items-center gap-3">
+            <span className="text-xs" style={{ color: COLORS.inkSoft }}>
+              {t("batches.summary", { count: batches.length, cost: round2(totalOilCost) })}
+            </span>
+            {entitlements.features?.includes("ai.ask") && <button
+              type="button"
+              onClick={handleInsights}
+              disabled={insightsLoading}
+              className="px-3 py-1.5 text-sm border rounded-none disabled:opacity-50"
+              style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
+            >
+              {insightsLoading ? t("batches.thinking") : t("batches.insights")}
+            </button>}
+          </div>
+        )}
       </div>
+
+      {capped && (
+        <p className="text-xs font-mono mb-4" style={{ color: batches.length >= entitlements.batchCap ? COLORS.danger : COLORS.inkSoft }}>
+          {t("plan.usage", { used: batches.length, cap: entitlements.batchCap })}
+          {batches.length >= entitlements.batchCap ? ` ${t("plan.batchCap", { plan: t(`plan.names.${entitlements.plan}`), cap: entitlements.batchCap })}` : ""}
+        </p>
+      )}
+      {capped && batches.length >= entitlements.batchCap && <WaitlistButton source="batch_cap" />}
+
+      {insightsError && <p className="text-sm font-mono mb-4" style={{ color: COLORS.danger }}>{insightsError}</p>}
+      {insights && (
+        <div className="mb-6 p-4 border rounded-none whitespace-pre-wrap text-sm" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card, color: COLORS.ink }}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold" style={{ color: COLORS.amberDeep }}>{t("batches.insightsLabel")}</span>
+            <button type="button" onClick={() => setInsights("")} className="text-xs font-mono underline" style={{ color: COLORS.inkSoft }}>
+              {t("batches.hide")}
+            </button>
+          </div>
+          {insights}
+        </div>
+      )}
+
+      <p role="status" className="sr-only">{status}</p>
+
+      {refused.length > 0 && (
+        <div role="alert" className="mb-6 p-4 border rounded-none text-sm" style={{ borderColor: COLORS.danger, backgroundColor: COLORS.dangerBg, color: COLORS.ink }}>
+          <p className="font-semibold mb-2">{t("batches.refused.title", { count: refused.length })}</p>
+          <ul className="space-y-2">
+            {refused.map((item) => (
+              <li key={item.batch?.id} className="flex items-start justify-between gap-3 font-mono text-xs">
+                <span>{t("batches.refused.item", {
+                  name: item.batch?.fragrance_name || t("bench.untitled"),
+                  oil: round2(Number(item.batch?.actual_oil_g ?? item.batch?.oil_g)),
+                  ethanol: round2(Number(item.batch?.actual_ethanol_g ?? item.batch?.ethanol_g)),
+                  error: errorText(t, { code: item.code, message: item.error }),
+                })}</span>
+                <button type="button" onClick={() => setRefused(dismissRefused(item.batch?.id))} className="underline shrink-0 min-h-[24px]" style={{ color: COLORS.inkSoft }}>
+                  {t("batches.refused.dismiss")}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {can(entitlements, "journal.checkins") && <JournalDue due={due} onDone={handleCheckIn} />}
+      {!loading && batches.length > 0 && <JournalPatterns version={patternsVersion} />}
+
+      {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
+      {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
+      {!loading && !error && batches.length === 0 && (
+        <EmptyState text={t("batches.empty")} action={t("batches.emptyAction")} to="/app/calculator" />
+      )}
+
+      {batches.length > 0 && selected && (
+        <div className="grid grid-cols-1 lg:grid-cols-[22rem_minmax(0,1fr)] gap-8 items-start">
+          <BatchList batches={batches} selectedId={selected.id} onSelect={setSelectedId} />
+          <section aria-label={selected.fragrance_name} className="grid gap-4">
+            <RestPanel batch={selected} />
+            {card(selected)}
+          </section>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,10 +4,11 @@ import { useI18n } from "../../i18n/I18nProvider";
 import { errorText } from "../../i18n/errorText";
 import { deleteCheckIn } from "../../lib/fragranceApi";
 import CheckInForm from "./CheckInForm";
+import WaitlistButton from "../WaitlistButton";
 
 // A batch's own journal, inside its card: what was noted on which rest day,
 // and an ad-hoc check-in at any time. Skips are not listed.
-export default function BatchJournal({ batch, onDone, onRemoved }) {
+export default function BatchJournal({ batch, canAdd = true, onDone, onRemoved }) {
   const { t } = useI18n();
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
@@ -49,7 +50,12 @@ export default function BatchJournal({ batch, onDone, onRemoved }) {
         </>
       )}
       {error && <p role="alert" className="text-xs font-mono mt-1" style={{ color: COLORS.danger }}>{error}</p>}
-      {adding ? (
+      {!canAdd ? (
+        <div className="mt-2 text-sm" style={{ color: COLORS.inkSoft }}>
+          <p>{t("journal.proOnly")}</p>
+          <WaitlistButton source="journal.checkins" />
+        </div>
+      ) : adding ? (
         <CheckInForm batch={batch} onCancel={() => setAdding(false)} onDone={(c, meta) => { setAdding(false); onDone(batch.id, c, meta); }} />
       ) : (
         <button type="button" onClick={() => setAdding(true)} className="mt-1 text-xs font-mono underline min-h-[24px]" style={{ color: COLORS.forest }}>

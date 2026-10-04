@@ -42,3 +42,25 @@ export function shareOf(batch) {
   const s = batch.shared_recipes;
   return (Array.isArray(s) ? s[0] : s) || null;
 }
+
+/**
+ * A batch's rest at a glance, for the journal panel: today's rest day, the
+ * family's full rest (the target), whether it is ready, and one bar per day
+ * (at least 30) marked past / today / future, with the days that have a
+ * check-in. Null when the batch has no start time.
+ */
+export function restTimeline(batch, now = new Date()) {
+  const start = batchStartedAt(batch);
+  if (!start) return null;
+  const day = restDay(start, now);
+  const target = TIERS[batch.tier]?.restDays?.[1] ?? null;
+  const span = Math.max(30, target ?? 0, day + 1);
+  const noted = new Set((batch.batch_checkins || []).filter((c) => !c.skipped).map((c) => c.day));
+  const bars = Array.from({ length: span }, (_, d) => ({
+    day: d,
+    state: d < day ? "past" : d === day ? "today" : "future",
+    checkIn: noted.has(d),
+    height: (d + 1) / span,
+  }));
+  return { day, target, ready: target != null && day >= target, bars };
+}

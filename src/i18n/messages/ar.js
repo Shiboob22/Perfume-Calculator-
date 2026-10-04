@@ -122,7 +122,8 @@ export default {
     deleteFailed: "تعذّر حذف هذه الدفعة.",
   },
   journal: {
-    title: "دفتر الراحة",
+    listTitle: "Batches", newBatch: "New batch", ready: "Ready", resting: "Resting", dayOf: "day {day} / {target}", dayOnly: "day {day}", timeline: "Rest timeline", legendPast: "Rested", legendToday: "Today", legendFuture: "To come", legendCheckIn: "Check-in", proOnly: "New check-ins are part of Pro. Your earlier notes stay here.",
+        title: "دفتر الراحة",
     due: {
       title: { zero: "لا دفعات بانتظار تسجيل", one: "دفعة واحدة بانتظار تسجيل ملاحظة", two: "دفعتان بانتظار تسجيل ملاحظة", few: "{count} دفعات بانتظار تسجيل ملاحظة", many: "{count} دفعة بانتظار تسجيل ملاحظة", other: "{count} دفعة بانتظار تسجيل ملاحظة" },
       lead: "سطر واحد وتقييم إن كان لديك دقيقة. تخطَّ ما تشاء.",

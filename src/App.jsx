@@ -223,11 +223,14 @@ function Gate({ feature, children }) {
 // Inside AuthGate on purpose: asking for batches before sign-in would make
 // the auth client read, and clear, a sign-in link's #access_token first.
 function CountDueCheckIns() {
+  // Check-ins are Pro: on Free nothing is ever "due".
+  const allowed = can(useEntitlements(), "journal.checkins");
   useEffect(() => {
+    if (!allowed) return;
     listBatches(100)
       .then((b) => window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: dueNow(b).length } })))
       .catch(() => {});
-  }, []);
+  }, [allowed]);
   return null;
 }
 
