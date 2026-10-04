@@ -20,8 +20,8 @@ for (const lang of ["en", "ar"]) {
     await page.goto(path);
     await expect(page.locator("html")).toHaveAttribute("dir", lang === "ar" ? "rtl" : "ltr");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Oud Nights");
-    // The stylesheet loaded: the page has the site's dark ground.
-    expect(await page.evaluate(() => getComputedStyle(document.querySelector("body > div")).backgroundColor)).toBe("rgb(16, 14, 10)");
+    // The stylesheet loaded: the page has the v3 sand ground (light theme).
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector("body > div")).backgroundColor)).toBe("rgb(238, 232, 220)");
     // No sideways scrolling on a phone.
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     const make = page.getByRole("link", { name: lang === "ar" ? "اصنع هذه الخلطة" : "Make this blend" });

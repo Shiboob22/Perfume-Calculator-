@@ -21,7 +21,7 @@ test.describe("without JavaScript", () => {
 test("the live bench pours the handbook's figures for the chosen bottle", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "50 mL" }).click();
-  await page.getByRole("button", { name: "30% Extrait" }).click();
+  await page.getByRole("button", { name: "30 Extrait" }).click();
   await expect(readout(page)).toHaveText(["14.25 g", "28.35 g", "42.60 g"]);
   await expect(page.getByRole("link", { name: en.site.home.bench.open })).toHaveAttribute("href", "/app/calculator?size=50&unit=ml&conc=30&ref=home");
 });

@@ -107,7 +107,7 @@ test("a retry after a slow answer sends the same batch id", async ({ page }) => 
   const log = page.getByRole("button", { name: en.calc.log });
   await log.click();
   await expect(page.getByRole("status").filter({ hasText: en.errors.slow_write })).toBeVisible();
-  await log.click();
+  await page.getByRole("button", { name: en.calc.retry }).click();
   await expect(page.getByRole("status").filter({ hasText: en.calc.saved.split("{")[0].trim().slice(0, 12) })).toBeVisible();
   expect(sent.logs).toHaveLength(2);
   expect(sent.logs[1].id).toBe(sent.logs[0].id);
