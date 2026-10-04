@@ -19,6 +19,7 @@ import JournalPatterns from "./journal/JournalPatterns";
 import BatchJournal from "./journal/BatchJournal";
 import SharePanel from "./SharePanel";
 import BatchEdit from "./BatchEdit";
+import { makeAgainHref } from "../lib/oilHistory";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -235,6 +236,10 @@ export default function Batches() {
               </div>
               <div className="flex flex-wrap items-center gap-3 shrink-0 sm:ms-3">
                 <BatchEdit batch={b} onSaved={handleEdited} onStatus={setStatus} />
+                <button type="button" onClick={() => navigate(makeAgainHref(b))}
+                  className="text-xs font-mono underline min-h-[24px]" style={{ color: COLORS.forest }}>
+                  {t("batches.again")}
+                </button>
                 <button
                   type="button"
                   onClick={() => downloadBatchCard(b, { t, locale }).catch((e) => setError(t("batchCard.failed", { error: errorText(t, e) })))}
