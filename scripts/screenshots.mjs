@@ -85,7 +85,7 @@ const APP = {
 const browser = await chromium.launch({ channel: process.env.CI ? undefined : "chrome" });
 for (const [size, width, height] of [["phone", 390, 844], ["desktop", 1280, 900]]) {
   const shoot = async (name, path, setup) => {
-    const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, serviceWorkers: "block" });
+    const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, serviceWorkers: "block", reducedMotion: "reduce" }); // full-page shots never scroll, so scroll-tied reveals would stay hidden
     const page = await context.newPage();
     if (setup) await setup(page);
     await page.goto(base + path, { waitUntil: "networkidle" }).catch(() => {});
