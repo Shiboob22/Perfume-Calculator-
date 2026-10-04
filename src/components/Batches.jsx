@@ -18,6 +18,7 @@ import JournalDue from "./journal/JournalDue";
 import JournalPatterns from "./journal/JournalPatterns";
 import BatchJournal from "./journal/BatchJournal";
 import SharePanel from "./SharePanel";
+import BatchEdit from "./BatchEdit";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -84,6 +85,11 @@ export default function Batches() {
     }));
     setStatus(queued ? t("journal.queued") : checkin.skipped ? t("journal.skipped") : t("journal.saved"));
     if (checkin.rating && !queued) setPatternsVersion((v) => v + 1);
+  }
+
+  // An edit answers with the batch row alone: keep its journal and share.
+  function handleEdited(batchId, row) {
+    setBatches((prev) => prev.map((b) => b.id === batchId ? { ...b, ...row, batch_checkins: b.batch_checkins, shared_recipes: b.shared_recipes } : b));
   }
 
   function handleShared(batchId, share) {
@@ -227,7 +233,8 @@ export default function Batches() {
                   {t("batches.meta", { family: TIERS[b.tier] ? t(`families.${b.tier}.label`) : b.tier, pct: b.concentration_pct, date: formatDay(b.blend_date, locale) })}
                 </div>
               </div>
-              <div className="flex items-center gap-3 shrink-0 sm:ms-3">
+              <div className="flex flex-wrap items-center gap-3 shrink-0 sm:ms-3">
+                <BatchEdit batch={b} onSaved={handleEdited} onStatus={setStatus} />
                 <button
                   type="button"
                   onClick={() => downloadBatchCard(b, { t, locale }).catch((e) => setError(t("batchCard.failed", { error: errorText(t, e) })))}
@@ -286,8 +293,9 @@ export default function Batches() {
               </div>
             )}
             <BatchTiming batch={b} />
-            {(b.oil_type || b.blended_by) && (
+            {(b.oil_type || b.blended_by || b.lot) && (
               <div className="text-xs font-mono mt-1" style={{ color: COLORS.inkSoft }}>
+                {b.lot && <span className="me-4">{t("batches.lot", { lot: b.lot })}</span>}
                 {b.oil_type && <span className="me-4">{b.oil_type}</span>}
                 {b.blended_by && <span>{t("batches.by", { name: b.blended_by })}</span>}
               </div>

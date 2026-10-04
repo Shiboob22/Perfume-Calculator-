@@ -76,6 +76,8 @@ export default {
     gourmand: { label: "Gourmand", sub: "Vanilla · Praline · Tobacco-Honey — practical addition, not part of the classic wheel", note: "Rest 3–4 weeks — sweet resinous bases round out and lose the raw alcohol edge." },
   },
   batches: {
+    edit: {"open": "Edit", "title": "Edit this batch", "name": "Fragrance name", "date": "Blend date", "lot": "Lot", "blendedBy": "Blended by", "supplier": "Supplier", "actualOil": "Oil actually poured (g)", "actualAlcohol": "Alcohol actually poured (g)", "notes": "Notes", "dateNote": "Changing the date moves this batch's journal schedule.", "recipeNote": "The recipe itself can't change. To blend it differently, use Make again.", "save": "Save changes", "saving": "Saving…", "cancel": "Cancel", "saved": "Batch updated.", "failed": "Could not save the changes."},
+    lot: "Lot {lot}",
     title: "Batch history",
     summary: { one: "{count} batch, {cost} total oil cost", other: "{count} batches, {cost} total oil cost" },
     insights: "AI insights",
@@ -152,6 +154,7 @@ export default {
     },
   },
   share: {
+    snapshot: "It's a snapshot: later edits to this batch don't change a shared page until you update it.",
     open: "Share recipe",
     shared: "Shared",
     title: "Share this recipe",

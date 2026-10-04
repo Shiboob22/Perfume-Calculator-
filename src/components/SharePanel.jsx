@@ -79,7 +79,7 @@ export default function SharePanel({ batch, onShared, onStatus }) {
           {t("share.close")}
         </button>
       </div>
-      <p className="text-xs mt-1" style={{ color: COLORS.inkSoft }}>{t("share.lead")}</p>
+      <p className="text-xs mt-1" style={{ color: COLORS.inkSoft }}>{t("share.lead")} {t("share.snapshot")}</p>
       <p className="text-xs mt-2" style={{ color: COLORS.ink }}>{t("share.public")}</p>
       <p className="text-xs mt-1" style={{ color: COLORS.ink }}><strong>{t("share.never")}</strong></p>
 
