@@ -1,14 +1,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { COLORS } from "../lib/theme";
+import { COLORS, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { localePath } from "./meta";
 import PlanCards from "./PlanCards";
-import WorkedExample from "../components/WorkedExample";
+import LiveBench from "./LiveBench";
 import MethodSequence from "./MethodSequence";
+import { ChapterMark, Folio, Rule } from "./editorial";
 
 function SectionTitle({ children }) {
-  return <h2 className="font-serif italic text-3xl sm:text-4xl mb-4" style={{ color: COLORS.forestDeep }}>{children}</h2>;
+  return <h2 className={`${TYPE.title} mb-4`} style={{ color: COLORS.forestDeep }}>{children}</h2>;
 }
 
 export default function Home() {
@@ -20,10 +21,11 @@ export default function Home() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-8">
       {/* Hero */}
-      <section className="grid grid-cols-1 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-10 items-center pt-10 pb-16">
+      <section className="grid grid-cols-1 md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-10 md:gap-14 items-center pt-10 pb-16">
         <div>
-          <h1 className="font-serif italic text-5xl sm:text-6xl leading-[1.02]" style={{ color: COLORS.forestDeep }}>{t("site.home.title")}</h1>
-          <p className="mt-5 text-lg leading-relaxed" style={{ color: COLORS.inkSoft }}>{t("site.home.lead")}</p>
+          <ChapterMark volume="III" label={t("site.guides.books.Formulation")} className="mb-6" />
+          <h1 className={TYPE.display} style={{ color: COLORS.forestDeep }}>{t("site.home.title")}</h1>
+          <p className={`mt-6 measure ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{t("site.home.lead")}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a href="/app/calculator?ref=home" className="px-5 py-3 rounded-xl font-semibold" style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}>
               {t("site.home.ctaApp")}
@@ -34,19 +36,22 @@ export default function Home() {
           </div>
         </div>
 
-        <WorkedExample />
+        <LiveBench />
       </section>
 
       {/* Quote */}
-      <blockquote className="py-12 text-center" style={{ borderTop: `1px solid ${COLORS.line}`, borderBottom: `1px solid ${COLORS.line}` }}>
-        <p className="font-serif italic text-2xl sm:text-3xl max-w-3xl mx-auto leading-snug" style={{ color: COLORS.forestDeep }}>“{t("site.home.quote")}”</p>
-        <footer className="mt-4 text-sm" style={{ color: COLORS.amberDeep }}>{t("site.home.quoteSource")}</footer>
+      <Rule ornament />
+      <blockquote className="reveal py-6 text-center">
+        <p className="font-serif italic text-[clamp(1.75rem,4vw,2.75rem)] max-w-3xl mx-auto leading-snug" style={{ color: COLORS.forestDeep }}>“{t("site.home.quote")}”</p>
+        <footer className={`mt-5 ${TYPE.runningHead}`} style={{ color: COLORS.amberDeep }}>{t("site.home.quoteSource")}</footer>
       </blockquote>
+      <Rule ornament />
 
       {/* Benefits */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 py-16">
-        {benefits.map((b) => (
-          <div key={b.title}>
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-10 py-12">
+        {benefits.map((b, i) => (
+          <div key={b.title} className="reveal">
+            <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} block text-5xl mb-3`} style={{ color: COLORS.amberDeep }}>{["i", "ii", "iii"][i] ?? i + 1}</span>
             <h2 className="font-serif text-2xl mb-2" style={{ color: COLORS.forestDeep }}>{b.title}</h2>
             <p className="leading-relaxed" style={{ color: COLORS.inkSoft }}>{b.text}</p>
           </div>
@@ -54,7 +59,8 @@ export default function Home() {
       </section>
 
       {/* Guides teaser */}
-      <section className="py-12" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+      <section className="reveal py-12" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+        <p className={`${TYPE.runningHead} mb-3`} style={{ color: COLORS.amberDeep }}>{t("site.home.contents")}</p>
         <SectionTitle>{t("site.home.guidesTitle")}</SectionTitle>
         <p className="mb-8" style={{ color: COLORS.inkSoft }}>{t("site.home.guidesLead")}</p>
         <MethodSequence />
@@ -64,7 +70,7 @@ export default function Home() {
       </section>
 
       {/* Pricing summary */}
-      <section className="py-12" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+      <section className="reveal py-12" style={{ borderTop: `1px solid ${COLORS.line}` }}>
         <SectionTitle>{t("site.home.pricingTitle")}</SectionTitle>
         <p className="mb-8" style={{ color: COLORS.inkSoft }}>{t("site.home.pricingLead")}</p>
         <PlanCards compact />
@@ -85,6 +91,7 @@ export default function Home() {
           ))}
         </div>
       </section>
+      <Folio><span>{t("brand")}</span><span>Hisham Shiboob</span></Folio>
     </div>
   );
 }

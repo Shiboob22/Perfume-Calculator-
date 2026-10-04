@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { benchFigures, benchHref, BENCH_SIZES, BENCH_STRENGTHS } from "./liveBench";
+import { benchFigures, benchHref, BENCH_SIZES, BENCH_STRENGTHS } from "./benchFigures";
 
 describe("live bench", () => {
   it("gives the handbook's Quick Reference for every size and named strength", () => {

@@ -639,6 +639,8 @@ export default {
       lead: "A calculator and bench guide for diluting fragrance oil with 96% ethanol. Choose a bottle size and a strength, and get the two numbers to put on the scale.",
       ctaApp: "Open the calculator",
       ctaGuides: "Read the method",
+      contents: "Contents",
+      bench: {"label": "The bench · pick a bottle", "size": "Bottle", "strength": "Strength", "open": "Open these numbers in the calculator"},
       exampleLabel: "100 ml at 25%, EDP Intense",
       exampleOil: "Oil",
       exampleAlcohol: "Alcohol",

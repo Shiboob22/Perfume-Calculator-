@@ -99,7 +99,8 @@ html[dir="rtl"] .read-progress { transform-origin: right; }
 
 /* The live bench: pour columns and the scale's readout. */
 .pour { transform-origin: bottom; transition: transform 640ms cubic-bezier(.2,.7,.1,1); }
-.readout { font-variant-numeric: tabular-nums; transition: opacity 160ms ease; }
+.readout { font-variant-numeric: tabular-nums; animation: tick 160ms ease-out; }
+@keyframes tick { from { opacity: 0.25; transform: translateY(-0.12em); } }
 
 /* Turning a page between guides (View Transitions, where supported). */
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 320ms; animation-timing-function: cubic-bezier(.2,.7,.1,1); }
