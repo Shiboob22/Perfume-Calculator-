@@ -45,3 +45,17 @@ export const SHAPE = {
   row: "",                 // list rows — no radius, separated by a hairline rule instead
   danger: "rounded-lg",    // the one boxed warning (delete account, etc.) — bordered, not just shaped differently
 };
+
+// The editorial system (Phase 9, "the living handbook"): the public site set
+// like the printed book. Class strings, so prerendered HTML carries them.
+export const TYPE = {
+  display: "font-serif italic leading-[0.98] text-[clamp(2.75rem,7.5vw,5.75rem)]", // a chapter or page title
+  title: "font-serif italic leading-tight text-[clamp(2rem,4.5vw,3.25rem)]",        // a section title
+  lead: "text-lg sm:text-xl leading-relaxed",                                        // the standfirst under a title
+  runningHead: "running-head text-[11px] font-mono uppercase",                       // "III · Formulation"
+  numeral: "font-serif italic leading-none",                                         // chapter numerals
+};
+
+// Motion, in ms. Every animation also stops under prefers-reduced-motion
+// (src/index.css), so these only ever shape motion people asked for.
+export const MOTION = { fast: 160, base: 320, slow: 640, ease: "cubic-bezier(.2,.7,.1,1)" };

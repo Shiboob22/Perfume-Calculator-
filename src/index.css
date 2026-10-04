@@ -69,3 +69,43 @@ html[dir="rtl"] .print-label-name { font-style: normal; }
   .label-sheet { gap: 4mm; }
   .print-label { border-color: #CDBF9E; break-inside: avoid; }
 }
+
+/* ── The living handbook (Phase 9): the public site set like the book ── */
+.measure { max-width: 66ch; }
+.running-head { letter-spacing: 0.22em; }
+.folio { font-variant-numeric: oldstyle-nums; }
+
+/* Drop caps are a Latin book convention; Arabic gets an ornament instead. */
+html[lang="en"] .dropcap::first-letter {
+  float: left; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic;
+  font-size: 4.2em; line-height: 0.8; padding: 0.06em 0.12em 0 0; color: #E9C88A;
+}
+html[dir="rtl"] .dropcap::before { content: "۞ "; color: #C9A15A; }
+
+/* Sections ease in as they reach the reader, where the browser can tie the
+   animation to scrolling; elsewhere they are simply there. */
+@supports (animation-timeline: view()) {
+  .reveal { animation: reveal linear both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
+  @keyframes reveal { from { opacity: 0; transform: translateY(1.25rem); } to { opacity: 1; transform: none; } }
+}
+/* A hairline that fills as a guide is read. */
+.read-progress { position: fixed; inset-inline: 0; top: 0; height: 2px; background: #E9C88A; transform: scaleX(0); transform-origin: left; z-index: 50; }
+html[dir="rtl"] .read-progress { transform-origin: right; }
+@supports (animation-timeline: scroll()) {
+  .read-progress { animation: read linear both; animation-timeline: scroll(root); }
+  @keyframes read { to { transform: scaleX(1); } }
+}
+@supports not (animation-timeline: scroll()) { .read-progress { display: none; } }
+
+/* The live bench: pour columns and the scale's readout. */
+.pour { transform-origin: bottom; transition: transform 640ms cubic-bezier(.2,.7,.1,1); }
+.readout { font-variant-numeric: tabular-nums; transition: opacity 160ms ease; }
+
+/* Turning a page between guides (View Transitions, where supported). */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 320ms; animation-timing-function: cubic-bezier(.2,.7,.1,1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .read-progress, .pour, .readout { animation: none !important; transition: none !important; }
+  .read-progress { display: none; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
+}
