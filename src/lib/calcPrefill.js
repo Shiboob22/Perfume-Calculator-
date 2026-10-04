@@ -1,18 +1,9 @@
 import { TIER_KEYS } from "./formulation";
+import { cleanName } from "./cleanName.js";
+
+export { cleanName };
 
 export const UNIT_LABELS = { ml: "mL", floz: "fl oz", g: "g", oz: "oz" };
-
-// A fragrance name from a link: no control or bidi-override characters,
-// single spaces, at most 120 characters. Empty means none.
-export function cleanName(raw) {
-  const name = String(raw ?? "")
-    .replace(/[\u0000-\u001f\u007f\u202a-\u202e\u2066-\u2069]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 120)
-    .trim();
-  return name || null;
-}
 
 // Starting values from the URL (?size=100&unit=ml&conc=25&family=woody&name=…),
 // e.g. a guide's "Open in calculator" link or a shared recipe's "Make this

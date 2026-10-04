@@ -9,6 +9,7 @@ import { createTranslator } from "../i18n/core.js";
 import en from "../i18n/messages/en.js";
 import ar from "../i18n/messages/ar.js";
 import { COLORS } from "./theme.js";
+import { cleanName } from "./cleanName.js";
 
 const CATALOGS = { en, ar };
 const OG_LOCALE = { en: "en_US", ar: "ar_EG" };
@@ -38,6 +39,8 @@ export function calculatorHref(r) {
     size: size(byWeight ? r.total_g : r.total_ml),
     unit: byWeight ? "g" : "ml",
   });
+  const name = cleanName(r.fragrance_name);
+  if (name) q.set("name", name);
   return `/app/calculator?${q}`;
 }
 
