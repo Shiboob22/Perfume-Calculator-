@@ -143,7 +143,7 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
       <header class="w-full" style="border-bottom:1px solid ${COLORS.line};background-color:${COLORS.paper}">
         <div class="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 py-3 flex flex-wrap items-center gap-x-8 gap-y-1">
           <a href="${to("/")}" class="inline-flex items-center gap-3 me-auto" aria-label="${esc(t("site.nav.home"))}">${FLACON_SVG(30)}
-            <span class="flex flex-col leading-none"><span class="font-sans font-medium text-[19px] tracking-[-0.03em]">${esc(t("brand"))}</span><span class="font-serif italic text-[13px] mt-1">${esc(t("brandTagline"))}</span><span class="font-serif italic text-[12px] mt-0.5" style="color:${COLORS.brass}">— ${esc(t("brandSignature"))}</span></span>
+            <span class="flex flex-col leading-none"><span class="font-sans font-medium text-[19px] tracking-[-0.03em]">${esc(t("brand"))}</span><span class="font-serif italic text-[13px] mt-1">${esc(t("brandTagline"))}</span><span class="font-serif italic text-[12px] mt-0.5" style="color:${COLORS.brass}">${esc(t("brandSignature"))}</span></span>
           </a>
           <nav class="flex items-center gap-x-6 flex-wrap text-sm">
             <a href="${to("/guides")}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.guides"))}</a>

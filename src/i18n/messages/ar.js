@@ -3,7 +3,7 @@
 export default {
   brand: "Scent Ledger",
   brandTagline: "كل قطرة بميزان وعناية.",
-  brandSignature: "Hisham Shiboob",
+  brandSignature: "بقلم Hisham Shiboob",
   language: { switchTo: "English", switchLabel: "التبديل إلى الإنجليزية" },
   app: {
     tabsLabel: "الأقسام",
