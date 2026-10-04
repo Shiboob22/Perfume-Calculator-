@@ -1,3 +1,4 @@
+import { dedupeVariants } from './_lib/dedupe.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { clientIp, overLimit } from './_lib/rateLimit.js';
 import { createClient } from '@supabase/supabase-js';
@@ -264,7 +265,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (dbResults && dbResults.length > 0) {
       res.setHeader('Cache-Control', CATALOG_CACHE);
       return res.status(200).json({
-        source: 'database', match: 'exact', results: dbResults, hasMore: dbResults.length === RESULT_LIMIT,
+        source: 'database', match: 'exact', results: dedupeVariants(dbResults), hasMore: dbResults.length === RESULT_LIMIT,
       });
     }
     // Paging past the last exact match: stop, don't fall through to fuzzy/scrape.
@@ -281,7 +282,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (fuzzyErr) throw fuzzyErr;
       if (fuzzy && fuzzy.length > 0) {
         res.setHeader('Cache-Control', CATALOG_CACHE);
-        return res.status(200).json({ source: 'database', match: 'fuzzy', results: fuzzy });
+        return res.status(200).json({ source: 'database', match: 'fuzzy', results: dedupeVariants(fuzzy) });
       }
     }
 

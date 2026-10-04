@@ -75,7 +75,7 @@ const TIER_GUIDE = familyGuide();
 // the list short.
 const PERFUMER_RULES: string[] = [
   'Concentration works like the Calculator: % oil by volume when a batch is sized in mL or fl oz, by weight when sized in g or oz.',
-  'Work within 20–30% oil (the Calculator's named strengths are 15% EDT, 20% EDP, 25% EDP Intense and 30% Extrait); flag anything above 35% as likely harsh or unstable.',
+  'Work within 20–30% oil (the Calculator\'s named strengths are 15% EDT, 20% EDP, 25% EDP Intense and 30% Extrait); flag anything above 35% as likely harsh or unstable.',
   'Suggest a small 10–30 mL test batch before scaling a new fragrance or concentration up to 50–200 mL.',
   'When fixing a blend, change one thing at a time (concentration or rest time) so batches stay comparable.',
   'Cite the blender\'s own batches by date and fragrance name when they are relevant.',
