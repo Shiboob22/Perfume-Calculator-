@@ -2,7 +2,8 @@
 // The product name stays in English until the owner picks an Arabic name.
 export default {
   brand: "Scent Ledger",
-  brandTagline: "دليل طاولة الخلط",
+  brandTagline: "كل قطرة بميزان وعناية.",
+  brandSignature: "Hisham Shiboob",
   language: { switchTo: "English", switchLabel: "التبديل إلى الإنجليزية" },
   app: {
     tabsLabel: "الأقسام",

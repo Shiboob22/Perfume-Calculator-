@@ -14,13 +14,14 @@ export default function FlaconMark({ size = 34, color = COLORS.ink }) {
 }
 
 /** Flacon + wordmark + italic tagline. */
-export function BrandMark({ tagline = true, color = COLORS.ink, brand, sub }) {
+export function BrandMark({ tagline = true, color = COLORS.ink, brand, sub, signature }) {
   return (
     <span className="inline-flex items-center gap-3" style={{ color }}>
       <FlaconMark size={30} color={color} />
       <span className="flex flex-col leading-none">
         <span className="font-sans font-medium text-[19px] tracking-[-0.03em] rtl:tracking-normal">{brand}</span>
         {tagline && <span className="font-serif italic text-[13px] mt-1" style={{ opacity: 0.8 }}>{sub}</span>}
+        {tagline && signature && <span className="font-serif italic text-[12px] mt-0.5" style={{ color: COLORS.brass }}>— {signature}</span>}
       </span>
     </span>
   );

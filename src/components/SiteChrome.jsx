@@ -31,8 +31,8 @@ export function SiteHeader({ zone, active, language, extra }) {
     <header className="w-full" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
       <div className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 py-3 flex flex-wrap items-center gap-x-8 gap-y-1">
         {inApp
-          ? <a href={site(locale, "/")} aria-label={t("site.nav.home")} className="me-auto"><BrandMark brand={t("brand")} sub={t("brandTagline")} /></a>
-          : <Link to={site(locale, "/")} aria-label={t("site.nav.home")} className="me-auto"><BrandMark brand={t("brand")} sub={t("brandTagline")} /></Link>}
+          ? <a href={site(locale, "/")} aria-label={t("site.nav.home")} className="me-auto"><BrandMark brand={t("brand")} sub={t("brandTagline")} signature={t("brandSignature")} /></a>
+          : <Link to={site(locale, "/")} aria-label={t("site.nav.home")} className="me-auto"><BrandMark brand={t("brand")} sub={t("brandTagline")} signature={t("brandSignature")} /></Link>}
         <nav aria-label={t("site.nav.main")} className="flex items-center gap-x-6 gap-y-1 flex-wrap -mx-1 px-1">
           <NavLink to={site(locale, "/guides")} cross={inApp} active={active === "guides"} icon={IconBook}>{t("site.nav.guides")}</NavLink>
           <NavLink to="/app/calculator" cross={!inApp} active={active === "calculator"} icon={IconBalance}>{t("site.nav.calculator")}</NavLink>

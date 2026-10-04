@@ -1,7 +1,8 @@
 // English UI strings. Every key here needs a match in ar.js.
 export default {
   brand: "Scent Ledger",
-  brandTagline: "The bench handbook",
+  brandTagline: "Every drop, weighed with care.",
+  brandSignature: "Hisham Shiboob",
   language: { switchTo: "العربية", switchLabel: "Switch to Arabic" },
   app: {
     tabsLabel: "Sections",
