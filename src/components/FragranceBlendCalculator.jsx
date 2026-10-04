@@ -144,7 +144,12 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   const { t } = useI18n();
   const navigate = useNavigate();
   const entitlements = useEntitlements();
-  const [fragName, setFragName] = useState("");
+  const [searchParams] = useSearchParams();
+  const [prefill] = useState(() => prefillFromQuery(searchParams));
+  const [fragName, setFragName] = useState(prefill.name ?? "");
+  // A family or strength set by a link, a preset or the user. A catalog
+  // name match fills only what nobody chose; it never overwrites a choice.
+  const chosen = useRef({ family: prefill.family != null, conc: prefill.conc != null });
   const [suggestions, setSuggestions] = useState([]);
   const [listOpen, setListOpen] = useState(false);
   const [activeOption, setActiveOption] = useState(-1);
@@ -154,8 +159,6 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
   const [matched, setMatched] = useState(null); // resolved { id, name, tier } or null
   const debouncedName = useDebouncedValue(fragName, 200);
 
-  const [searchParams] = useSearchParams();
-  const [prefill] = useState(() => prefillFromQuery(searchParams));
   const { profile } = useProfile();
   const [start] = useState(() => startingBottle(prefill, profile));
   const [tierKey, setTierKey] = useState(prefill.family ?? "fresh");
@@ -238,8 +241,10 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
         // key. Guards against a malformed row (bad manual DB edit, future
         // schema drift) crashing the calculator instead of degrading.
         const validTier = TIERS[found.tier] ? found.tier : "fresh";
-        setTierKey(validTier);
-        setConcPct(TIERS[validTier].defaultConc);
+        if (!chosen.current.family) {
+          setTierKey(validTier);
+          if (!chosen.current.conc) setConcPct(TIERS[validTier].defaultConc);
+        }
         const noteRow = await getFragranceNotes(found.id);
         setOilType(noteRow?.oil_type || "");
         setPricePerGram(noteRow?.price_per_gram ?? "");
@@ -389,7 +394,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
       {mode !== "bottle" ? (
         <div className="p-6 border max-w-xl" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
           <Field label={t("calc.family")} htmlFor="calc-family-mode">
-            <select id="calc-family-mode" value={tierKey} onChange={(e) => setTierKey(e.target.value)}
+            <select id="calc-family-mode" value={tierKey} onChange={(e) => { chosen.current.family = true; setTierKey(e.target.value); }}
               className="w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
               style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}>
               {Object.keys(TIERS).map((key) => (
@@ -470,7 +475,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             <select
               id="calc-family"
               value={tierKey}
-              onChange={(e) => { setTierKey(e.target.value); setConcPct(TIERS[e.target.value].defaultConc); }}
+              onChange={(e) => { chosen.current.family = true; setTierKey(e.target.value); setConcPct(TIERS[e.target.value].defaultConc); }}
               className="w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
               style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
             >
@@ -482,7 +487,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
 
           <Presets
             current={{ amount: batchSize, unit: batchUnit, concPct }}
-            onApply={({ amount, unit, concPct: c }) => { setBatchSize(amount); setBatchUnit(unit); setConcPct(c); }}
+            onApply={({ amount, unit, concPct: c }) => { chosen.current.conc = true; setBatchSize(amount); setBatchUnit(unit); setConcPct(c); }}
           />
 
           <Field label={t("calc.batchSize")} htmlFor="calc-size">
@@ -517,7 +522,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
                 <button
                   key={c}
                   type="button"
-                  onClick={() => setConcPct(c)}
+                  onClick={() => { chosen.current.conc = true; setConcPct(c); }}
                   aria-pressed={Number(concPct) === c}
                   className="px-3 py-1 text-[11px] font-mono border transition-opacity"
                   style={{ 
@@ -533,7 +538,7 @@ export default function FragranceBlendCalculator({ selectedPerfume, onClearSelec
             <input
               id="calc-conc"
               type="range" min="10" max="40" step="1" value={concPct}
-              onChange={(e) => setConcPct(e.target.value)}
+              onChange={(e) => { chosen.current.conc = true; setConcPct(e.target.value); }}
               className="w-full" style={{ accentColor: COLORS.forest }}
             />
           </Field>
