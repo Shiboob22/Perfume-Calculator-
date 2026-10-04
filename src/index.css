@@ -110,3 +110,29 @@ html[dir="rtl"] .read-progress { transform-origin: right; }
   .read-progress { display: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
 }
+
+/* ── Scent Ledger (redesign/scent-ledger): the landing page's tokens ──
+   Paper, ink and one forest green. No radii, no shadows: 1px rules only. */
+:root {
+  --paper: #F6F2EA; --paper-2: #EEE8DC; --paper-3: #FBF8F2;
+  --ink: #100E0A; --ink-2: #3A352D; --muted: #5A544A; --rule: #D9D1C2;
+  --forest: #1F4A36; --forest-hover: #163828; --oil: #C99A45; --ethanol: #E4EBE5;
+  --ease: cubic-bezier(.2,0,0,1); --dur-micro: 180ms; --dur-signature: 520ms;
+  --font-sans: "Poppins", "Tajawal", system-ui, sans-serif;
+  --font-serif: "Lora", "Amiri", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+.ledger { background: var(--paper); color: var(--ink); font-family: var(--font-sans); min-height: 100vh; }
+.ledger *, .ledger *::before, .ledger *::after { border-radius: 0; box-shadow: none; }
+.ledger a { color: var(--forest); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.ledger a:hover { color: var(--ink); }
+.ledger :focus-visible { outline: 2px solid var(--forest); outline-offset: 3px; }
+.ledger .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.ledger .serif { font-family: var(--font-serif); }
+.ledger summary { list-style: none; }
+.ledger summary::-webkit-details-marker { display: none; }
+html[dir="rtl"] .ledger { font-family: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif; }
+html[dir="rtl"] .ledger .serif { font-family: "Amiri", "Lora", serif; font-style: normal; }
+@media (prefers-reduced-motion: reduce) {
+  .ledger *, .ledger *::before, .ledger *::after { transition: none !important; animation: none !important; }
+}

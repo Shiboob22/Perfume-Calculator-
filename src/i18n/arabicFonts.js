@@ -9,6 +9,8 @@ export function loadArabicFonts() {
     import("@fontsource/ibm-plex-sans-arabic/arabic-400.css"),
     import("@fontsource/ibm-plex-sans-arabic/arabic-500.css"),
     import("@fontsource/ibm-plex-sans-arabic/arabic-600.css"),
+    import("@fontsource/tajawal/arabic-400.css"),
+    import("@fontsource/tajawal/arabic-500.css"),
     import("@fontsource/amiri/arabic-400.css"),
     import("@fontsource/amiri/arabic-700.css"),
   ]).catch(() => { loading = null; }); // system Arabic fonts remain the fallback

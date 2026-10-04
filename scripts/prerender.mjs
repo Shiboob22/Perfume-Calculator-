@@ -24,16 +24,20 @@ function write(file, html) {
 // pushes the page down (measured CLS 0.11 on the home page on Slow 4G).
 const CRITICAL_FONTS = ["cormorant-garamond-latin-500-italic-", "space-grotesk-latin-400-normal-", "space-grotesk-latin-600-normal-", "ibm-plex-mono-latin-400-normal-"];
 const assets = readdirSync(join(DIST, "assets"));
-const preloads = CRITICAL_FONTS.map((prefix) => {
+// The Scent Ledger home page sets in Poppins, Lora and Plex Mono instead.
+const LEDGER_FONTS = ["poppins-latin-500-normal-", "lora-latin-400-normal-", "ibm-plex-mono-latin-500-normal-"];
+const preloadsFor = (fonts) => fonts.map((prefix) => {
   const file = assets.find((f) => f.startsWith(prefix) && f.endsWith(".woff2"));
   if (!file) throw new Error(`prerender: no built font starting ${prefix}`);
   return `<link rel="preload" href="/assets/${file}" as="font" type="font/woff2" crossorigin />`;
 }).join("\n    ");
+const preloads = preloadsFor(CRITICAL_FONTS);
+const ledgerPreloads = preloadsFor(LEDGER_FONTS);
 
 function page(url, head) {
   return template
     .replace('<html lang="en">', `<html lang="${head.locale}" dir="${head.dir}">`)
-    .replace("<title>Scent Ledger</title>", `${preloads}\n    ${headHtml(head)}`)
+    .replace("<title>Scent Ledger</title>", `${url === "/" || url === "/ar" ? ledgerPreloads : preloads}\n    ${headHtml(head)}`)
     .replace('<div id="root"></div>', `<div id="root">${render(url)}</div>`);
 }
 
