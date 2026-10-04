@@ -8,7 +8,7 @@
 import { createTranslator } from "../i18n/core.js";
 import en from "../i18n/messages/en.js";
 import ar from "../i18n/messages/ar.js";
-import { COLORS, TYPE } from "./theme.js";
+import { COLORS, OFFSET_SHADOW, TYPE } from "./theme.js";
 import { cleanName } from "./cleanName.js";
 
 const CATALOGS = { en, ar };
@@ -27,6 +27,24 @@ export function esc(value) {
 // 84.5 → "84.50" (grams, as on the scale); 100 → "100" (bottle sizes).
 const grams = (n) => (Math.round(Number(n) * 100) / 100).toFixed(2);
 const size = (n) => String(Math.round(Number(n) * 100) / 100);
+
+// Static SVG (the page has no script): the brand flacon, the drop that opens
+// the note, and the forward arrow (mirrored in Arabic).
+const FLACON_SVG = (h) => `<svg aria-hidden="true" width="${Math.round(h * 0.78)}" height="${h}" viewBox="0 0 28 36" fill="none" class="shrink-0"><rect x="10" y="1" width="8" height="5" fill="${COLORS.ink}"/><path d="M12 6v3.5M16 6v3.5" stroke="${COLORS.ink}" stroke-width="1.4"/><rect x="3.7" y="10.2" width="20.6" height="24.1" stroke="${COLORS.ink}" stroke-width="1.4"/><path d="M6.5 24.5h15" stroke="${COLORS.oil}" stroke-width="2.4"/></svg>`;
+const DROP_SVG = `<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${COLORS.ink}" stroke-width="1.5" stroke-linejoin="round" class="shrink-0 mt-1"><path d="M12 3c-3 3.8-5 6.6-5 9.3a5 5 0 0 0 10 0C17 9.6 15 6.8 12 3Z"/><path d="M7 12.5h10a5 5 0 0 1-10 0Z" fill="${COLORS.oil}" stroke="none"/></svg>`;
+const ARROW_SVG = `<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="rtl:-scale-x-100"><path d="M4 12h15.5M14 6.5l5.5 5.5-5.5 5.5"/></svg>`;
+
+/** Oil against ethanol by weight, as on the calculator. */
+function ratioHtml(t, r) {
+  const oil = Number(r.oil_g), eth = Number(r.ethanol_g);
+  if (!(oil > 0) || !(eth >= 0)) return "";
+  const ratio = eth / oil; // as weightRatio() in calc/blend.ts, which this plain-JS module can't import
+  const share = (oil / (oil + eth)) * 100;
+  return `<div class="mt-6" aria-hidden="true">
+              <div class="flex h-3 w-full overflow-hidden" style="border:1px solid ${COLORS.ink}"><span class="block h-full" style="width:${share.toFixed(1)}%;background:${COLORS.oil}"></span><span class="block h-full flex-1" style="background:${COLORS.mist}"></span></div>
+              <p class="mt-2 font-mono text-xs" dir="ltr" style="color:${COLORS.dim}">1 : ${grams(ratio)}</p>
+            </div>`;
+}
 
 export const recipePath = (lang, slug) => `${lang === "ar" ? "/ar" : ""}/r/${encodeURIComponent(slug)}`;
 
@@ -121,45 +139,67 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
     ${head}
   </head>
   <body>
-    <div class="min-h-screen flex flex-col" style="background-color:${COLORS.paper};color:${COLORS.ink}">
-      <header class="w-full max-w-5xl mx-auto px-4 sm:px-8 pt-6 pb-4 flex items-center gap-4 flex-wrap">
-        <a href="${to("/")}" class="flex items-center gap-3 me-auto" aria-label="${esc(t("site.nav.home"))}">
-          <span class="font-serif italic text-xl" style="color:${COLORS.forestDeep}">${esc(t("brand"))}</span>
-        </a>
-        <nav class="flex items-center gap-4 text-sm">
-          <a href="${to("/guides")}" class="hover:underline underline-offset-4">${esc(t("site.nav.guides"))}</a>
-          <a href="${to("/pricing")}" class="hover:underline underline-offset-4">${esc(t("site.nav.pricing"))}</a>
-          <a href="${recipePath(other, r.slug)}" lang="${other}" hreflang="${other}" title="${esc(t("site.nav.languageLabel"))}" class="hover:underline underline-offset-4" style="color:${COLORS.inkSoft}">${esc(t("site.nav.language"))}</a>
-          <a href="/app" class="px-3 py-1.5 rounded-none text-sm font-semibold" style="background:${COLORS.amber};color:${COLORS.onAmber}">${esc(t("site.nav.openApp"))}</a>
-        </nav>
+    <div class="min-h-screen flex flex-col" style="background-color:${COLORS.sand};color:${COLORS.ink}">
+      <header class="w-full" style="border-bottom:1px solid ${COLORS.line};background-color:${COLORS.paper}">
+        <div class="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 py-3 flex flex-wrap items-center gap-x-8 gap-y-1">
+          <a href="${to("/")}" class="inline-flex items-center gap-3 me-auto" aria-label="${esc(t("site.nav.home"))}">${FLACON_SVG(30)}
+            <span class="flex flex-col leading-none"><span class="font-sans font-medium text-[19px] tracking-[-0.03em]">${esc(t("brand"))}</span><span class="font-serif italic text-[13px] mt-1">${esc(t("brandTagline"))}</span></span>
+          </a>
+          <nav class="flex items-center gap-x-6 flex-wrap text-sm">
+            <a href="${to("/guides")}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.guides"))}</a>
+            <a href="/app/calculator" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.calculator"))}</a>
+            <a href="/app/batches" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.journal"))}</a>
+            <a href="${to("/pricing")}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.pricing"))}</a>
+            <a href="${recipePath(other, r.slug)}" lang="${other}" hreflang="${other}" title="${esc(t("site.nav.languageLabel"))}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.language"))}</a>
+          </nav>
+        </div>
       </header>
-      <main class="flex-1 w-full">
-        <article class="w-full max-w-2xl mx-auto px-4 sm:px-8 pt-8">
-          <p class="text-xs font-mono uppercase tracking-wider" style="color:${COLORS.amberDeep}">${esc(t("recipe.eyebrow"))}</p>
-          <h1 class="mt-3 ${TYPE.display}" style="color:${COLORS.forestDeep}"><bdi>${esc(r.fragrance_name)}</bdi></h1>
-          <p class="mt-2 text-sm font-mono" style="color:${COLORS.inkSoft}">${esc(family)} · ${esc(t(`recipe.strengthValue.${basis}`, { pct }))}</p>
-          <table class="mt-8 w-full text-sm border-collapse">
-            <tbody>
-              ${rows.map(([k, v]) => `<tr style="border-bottom:1px solid ${COLORS.line}"><th scope="row" class="py-2 text-start font-normal" style="color:${COLORS.inkSoft}">${esc(k)}</th><td class="py-2 text-end font-mono"><bdi>${esc(v)}</bdi></td></tr>`).join("\n              ")}
-            </tbody>
-          </table>
-          ${r.public_note ? `<section class="mt-8">
-            <h2 class="text-xs font-mono uppercase tracking-wider" style="color:${COLORS.amberDeep}">${esc(t("recipe.note"))}</h2>
-            <div class="mt-2 space-y-3 font-serif text-lg" lang="${r.note_lang === "ar" ? "ar" : "en"}" dir="auto">${noteHtml(r.public_note)}</div>
-          </section>` : ""}
-          <div class="mt-10 p-5 border rounded-none" style="border-color:${COLORS.amberDeep};background-color:${COLORS.card}">
-            <a href="${esc(calculatorHref(r))}" class="inline-block px-5 py-2 rounded-none text-sm font-semibold" style="background:${COLORS.amber};color:${COLORS.onAmber}">${esc(t("recipe.cta"))}</a>
-            <p class="mt-2 text-xs" style="color:${COLORS.inkSoft}">${esc(t("recipe.ctaLead"))} <a href="${to("/guides")}" class="underline">${esc(t("recipe.method"))}</a></p>
+      <main class="flex-1 w-full px-4 sm:px-8 py-12">
+        <article class="w-full max-w-2xl mx-auto" style="background-color:${COLORS.card};border:1px solid ${COLORS.ink};box-shadow:${OFFSET_SHADOW.replace(COLORS.sand, COLORS.line)}">
+          <div class="flex items-center justify-between gap-3 px-6 py-3" style="border-bottom:1px solid ${COLORS.line}">
+            <p class="${TYPE.label}" style="color:${COLORS.dim}">${esc(t("recipe.eyebrow"))}</p>
+            <p class="font-mono text-xs" dir="ltr" style="color:${COLORS.dim}">${esc(r.slug)}</p>
           </div>
-          <p class="mt-8 text-xs" style="color:${COLORS.dim}">${esc(t("recipe.disclaimer"))} ${esc(t("site.safety.text"))}</p>
-          ${report ? `<p class="mt-3 text-xs" style="color:${COLORS.inkSoft}">${report}</p>` : ""}
+          <div class="p-6 sm:p-8">
+            <div class="flex items-start justify-between gap-6">
+              <div>
+                <h1 class="${TYPE.title}"><bdi>${esc(r.fragrance_name)}</bdi></h1>
+                <p class="mt-2 font-serif italic" style="color:${COLORS.inkSoft}">${esc(family)}</p>
+              </div>
+              ${FLACON_SVG(96)}
+            </div>
+            <table class="mt-8 w-full text-sm border-collapse" style="border-top:1px solid ${COLORS.ink}">
+              <tbody>
+                ${rows.map(([k, v]) => `<tr style="border-bottom:1px solid ${COLORS.line}"><th scope="row" class="py-3 text-start font-normal ${TYPE.label}" style="color:${COLORS.dim}">${esc(k)}</th><td class="py-3 text-end font-mono text-base"><bdi>${esc(v)}</bdi></td></tr>`).join("\n                ")}
+              </tbody>
+            </table>
+            ${ratioHtml(t, r)}
+            ${r.public_note ? `<section class="mt-8 flex gap-3">
+              ${DROP_SVG}
+              <div>
+                <h2 class="${TYPE.label}" style="color:${COLORS.dim}">${esc(t("recipe.note"))}</h2>
+                <div class="mt-2 space-y-3 font-serif italic text-lg" lang="${r.note_lang === "ar" ? "ar" : "en"}" dir="auto">${noteHtml(r.public_note)}</div>
+              </div>
+            </section>` : ""}
+          </div>
+          <div class="px-6 py-5 flex flex-wrap items-center justify-between gap-3" style="border-top:1px solid ${COLORS.line}">
+            <p class="text-xs max-w-[22rem]" style="color:${COLORS.inkSoft}">${esc(t("recipe.ctaLead"))} <a href="${to("/guides")}" class="underline">${esc(t("recipe.method"))}</a></p>
+            <a href="${esc(calculatorHref(r))}" class="inline-flex items-center gap-2 px-5 min-h-[48px] font-medium" style="background:${COLORS.amber};color:${COLORS.onAmber}">${esc(t("recipe.cta"))} ${ARROW_SVG}</a>
+          </div>
         </article>
+        <div class="max-w-2xl mx-auto">
+          <p class="mt-10 text-xs" style="color:${COLORS.dim}">${esc(t("recipe.disclaimer"))} ${esc(t("site.safety.text"))}</p>
+          ${report ? `<p class="mt-3 text-xs" style="color:${COLORS.inkSoft}">${report}</p>` : ""}
+        </div>
       </main>
-      <footer class="w-full max-w-5xl mx-auto px-4 sm:px-8 py-10 mt-16 text-sm flex flex-wrap gap-x-6 gap-y-2" style="border-top:1px solid ${COLORS.line};color:${COLORS.inkSoft}">
-        <span class="font-serif italic" style="color:${COLORS.forestDeep}">${esc(t("brand"))}</span>
-        <a href="${to("/privacy")}" class="hover:underline">${esc(t("site.nav.privacy"))}</a>
-        <a href="${to("/terms")}" class="hover:underline">${esc(t("site.nav.terms"))}</a>
-        <span class="ms-auto">${esc(t("site.footer.rights"))}</span>
+      <footer class="w-full" style="background-color:${COLORS.inkBand};color:${COLORS.onInk}">
+        <div class="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 py-10 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          <span class="font-serif italic">${esc(t("site.footer.line"))}</span>
+          <span>${esc(t("site.footer.safety"))}</span>
+          <a href="${to("/privacy")}" class="hover:underline">${esc(t("site.nav.privacy"))}</a>
+          <a href="${to("/terms")}" class="hover:underline">${esc(t("site.nav.terms"))}</a>
+          <span class="ms-auto">${esc(t("site.footer.rights"))}</span>
+        </div>
       </footer>
     </div>
   </body>
@@ -186,9 +226,9 @@ export function goneHtml({ lang = "en", stylesheet, failed = false }) {
   </head>
   <body>
     <main class="min-h-screen max-w-2xl mx-auto px-4 sm:px-8 pt-16" style="background-color:${COLORS.paper};color:${COLORS.ink}">
-      <h1 class="text-3xl font-serif italic" style="color:${COLORS.forestDeep}">${esc(title)}</h1>
+      <h1 class="${TYPE.title}">${esc(title)}</h1>
       <p class="mt-3 text-sm" style="color:${COLORS.inkSoft}">${esc(t(failed ? "recipe.errorText" : "recipe.goneText"))}</p>
-      <p class="mt-6"><a href="${locale === "ar" ? "/ar" : "/"}" class="underline" style="color:${COLORS.amber}">${esc(t("brand"))}</a></p>
+      <p class="mt-6"><a href="${locale === "ar" ? "/ar" : "/"}" class="underline" style="color:${COLORS.forest}">${esc(t("brand"))}</a></p>
     </main>
   </body>
 </html>
