@@ -24,6 +24,8 @@ export default function PublicLayout({ children }) {
   const { path } = parsePath(pathname);
   const other = locale === "ar" ? "en" : "ar";
   const to = (p) => localePath(locale, p);
+  // The Scent Ledger landing page brings its own header and footer.
+  if (path === "/") return children;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>

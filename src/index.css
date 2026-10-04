@@ -136,3 +136,12 @@ html[dir="rtl"] .ledger .serif { font-family: "Amiri", "Lora", serif; font-style
 @media (prefers-reduced-motion: reduce) {
   .ledger *, .ledger *::before, .ledger *::after { transition: none !important; animation: none !important; }
 }
+.ledger .ledger-cta { display: inline-flex; align-items: center; min-height: 48px; padding: 0 26px; background: var(--forest); color: var(--paper); text-decoration: none; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; transition: background var(--dur-micro) var(--ease); }
+.ledger .ledger-cta:hover { background: var(--forest-hover); color: var(--paper); }
+.ledger .ledger-row { display: grid; grid-template-columns: 48px minmax(0,1fr) auto; gap: 16px; align-items: baseline; padding: 22px 0; color: var(--ink); text-decoration: none; transition: color var(--dur-micro) var(--ease); }
+.ledger .ledger-row:hover { color: var(--forest); }
+.ledger .ledger-pro { border-top: 1px solid var(--ink); }
+@media (min-width: 720px) { .ledger .ledger-pro { border-top: 0; border-inline-start: 1px solid var(--ink); } }
+.ledger .ledger-foot { color: var(--paper); }
+.ledger .ledger-foot:hover { color: #C9C1B3; }
+.ledger nav a:hover { color: var(--forest); }
