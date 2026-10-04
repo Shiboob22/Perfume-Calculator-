@@ -16,7 +16,7 @@ test("home: English, left to right, the method in the headline", async ({ page }
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(en.site.home.title);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(en.site.ledger.title1 + en.site.ledger.title2 + en.site.ledger.title3);
   await expect(page.getByRole("link", { name: en.site.home.ctaApp })).toHaveAttribute("href", /\/app/);
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
@@ -27,7 +27,7 @@ test("home: Arabic, right to left", async ({ page }) => {
   await page.goto("/ar");
   await expect(page.locator("html")).toHaveAttribute("lang", "ar");
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(ar.site.home.title);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(ar.site.ledger.title1 + ar.site.ledger.title2 + ar.site.ledger.title3);
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });

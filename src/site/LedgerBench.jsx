@@ -35,7 +35,7 @@ function Segments({ legend, options, value, onPick, tall }) {
 // Each place is a 1ch × 1em window onto a column of 0–9, moved to its digit.
 function Scale({ text, label }) {
   return (
-    <div aria-live="polite" aria-label={label} dir="ltr" style={{ ...mono, fontWeight: 500, fontSize: "clamp(40px,4.6vw,64px)", letterSpacing: "-0.03em", lineHeight: 1, marginTop: 14, display: "flex", alignItems: "baseline" }}>
+    <div role="status" aria-live="polite" aria-label={label} dir="ltr" style={{ ...mono, fontWeight: 500, fontSize: "clamp(40px,4.6vw,64px)", letterSpacing: "-0.03em", lineHeight: 1, marginTop: 14, display: "flex", alignItems: "baseline" }}>
       {scaleDigits(text).map((d, i) => d.dot ? (
         <span key={i} aria-hidden="true" style={{ display: "inline-block", width: "1ch", height: "1em" }}>.</span>
       ) : (

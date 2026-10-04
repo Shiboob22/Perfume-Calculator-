@@ -7,23 +7,34 @@ import ar from "../src/i18n/messages/ar.js";
 // JavaScript, guides turn like pages, motion respects the reader, and the
 // new pages are accessible in both languages.
 
-const readout = (page) => page.getByRole("status").locator(".readout");
+const scales = (page) => page.locator(".ledger [aria-live][aria-label]");
 
 test.describe("without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
-  test("the home page shows the worked example on the bench", async ({ page }) => {
+  test("the home page's bench shows 50 mL at 25%", async ({ page }) => {
     await page.goto("/");
-    await expect(readout(page)).toHaveText(["23.75 g", "60.75 g", "84.50 g"]);
-    await expect(page.getByRole("link", { name: en.site.home.bench.open })).toHaveAttribute("href", "/app/calculator?size=100&unit=ml&conc=25&ref=home");
+    await expect(scales(page).first()).toHaveAttribute("aria-label", "11.88 grams of fragrance oil");
+    await expect(scales(page).nth(1)).toHaveAttribute("aria-label", "30.38 grams of ethanol");
+    await expect(page.getByText("28.1 : 71.9 by weight")).toBeVisible();
   });
 });
 
-test("the live bench pours the handbook's figures for the chosen bottle", async ({ page }) => {
+test("the bench weighs every bottle and strength, and copies the recipe", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "50 mL" }).click();
-  await page.getByRole("button", { name: "30% Extrait" }).click();
-  await expect(readout(page)).toHaveText(["14.25 g", "28.35 g", "42.60 g"]);
-  await expect(page.getByRole("link", { name: en.site.home.bench.open })).toHaveAttribute("href", "/app/calculator?size=50&unit=ml&conc=30&ref=home");
+  await page.getByRole("button", { name: "100 mL" }).click();
+  await page.getByRole("button", { name: /^15%/ }).click();
+  await expect(scales(page).first()).toHaveAttribute("aria-label", "14.25 grams of fragrance oil");
+  await expect(scales(page).nth(1)).toHaveAttribute("aria-label", "68.85 grams of ethanol");
+  await expect(page.getByRole("button", { name: "100 mL" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: en.site.ledger.bench.copy }).click();
+  await expect(page.getByRole("button", { name: en.site.ledger.bench.copied })).toBeVisible();
+  await expect(page.getByRole("button", { name: en.site.ledger.bench.copy })).toBeVisible({ timeout: 4000 });
+});
+
+test("no sideways scrolling on a 390 px phone", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
 
 test("a guide turns to the next one", async ({ page }) => {
@@ -38,7 +49,7 @@ test("reduced motion turns the reading hairline and pours off", async ({ page })
   await page.goto("/guides/the-calculation");
   await expect(page.locator(".read-progress")).toBeHidden();
   await page.goto("/");
-  expect(await page.locator(".pour").first().evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0s");
+  expect(await page.locator(".ledger-roll").first().evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0s");
 });
 
 for (const [path, lang] of [["/", "en"], ["/ar", "ar"], ["/guides/the-calculation", "en"], ["/ar/guides/the-calculation", "ar"], ["/pricing", "en"], ["/ar/guides", "ar"]]) {
@@ -50,8 +61,9 @@ for (const [path, lang] of [["/", "en"], ["/ar", "ar"], ["/guides/the-calculatio
   });
 }
 
-test("Arabic home: the bench in Arabic, numbers left to right", async ({ page }) => {
+test("Arabic home: the bench in Arabic, numbers left to right, Scent Ledger in the title", async ({ page }) => {
   await page.goto("/ar");
-  await expect(page.getByText(ar.site.home.bench.label)).toBeVisible();
-  await expect(readout(page).first()).toHaveAttribute("dir", "ltr");
+  await expect(page.getByRole("heading", { name: ar.site.ledger.bench.title })).toBeVisible();
+  await expect(scales(page).first()).toHaveAttribute("dir", "ltr");
+  await expect(page).toHaveTitle(/Scent Ledger/);
 });
