@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import en from "../src/i18n/messages/en.js";
 import { FEATURES } from "../src/lib/entitlements.js";
+import { USER, json, signIn } from "./helpers.js";
 
 // The signed-in Batches tab — Resting Journal and recipe sharing — against
 // the production build with a fake session and a fake API: every /api and
@@ -10,7 +11,6 @@ import { FEATURES } from "../src/lib/entitlements.js";
 // the unit tests, the RLS test on staging and signed-in.spec.js.
 
 const DAY = 86400000;
-const USER = { id: "00000000-0000-4000-8000-000000000001", email: "e2e@example.test", aud: "authenticated", role: "authenticated" };
 const WOODY = "11111111-1111-4111-8111-111111111111";
 
 // A local date, as the app compares blend dates (not the UTC date).
@@ -28,26 +28,10 @@ function fixtures(now) {
   }];
 }
 
-// A signed-in session for whatever Supabase project the build points at:
-// the auth client reads it from localStorage under sb-<ref>-auth-token.
-async function signIn(page) {
-  await page.addInitScript((user) => {
-    const session = JSON.stringify({
-      access_token: "e2e-access-token", token_type: "bearer", expires_in: 3600,
-      expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: "e2e-refresh-token", user,
-    });
-    const getItem = Storage.prototype.getItem;
-    Storage.prototype.getItem = function (key) {
-      return /^sb-.+-auth-token$/.test(key) ? session : getItem.call(this, key);
-    };
-  }, USER);
-}
-
 // offline: true makes check-in sends fail the way a dropped connection does
 // (Playwright's request stubs keep answering while the context is offline).
 async function fakeApi(page, { plan = "pro", offline = false } = {}) {
   const sent = { checkins: [], shares: [] };
-  const json = (route, body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
   const batches = fixtures(Date.now());
 
   await page.route(/\/(auth|rest)\/v1\//, (route) => {

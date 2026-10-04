@@ -52,7 +52,7 @@ test("a guide opens the calculator at its example", async ({ page }) => {
   await page.goto("/guides/the-calculation");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("The calculation");
   const calc = page.getByRole("link", { name: en.site.guides.openCalc });
-  await expect(calc).toHaveAttribute("href", "/app/calculator?size=100&unit=ml&conc=25");
+  await expect(calc).toHaveAttribute("href", "/app/calculator?size=100&unit=ml&conc=25&ref=guide");
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
@@ -90,7 +90,9 @@ test.describe("without JavaScript", () => {
   test("public pages are complete HTML", async ({ page }) => {
     await page.goto("/guides/the-calculation");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("The calculation");
-    await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveCount(1);
+    // The Arabic guides await the author's review: noindex and no hreflang until then.
+    await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveCount(0);
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveCount(1);
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
   });
 });
