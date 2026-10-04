@@ -4,7 +4,9 @@ import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefil
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
 import { enqueue, isOffline } from "../lib/outbox";
-import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
+import { calculate, fmt2, gToOz, mlToFlOz, weightShare } from "../lib/calc";
+import { BottleFill, RatioBar } from "./Bottle";
+import { IconBookmark, IconBookmarkCheck, IconCheck, IconCopy, IconDiamondAlert, IconDrop, IconFlameTriangle } from "./icons";
 import { STRENGTHS } from "../lib/formulation";
 import MeasuredDensity from "./calc/MeasuredDensity";
 import Presets from "./calc/Presets";
@@ -220,6 +222,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities, measuredDensityValue]);
 
   const [logStatus, setLogStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
+  const [copied, setCopied] = useState(false);
   // Suppliers this user has typed before, newest first, as input suggestions.
   const [oilTypeOptions, setOilTypeOptions] = useState([]);
 
@@ -425,6 +428,21 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
   const tier = TIERS[tierKey] || TIERS.fresh;
 
+  // Any change to the batch puts Save (and Copy) back to idle: a "Saved"
+  // must only ever describe the numbers on screen.
+  useEffect(() => {
+    setLogStatus((s) => (s === "saving" ? s : null));
+    setCopied(false);
+  }, [fragName, batchSize, batchUnit, concPct, tierKey, densities, measuredDensityValue]);
+
+  const copyRecipe = async () => {
+    const text = t("calc.recipeText", {
+      name: fragName.trim() || "—", size: `${batchSize} ${UNIT_LABELS[batchUnit] ?? batchUnit}`, pct: Number(concPct),
+      oil: fmt2(result.shown.oilG), ethanol: fmt2(result.shown.ethanolG), total: fmt2(result.shown.totalG),
+    });
+    try { await navigator.clipboard.writeText(text); setCopied(true); } catch { setCopied(false); }
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       {selectedPerfume && (
@@ -613,13 +631,13 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             <div className="grid grid-cols-2 gap-3 mt-3">
               {Object.keys(TIERS).map((key) => (
                 <div key={key}>
-                  <label htmlFor={`calc-density-${key}`} className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t(`families.${key}.label`)} (g/mL)</label>
+                  <label htmlFor={`calc-density-${key}`} className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: COLORS.ink }}><IconDrop size={18} />{t(`families.${key}.label`)} (g/mL)</label>
                   <TextInput id={`calc-density-${key}`} type="number" step="0.01" value={densities[key]}
                     onChange={(e) => setDensities({ ...densities, [key]: parseFloat(e.target.value) || 0 })} />
                 </div>
               ))}
               <div>
-                <label htmlFor="calc-density-ethanol" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.ethanol96")} (g/mL)</label>
+                <label htmlFor="calc-density-ethanol" className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: COLORS.ink }}><IconDrop mist size={18} />{t("calc.ethanol96")} (g/mL)</label>
                 <TextInput id="calc-density-ethanol" type="number" step="0.01" value={densities.ethanol}
                   onChange={(e) => setDensities({ ...densities, ethanol: parseFloat(e.target.value) || 0 })} />
               </div>
@@ -691,8 +709,22 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           </div>
         </div>
 
-        <div className="p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
-          <h2 className="text-base font-serif font-semibold mb-5" style={{ color: COLORS.forestDeep }}>{t("calc.readout")}</h2>
+        <div className="p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.ink }}>
+          <h2 className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-5" style={{ color: COLORS.dim }}>{t("calc.readout")}</h2>
+          <div className="flex gap-6 items-end mb-5">
+            <BottleFill oilShare={weightShare(result.shown.oilG, result.shown.ethanolG)} height={190} />
+            <div className="grid gap-4 flex-1 min-w-0">
+              {[["calc.oil", result.shown.oilG, COLORS.oil], ["calc.ethanol96", result.shown.ethanolG, COLORS.mist]].map(([k, g, sw]) => (
+                <div key={k}>
+                  <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
+                    <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: sw, border: `1px solid ${COLORS.ink}` }} />{t(k)}
+                  </span>
+                  <span dir="ltr" className="readout block font-mono leading-none tracking-[-0.03em] text-[clamp(2.75rem,6vw,4.5rem)]" key={g}>{fmt2(g)}<span className="text-2xl ms-1">g</span></span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <RatioBar oilG={result.shown.oilG} ethanolG={result.shown.ethanolG} caption={t("calc.byWeight")} className="mb-4" />
 
           <p className="text-xs font-mono mb-2" style={{ color: COLORS.inkSoft }}>
             {t(result.basis === "volume" ? "calc.basisVolume" : "calc.basisWeight", { pct: Number(concPct) })}
@@ -786,15 +818,31 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={handleLogBatch}
-            disabled={!fragName.trim() || logStatus === "saving"}
-            className="w-full mt-5 px-4 py-3 text-sm font-semibold disabled:opacity-50"
-            style={{ backgroundColor: COLORS.forest, color: COLORS.onAmber }}
-          >
-            {logStatus === "saving" ? t("calc.saving") : t("calc.log")}
-          </button>
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-2">
+            {logStatus === "saved" ? (
+              <button type="button" onClick={() => navigate("/app/batches")}
+                className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium"
+                style={{ backgroundColor: COLORS.mist, color: COLORS.forest, border: `1px solid ${COLORS.forest}` }}>
+                <IconBookmarkCheck size={18} /> {t("calc.savedOpen")}
+              </button>
+            ) : logStatus === "error" ? (
+              <button type="button" onClick={handleLogBatch}
+                className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium"
+                style={{ backgroundColor: COLORS.dangerBg, color: COLORS.danger, border: `1px solid ${COLORS.dangerLine}` }}>
+                <IconDiamondAlert size={18} /> {t("calc.retry")}
+              </button>
+            ) : (
+              <button type="button" onClick={handleLogBatch} disabled={!fragName.trim() || logStatus === "saving"}
+                className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium disabled:opacity-50"
+                style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}>
+                <IconBookmark size={18} /> {logStatus === "saving" ? t("calc.saving") : t("calc.log")}
+              </button>
+            )}
+            <button type="button" onClick={copyRecipe}
+              className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm" style={{ border: `1px solid ${COLORS.ink}`, color: COLORS.ink }}>
+              {copied ? <IconCheck size={18} /> : <IconCopy size={18} />} <span role="status">{t(copied ? "calc.copied" : "calc.copy")}</span>
+            </button>
+          </div>
           {/* One live region, always mounted: "saved" and "could not save"
               are announced, so nobody logs the same batch twice. */}
           <div role="status">
@@ -814,6 +862,9 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             )}
             {logStatus === "error" && capHit && <WaitlistButton source="batch_cap" />}
           </div>
+          <aside role="note" className="mt-6 p-4 flex gap-3 text-sm" style={{ background: COLORS.dangerBg, border: `1px solid ${COLORS.dangerLine}`, color: COLORS.ink }}>
+            <IconFlameTriangle size={24} /> {t("site.footer.safety")}
+          </aside>
         </div>
       </div>
       )}

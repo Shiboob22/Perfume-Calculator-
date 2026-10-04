@@ -1,6 +1,6 @@
 import React from "react";
 import { COLORS } from "../lib/theme";
-import { fmt2, weightRatio } from "../lib/calc";
+import { fmt2, weightRatio, weightShare } from "../lib/calc";
 
 // The bench's two pictures of one batch, shared by the home bench, the
 // calculator and the recipe card. Figures come in already computed; these
@@ -24,8 +24,7 @@ export function BottleFill({ oilShare = 0, height = 180, label }) {
 
 /** Oil against ethanol by weight, with "1 : x by weight". */
 export function RatioBar({ oilG, ethanolG, caption, className = "" }) {
-  const total = oilG + ethanolG;
-  const share = total > 0 ? oilG / total : 0;
+  const share = weightShare(oilG, ethanolG);
   const r = weightRatio(oilG, ethanolG);
   return (
     <div className={className}>

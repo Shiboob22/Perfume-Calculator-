@@ -307,7 +307,8 @@ export default {
     },
   },
   calc: {
-    basisVolume: "{pct}% by volume (batch sized in mL / fl oz)",
+    byWeight: "by weight", savedOpen: "Saved — open journal", retry: "Couldn't save — retry", copy: "Copy recipe", copied: "Copied", recipeText: "{name}\n{size} at {pct}%\nOil {oil} g\nEthanol 96% {ethanol} g\nTotal {total} g",
+        basisVolume: "{pct}% by volume (batch sized in mL / fl oz)",
     basisWeight: "{pct}% by weight (batch sized in g / oz)",
     otherBasisWeight: "= {pct}% by weight",
     otherBasisVolume: "= {pct}% by volume",

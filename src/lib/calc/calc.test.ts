@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   weightRatio,
+  weightShare,
   round2, fmt2, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs,
   checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, byVolume, fromWeights,
   concentrationOf, displayed, volumeToWeightFraction, weightToVolumeFraction, toBase,
@@ -287,5 +288,13 @@ describe("weightRatio", () => {
     expect(weightRatio(0, 10)).toBeNull();
     expect(weightRatio(5, -1)).toBeNull();
     expect(weightRatio(NaN, 1)).toBeNull();
+  });
+});
+
+describe("weightShare", () => {
+  it("is oil's part of the weight", () => {
+    expect(weightShare(23.75, 60.75)).toBeCloseTo(0.2811, 4);
+    expect(weightShare(0, 0)).toBe(0);
+    expect(weightShare(-1, 5)).toBe(0);
   });
 });

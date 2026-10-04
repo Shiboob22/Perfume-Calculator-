@@ -308,7 +308,8 @@ export default {
     },
   },
   calc: {
-    basisVolume: "{pct}% حجمًا (الدفعة محددة بالمليلتر / الأونصة السائلة)",
+    byWeight: "by weight", savedOpen: "Saved — open journal", retry: "Couldn't save — retry", copy: "Copy recipe", copied: "Copied", recipeText: "{name}\n{size} at {pct}%\nOil {oil} g\nEthanol 96% {ethanol} g\nTotal {total} g",
+        basisVolume: "{pct}% حجمًا (الدفعة محددة بالمليلتر / الأونصة السائلة)",
     basisWeight: "{pct}% وزنًا (الدفعة محددة بالغرام / الأونصة)",
     otherBasisWeight: "= {pct}% وزنًا",
     otherBasisVolume: "= {pct}% حجمًا",

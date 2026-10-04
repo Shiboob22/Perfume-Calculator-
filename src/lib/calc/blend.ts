@@ -63,3 +63,9 @@ export function weightRatio(oilG: number, ethanolG: number): number | null {
   if (!(oilG > 0) || !(ethanolG >= 0)) return null;
   return ethanolG / oilG;
 }
+
+/** Oil's share of the batch weight, 0–1 (0 when there is nothing). */
+export function weightShare(oilG: number, ethanolG: number): number {
+  const total = oilG + ethanolG;
+  return total > 0 && oilG >= 0 ? Math.min(1, oilG / total) : 0;
+}
