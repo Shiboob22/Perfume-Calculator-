@@ -129,7 +129,7 @@ function ReadoutRow({ label, weight, volume, bold }) {
       <span className={`text-sm ${bold ? "font-semibold" : ""}`} style={{ color: COLORS.ink }}>
         {label}
       </span>
-      <span className="text-end">
+      <span className="text-end whitespace-nowrap shrink-0 ms-3">
         <span className={`block font-mono text-sm ${bold ? "font-semibold" : ""}`} style={{ color: COLORS.ink }}>
           {fmt2(weight)} g&nbsp;&nbsp;/&nbsp;&nbsp;{fmt2(volume)} mL
         </span>
@@ -717,13 +717,13 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           <h2 className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-5" style={{ color: COLORS.dim }}>{t("calc.readout")}</h2>
           <div className="flex gap-6 items-end mb-5">
             <BottleFill oilShare={weightShare(result.shown.oilG, result.shown.ethanolG)} height={190} />
-            <div className="grid gap-4 flex-1 min-w-0">
+            <div className="grid gap-4 flex-1 min-w-0" style={{ containerType: "inline-size" }}>
               {[["calc.oil", result.shown.oilG, COLORS.oil], ["calc.ethanol96", result.shown.ethanolG, COLORS.mist]].map(([k, g, sw]) => (
                 <div key={k}>
                   <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
                     <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: sw, border: `1px solid ${COLORS.ink}` }} />{t(k)}
                   </span>
-                  <span dir="ltr" className="readout block font-mono leading-[1.15] tracking-[-0.03em] text-[clamp(2rem,3.4vw,3rem)] whitespace-nowrap" key={g}>{fmt2(g)}<span className="text-2xl ms-1">g</span></span>
+                  <span dir="ltr" className="readout block font-mono leading-[1.15] tracking-[-0.03em] whitespace-nowrap" key={g} style={{ fontSize: `min(3rem, calc(100cqw / ${(fmt2(g).length * 0.6 + 0.6).toFixed(2)}))` }}>{fmt2(g)}<span className="text-2xl ms-1">g</span></span>
                 </div>
               ))}
             </div>
