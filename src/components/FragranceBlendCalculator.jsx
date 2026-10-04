@@ -628,7 +628,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
           <details className="mt-2 mb-5">
             <summary className="text-xs font-semibold cursor-pointer" style={{ color: COLORS.forestDeep }}>{t("calc.densities")}</summary>
-            <div className="grid grid-cols-2 gap-3 mt-3">
+            <div className="grid grid-cols-2 gap-3 items-end mt-3">
               {Object.keys(TIERS).map((key) => (
                 <div key={key}>
                   <label htmlFor={`calc-density-${key}`} className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: COLORS.ink }}><IconDrop size={18} />{t(`families.${key}.label`)} (g/mL)</label>
@@ -649,7 +649,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             <h3 className="text-xs font-semibold mt-4 mb-3" style={{ color: COLORS.forestDeep }}>
               {t("calc.personalLog")} <span className="font-normal" style={{ color: COLORS.ink }}>— {t("calc.savedToAccount")}</span>
             </h3>
-            <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="grid grid-cols-2 gap-3 items-end mb-3">
               <div>
                 <label htmlFor="calc-oil-type" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.oilType")}</label>
                 <input id="calc-oil-type" list="oilTypeOptions" value={oilType} onChange={(e) => setOilType(e.target.value)}
@@ -664,7 +664,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               </div>
             </div>
             {can(entitlements, "calculator.advanced") && (
-              <div className="grid grid-cols-3 gap-3 mb-3">
+              <div className="grid grid-cols-3 gap-3 items-end mb-3">
                 <div>
                   <label htmlFor="calc-eth-price" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.ethanolPerL")}</label>
                   <TextInput id="calc-eth-price" type="number" step="0.01" min="0" value={ethanolPricePerL} onChange={(e) => setEthanolPricePerL(e.target.value)} placeholder="0.00" />
@@ -679,7 +679,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 </div>
               </div>
             )}
-            <div className="grid grid-cols-2 gap-3 mb-1">
+            <div className="grid grid-cols-2 gap-3 items-end mb-1">
               <div>
                 <label htmlFor="calc-actual-oil" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualOil")}</label>
                 <TextInput id="calc-actual-oil" type="number" step="0.01" min="0" value={actualOilG} onChange={(e) => setActualOilG(e.target.value)} placeholder={fmt2(result.shown.oilG)} />
@@ -713,13 +713,13 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           <h2 className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-5" style={{ color: COLORS.dim }}>{t("calc.readout")}</h2>
           <div className="flex gap-6 items-end mb-5">
             <BottleFill oilShare={weightShare(result.shown.oilG, result.shown.ethanolG)} height={190} />
-            <div className="grid gap-4 flex-1 min-w-0">
+            <div className="grid gap-4 flex-1 min-w-0 overflow-hidden">
               {[["calc.oil", result.shown.oilG, COLORS.oil], ["calc.ethanol96", result.shown.ethanolG, COLORS.mist]].map(([k, g, sw]) => (
                 <div key={k}>
                   <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
                     <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: sw, border: `1px solid ${COLORS.ink}` }} />{t(k)}
                   </span>
-                  <span dir="ltr" className="readout block font-mono leading-none tracking-[-0.03em] text-[clamp(2.75rem,6vw,4.5rem)]" key={g}>{fmt2(g)}<span className="text-2xl ms-1">g</span></span>
+                  <span dir="ltr" className="readout block font-mono leading-none tracking-[-0.03em] text-[clamp(2rem,3.4vw,3rem)] whitespace-nowrap" key={g}>{fmt2(g)}<span className="text-2xl ms-1">g</span></span>
                 </div>
               ))}
             </div>
@@ -780,7 +780,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           )}
           {tipsError && <p className="text-xs mt-2" style={{ color: COLORS.danger }}>{tipsError}</p>}
 
-          <div className="mt-6 grid grid-cols-2 gap-3">
+          <div className="mt-6 grid grid-cols-2 gap-3 items-end">
             <div>
               <label htmlFor="calc-blended-by" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.blendedBy")}</label>
               <TextInput id="calc-blended-by" value={blendedBy} onChange={(e) => setBlendedBy(e.target.value)} />
