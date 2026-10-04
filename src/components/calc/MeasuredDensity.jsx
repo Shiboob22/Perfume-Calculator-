@@ -15,7 +15,7 @@ export default function MeasuredDensity({ value, onChange, referenceDensity }) {
   const m = measuredDensity(Number(grams), Number(ml));
 
   return (
-    <div className="mt-4 p-3 rounded" style={{ border: `1px solid ${COLORS.line}` }}>
+    <div className="mt-4 p-3 rounded-none" style={{ border: `1px solid ${COLORS.line}` }}>
       <p className="text-xs font-semibold mb-1" style={{ color: COLORS.forestDeep }}>{t("calc.measured.title")}</p>
       {value != null ? (
         <p className="text-xs font-mono mb-2" style={{ color: COLORS.amber }}>
@@ -42,7 +42,7 @@ export default function MeasuredDensity({ value, onChange, referenceDensity }) {
         <div className="mt-2 flex items-center justify-between gap-2 text-xs font-mono" style={{ color: COLORS.ink }}>
           <span>{t("calc.measured.result", { density: m.density.toFixed(3), pm: m.plusMinus.toFixed(3) })}</span>
           <button type="button" onClick={() => { onChange(Number(m.density.toFixed(3))); setGrams(""); setMl(""); }}
-            className="px-2 py-1 rounded font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+            className="px-2 py-1 rounded-none font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
             {t("calc.measured.use")}
           </button>
         </div>

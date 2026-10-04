@@ -29,12 +29,12 @@ export default function Source({ id }) {
       {/* A 24px target around the 16px mark (WCAG 2.5.8), without moving the text. */}
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls={open ? noteId : undefined}
         aria-label={t("calc.sources.label")}
-        className="inline-grid place-items-center w-6 h-6 -m-1 rounded-full not-italic">
-        <span aria-hidden="true" className="inline-grid place-items-center w-4 h-4 rounded-full text-[10px] font-mono"
+        className="inline-grid place-items-center w-6 h-6 -m-1 rounded-none not-italic">
+        <span aria-hidden="true" className="inline-grid place-items-center w-4 h-4 rounded-none text-[10px] font-mono"
           style={{ border: `1px solid ${COLORS.field}`, color: COLORS.inkSoft }}>i</span>
       </button>
       {open && (
-        <span id={noteId} role="note" className="fixed z-50 inset-x-4 bottom-24 p-3 rounded-lg text-xs leading-relaxed block not-italic font-sans shadow-2xl sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-5 sm:start-0 sm:w-72"
+        <span id={noteId} role="note" className="fixed z-50 inset-x-4 bottom-24 p-3 rounded-none text-xs leading-relaxed block not-italic font-sans shadow-2xl sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-5 sm:start-0 sm:w-72"
           style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}>
           {note.text}
           {href && <a href={href} className="block mt-2 underline" style={{ color: COLORS.amber }}>{t("calc.sources.read")}</a>}

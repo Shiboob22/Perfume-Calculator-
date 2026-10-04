@@ -140,7 +140,7 @@ export function renderBatchCard(batch, { t, locale = "en" }) {
   ctx.lineTo(cx - 10, y - 34);
   ctx.lineTo(cx - 26, y - 18);
   ctx.lineTo(cx - 26, y + 22);
-  ctx.arc(cx, y + 22, 26, Math.PI, 0, true); // rounded shoulders + base
+  ctx.arc(cx, y + 22, 26, Math.PI, 0, true); // rounded-none shoulders + base
   ctx.lineTo(cx + 26, y - 18);
   ctx.lineTo(cx + 10, y - 34);
   ctx.lineTo(cx + 10, y - 46);

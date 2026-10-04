@@ -18,7 +18,7 @@ export default function Pricing() {
         <p className="measure mx-auto mb-6" style={{ color: COLORS.inkSoft }}>{t("site.pricing.waitlistLead")}</p>
         {/* A plain link: the public site never loads the auth client. The app
             asks the visitor to sign in, then opens the waitlist section. */}
-        <a href="/app/account#pro" hrefLang={locale} className="inline-block px-5 py-2 rounded-lg text-sm font-semibold"
+        <a href="/app/account#pro" hrefLang={locale} className="inline-block px-5 py-2 rounded-none text-sm font-semibold"
           style={{ background: COLORS.amber, color: COLORS.onAmber }}>
           {t("site.pricing.waitlistCta")}
         </a>

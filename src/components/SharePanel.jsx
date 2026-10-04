@@ -72,7 +72,7 @@ export default function SharePanel({ batch, onShared, onStatus }) {
   }
 
   return (
-    <section aria-labelledby={`${uid}-title`} className="mt-3 p-4 border rounded-lg" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.paper }}>
+    <section aria-labelledby={`${uid}-title`} className="mt-3 p-4 border rounded-none" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.paper }}>
       <div className="flex items-start justify-between gap-3">
         <h4 id={`${uid}-title`} className="text-sm font-semibold" style={{ color: COLORS.forestDeep }}>{t("share.title")}</h4>
         <button type="button" onClick={() => setOpen(false)} aria-expanded="true" className="text-xs font-mono underline min-h-[24px]" style={{ color: COLORS.inkSoft }}>
@@ -97,7 +97,7 @@ export default function SharePanel({ batch, onShared, onStatus }) {
         <div>
           <label htmlFor={`${uid}-note`} className="block text-xs" style={{ color: COLORS.inkSoft }}>{t("share.noteLabel")}</label>
           <textarea id={`${uid}-note`} dir="auto" rows={3} maxLength={600} value={note} onChange={(e) => setNote(e.target.value)}
-            aria-describedby={`${uid}-hint`} className="mt-1 w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2" style={inputStyle} />
+            aria-describedby={`${uid}-hint`} className="mt-1 w-full px-3 py-2 text-sm border rounded-none focus:outline-none focus:ring-2" style={inputStyle} />
           <p id={`${uid}-hint`} className="text-xs mt-1" style={{ color: COLORS.dim }}>
             {t("share.noteHint")} ({previewLength}/500{previewLength >= INDEX_MIN ? " ✓" : ""})
           </p>
@@ -105,18 +105,18 @@ export default function SharePanel({ batch, onShared, onStatus }) {
         {preview && (
           <div>
             <p className="text-xs" style={{ color: COLORS.inkSoft }}>{t("share.preview")}</p>
-            <p dir="auto" className="mt-1 text-sm font-serif whitespace-pre-line p-2 border rounded" style={{ borderColor: COLORS.line, color: COLORS.ink }}>{preview}</p>
+            <p dir="auto" className="mt-1 text-sm font-serif whitespace-pre-line p-2 border rounded-none" style={{ borderColor: COLORS.line, color: COLORS.ink }}>{preview}</p>
           </div>
         )}
         <div>
           <label htmlFor={`${uid}-rest`} className="block text-xs" style={{ color: COLORS.inkSoft }}>{t("share.restLabel")}</label>
           <input id={`${uid}-rest`} type="number" inputMode="numeric" min="0" max="365" step="1" value={rest} onChange={(e) => setRest(e.target.value)}
-            className="mt-1 w-28 px-3 py-2 text-sm font-mono border rounded-lg focus:outline-none focus:ring-2" style={inputStyle} />
+            className="mt-1 w-28 px-3 py-2 text-sm font-mono border rounded-none focus:outline-none focus:ring-2" style={inputStyle} />
         </div>
         {error && <p role="alert" className="text-xs font-mono" style={{ color: COLORS.danger }}>{error}</p>}
         <div className="flex flex-wrap items-center gap-3">
           <button type="submit" disabled={busy}
-            className="px-4 py-1.5 rounded-lg text-sm font-semibold disabled:opacity-40 focus:outline-none focus:ring-2"
+            className="px-4 py-1.5 rounded-none text-sm font-semibold disabled:opacity-40 focus:outline-none focus:ring-2"
             style={{ background: COLORS.amber, color: COLORS.onAmber }}>
             {busy ? t("share.publishing") : live ? t("share.update") : t("share.publish")}
           </button>

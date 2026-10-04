@@ -57,7 +57,7 @@ export default function Labels() {
             <div className="flex flex-wrap gap-2">
               {[...Object.keys(LABEL_SIZES), "custom"].map((k) => (
                 <button key={k} type="button" aria-pressed={sizeKey === k} onClick={() => setSizeKey(k)}
-                  className="px-3 py-1.5 text-xs rounded-lg border min-h-[28px]"
+                  className="px-3 py-1.5 text-xs rounded-none border min-h-[28px]"
                   style={{ borderColor: sizeKey === k ? COLORS.amber : COLORS.field, color: sizeKey === k ? COLORS.amber : COLORS.ink }}>
                   {k === "custom" ? t("labels.custom") : t("labels.mm", { w: LABEL_SIZES[k].w, h: LABEL_SIZES[k].h })}
                 </button>
@@ -66,9 +66,9 @@ export default function Labels() {
             {sizeKey === "custom" && (
               <div className="flex gap-2 mt-2 items-center text-sm" style={{ color: COLORS.inkSoft }}>
                 <label className="flex items-center gap-1">{t("labels.width")}
-                  <input type="number" inputMode="decimal" value={custom.w} onChange={(e) => setCustom((c) => ({ ...c, w: e.target.value }))} className="w-20 px-2 py-1 rounded font-mono" style={inputStyle} /></label>
+                  <input type="number" inputMode="decimal" value={custom.w} onChange={(e) => setCustom((c) => ({ ...c, w: e.target.value }))} className="w-20 px-2 py-1 rounded-none font-mono" style={inputStyle} /></label>
                 <label className="flex items-center gap-1">{t("labels.height")}
-                  <input type="number" inputMode="decimal" value={custom.h} onChange={(e) => setCustom((c) => ({ ...c, h: e.target.value }))} className="w-20 px-2 py-1 rounded font-mono" style={inputStyle} /></label>
+                  <input type="number" inputMode="decimal" value={custom.h} onChange={(e) => setCustom((c) => ({ ...c, h: e.target.value }))} className="w-20 px-2 py-1 rounded-none font-mono" style={inputStyle} /></label>
               </div>
             )}
             <p role="status" className="text-xs mt-2" style={{ color: size ? COLORS.inkSoft : COLORS.danger }}>
@@ -77,13 +77,13 @@ export default function Labels() {
           </fieldset>
           <div className="grid gap-3 content-start">
             <label className="text-sm" style={{ color: COLORS.ink }}>{t("bench.label.lot")}
-              <input value={lot ?? batch?.lot ?? ""} maxLength={60} onChange={(e) => setLot(e.target.value)} className="block mt-1 w-full px-3 py-2 rounded-lg font-mono" style={inputStyle} /></label>
+              <input value={lot ?? batch?.lot ?? ""} maxLength={60} onChange={(e) => setLot(e.target.value)} className="block mt-1 w-full px-3 py-2 rounded-none font-mono" style={inputStyle} /></label>
             <label className="text-sm" style={{ color: COLORS.ink }}>{t("labels.copies")}
-              <input type="number" min="1" max={MAX_COPIES} value={copies} onChange={(e) => setCopies(e.target.value)} className="block mt-1 w-24 px-3 py-2 rounded-lg font-mono" style={inputStyle} /></label>
+              <input type="number" min="1" max={MAX_COPIES} value={copies} onChange={(e) => setCopies(e.target.value)} className="block mt-1 w-24 px-3 py-2 rounded-none font-mono" style={inputStyle} /></label>
           </div>
         </div>
         <button type="button" disabled={!label || !size} onClick={() => window.print()}
-          className="mb-6 px-5 py-2 rounded-lg font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+          className="mb-6 px-5 py-2 rounded-none font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
           {t("cards.print")}
         </button>
       </div>

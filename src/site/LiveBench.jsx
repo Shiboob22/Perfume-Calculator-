@@ -27,7 +27,7 @@ export default function LiveBench() {
         <div className="flex flex-wrap gap-2">
           {BENCH_SIZES.map((s) => (
             <button key={s} type="button" aria-pressed={size === s} onClick={() => setSize(s)} dir="ltr"
-              className="px-3 py-1.5 rounded-lg font-mono text-sm min-h-[36px]" style={choice(size === s)}>{s} mL</button>
+              className="px-3 py-1.5 rounded-none font-mono text-sm min-h-[36px]" style={choice(size === s)}>{s} mL</button>
           ))}
         </div>
       </fieldset>
@@ -36,7 +36,7 @@ export default function LiveBench() {
         <div className="flex flex-wrap gap-2">
           {BENCH_STRENGTHS.map((s) => (
             <button key={s.pct} type="button" aria-pressed={pct === s.pct} onClick={() => setPct(s.pct)} dir="ltr"
-              className="px-3 py-1.5 rounded-lg text-sm min-h-[36px]" style={choice(pct === s.pct)}>{s.pct}% {s.name}</button>
+              className="px-3 py-1.5 rounded-none text-sm min-h-[36px]" style={choice(pct === s.pct)}>{s.pct}% {s.name}</button>
           ))}
         </div>
       </fieldset>

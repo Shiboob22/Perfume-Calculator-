@@ -130,7 +130,7 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
           <a href="${to("/guides")}" class="hover:underline underline-offset-4">${esc(t("site.nav.guides"))}</a>
           <a href="${to("/pricing")}" class="hover:underline underline-offset-4">${esc(t("site.nav.pricing"))}</a>
           <a href="${recipePath(other, r.slug)}" lang="${other}" hreflang="${other}" title="${esc(t("site.nav.languageLabel"))}" class="hover:underline underline-offset-4" style="color:${COLORS.inkSoft}">${esc(t("site.nav.language"))}</a>
-          <a href="/app" class="px-3 py-1.5 rounded-lg text-sm font-semibold" style="background:${COLORS.amber};color:${COLORS.onAmber}">${esc(t("site.nav.openApp"))}</a>
+          <a href="/app" class="px-3 py-1.5 rounded-none text-sm font-semibold" style="background:${COLORS.amber};color:${COLORS.onAmber}">${esc(t("site.nav.openApp"))}</a>
         </nav>
       </header>
       <main class="flex-1 w-full">
@@ -147,8 +147,8 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
             <h2 class="text-xs font-mono uppercase tracking-wider" style="color:${COLORS.amberDeep}">${esc(t("recipe.note"))}</h2>
             <div class="mt-2 space-y-3 font-serif text-lg" lang="${r.note_lang === "ar" ? "ar" : "en"}" dir="auto">${noteHtml(r.public_note)}</div>
           </section>` : ""}
-          <div class="mt-10 p-5 border rounded-lg" style="border-color:${COLORS.amberDeep};background-color:${COLORS.card}">
-            <a href="${esc(calculatorHref(r))}" class="inline-block px-5 py-2 rounded-lg text-sm font-semibold" style="background:${COLORS.amber};color:${COLORS.onAmber}">${esc(t("recipe.cta"))}</a>
+          <div class="mt-10 p-5 border rounded-none" style="border-color:${COLORS.amberDeep};background-color:${COLORS.card}">
+            <a href="${esc(calculatorHref(r))}" class="inline-block px-5 py-2 rounded-none text-sm font-semibold" style="background:${COLORS.amber};color:${COLORS.onAmber}">${esc(t("recipe.cta"))}</a>
             <p class="mt-2 text-xs" style="color:${COLORS.inkSoft}">${esc(t("recipe.ctaLead"))} <a href="${to("/guides")}" class="underline">${esc(t("recipe.method"))}</a></p>
           </div>
           <p class="mt-8 text-xs" style="color:${COLORS.dim}">${esc(t("recipe.disclaimer"))} ${esc(t("site.safety.text"))}</p>

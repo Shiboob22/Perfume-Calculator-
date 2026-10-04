@@ -164,7 +164,7 @@ export default function Batches() {
               type="button"
               onClick={handleInsights}
               disabled={insightsLoading}
-              className="px-3 py-1.5 text-sm border rounded-lg disabled:opacity-50"
+              className="px-3 py-1.5 text-sm border rounded-none disabled:opacity-50"
               style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
             >
               {insightsLoading ? t("batches.thinking") : t("batches.insights")}
@@ -183,7 +183,7 @@ export default function Batches() {
 
       {insightsError && <p className="text-sm font-mono mb-4" style={{ color: COLORS.danger }}>{insightsError}</p>}
       {insights && (
-        <div className="mb-6 p-4 border rounded-lg whitespace-pre-wrap text-sm" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card, color: COLORS.ink }}>
+        <div className="mb-6 p-4 border rounded-none whitespace-pre-wrap text-sm" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card, color: COLORS.ink }}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold" style={{ color: COLORS.amberDeep }}>{t("batches.insightsLabel")}</span>
             <button type="button" onClick={() => setInsights("")} className="text-xs font-mono underline" style={{ color: COLORS.inkSoft }}>
@@ -197,7 +197,7 @@ export default function Batches() {
       <p role="status" className="sr-only">{status}</p>
 
       {refused.length > 0 && (
-        <div role="alert" className="mb-6 p-4 border rounded-lg text-sm" style={{ borderColor: COLORS.danger, backgroundColor: COLORS.dangerBg, color: COLORS.ink }}>
+        <div role="alert" className="mb-6 p-4 border rounded-none text-sm" style={{ borderColor: COLORS.danger, backgroundColor: COLORS.dangerBg, color: COLORS.ink }}>
           <p className="font-semibold mb-2">{t("batches.refused.title", { count: refused.length })}</p>
           <ul className="space-y-2">
             {refused.map((item) => (

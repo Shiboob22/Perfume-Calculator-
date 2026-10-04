@@ -51,7 +51,7 @@ function Block({ block }) {
       <ol className="my-6 space-y-4">
         {block.steps.map((s, i) => (
           <li key={s.title} id={s.id} className="flex gap-4 scroll-mt-6">
-            <span className="shrink-0 w-8 h-8 rounded-full grid place-items-center font-mono text-sm"
+            <span className="shrink-0 w-8 h-8 rounded-none grid place-items-center font-mono text-sm"
               style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}>{i + 1}</span>
             <span>
               <span className="block font-semibold" style={{ color: COLORS.forestDeep }}>{s.title}</span>
@@ -64,7 +64,7 @@ function Block({ block }) {
   }
   if (block.formula) {
     return (
-      <pre dir="ltr" className="my-6 p-5 rounded-xl font-mono text-sm leading-7 overflow-x-auto text-left"
+      <pre dir="ltr" className="my-6 p-5 rounded-none font-mono text-sm leading-7 overflow-x-auto text-left"
         style={{ background: COLORS.card, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}>
         {block.formula.join("\n")}
       </pre>
@@ -102,8 +102,8 @@ function Block({ block }) {
   if (block.evidence) {
     const color = TONE[block.evidence.tone] || COLORS.inkSoft;
     return (
-      <div className="my-4 p-4 rounded-xl" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
-        <span className="inline-block px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-[0.14em]" style={{ border: `1px solid ${color}`, color }}>
+      <div className="my-4 p-4 rounded-none" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
+        <span className="inline-block px-2 py-0.5 rounded-none font-mono text-[10px] uppercase tracking-[0.14em]" style={{ border: `1px solid ${color}`, color }}>
           {block.evidence.label}
         </span>
         {block.title && <p className="mt-2 font-semibold" style={{ color: COLORS.forestDeep }}>{block.title}</p>}
@@ -115,7 +115,7 @@ function Block({ block }) {
     const c = block.callout;
     const style = CALLOUT[c.kind] || CALLOUT.rule;
     return (
-      <aside className="my-6 p-5 rounded-xl" style={{ background: COLORS.card, border: `1px solid ${style.border}` }}>
+      <aside className="my-6 p-5 rounded-none" style={{ background: COLORS.card, border: `1px solid ${style.border}` }}>
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] mb-2" style={{ color: style.label }}>{c.title}</p>
         <p className="leading-relaxed" style={{ color: COLORS.ink }}>{c.text}</p>
       </aside>
@@ -166,7 +166,7 @@ export default function GuidePage() {
         <span className="block mt-1" style={{ color: COLORS.dim }}>{t("site.guides.minutes", { count: readingMinutes(g) })}</span>
       </p>
       {g.needsReview && (
-        <p className="mt-4 p-3 rounded-lg text-sm" style={{ border: `1px dashed ${COLORS.amberDeep}`, color: COLORS.amber }}>{t("site.guides.reviewNote")}</p>
+        <p className="mt-4 p-3 rounded-none text-sm" style={{ border: `1px dashed ${COLORS.amberDeep}`, color: COLORS.amber }}>{t("site.guides.reviewNote")}</p>
       )}
 
       {sections.length > 2 && (
@@ -183,7 +183,7 @@ export default function GuidePage() {
       {/* The app's own safety notice, not handbook text: shown on every
           blending guide, styled apart from the author's callouts. */}
       {guide.section === "blending" && (
-        <aside role="note" className="mt-10 p-4 rounded-xl text-sm leading-relaxed" style={{ background: COLORS.dangerBg, border: `1px solid ${COLORS.danger}`, color: COLORS.ink }}>
+        <aside role="note" className="mt-10 p-4 rounded-none text-sm leading-relaxed" style={{ background: COLORS.dangerBg, border: `1px solid ${COLORS.danger}`, color: COLORS.ink }}>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] rtl:tracking-normal mb-2" style={{ color: COLORS.danger }}>{t("site.safety.title")}</p>
           {t("site.safety.text")}{" "}
           <Link to={to("/terms") + "#safety"} className="underline" style={{ color: COLORS.amber }}>{t("site.safety.more")}</Link>
@@ -192,7 +192,7 @@ export default function GuidePage() {
 
       {guide.benchCta && (
         <p className="mt-10">
-          <a href="/app/calculator?ref=guide" className="inline-block px-5 py-3 rounded-xl font-semibold"
+          <a href="/app/calculator?ref=guide" className="inline-block px-5 py-3 rounded-none font-semibold"
             style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}>
             {t("site.guides.benchCta")}
           </a>
@@ -200,20 +200,20 @@ export default function GuidePage() {
         </p>
       )}
       {calcHref && (
-        <a href={calcHref} className="inline-block mt-10 px-5 py-3 rounded-xl font-semibold"
+        <a href={calcHref} className="inline-block mt-10 px-5 py-3 rounded-none font-semibold"
           style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}>
           {t("site.guides.openCalc")}
         </a>
       )}
       <nav aria-label={t("site.guides.more")} className="mt-14 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
         {prev ? (
-          <Link to={to(`/guides/${prev.slug}`)} viewTransition className="block p-4 rounded-xl" style={{ border: `1px solid ${COLORS.line}` }}>
+          <Link to={to(`/guides/${prev.slug}`)} viewTransition className="block p-4 rounded-none" style={{ border: `1px solid ${COLORS.line}` }}>
             <span className="block font-mono text-[11px] uppercase" style={{ color: COLORS.amberDeep }}>{t("site.guides.previous")}</span>
             <span className="block mt-1 font-serif text-lg" style={{ color: COLORS.forestDeep }}>{prev[locale].title}</span>
           </Link>
         ) : <span />}
         {next && (
-          <Link to={to(`/guides/${next.slug}`)} viewTransition className="block p-4 rounded-xl text-end" style={{ border: `1px solid ${COLORS.line}` }}>
+          <Link to={to(`/guides/${next.slug}`)} viewTransition className="block p-4 rounded-none text-end" style={{ border: `1px solid ${COLORS.line}` }}>
             <span className="block font-mono text-[11px] uppercase" style={{ color: COLORS.amberDeep }}>{t("site.guides.next")}</span>
             <span className="block mt-1 font-serif text-lg" style={{ color: COLORS.forestDeep }}>{next[locale].title}</span>
           </Link>

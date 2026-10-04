@@ -147,7 +147,7 @@ export default function App() {
             >
               {t(`app.tabs.${id}`)}
               {id === "batches" && dueCount > 0 && (
-                <span className="ms-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full text-[11px] font-semibold align-middle"
+                <span className="ms-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-none text-[11px] font-semibold align-middle"
                   style={{ background: COLORS.amber, color: COLORS.onAmber }}>
                   <span aria-hidden="true">{dueCount}</span>
                   <span className="sr-only">{t("journal.tabBadge", { count: dueCount })}</span>

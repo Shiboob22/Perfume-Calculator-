@@ -44,7 +44,7 @@ export default function Presets({ current, onApply }) {
     <div className="mb-5">
       <div className="flex flex-wrap gap-2 items-center">
         {presets.map((p) => (
-          <span key={p.id} className="inline-flex items-center rounded border text-[11px] font-mono" style={{ borderColor: COLORS.line }}>
+          <span key={p.id} className="inline-flex items-center rounded-none border text-[11px] font-mono" style={{ borderColor: COLORS.line }}>
             <button type="button" onClick={() => onApply({ amount: Number(p.amount), unit: p.unit, concPct: Number(p.concentration_pct) })}
               className="px-2 py-1 min-h-[28px]" style={{ color: COLORS.ink }}>
               <span className="font-sans">{p.name}</span> <span style={{ color: COLORS.inkSoft }}>{Number(p.amount)} {UNIT_LABELS[p.unit]}, {Number(p.concentration_pct)}%</span>
@@ -67,7 +67,7 @@ export default function Presets({ current, onApply }) {
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoFocus
               aria-label={t("calc.presets.name")} placeholder={t("calc.presets.name")}
               className="px-2 py-1 font-mono text-[11px] border" style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }} />
-            <button type="button" onClick={handleSave} disabled={!name.trim()} className="px-2 py-1 text-[11px] font-semibold rounded disabled:opacity-50"
+            <button type="button" onClick={handleSave} disabled={!name.trim()} className="px-2 py-1 text-[11px] font-semibold rounded-none disabled:opacity-50"
               style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("calc.presets.save")}</button>
           </span>
         ) : (

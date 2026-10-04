@@ -35,7 +35,7 @@ export default function PlanCards({ compact = false }) {
       {plans.map((plan) => {
         const isFree = plan.id === "free";
         return (
-          <div key={plan.id} className="rounded-2xl p-6 flex flex-col"
+          <div key={plan.id} className="rounded-none p-6 flex flex-col"
             style={{ background: COLORS.card, border: `1px solid ${isFree ? COLORS.line : COLORS.amberDeep}` }}>
             <div className="flex items-baseline justify-between gap-3 mb-4">
               <h3 className="font-serif text-3xl" style={{ color: COLORS.forestDeep }}>{t(`plan.names.${plan.id}`)}</h3>

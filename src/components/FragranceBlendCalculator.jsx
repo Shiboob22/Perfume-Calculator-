@@ -106,7 +106,7 @@ function AmountWithUnit({ id, unitLabel, value, onChange, unit, onUnitChange, un
   );
 }
 
-// weight / volume are the engine's displayed (already rounded) values.
+// weight / volume are the engine's displayed (already rounded-none) values.
 function ReadoutRow({ label, weight, volume, bold }) {
   const oz = gToOz(weight);
   const flOz = mlToFlOz(volume);
@@ -445,7 +445,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       <div role="group" aria-label={t("calc.modes.label")} className="flex flex-wrap gap-2 mb-6">
         {MODES.map((m) => (
           <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}
-            className="px-3 py-1.5 text-sm border rounded-lg min-h-[32px]"
+            className="px-3 py-1.5 text-sm border rounded-none min-h-[32px]"
             style={{ borderColor: mode === m ? COLORS.amber : COLORS.field, color: mode === m ? COLORS.amber : COLORS.inkSoft }}>
             {t(`calc.modes.tabs.${m}`)}
           </button>
@@ -735,13 +735,13 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             type="button"
             onClick={handleAdvise}
             disabled={!fragName.trim() || tipsLoading}
-            className="mt-4 px-4 py-2 text-sm border rounded-lg disabled:opacity-50"
+            className="mt-4 px-4 py-2 text-sm border rounded-none disabled:opacity-50"
             style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
           >
             {tipsLoading ? t("calc.asking") : t("calc.advise")}
           </button>}
           {tips && (
-            <div className="mt-3 p-3 text-sm whitespace-pre-wrap border rounded-lg" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
+            <div className="mt-3 p-3 text-sm whitespace-pre-wrap border rounded-none" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
               {tips}
               <div className="text-[10px] font-mono mt-2" style={{ color: COLORS.dim }}>{t("calc.aiCaveat")}</div>
             </div>

@@ -8,7 +8,7 @@ export default function ProLocked({ feature }) {
   const { t } = useI18n();
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8">
-      <div className="p-6 border rounded-xl" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card }}>
+      <div className="p-6 border rounded-none" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card }}>
         <p className="text-[11px] font-mono uppercase tracking-wider rtl:tracking-normal mb-2" style={{ color: COLORS.amberDeep }}>
           {t("plan.pro")}
         </p>
