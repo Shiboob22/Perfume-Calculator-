@@ -19,6 +19,7 @@ import JournalPatterns from "./journal/JournalPatterns";
 import BatchJournal from "./journal/BatchJournal";
 import SharePanel from "./SharePanel";
 import BatchEdit from "./BatchEdit";
+import WaitlistButton from "./WaitlistButton";
 import { makeAgainHref } from "../lib/oilHistory";
 
 function round2(n) {
@@ -178,6 +179,7 @@ export default function Batches() {
           {batches.length >= entitlements.batchCap ? ` ${t("plan.batchCap", { plan: t(`plan.names.${entitlements.plan}`), cap: entitlements.batchCap })}` : ""}
         </p>
       )}
+      {capped && batches.length >= entitlements.batchCap && <WaitlistButton source="batch_cap" />}
 
       {insightsError && <p className="text-sm font-mono mb-4" style={{ color: COLORS.danger }}>{insightsError}</p>}
       {insights && (

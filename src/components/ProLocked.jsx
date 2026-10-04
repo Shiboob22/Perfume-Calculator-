@@ -1,6 +1,7 @@
 import React from "react";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
+import WaitlistButton from "./WaitlistButton";
 
 // Shown in place of a feature the user's plan doesn't include.
 export default function ProLocked({ feature }) {
@@ -15,6 +16,7 @@ export default function ProLocked({ feature }) {
           {t(`plan.locked.${feature}`)}
         </h2>
         <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("plan.earlyAccess")}</p>
+        <WaitlistButton source={`locked.${feature}`.replace(/[^a-z0-9_.-]/gi, "-").toLowerCase().slice(0, 40)} />
       </div>
     </div>
   );

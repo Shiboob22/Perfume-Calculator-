@@ -9,6 +9,7 @@ import { STRENGTHS } from "../lib/formulation";
 import MeasuredDensity from "./calc/MeasuredDensity";
 import Presets from "./calc/Presets";
 import OilHistory from "./calc/OilHistory";
+import WaitlistButton from "./WaitlistButton";
 import Source from "./calc/Source";
 import { FromOil, Adjust, Run } from "./calc/Modes";
 import { COLORS } from "../lib/theme";
@@ -234,6 +235,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     return () => { cancelled = true; };
   }, []);
   const [logError, setLogError] = useState("");
+  const [capHit, setCapHit] = useState(false);
   // Shown under "Saved" when the batch saved but the stock step needs a word.
   const [logNote, setLogNote] = useState("");
 
@@ -329,7 +331,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
   async function handleLogBatch() {
     if (!fragName.trim()) return;
-    setLogStatus("saving"); setLogError(""); setLogNote("");
+    setLogStatus("saving"); setLogError(""); setLogNote(""); setCapHit(false);
     logId.current ??= crypto.randomUUID();
     const row = (fragranceId) => buildBatch({
       id: logId.current, fragranceId, name: fragName.trim(), tier: tierKey, blendDate, concPct,
@@ -365,6 +367,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         return;
       }
       setLogStatus("error");
+      setCapHit(e.code === "batch_cap");
       setLogError(e.code === "batch_cap"
         ? t("plan.batchCap", { plan: t(`plan.names.${entitlements.plan}`), cap: e.detail?.cap ?? entitlements.batchCap })
         : errorText(t, e, "calc.saveFailedGeneric"));
@@ -809,6 +812,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             {logStatus === "error" && (
               <p className="text-xs mt-2" style={{ color: COLORS.danger }}>{t("calc.saveFailed", { error: logError })}</p>
             )}
+            {logStatus === "error" && capHit && <WaitlistButton source="batch_cap" />}
           </div>
         </div>
       </div>

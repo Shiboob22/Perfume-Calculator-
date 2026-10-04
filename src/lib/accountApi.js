@@ -36,8 +36,8 @@ export async function onWaitlist() {
 
 // Joining twice is fine: the second insert hits the primary key and counts
 // as already joined.
-export async function joinWaitlist(locale) {
-  const { error } = await supabase.from("pro_waitlist").insert({ locale });
+export async function joinWaitlist(locale, source) {
+  const { error } = await supabase.from("pro_waitlist").insert({ locale, ...(source ? { source } : {}) });
   if (error && error.code !== "23505") throw error;
 }
 
