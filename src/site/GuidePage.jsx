@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useParams } from "react-router-dom";
-import { COLORS } from "../lib/theme";
+import { COLORS, TYPE } from "../lib/theme";
+import { ChapterMark, Folio } from "./editorial";
 import { useI18n } from "../i18n/I18nProvider";
 import { guideBySlug, GUIDES } from "../content/guides";
 import { readingMinutes } from "../content/search";
@@ -149,11 +150,13 @@ export default function GuidePage() {
 
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-8 pt-8">
+      <div aria-hidden="true" className="read-progress" />
       <Link to={to("/guides")} className="text-sm hover:underline underline-offset-4 min-h-[24px] inline-block" style={{ color: COLORS.amberDeep }}>
         <span aria-hidden="true" className="inline-block rtl:-scale-x-100">←</span> {t("site.guides.all")}
       </Link>
-      <h1 className="font-serif italic text-5xl leading-tight mt-4" style={{ color: COLORS.forestDeep }}>{g.title}</h1>
-      <p className="mt-4 text-lg leading-relaxed" style={{ color: COLORS.inkSoft }}>{g.summary}</p>
+      <ChapterMark volume={guide.source.volume} label={t(`site.guides.books.${guide.source.book}`)} numeral={String(at + 1).padStart(2, "0")} className="mt-8 mb-4" />
+      <h1 className={TYPE.display} style={{ color: COLORS.forestDeep, viewTransitionName: "guide-title" }}>{g.title}</h1>
+      <p className={`mt-5 ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{g.summary}</p>
       <p className="mt-4 text-sm" style={{ color: COLORS.inkSoft }}>
         {t("site.guides.from", {
           volume: guide.source.volume,
@@ -175,7 +178,7 @@ export default function GuidePage() {
         </nav>
       )}
 
-      <div className="mt-6">{g.body.map((b, i) => <Block key={i} block={b} />)}</div>
+      <div className="guide-body mt-6">{g.body.map((b, i) => <Block key={i} block={b} />)}</div>
 
       {/* The app's own safety notice, not handbook text: shown on every
           blending guide, styled apart from the author's callouts. */}
@@ -204,18 +207,22 @@ export default function GuidePage() {
       )}
       <nav aria-label={t("site.guides.more")} className="mt-14 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
         {prev ? (
-          <Link to={to(`/guides/${prev.slug}`)} className="block p-4 rounded-xl" style={{ border: `1px solid ${COLORS.line}` }}>
+          <Link to={to(`/guides/${prev.slug}`)} viewTransition className="block p-4 rounded-xl" style={{ border: `1px solid ${COLORS.line}` }}>
             <span className="block font-mono text-[11px] uppercase" style={{ color: COLORS.amberDeep }}>{t("site.guides.previous")}</span>
             <span className="block mt-1 font-serif text-lg" style={{ color: COLORS.forestDeep }}>{prev[locale].title}</span>
           </Link>
         ) : <span />}
         {next && (
-          <Link to={to(`/guides/${next.slug}`)} className="block p-4 rounded-xl text-end" style={{ border: `1px solid ${COLORS.line}` }}>
+          <Link to={to(`/guides/${next.slug}`)} viewTransition className="block p-4 rounded-xl text-end" style={{ border: `1px solid ${COLORS.line}` }}>
             <span className="block font-mono text-[11px] uppercase" style={{ color: COLORS.amberDeep }}>{t("site.guides.next")}</span>
             <span className="block mt-1 font-serif text-lg" style={{ color: COLORS.forestDeep }}>{next[locale].title}</span>
           </Link>
         )}
       </nav>
+      <Folio>
+        <span><span dir="ltr">{guide.source.volume}</span> · {t(`site.guides.books.${guide.source.book}`)}</span>
+        <span dir="ltr">{String(at + 1).padStart(2, "0")}</span>
+      </Folio>
     </article>
   );
 }

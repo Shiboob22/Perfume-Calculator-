@@ -76,11 +76,11 @@ html[dir="rtl"] .print-label-name { font-style: normal; }
 .folio { font-variant-numeric: oldstyle-nums; }
 
 /* Drop caps are a Latin book convention; Arabic gets an ornament instead. */
-html[lang="en"] .dropcap::first-letter {
+html[lang="en"] .dropcap::first-letter, html[lang="en"] .guide-body > p:first-of-type::first-letter {
   float: left; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic;
   font-size: 4.2em; line-height: 0.8; padding: 0.06em 0.12em 0 0; color: #E9C88A;
 }
-html[dir="rtl"] .dropcap::before { content: "۞ "; color: #C9A15A; }
+html[dir="rtl"] .dropcap::before, html[dir="rtl"] .guide-body > p:first-of-type::before { content: "۞ "; color: #C9A15A; }
 
 /* Sections ease in as they reach the reader, where the browser can tie the
    animation to scrolling; elsewhere they are simply there. */
