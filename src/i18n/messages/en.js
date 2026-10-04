@@ -440,6 +440,7 @@ export default {
     log: "Log this batch",
     saving: "Saving…",
     saved: "Saved — added to batch history.",
+    history: {"title": "Your batches of this oil", "use": "Use these settings", "poured": "poured {pct}%", "peak": "best on day {day}"},
     savedNew: "Saved — added to batch history and to your fragrances.",
     queued: "No connection: saved on this device. It will be logged when you're back online.",
     saveFailed: "Could not save: {error}",

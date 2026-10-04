@@ -8,6 +8,7 @@ import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
 import { STRENGTHS } from "../lib/formulation";
 import MeasuredDensity from "./calc/MeasuredDensity";
 import Presets from "./calc/Presets";
+import OilHistory from "./calc/OilHistory";
 import Source from "./calc/Source";
 import { FromOil, Adjust, Run } from "./calc/Modes";
 import { COLORS } from "../lib/theme";
@@ -310,6 +311,17 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     bottles,
   }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG, ethanolPricePerL, bottleCost, bottles]);
 
+  // "Use these settings" from an earlier batch of this oil: a user choice,
+  // so a later name match won't change it.
+  function applySettings(st) {
+    chosen.current.family = chosen.current.family || st.family != null;
+    chosen.current.conc = chosen.current.conc || st.conc != null;
+    if (st.family) setTierKey(st.family);
+    if (st.conc != null) setConcPct(st.conc);
+    if (st.size != null) setBatchSize(st.size);
+    if (st.unit) setBatchUnit(st.unit);
+  }
+
   // One id per batch the user means to log, kept across retries: if a
   // send reached the server but the answer was lost, the retry is
   // recognised as the same batch instead of logging it twice.
@@ -518,6 +530,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 {t("calc.notMatched")}
               </p>
             )}
+            <OilHistory fragranceId={matched?.id ?? null} name={debouncedName} onUse={applySettings} />
           </Field>
 
           <Field label={t("calc.family")} htmlFor="calc-family">
