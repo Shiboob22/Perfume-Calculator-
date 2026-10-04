@@ -8,6 +8,10 @@ import { calculate, fmt2, gToOz, mlToFlOz, weightShare } from "../lib/calc";
 import { BottleFill, RatioBar } from "./Bottle";
 import { IconBookmark, IconBookmarkCheck, IconCheck, IconCopy, IconDiamondAlert, IconDrop, IconFlameTriangle } from "./icons";
 import { STRENGTHS } from "../lib/formulation";
+
+// The handbook's four named strengths plus a plain 22% (the owner's own
+// preset, not a handbook strength: it stays out of STRENGTHS and the bench).
+const CALC_STRENGTHS = [...STRENGTHS.filter((s) => s.pct < 22), { pct: 22, name: "" }, ...STRENGTHS.filter((s) => s.pct > 22)];
 import MeasuredDensity from "./calc/MeasuredDensity";
 import Presets from "./calc/Presets";
 import OilHistory from "./calc/OilHistory";
@@ -600,8 +604,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           </Field>
 
           <Field label={t("calc.concentration", { pct: concPct })} extra={<Source id="strengths" />} hint={t("calc.familyDefault", { pct: tier.defaultConc })} htmlFor="calc-conc">
-            <div className="flex gap-2 mb-3">
-              {STRENGTHS.map(({ pct: c, name }) => (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {CALC_STRENGTHS.map(({ pct: c, name }) => (
                 <button
                   key={c}
                   type="button"
