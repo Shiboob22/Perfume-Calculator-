@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { COLORS, SHAPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { useProfile } from "../lib/useProfile";
-import { UNIT_LABELS } from "../lib/calcPrefill";
+import { UNIT_LABELS, afterOnboardingPath } from "../lib/calcPrefill";
 import FlaconMark from "./FlaconMark";
 
 const UNITS = ["ml", "floz", "g", "oz"];
@@ -43,7 +43,8 @@ export default function Onboarding() {
     setSaving(false);
     // Someone who signed in from Pricing's waitlist link goes back there.
     if (window.location.pathname === "/app/account") return navigate("/app/account#pro", { replace: true });
-    navigate(skipped ? "/app/calculator" : `/app/calculator?size=${size}&unit=${unit}`, { replace: true });
+    // A recipe or guide link that led here keeps its values.
+    navigate(afterOnboardingPath(window.location.search, skipped ? {} : answers), { replace: true });
   }
 
   const choice = (selected) => ({
