@@ -43,3 +43,13 @@ describe("toCsv", () => {
     expect(toCsv([{ o: { k: 1 }, z: null }]).split("\r\n")[1]).toBe('"{""k"":1}",');
   });
 });
+
+describe("export labels", () => {
+  it("names every exported table in English and Arabic", async () => {
+    const { EXPORT_TABLES } = await import("./exportData");
+    const en = (await import("../i18n/messages/en.js")).default;
+    const ar = (await import("../i18n/messages/ar.js")).default;
+    const missing = EXPORT_TABLES.filter((t) => !en.account.data.tables[t] || !ar.account.data.tables[t]);
+    expect(missing).toEqual([]);
+  });
+});

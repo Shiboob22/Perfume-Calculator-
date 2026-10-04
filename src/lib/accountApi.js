@@ -46,12 +46,16 @@ const SELECT = { inventory: "*, fragrances(name)", fragrance_notes: "*, fragranc
 // The hosted API returns at most 1000 rows per request; page through, in a
 // stable order (a unique column) so no row moves between pages.
 const PAGE = 1000;
-const ORDER = { batches: "id", batch_checkins: "id", shared_recipes: "batch_id", inventory: "fragrance_id", fragrance_notes: "fragrance_id", calc_presets: "id", profiles: "user_id" };
+const ORDER = { batches: "id", batch_checkins: "id", shared_recipes: "batch_id", inventory: "fragrance_id", fragrance_notes: "fragrance_id", calc_presets: "id", profiles: "user_id", pro_waitlist: "user_id", user_plans: "user_id", fragrances: "id" };
+// The catalog is shared and readable by everyone: only the rows this user added.
+const MINE = { fragrances: "added_by" };
 
-async function fetchAll(table) {
+async function fetchAll(table, userId) {
   const rows = [];
   for (let from = 0; ; from += PAGE) {
-    const { data, error } = await supabase.from(table).select(SELECT[table] || "*").order(ORDER[table]).range(from, from + PAGE - 1);
+    let query = supabase.from(table).select(SELECT[table] || "*");
+    if (MINE[table]) query = query.eq(MINE[table], userId);
+    const { data, error } = await query.order(ORDER[table]).range(from, from + PAGE - 1);
     if (error) throw error;
     rows.push(...(data || []));
     if (!data || data.length < PAGE) return rows;
@@ -60,7 +64,9 @@ async function fetchAll(table) {
 
 // Every row the user owns, table by table, for the export.
 export async function fetchExport() {
-  const results = await Promise.all(EXPORT_TABLES.map(fetchAll));
+  const { data: { user } = {} } = await supabase.auth.getUser();
+  if (!user) throw Object.assign(new Error("Not signed in"), { code: "not_authenticated" });
+  const results = await Promise.all(EXPORT_TABLES.map((table) => fetchAll(table, user.id)));
   return Object.fromEntries(EXPORT_TABLES.map((table, i) => [table, results[i]]));
 }
 
