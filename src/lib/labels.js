@@ -1,6 +1,7 @@
 // Printable bottle labels: the handbook's suggested label fields (Vol. III,
 // Bench: fragrance, concentration, bottle size, lot, date, weights) for one
 // logged batch, at a chosen label size, tiled on an A4 sheet.
+import { UNIT_LABELS } from "./calcPrefill";
 import { labelWeights, fmt2 } from "./calc";
 
 // Label sizes in millimetres. DEFAULTS pending the owner's choice of sizes;
@@ -42,11 +43,20 @@ export function typeSizes({ h }, rows) {
 
 // The label's lines, translated. Weights are what was poured when the
 // batch records it, otherwise the targets (labelWeights, as in bench mode).
-export function labelFields(batch, { t, lot = "" }) {
+// The bottle as the user entered it when the batch has it (0015), else the
+// total by the batch's basis. The lot typed on this page wins over the
+// stored one; an empty typed lot means no lot on the label.
+export function bottleText(batch) {
+  if (Number(batch.amount) > 0 && UNIT_LABELS[batch.unit]) return `${Number(fmt2(Number(batch.amount)))} ${UNIT_LABELS[batch.unit]}`;
+  return batch.basis === "weight" ? `${Number(fmt2(Number(batch.total_g)))} g` : `${Number(fmt2(Number(batch.total_ml)))} mL`;
+}
+
+export function labelFields(batch, { t, lot }) {
+  lot = lot ?? batch.lot ?? "";
   const weights = labelWeights(Number(batch.oil_g), Number(batch.ethanol_g), Number(batch.actual_oil_g) || null, Number(batch.actual_ethanol_g) || null);
   const fields = [
     [t("bench.label.concentration"), `${batch.concentration_pct}%`],
-    [t("bench.label.bottle"), `${Number(fmt2(Number(batch.total_ml)))} mL`],
+    [t("bench.label.bottle"), bottleText(batch)],
     [t("bench.label.date"), batch.blend_date || ""],
   ];
   if (String(lot).trim()) fields.push([t("bench.label.lot"), String(lot).trim()]);

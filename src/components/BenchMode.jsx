@@ -334,7 +334,7 @@ export default function BenchMode() {
                   </button>
                 )}
                 {status === "saved" && can(entitlements, "export.labels") && (
-                  <button type="button" onClick={() => navigate("/app/labels")} className="py-3 rounded-xl border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+                  <button type="button" onClick={() => navigate(`/app/labels?batch=${logId.current}`)} className="py-3 rounded-xl border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
                     {t("bench.after.label")}
                   </button>
                 )}

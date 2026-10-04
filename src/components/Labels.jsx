@@ -24,12 +24,12 @@ export default function Labels() {
   const [error, setError] = useState(null);
   const [sizeKey, setSizeKey] = useState("medium");
   const [custom, setCustom] = useState({ w: "60", h: "35" });
-  const [lot, setLot] = useState("");
+  const [lot, setLot] = useState(null); // null: the batch's stored lot
   const [copies, setCopies] = useState(1);
 
   useEffect(() => {
     if (batch || !id) return;
-    listBatches(100)
+    listBatches(1, { id })
       .then((rows) => { const found = rows.find((b) => b.id === id); found ? setBatch(found) : setError(t("labels.notFound")); })
       .catch((e) => setError(errorText(t, e, "batches.loadFailed")));
   }, [batch, id, t]);
@@ -77,7 +77,7 @@ export default function Labels() {
           </fieldset>
           <div className="grid gap-3 content-start">
             <label className="text-sm" style={{ color: COLORS.ink }}>{t("bench.label.lot")}
-              <input value={lot} maxLength={40} onChange={(e) => setLot(e.target.value)} className="block mt-1 w-full px-3 py-2 rounded-lg font-mono" style={inputStyle} /></label>
+              <input value={lot ?? batch?.lot ?? ""} maxLength={60} onChange={(e) => setLot(e.target.value)} className="block mt-1 w-full px-3 py-2 rounded-lg font-mono" style={inputStyle} /></label>
             <label className="text-sm" style={{ color: COLORS.ink }}>{t("labels.copies")}
               <input type="number" min="1" max={MAX_COPIES} value={copies} onChange={(e) => setCopies(e.target.value)} className="block mt-1 w-24 px-3 py-2 rounded-lg font-mono" style={inputStyle} /></label>
           </div>

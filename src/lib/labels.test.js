@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LABEL_SIZES, customSize, labelFields, perSheet, typeSizes } from "./labels";
+import { LABEL_SIZES, customSize, labelFields, perSheet, typeSizes, bottleText } from "./labels";
 import { createTranslator } from "../i18n/core";
 import en from "../i18n/messages/en";
 import ar from "../i18n/messages/ar";
@@ -7,6 +7,20 @@ import ar from "../i18n/messages/ar";
 const t = createTranslator("en", { en, ar });
 const batch = { fragrance_name: "Oud Wood", concentration_pct: 25, total_ml: 100, blend_date: "2026-10-02",
   oil_g: 23.75, ethanol_g: 60.75, actual_oil_g: null, actual_ethanol_g: null };
+
+describe("bottleText and the stored lot", () => {
+  it("prints the bottle as entered, else the total by basis", () => {
+    expect(bottleText({ amount: "3.4", unit: "floz", total_ml: 100.55 })).toBe("3.4 fl oz");
+    expect(bottleText({ amount: null, basis: "weight", total_g: "50", total_ml: 58 })).toBe("50 g");
+    expect(bottleText({ basis: "volume", total_ml: "100" })).toBe("100 mL");
+  });
+  it("uses the stored lot unless one is typed", () => {
+    const b = { fragrance_name: "x", concentration_pct: 25, total_ml: 100, oil_g: 23.75, ethanol_g: 60.75, lot: "L-9" };
+    const tt = (k) => k;
+    expect(labelFields(b, { t: tt }).fields).toContainEqual(["bench.label.lot", "L-9"]);
+    expect(labelFields(b, { t: tt, lot: "" }).fields.map(([k]) => k)).not.toContain("bench.label.lot");
+  });
+});
 
 describe("labelFields", () => {
   it("uses the handbook's label fields and the target weights", () => {
