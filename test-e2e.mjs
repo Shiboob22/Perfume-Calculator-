@@ -55,7 +55,7 @@ async function signIn(email, password) {
 }
 
 async function runTests() {
-  console.log('\n🧪 The Scent Handbook — E2E API Tests\n');
+  console.log('\n🧪 Scent Ledger — E2E API Tests\n');
   console.log(`  Supabase: ${SUPABASE_URL}`);
   console.log(`  API Base: ${BASE_URL}\n`);
 

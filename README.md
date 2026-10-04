@@ -1,4 +1,4 @@
-# The Scent Handbook — unified system
+# Scent Ledger — unified system
 
 One Supabase-backed React app: search, calculate, log batches, and track
 inventory. Replaces the previous split between the HTML tool (local

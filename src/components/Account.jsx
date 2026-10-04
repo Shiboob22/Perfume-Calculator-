@@ -191,12 +191,12 @@ function ExportData() {
       {data && tables.length === 0 && <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("account.data.empty")}</p>}
       {tables.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => download(`scent-handbook-${stamp()}.json`, toJson(data), "application/json")}
+          <button type="button" onClick={() => download(`scent-ledger-${stamp()}.json`, toJson(data), "application/json")}
             className="px-4 py-2 rounded-lg text-sm font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
             {t("account.data.json")}
           </button>
           {tables.map((table) => (
-            <button key={table} type="button" onClick={() => download(`scent-handbook-${table}-${stamp()}.csv`, toCsv(data[table]), "text/csv;charset=utf-8")}
+            <button key={table} type="button" onClick={() => download(`scent-ledger-${table}-${stamp()}.csv`, toCsv(data[table]), "text/csv;charset=utf-8")}
               className="px-4 py-2 rounded-lg text-sm" style={buttonStyle}>
               {t("account.data.csv", { table: t(`account.data.tables.${table}`) })}
             </button>

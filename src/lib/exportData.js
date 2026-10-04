@@ -15,7 +15,7 @@ function strip(rows) {
 }
 
 export function toJson(data, exportedAt = new Date()) {
-  const out = { exported_at: exportedAt.toISOString(), app: "The Scent Handbook" };
+  const out = { exported_at: exportedAt.toISOString(), app: "Scent Ledger" };
   for (const table of EXPORT_TABLES) out[table] = strip(data[table]);
   return JSON.stringify(out, null, 2);
 }

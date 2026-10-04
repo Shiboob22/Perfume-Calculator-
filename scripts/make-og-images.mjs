@@ -44,7 +44,7 @@ function card(family, lang) {
     .brand { font: italic 500 52px Cormorant; color: ${COLORS.forestDeep}; }
   </style></head><body><div class="frame"><div class="strip"></div>
     <div><div class="eyebrow">${m.recipe.eyebrow}</div><div class="family">${m.families[family].label}</div></div>
-    <div class="row"><div class="brand">The Scent Handbook</div>${flacon(TIER_COLORS[family])}</div>
+    <div class="row"><div class="brand">Scent Ledger</div>${flacon(TIER_COLORS[family])}</div>
   </div></body></html>`;
 }
 

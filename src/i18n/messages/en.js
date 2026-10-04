@@ -1,6 +1,6 @@
 // English UI strings. Every key here needs a match in ar.js.
 export default {
-  brand: "The Scent Handbook",
+  brand: "Scent Ledger",
   language: { switchTo: "العربية", switchLabel: "Switch to Arabic" },
   app: {
     tabsLabel: "Sections",
@@ -181,8 +181,8 @@ export default {
     close: "Close",
   },
   recipe: {
-    metaTitle: "{name} at {pct}% — a shared recipe · The Scent Handbook",
-    metaDescription: "A {family} blend at {pct}% oil in a {size} bottle, shared by a blender on The Scent Handbook.",
+    metaTitle: "{name} at {pct}% — a shared recipe · Scent Ledger",
+    metaDescription: "A {family} blend at {pct}% oil in a {size} bottle, shared by a blender on Scent Ledger.",
     eyebrow: "Shared recipe",
     strength: "Strength",
     strengthValue: { volume: "{pct}% oil by volume", weight: "{pct}% oil by weight" },
@@ -195,7 +195,7 @@ export default {
     rested: "Rested",
     restedValue: { one: "{count} day", other: "{count} days" },
     note: "The blender's note",
-    disclaimer: "Shared by a Scent Handbook blender: their own batch and notes, not advice from the handbooks. Check every weight on your own scale.",
+    disclaimer: "Shared by a Scent Ledger blender: their own batch and notes, not advice from the handbooks. Check every weight on your own scale.",
     cta: "Make this blend",
     ctaLead: "Opens the calculator at this family, strength and bottle size.",
     method: "How to blend by weight",
@@ -628,12 +628,12 @@ export default {
     useWestern: "Digits: 123",
   },
   site: {
-    nav: { privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "The Scent Handbook, home", language: "العربية", languageLabel: "Read this page in Arabic" },
+    nav: { privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "Scent Ledger, home", language: "العربية", languageLabel: "Read this page in Arabic" },
     legal: { draft: "Draft — not yet reviewed. This page may change before launch.", updated: "Last updated {date}" },
     safety: { title: "Safety", text: "Perfumer's alcohol is flammable: blend away from flame and heat, in a ventilated room, out of reach of children. Fragrance oils can irritate skin and eyes — wear gloves and read each material's safety data sheet. The numbers here are starting points; check every weight on your own scale.", more: "Safety and responsibility" },
-    footer: { by: "By Hisham Shiboob", rights: "© 2026 The Scent Handbook" },
+    footer: { by: "By Hisham Shiboob", rights: "© 2026 Scent Ledger" },
     home: {
-      metaTitle: "The Scent Handbook — a fragrance blending calculator by weight",
+      metaTitle: "Scent Ledger — a fragrance blending calculator by weight",
       metaDescription: "Dilute fragrance oil with 96% ethanol by weight. Exact grams for a 0.01 g scale, the bench method step by step, and a free library of guides.",
       title: "Blend your own fragrance by weight.",
       lead: "A calculator and bench guide for diluting fragrance oil with 96% ethanol. Choose a bottle size and a strength, and get the two numbers to put on the scale.",
@@ -672,8 +672,8 @@ export default {
       waitlistTitle: "Want Pro when it opens?",
       waitlistLead: "Join the waitlist from your account. You will hear first when Pro goes on sale; no payment details are asked for.",
       waitlistCta: "Join the Pro waitlist",
-      metaTitle: "Pricing — The Scent Handbook",
-      metaDescription: "Free and Pro plans for The Scent Handbook. Pro is in early access and not on sale yet.",
+      metaTitle: "Pricing — Scent Ledger",
+      metaDescription: "Free and Pro plans for Scent Ledger. Pro is in early access and not on sale yet.",
       title: "Plans",
       lead: "Everyone starts on Free. Pro is in early access and not on sale yet.",
       core: "The calculator, the bench method and every guide",
@@ -695,7 +695,7 @@ export default {
     },
     notFound: { title: "Page not found", home: "Back to the home page" },
     guides: {
-      metaTitle: "Guides — The Scent Handbook",
+      metaTitle: "Guides — Scent Ledger",
       metaDescription: "The method from The Scent Handbook: blending fragrance by weight, and wearing it well. By Hisham Shiboob, free to read.",
       title: "Guides",
       lead: "The method from The Scent Handbook, free to read.",
@@ -728,7 +728,7 @@ export default {
     },
   },
   auth: {
-    loading: "Loading The Scent Handbook…",
+    loading: "Loading Scent Ledger…",
     signIn: "Sign in",
     heading: "Sign in to your bench.",
     lead: "Batches, journal and stock stay with your account.",

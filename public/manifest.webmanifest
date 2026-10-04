@@ -1,6 +1,6 @@
 {
-  "name": "The Scent Handbook",
-  "short_name": "Scent Handbook",
+  "name": "Scent Ledger",
+  "short_name": "Scent Ledger",
   "description": "Blend fragrance by weight: the calculator and bench method.",
   "start_url": "/app/calculator",
   "scope": "/",

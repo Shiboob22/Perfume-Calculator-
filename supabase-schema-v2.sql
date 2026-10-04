@@ -1,5 +1,5 @@
 -- =====================================================================
--- The Scent Handbook — unified schema (v2)
+-- Scent Ledger — unified schema (v2)
 -- Run this in the Supabase SQL Editor. Replaces the fragmented setup
 -- where the fragrance database lived only in the HTML tool's source
 -- code and personal notes lived only in browser localStorage.

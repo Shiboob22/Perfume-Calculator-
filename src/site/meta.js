@@ -57,7 +57,7 @@ export function headFor(pathname) {
     const guide = guideBySlug(path.slice("/guides/".length));
     if (!guide) return null;
     const g = guide[locale];
-    title = `${g.title} — The Scent Handbook`;
+    title = `${g.title} — Scent Ledger`;
     description = g.summary;
     type = "article";
     guideTitle = g.title;
@@ -65,7 +65,7 @@ export function headFor(pathname) {
     noindex = locale === "ar" && arDraft;
   } else if (LEGAL_PAGES.includes(path.slice(1))) {
     const doc = LEGAL[path.slice(1)];
-    title = `${doc[locale].title} — The Scent Handbook`;
+    title = `${doc[locale].title} — Scent Ledger`;
     description = doc[locale].summary;
     // Drafts are reachable (the footer links them) but kept out of search.
     noindex = doc.draft;
@@ -107,7 +107,7 @@ export function headHtml(head) {
     `<meta property="og:title" content="${esc(head.title)}" />`,
     `<meta property="og:description" content="${esc(head.description)}" />`,
     `<meta property="og:url" content="${esc(head.canonical)}" />`,
-    `<meta property="og:site_name" content="The Scent Handbook" />`,
+    `<meta property="og:site_name" content="Scent Ledger" />`,
     `<meta property="og:locale" content="${head.locale === "ar" ? "ar_EG" : "en_US"}" />`,
     `<meta name="twitter:card" content="summary" />`,
     ...(head.type === "article" ? [`<script type="application/ld+json">${jsonLd(head)}</script>`] : []),
@@ -125,7 +125,7 @@ function jsonLd(head) {
       inLanguage: head.locale,
       url: head.canonical,
       author: { "@type": "Person", name: "Hisham Shiboob" },
-      publisher: { "@type": "Organization", name: "The Scent Handbook" },
+      publisher: { "@type": "Organization", name: "Scent Ledger" },
       isPartOf: { "@type": "Book", name: "The Scent Handbook", author: { "@type": "Person", name: "Hisham Shiboob" } },
     },
     {
