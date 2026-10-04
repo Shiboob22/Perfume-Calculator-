@@ -4,7 +4,7 @@
 import { solveBottle } from "../lib/calc";
 import { REFERENCE, STRENGTHS } from "../lib/formulation";
 
-export const BENCH_SIZES = [30, 50, 100];
+export const BENCH_SIZES = [10, 30, 50, 100];
 export const BENCH_STRENGTHS = STRENGTHS;
 export const BENCH_DEFAULT = { size: 100, pct: 25 };
 const DENSITIES = { oil: REFERENCE.oilDensity, ethanol: REFERENCE.ethanolDensity };

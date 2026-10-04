@@ -54,3 +54,12 @@ export function displayed(a: Amounts) {
     totalMl: round2(a.totalMl),
   };
 }
+
+/**
+ * Alcohol per gram of oil, by weight: the "1 : x" a bench reads off the
+ * scale (100 mL at 25% → 1 : 2.56). Null when there is no oil to compare.
+ */
+export function weightRatio(oilG: number, ethanolG: number): number | null {
+  if (!(oilG > 0) || !(ethanolG >= 0)) return null;
+  return ethanolG / oilG;
+}

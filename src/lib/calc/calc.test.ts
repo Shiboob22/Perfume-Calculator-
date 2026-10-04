@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  weightRatio,
   round2, fmt2, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs,
   checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, byVolume, fromWeights,
   concentrationOf, displayed, volumeToWeightFraction, weightToVolumeFraction, toBase,
@@ -275,5 +276,16 @@ describe("labelWeights", () => {
     expect(labelWeights(23.75, 60.75)).toEqual({ oil: 23.75, ethanol: 60.75, total: 84.5 });
     expect(labelWeights(4.2749999999999995, 20.655, null, 0)).toEqual({ oil: 4.28, ethanol: 20.66, total: 24.94 });
     expect(labelWeights(23.75, 60.75, 24.02, 61)).toEqual({ oil: 24.02, ethanol: 61, total: 85.02 });
+  });
+});
+
+describe("weightRatio", () => {
+  it("reads the Quick Reference as 1 : x by weight", () => {
+    expect(weightRatio(23.75, 60.75)).toBeCloseTo(2.5579, 4);
+  });
+  it("has no ratio without oil", () => {
+    expect(weightRatio(0, 10)).toBeNull();
+    expect(weightRatio(5, -1)).toBeNull();
+    expect(weightRatio(NaN, 1)).toBeNull();
   });
 });
