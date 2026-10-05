@@ -8,6 +8,6 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src/lib/calc/**/*.ts", "src/lib/formulation.ts"],
+  "include": ["src/lib/calc/**/*.ts", "src/lib/formulation.ts", "src/lib/selector/**/*.ts"],
   "exclude": ["src/**/*.test.ts"]
 }
