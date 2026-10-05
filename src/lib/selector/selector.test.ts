@@ -44,6 +44,14 @@ describe("fragrance profiles", () => {
     expect(tierOnly?.basis).toBe("tier");
     expect(profilesFromRows([{ id: "t", name: "T", tier: "woody" }])).toEqual([]);
   });
+  it("tops up a short accord list from the notes, after the listed accords", () => {
+    const thin = profileFromRow({ id: "t", name: "T", accords: ["Woody"], all_notes: ["Bergamot", "Cedar", "Vanilla"] })!;
+    expect(thin.basis).toBe("accords");
+    expect(thin.accords).toEqual(["Woody", "Citrus", "Vanilla"]);
+    expect(thin.accordShare.Woody).toBeGreaterThan(thin.accordShare.Citrus);
+    const full = profileFromRow({ id: "f", name: "F", accords: ["Woody", "Amber", "Musky", "Vanilla"], all_notes: ["Bergamot"] })!;
+    expect(full.accords).toEqual(["Woody", "Amber", "Musky", "Vanilla"]);
+  });
   it("survives missing and malformed fields", () => {
     expect(profileFromRow(null)).toBeNull();
     expect(profileFromRow({})).toBeNull();

@@ -42,6 +42,8 @@ export interface FragranceProfile {
   row: CatalogRow;
 }
 
+/** Fewer listed accords than this are topped up from the notes. */
+const THIN_ACCORDS = 4;
 const clamp = (n: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, n));
 const emptyFamilies = (): FamilyProfile => Object.fromEntries(FAMILY_KEYS.map((k) => [k, 0])) as FamilyProfile;
 
@@ -165,7 +167,11 @@ export function profileFromRow(row: CatalogRow | null | undefined): FragrancePro
   const familyText = typeof row.olfactory_family === "string" ? row.olfactory_family : "";
   let basis: ProfileBasis = "tier";
   let used: string[] = [];
-  if (accords.length) { basis = "accords"; used = accords; }
+  if (accords.length) {
+    basis = "accords"; used = accords;
+    // A short accord list is thin: add what the notes show, after the listed accords.
+    if (accords.length < THIN_ACCORDS) used = [...accords, ...accordsFromNotes(notesOf(row)).filter((a) => !accords.includes(a))];
+  }
   else {
     const fromNotes = accordsFromNotes(notesOf(row));
     if (fromNotes.length) { basis = "notes"; used = fromNotes; }
