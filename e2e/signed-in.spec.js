@@ -127,3 +127,21 @@ test("deleting the account removes the user", async ({ page }) => {
   expect(data.user).toBeNull();
   user = null;
 });
+
+// The Scent Selector against the real staging catalog (and the
+// selector_candidates function from migration 0018): answers in, matches out.
+test("the scent selector ranks the real catalog", async ({ page }) => {
+  await signIn(page, "/app/selector");
+  const q = en.selector.q;
+  const next = () => page.getByRole("button", { name: new RegExp(`^(${en.selector.next}|${en.selector.skip}|${en.selector.seeResults})$`) }).click();
+  await page.getByRole("button", { name: en.selector.intro.begin }).click();
+  await page.getByText(q.atmosphere.options.woodRoom, { exact: true }).click(); await next();
+  await next();
+  await page.getByText(q.families.options.amber, { exact: true }).click(); await next();
+  for (let i = 0; i < 12; i++) await next();
+  await page.getByRole("button", { name: en.selector.seeResults }).click();
+  await expect(page.getByRole("heading", { name: en.selector.results.topMatches })).toBeVisible();
+  const matches = page.getByRole("listitem").filter({ has: page.getByText(/% match$/) });
+  await expect(matches).toHaveCount(5, { timeout: 20000 });
+  await expect(matches.first().getByText(en.selector.results.why)).toBeVisible();
+});
