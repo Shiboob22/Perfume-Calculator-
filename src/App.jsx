@@ -22,11 +22,13 @@ import { installGlobalHandlers } from "./lib/reportError";
 // fetched while the browser is idle after first paint so a tab switch never
 // waits on the network.
 const loaders = {
+  selector: () => import("./components/Selector"),
   calculator: () => import("./components/FragranceBlendCalculator"),
   batches: () => import("./components/Batches"),
   inventory: () => import("./components/Inventory"),
   ask: () => import("./components/PerfumerChat"),
 };
+const Selector = lazy(loaders.selector);
 const FragranceBlendCalculator = lazy(loaders.calculator);
 const Batches = lazy(loaders.batches);
 const Inventory = lazy(loaders.inventory);
@@ -43,7 +45,7 @@ function prefetchTabs() {
   else setTimeout(run, 1500);
 }
 
-const TABS = ["search", "calculator", "batches", "inventory", "ask"];
+const TABS = ["search", "selector", "calculator", "batches", "inventory", "ask"];
 const DEFAULT_TAB = "calculator";
 
 // The signed-in app, at /app/<tab>.
@@ -164,6 +166,7 @@ export default function App() {
         {tab === "account" && <Account user={user} />}
         {tab === "labels" && <Labels />}
         {tab !== "cards" && activeTab === "search" && <PerfumeSearch onSelectPerfume={handleSelectPerfume} />}
+        {activeTab === "selector" && <Selector onSelectPerfume={handleSelectPerfume} />}
         {activeTab === "calculator" && (
           <FragranceBlendCalculator
             selectedPerfume={selectedPerfume}

@@ -15,6 +15,7 @@ const SCREENS = {
   inventory: lazy(() => import("../components/Inventory")),
   ask: lazy(() => import("../components/PerfumerChat")),
   search: lazy(() => import("../components/PerfumeSearch")),
+  selector: lazy(() => import("../components/Selector")),
   bench: lazy(() => import("../components/BenchMode")),
   onboarding: lazy(() => import("../components/Onboarding")),
   account: lazy(() => import("../components/Account")),
