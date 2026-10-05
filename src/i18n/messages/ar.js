@@ -15,7 +15,7 @@ export default {
       calculator: "الحاسبة",
       batches: "الدفتر",
       inventory: "المخزون",
-      selector: "المحدّد",
+      selector: "محدّد العطر",
       ask: "اسأل",
     },
   },
