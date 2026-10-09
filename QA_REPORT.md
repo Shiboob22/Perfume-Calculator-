@@ -14,7 +14,7 @@ Vite 5 + React 18 SPA with prerendered public site; React Router `/app/<tab>`; p
 | Calculator (4 modes + pour check, units, rounding) | independent oracle + 300-case seeded property tests | correct; edge-case defects fixed (D1, D2) |
 | Search / Selector / Journal / Inventory UI | existing e2e with fake API (108 pass) + code read | no failures; not independently re-derived |
 | Inventory / batches API validation | code read | D3 found and fixed |
-| Responsive, 6 widths × 5 public pages | new `e2e/viewports.spec.js` | D4 found and fixed; now 30/30 |
+| Responsive, 7 widths (incl. 640 = 200% zoom proxy) × 5 public pages | new `e2e/viewports.spec.js` | D4 found and fixed; now 30/30 |
 | Accessibility | existing axe spec (passes) | no serious/critical |
 | Ask (AI) | `api/ai.ts` read | key is server-only (`GEMINI_API_KEY`), history capped to `MAX_TURNS`, each turn to `MAX_TURN_CHARS`, roles checked, 60 s timeout, per-user rate limit, 503 when unconfigured; **not exercised live** (needs key) |
 
