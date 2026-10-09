@@ -398,6 +398,8 @@ export default {
       outside_family_range: "{pct}% خارج النطاق المعتاد لهذه العائلة {min}–{max}%.",
       oil_density_implausible: "كثافة زيت {density} غ/مل غير معتادة (معظمها بين {min} و{max}). تحقّق من القيمة.",
       ethanol_density_implausible: "كثافة إيثانول {density} غ/مل غير معتادة للإيثانول 96% ({min}–{max}). تحقّق من القيمة.",
+      oil_density_missing: "كثافة الزيت فارغة، لذا تُستخدم القيمة {used} غ/مل. أدخل قيمتك إن كنت تعرفها.",
+      ethanol_density_missing: "كثافة الإيثانول فارغة، لذا تُستخدم القيمة {used} غ/مل.",
     },
     cost: {
       title: "التكلفة",

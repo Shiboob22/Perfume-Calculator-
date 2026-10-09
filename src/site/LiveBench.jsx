@@ -32,7 +32,7 @@ export default function LiveBench() {
 
         <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] gap-5 items-end">
           <BottleFill oilShare={f.oilShare} height={150} />
-          <div role="status" aria-live="polite">
+          <div role="status" aria-live="polite" className="min-w-0">
             {rows.map(([key, g, swatch], i) => (
               <div key={key} className="flex justify-between items-baseline gap-3 py-2"
                 style={{ borderTop: i === 2 ? `1px solid ${COLORS.ink}` : "none", borderBottom: i === 0 ? `1px solid ${COLORS.line}` : "none" }}>
@@ -40,7 +40,7 @@ export default function LiveBench() {
                   {swatch && <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: swatch, border: `1px solid ${COLORS.ink}` }} />}
                   {t(`site.home.${key}`)}
                 </span>
-                <span key={g} dir="ltr" className="readout font-mono text-2xl sm:text-3xl tracking-[-0.02em]">{fmt2(g)} g</span>
+                <span key={g} dir="ltr" className="readout font-mono text-xl min-[380px]:text-2xl sm:text-3xl tracking-[-0.02em]">{fmt2(g)} g</span>
               </div>
             ))}
           </div>

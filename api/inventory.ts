@@ -115,7 +115,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'POST') {
     try {
       const { fragrance_id, stock_g, low_stock_threshold_g } = req.body || {};
-      const isNum = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
+      // Stock and thresholds are grams on a bench scale: finite, never negative.
+      const isNum = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1_000_000;
       if (!fragrance_id
         || (stock_g !== undefined && !isNum(stock_g))
         || (low_stock_threshold_g !== undefined && !isNum(low_stock_threshold_g))) {
@@ -152,7 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { id, restock_g } = req.body;
       const targetId = id || req.body.fragrance_id;
 
-      if (!targetId || typeof restock_g !== 'number') {
+      if (!targetId || typeof restock_g !== 'number' || !Number.isFinite(restock_g) || Math.abs(restock_g) > 1_000_000) {
         return res.status(400).json({ error: 'Invalid payload' });
       }
 
