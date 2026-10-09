@@ -16,11 +16,12 @@ Vite 5 + React 18 SPA with prerendered public site; React Router `/app/<tab>`; p
 | Inventory / batches API validation | code read | D3 found and fixed |
 | Responsive, 7 widths (incl. 640 = 200% zoom proxy) × 5 public pages | new `e2e/viewports.spec.js` | D4 found and fixed; now 30/30 |
 | Accessibility | existing axe spec (passes) | no serious/critical |
-| Ask (AI) | `api/ai.ts` read | key is server-only (`GEMINI_API_KEY`), history capped to `MAX_TURNS`, each turn to `MAX_TURN_CHARS`, roles checked, 60 s timeout, per-user rate limit, 503 when unconfigured; **not exercised live** (needs key) |
+| Ask (AI) | code read + handler tests `api/_lib/__tests__/ai.test.ts` (12, Gemini stubbed at `fetch`) | expired session → 401; no key → 503 "AI is not configured yet."; empty/blank/model-only/non-list conversation → 400 without calling Gemini; unknown task → 400; turns capped at 2,000 chars and sent as `user` role only (injection text never reaches the system prompt); key only in the request header; outage → fallback model; double 429 → quota message; upstream error text never forwarded; empty answer → 502. **Real Gemini answers not exercised** (no key in this environment) |
 
 ## Not audited, and why
 - Signed-in staging journeys (12 e2e skipped: need credentials). Cross-user RLS isolation **was re-run on staging 2026-10-10 after 0019: 64/64 checks pass** (self-rolling-back SQL test).
-- Real-device mobile, screen-reader announcements, 200 % zoom, touch tooltips: not run.
+- Zoom: covered by the viewport e2e. 640 px = a 1280 px window at 200 %, and 320 px = 400 % (WCAG 1.4.10 reflow); no horizontal scroll at either. Real browser zoom was not driven.
+- Real-device mobile (beyond Playwright's phone emulation), screen-reader announcements and touch tooltips: not run. They need hardware and assistive technology; axe covers roles, names and live regions.
 - Ask answers' factual quality; Selector recommendation quality for the seven profiles (golden tests exist, not re-reviewed).
 - Concurrent-update behaviour and expired sessions against a live database.
 
@@ -31,7 +32,7 @@ Vite 5 + React 18 SPA with prerendered public site; React Router `/app/<tab>`; p
 | D2 | P2 | fixed, confirmed | Blank/0/NaN oil or ethanol density silently became 1.00 / 0.81 with no warning (implausibility check ran on the substituted value). Now warns (EN + AR draft strings). |
 | D3 | P2 | fixed, confirmed | `POST /api/inventory` accepted negative `stock_g` / threshold (no DB check constraint). Now 0…1,000,000. |
 | D4 | P3 | fixed, confirmed | Home LiveBench overflowed 11 px at 320 px (mono 2xl readout). Smaller size below 380 px. |
-| D5 | P2 | **fixed: 0019 applied to staging and production 2026-10-10 on the owner's instruction ("do it yourself"); both verified: function floors at 0, constraint present, 0 negative rows**: `supabase/migrations/0019_inventory_non_negative.sql` (floors at 0, `CHECK … NOT VALID` so no existing row changes). Needs owner approval, then staging, then production. Confirmed by code: | `restock_inventory` accepts negative deltas with no floor, so a large negative adjust can drive stock below zero. Needs a migration (`GREATEST(0, …)` or a CHECK); not applied: migrations need owner approval. |
+| D5 | P2 | fixed, confirmed | `restock_inventory` accepted negative deltas with no floor, so stock could go below zero. `supabase/migrations/0019_inventory_non_negative.sql` floors it at 0 and adds `CHECK (stock_g >= 0) NOT VALID` (no existing row changed). Applied to staging and production 2026-10-10 on the owner's instruction; both verified (function floors, constraint present, 0 negative rows). |
 | D6 | P3 | open | Family default oil density (up to 1.00) vs 0.95 in guides: two truths for the same oil; owner's "numbers table" decision already pending. |
 | D7 | P3 | open (hypothesis) | 0.81 g/mL for 96 % ethanol is approximate; ≈1 % mass error possible. Unverified against a datasheet. |
 | D8 | note | not a defect | The brief's "28.10 %" for 3 × 50 mL is a rounding slip; correct value 28.11 %. |
@@ -40,10 +41,10 @@ Vite 5 + React 18 SPA with prerendered public site; React Router `/app/<tab>`; p
 See `CALCULATION_SPEC.md`: nominal volumes (no contraction model), densities are assumptions with measured override, basis follows the unit, 0.01 g display ≠ 0.01 g accuracy.
 
 ## Security findings
-No secrets in the bundle (CI `check:bundle` exists; not re-run here). API handlers scope by `user_id`; inventory input now bounded. No cross-user exposure found in code read; RLS not re-executed.
+No secrets in the bundle (CI `check:bundle` exists; not re-run here). API handlers scope by `user_id`; inventory input now bounded. No cross-user exposure found; RLS isolation re-run on staging: 64/64.
 
 ## Commands run
-- `npx vitest run` → 42 files, 426 tests pass (was 401; +25 oracle tests).
+- `npx vitest run` → 43 files, 438 tests pass (was 401; +25 oracle, +12 Ask handler).
 - `npm run typecheck` → clean. `npx eslint .` → 0 errors, 3 pre-existing warnings.
 - `npm run build` (placeholder env) → ok.
 - `npx playwright test -c pw.local.config.js` → 168 pass (incl. 60 new viewport cases across both projects), 12 skipped (credentialed). A first run without Supabase env failed the sign-in gate tests: environment, not product (client has no fallback project by design).
@@ -51,6 +52,6 @@ No secrets in the bundle (CI `check:bundle` exists; not re-run here). API handle
 
 ## Remaining risks / next steps
 1. Done: 0019 on staging and production, RLS 64/64 on staging.
-2. Run the signed-in staging journeys with a test account, and the RLS test.
+2. Run the 12 signed-in staging journeys (`e2e/signed-in.spec.js`) with a staging test account; their screens already pass with the fake API.
 3. Owner: Arabic review of the two new warning strings; numbers-table decision (D6); verify ethanol density (D7).
 4. See `UX_IMPROVEMENTS.md`.
