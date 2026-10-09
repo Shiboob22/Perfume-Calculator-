@@ -19,7 +19,7 @@ Vite 5 + React 18 SPA with prerendered public site; React Router `/app/<tab>`; p
 | Ask (AI) | `api/ai.ts` read | key is server-only (`GEMINI_API_KEY`), history capped to `MAX_TURNS`, each turn to `MAX_TURN_CHARS`, roles checked, 60 s timeout, per-user rate limit, 503 when unconfigured; **not exercised live** (needs key) |
 
 ## Not audited, and why
-- Signed-in staging journeys (12 e2e skipped: need credentials). Cross-user RLS isolation not re-run (needs staging service access; last recorded 64/64).
+- Signed-in staging journeys (12 e2e skipped: need credentials). Cross-user RLS isolation **was re-run on staging 2026-10-10 after 0019: 64/64 checks pass** (self-rolling-back SQL test).
 - Real-device mobile, screen-reader announcements, 200 % zoom, touch tooltips: not run.
 - Ask answers' factual quality; Selector recommendation quality for the seven profiles (golden tests exist, not re-reviewed).
 - Concurrent-update behaviour and expired sessions against a live database.
@@ -31,7 +31,7 @@ Vite 5 + React 18 SPA with prerendered public site; React Router `/app/<tab>`; p
 | D2 | P2 | fixed, confirmed | Blank/0/NaN oil or ethanol density silently became 1.00 / 0.81 with no warning (implausibility check ran on the substituted value). Now warns (EN + AR draft strings). |
 | D3 | P2 | fixed, confirmed | `POST /api/inventory` accepted negative `stock_g` / threshold (no DB check constraint). Now 0…1,000,000. |
 | D4 | P3 | fixed, confirmed | Home LiveBench overflowed 11 px at 320 px (mono 2xl readout). Smaller size below 380 px. |
-| D5 | P2 | **fix applied to STAGING 2026-10-10 (function floors at 0; constraint present, 0 negative rows); production not applied, needs owner approval**: `supabase/migrations/0019_inventory_non_negative.sql` (floors at 0, `CHECK … NOT VALID` so no existing row changes). Needs owner approval, then staging, then production. Confirmed by code: | `restock_inventory` accepts negative deltas with no floor, so a large negative adjust can drive stock below zero. Needs a migration (`GREATEST(0, …)` or a CHECK); not applied: migrations need owner approval. |
+| D5 | P2 | **fixed: 0019 applied to staging and production 2026-10-10 on the owner's instruction ("do it yourself"); both verified: function floors at 0, constraint present, 0 negative rows**: `supabase/migrations/0019_inventory_non_negative.sql` (floors at 0, `CHECK … NOT VALID` so no existing row changes). Needs owner approval, then staging, then production. Confirmed by code: | `restock_inventory` accepts negative deltas with no floor, so a large negative adjust can drive stock below zero. Needs a migration (`GREATEST(0, …)` or a CHECK); not applied: migrations need owner approval. |
 | D6 | P3 | open | Family default oil density (up to 1.00) vs 0.95 in guides: two truths for the same oil; owner's "numbers table" decision already pending. |
 | D7 | P3 | open (hypothesis) | 0.81 g/mL for 96 % ethanol is approximate; ≈1 % mass error possible. Unverified against a datasheet. |
 | D8 | note | not a defect | The brief's "28.10 %" for 3 × 50 mL is a rounding slip; correct value 28.11 %. |
@@ -50,7 +50,7 @@ No secrets in the bundle (CI `check:bundle` exists; not re-run here). API handle
 - Note: this worktree's `node_modules` was stale; `npm install` (declared deps only) fixed the build.
 
 ## Remaining risks / next steps
-1. Approve `0019_inventory_non_negative.sql` (D5); apply to staging first, then run the RLS/inventory checks.
+1. Done: 0019 on staging and production, RLS 64/64 on staging.
 2. Run the signed-in staging journeys with a test account, and the RLS test.
 3. Owner: Arabic review of the two new warning strings; numbers-table decision (D6); verify ethanol density (D7).
 4. See `UX_IMPROVEMENTS.md`.

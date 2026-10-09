@@ -1,8 +1,8 @@
 -- Stock can never go below zero. A restock/adjust that would overdraw an oil
 -- stops at 0 (the API already refuses negative absolute stock and thresholds).
 -- NOT VALID: existing rows are left exactly as they are; the check applies to
--- every insert/update from now on. Applied to staging 2026-10-10; not to production (
--- owner approves first).
+-- every insert/update from now on. Applied to staging and production 2026-10-10
+-- on the owner's instruction.
 
 create or replace function public.restock_inventory(p_user_id uuid, p_fragrance_id uuid, p_delta numeric)
 returns public.inventory
