@@ -4,6 +4,10 @@ import en from "../src/i18n/messages/en.js";
 import { FEATURES } from "../src/lib/entitlements.js";
 import { USER, json, signIn } from "./helpers.js";
 
+// The fake API answers through page.route, which a controlling service worker
+// bypasses (WebKit); the shell's offline behaviour is covered in app.spec.js.
+test.use({ serviceWorkers: "block" });
+
 // The signed-in Batches tab — Resting Journal and recipe sharing — against
 // the production build with a fake session and a fake API: every /api and
 // Supabase request is answered here (nothing reaches a real project), and
@@ -82,7 +86,10 @@ test("journal: a due check-in is saved from the Batches tab", async ({ page }) =
   await expect(due).toContainText("Woody, day 22 of rest");
 
   await due.getByLabel(/How does .*Oud Nights.* smell today\?/).fill("Softer, the oud is coming forward");
-  await due.getByRole("radio", { name: "4 of 5" }).check({ force: true });
+  // Tap the star the user sees (the label); the radio itself is a visually hidden 1px input.
+  const four = due.getByRole("radio", { name: "4 of 5" });
+  await four.locator("xpath=..").click();
+  await expect(four).toBeChecked();
   await due.getByRole("button", { name: en.journal.save }).click();
 
   await expect(page.getByRole("status").filter({ hasText: en.journal.saved })).toBeAttached();

@@ -5,6 +5,12 @@ import AxeBuilder from "@axe-core/playwright";
 // and critical violations fail; moderate/minor are printed for review.
 const PAGES = ["/", "/ar", "/guides", "/ar/guides", "/guides/the-calculation", "/ar/guides/the-calculation", "/pricing", "/privacy", "/app"];
 
+// Measure the settled page: short time-based fades (the bench readout's tick)
+// would otherwise be sampled mid-way. Scroll-tied animations never "finish".
+const settled = (page) => page.evaluate(() => Promise.all(document.getAnimations()
+  .filter((a) => a.timeline === document.timeline && Number.isFinite(a.effect?.getComputedTiming().endTime))
+  .map((a) => a.finished.catch(() => {}))));
+
 for (const path of PAGES) {
   test(`accessibility: ${path}`, async ({ page }, info) => {
     await page.goto(path);
@@ -12,6 +18,7 @@ for (const path of PAGES) {
     // first heading rather than for the network to go quiet.
     await page.locator("h1").first().waitFor();
     await page.waitForLoadState("load");
+    await settled(page);
     const { violations } = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
       .analyze();

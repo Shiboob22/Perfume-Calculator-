@@ -5,6 +5,10 @@ import ar from "../src/i18n/messages/ar.js";
 import { FEATURES } from "../src/lib/entitlements.js";
 import { USER, json, signIn } from "./helpers.js";
 
+// The fake API answers through page.route, which a controlling service worker
+// bypasses (WebKit); the shell's offline behaviour is covered in app.spec.js.
+test.use({ serviceWorkers: "block" });
+
 // The Scent Selector against the production build with a fake session and a
 // fake catalog: the full quiz, known fragrances, ranked and explained
 // matches, back navigation, a draft that survives a reload, Arabic, and the

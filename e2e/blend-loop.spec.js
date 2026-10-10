@@ -5,6 +5,10 @@ import ar from "../src/i18n/messages/ar.js";
 import { FEATURES } from "../src/lib/entitlements.js";
 import { USER, json, signIn } from "./helpers.js";
 
+// The fake API answers through page.route, which a controlling service worker
+// bypasses (WebKit); the shell's offline behaviour is covered in app.spec.js.
+test.use({ serviceWorkers: "block" });
+
 // Phase 8, the blend loop, against the production build with a fake
 // session and a fake API: a link survives onboarding, the calculator keeps
 // its inputs, a retry or an offline log can't log twice, bench mode keeps

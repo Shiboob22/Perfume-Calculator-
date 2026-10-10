@@ -844,8 +844,10 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             )}
             <button type="button" onClick={copyRecipe}
               className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm" style={{ border: `1px solid ${COLORS.ink}`, color: COLORS.ink }}>
-              {copied ? <IconCheck size={18} /> : <IconCopy size={18} />} <span role="status">{t(copied ? "calc.copied" : "calc.copy")}</span>
+              {copied ? <IconCheck size={18} /> : <IconCopy size={18} />} <span>{t(copied ? "calc.copied" : "calc.copy")}</span>
             </button>
+            {/* Outside the button: a status child would drop out of the button's accessible name. */}
+            <span role="status" className="sr-only">{copied ? t("calc.copied") : ""}</span>
           </div>
           {/* One live region, always mounted: "saved" and "could not save"
               are announced, so nobody logs the same batch twice. */}
