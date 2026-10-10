@@ -1,4 +1,5 @@
 import { dedupeVariants } from './_lib/dedupe.js';
+import { classifyTier } from './_lib/tier.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { clientIp, overLimit } from './_lib/rateLimit.js';
 import { createClient } from '@supabase/supabase-js';
@@ -39,21 +40,6 @@ async function getUserId(req: VercelRequest): Promise<string | null> {
   } catch {
     return null;
   }
-}
-
-// Map main accords to one of the app's 5 families. Specific families are
-// checked before `fresh`, which is also the fallback — otherwise a sweet
-// gourmand that happens to list a "Citrus" accord (e.g. Naxos) misclassifies
-// as fresh.
-function classifyTier(accords: string[]): string {
-  const a = accords.map(x => x.toLowerCase());
-  const has = (terms: string[]) => a.some(x => terms.some(t => x.includes(t)));
-  if (has(['vanilla', 'sweet', 'gourmand', 'caramel', 'chocolate', 'honey', 'praline', 'tobacco'])) return 'gourmand';
-  if (has(['amber', 'oriental', 'warm spicy', 'balsamic', 'resinous', 'oud', 'spicy'])) return 'oriental';
-  if (has(['floral', 'powdery', 'rose', 'white floral'])) return 'floral';
-  if (has(['woody', 'earthy', 'mossy', 'aromatic'])) return 'woody';
-  if (has(['citrus', 'fresh', 'green', 'aquatic', 'ozonic'])) return 'fresh';
-  return 'fresh';
 }
 
 // Live Parfumo Scraper Helper
