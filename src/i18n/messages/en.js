@@ -397,6 +397,8 @@ export default {
       outside_family_range: "{pct}% is outside this family's usual range of {min}–{max}%.",
       oil_density_implausible: "An oil density of {density} g/mL is unusual (most fall between {min} and {max}). Check the value.",
       ethanol_density_implausible: "An ethanol density of {density} g/mL is unusual for 96% ethanol ({min}–{max}). Check the value.",
+      oil_density_missing: "Oil density is blank, so {used} g/mL is being used. Enter your own value if you know it.",
+      ethanol_density_missing: "Ethanol density is blank, so {used} g/mL is being used.",
     },
     cost: {
       title: "Cost",

@@ -10,6 +10,9 @@ test("the app asks you to sign in, and is kept out of search", async ({ page }) 
 });
 
 test("the app shell opens offline once it has been visited", async ({ page, context }) => {
+  // Playwright's offline emulation makes WebKit's reload throw an internal error;
+  // on WebKit this was checked by stopping the server instead (QA_REPORT.md).
+  test.skip(test.info().project.use.browserName === "webkit" || /iPhone/.test(test.info().project.use.userAgent || ""), "offline emulation + reload is unsupported in Playwright's WebKit");
   await page.goto("/app");
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   // The first visit installs the worker; the next load is controlled by it.

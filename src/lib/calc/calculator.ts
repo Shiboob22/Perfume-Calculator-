@@ -30,7 +30,10 @@ export interface CalculatorInput {
 const positive = (v: unknown) => (Number(v) > 0 ? Number(v) : null);
 
 export function calculate(input: CalculatorInput) {
-  const amount = Number(input.amount) || 0;
+  const rawAmount = Number(input.amount) || 0;
+  // A negative or non-finite batch never yields negative grams: it computes as
+  // zero and the amount warning says why.
+  const amount = Number.isFinite(rawAmount) && rawAmount > 0 ? rawAmount : 0;
   const concPct = Math.min(Math.max(Number(input.concPct) || 0, 0), 100);
   const d = { oil: input.oilDensity || 1, ethanol: input.ethanolDensity || 0.81 };
 
@@ -55,6 +58,10 @@ export function calculate(input: CalculatorInput) {
     oilDensity: PLAUSIBLE_DENSITY.oil,
     ethanolDensity: PLAUSIBLE_DENSITY.ethanol,
   });
+  // A blank or zero density is replaced by a fallback above; say so rather
+  // than present the fallback as the user's own value.
+  if (!(input.oilDensity > 0)) warnings.push({ code: "oil_density_missing", used: d.oil });
+  if (!(input.ethanolDensity > 0)) warnings.push({ code: "ethanol_density_missing", used: d.ethanol });
 
   // Full cost (Pro): oil actually used, ethanol by the litre, bottles.
   const bottles = Math.max(Math.floor(Number(input.bottles) || 0), 0);

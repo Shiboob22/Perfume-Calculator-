@@ -64,6 +64,8 @@ export default function App() {
 
   // Each tab is its own page to screen readers and the tab switcher.
   const page = activeTab ?? tab;
+  const pageHeading = page === "selector" || page === "account" ? null
+    : TABS.includes(page) ? t(`app.tabs.${page}`) : page === "labels" ? t("labels.title") : page === "cards" ? t("cards.open") : null;
   useEffect(() => {
     const name = TABS.includes(page) ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : page === "labels" ? t("labels.title") : null;
     document.title = name ? `${name} — ${t("brand")}` : t("brand");
@@ -161,6 +163,8 @@ export default function App() {
       </header>
 
       <main className="pb-16">
+        {/* One h1 per page for screen readers; Selector and Account title themselves. */}
+        {pageHeading && <h1 className="sr-only">{pageHeading}</h1>}
         <Suspense fallback={<TabLoading />}>
         {tab === "cards" && <BenchCards />}
         {tab === "account" && <Account user={user} />}
