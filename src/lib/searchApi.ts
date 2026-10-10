@@ -72,6 +72,13 @@ function remember<T>(key: string, load: () => Promise<T>): Promise<T> {
   return p;
 }
 
+// Drop the page-view answers so the next request goes to the network (and the
+// CDN, which holds catalog answers for up to 10 minutes). Used by the
+// periodic refresh so an open Search screen picks up catalog changes.
+export function forgetCatalogAnswers() {
+  memo.clear();
+}
+
 // Case and spacing don't change the answer; folding them here also makes
 // "Sauvage" and "sauvage " share one CDN entry.
 const normalize = (q: string) => q.trim().toLowerCase().replace(/\s+/g, ' ');

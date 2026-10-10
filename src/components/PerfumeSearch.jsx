@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { searchCatalog, browseCatalog, fetchPopular, fetchSimilar } from '../lib/searchApi';
+import { searchCatalog, browseCatalog, fetchPopular, fetchSimilar, forgetCatalogAnswers } from '../lib/searchApi';
+
+// How often an open, visible Search screen re-reads the catalog.
+const REFRESH_MS = 60_000;
+// One result page; a longer list means the user paged on, so leave it alone.
+const PAGE_SIZE = 20;
 import { trackInventory, saveAiFragrance, addFragrancePhoto } from '../lib/fragranceApi';
 import { lookupFragrance } from '../lib/aiApi';
 import { useEntitlements } from '../lib/useEntitlements';
@@ -459,6 +464,38 @@ export function PerfumeSearch({ onSelectPerfume }) {
   useEffect(() => {
     fetchPopular().then(setPopular);
   }, []);
+
+  // Keep the screen current: every minute while visible, and when the tab comes
+  // back to the front, re-read the catalog and swap in the rows only if they
+  // changed (a family, accords or notes edit), without a loading flash.
+  const [refreshTick, setRefreshTick] = useState(0);
+  useEffect(() => {
+    const bump = () => {
+      if (document.visibilityState !== 'visible') return;
+      forgetCatalogAnswers();
+      setRefreshTick((n) => n + 1);
+    };
+    const timer = setInterval(bump, REFRESH_MS);
+    document.addEventListener('visibilitychange', bump);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', bump); };
+  }, []);
+
+  useEffect(() => {
+    if (refreshTick === 0) return;
+    let cancelled = false;
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    fetchPopular().then((rows) => { if (!cancelled) setPopular((prev) => (same(prev, rows) ? prev : rows)); }).catch(() => {});
+    const load = browse
+      ? browseCatalog(browse.kind, browse.value)
+      : query.trim().length >= 2 ? searchCatalog(query) : null;
+    load?.then((data) => {
+      if (cancelled) return;
+      setResults((prev) => (prev.length > PAGE_SIZE || same(prev, data.results) ? prev : data.results));
+    }).catch(() => {});
+    return () => { cancelled = true; };
+    // Only the tick should trigger a refresh; query/browse changes have their own effects.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTick]);
 
   useEffect(() => {
     setAiMsg('');
