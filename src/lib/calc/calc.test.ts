@@ -298,3 +298,14 @@ describe("weightShare", () => {
     expect(weightShare(-1, 5)).toBe(0);
   });
 });
+
+import { shownTotal as _shownTotal, fmt2 as _fmt2 } from "./round";
+describe("shownTotal", () => {
+  it("adds the rounded pours, as the calculator shows them", () => {
+    // 30 mL at 15 %: oil 4.275 g, ethanol 20.655 g (handbook Quick Reference)
+    expect(_fmt2(_shownTotal(4.275, 20.655))).toBe("24.94");
+  });
+  it("is NaN for a non-finite pour", () => {
+    expect(_shownTotal(NaN, 1)).toBeNaN();
+  });
+});

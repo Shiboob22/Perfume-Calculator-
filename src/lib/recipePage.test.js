@@ -16,6 +16,7 @@ const recipe = {
   note_lang: "en",
   indexable: true,
   updated_at: "2026-10-02T10:00:00Z",
+  shown: { oil: "23.75", ethanol: "60.75", total: "84.50", totalBottle: "84.5" },
 };
 const opts = { site: "https://example.test", stylesheet: "/r-assets/site.css?v=abc", reportEmail: "report@example.test" };
 

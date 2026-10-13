@@ -1,11 +1,24 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { anonClient, isTimeout } from './_lib/http.js';
 // @ts-ignore: plain JS shared with the browser build
+import { fmt2, shownTotal } from '../src/lib/calc/round.js';
 import { recipePageHtml, goneHtml, recipePath } from '../src/lib/recipePage.js';
 
 // Public shared recipes, server-rendered (vercel.json rewrites to here):
 //   /r/<slug>, /ar/r/<slug>   → ?slug=<slug>&lang=en|ar   the recipe page
 //   /sitemap-recipes.xml      → ?sitemap=1                indexable recipes
+// The weights as the calculator shows them: each pour rounded, the total the
+// sum of the rounded pours (24.94, not 24.93).
+export function shownWeights(r: any) {
+  const total = shownTotal(Number(r.oil_g), Number(r.ethanol_g));
+  return {
+    oil: fmt2(Number(r.oil_g)),
+    ethanol: fmt2(Number(r.ethanol_g)),
+    total: fmt2(total),
+    totalBottle: String(total),
+  };
+}
+
 // Reads with the ANON key: recipe_by_slug() and recipe_sitemap() (0013)
 // return published rows and public fields only, whatever this code asks.
 // Pages are cached at the CDN for 5 minutes and not served stale beyond
@@ -57,7 +70,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).send(goneHtml({ lang, stylesheet: STYLESHEET }));
     }
     res.setHeader('Cache-Control', PAGE_CACHE);
-    return res.status(200).send(recipePageHtml(recipe, { lang, site: SITE, stylesheet: STYLESHEET, reportEmail: REPORT_EMAIL }));
+    return res.status(200).send(recipePageHtml({ ...recipe, shown: shownWeights(recipe) }, { lang, site: SITE, stylesheet: STYLESHEET, reportEmail: REPORT_EMAIL }));
   } catch (err: any) {
     // Never cache a failure.
     res.setHeader('Cache-Control', 'no-store');

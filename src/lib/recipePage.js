@@ -25,6 +25,8 @@ export function esc(value) {
 }
 
 // 84.5 → "84.50" (grams, as on the scale); 100 → "100" (bottle sizes).
+// The weights come pre-rounded in r.shown (api/recipe.ts, with the calc
+// engine's rounding: a plain JS file here can't import its TypeScript).
 const grams = (n) => (Math.round(Number(n) * 100) / 100).toFixed(2);
 const size = (n) => String(Math.round(Number(n) * 100) / 100);
 
@@ -64,7 +66,7 @@ export function calculatorHref(r) {
 }
 
 function bottleText(t, r) {
-  return r.basis === "weight" ? t("recipe.grams", { g: size(r.total_g) }) : t("recipe.ml", { n: size(r.total_ml) });
+  return r.basis === "weight" ? t("recipe.grams", { g: r.shown.totalBottle }) : t("recipe.ml", { n: size(r.total_ml) });
 }
 
 // The note, kept as the blender wrote it: paragraphs and line breaks.
@@ -123,9 +125,9 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
   const rows = [
     [t("recipe.strength"), t(`recipe.strengthValue.${basis}`, { pct })],
     [t("recipe.bottle"), bottleText(t, r)],
-    [t("recipe.oil"), t("recipe.grams", { g: grams(r.oil_g) })],
-    [t("recipe.alcohol"), t("recipe.grams", { g: grams(r.ethanol_g) })],
-    [t("recipe.total"), t("recipe.grams", { g: grams(r.total_g) })],
+    [t("recipe.oil"), t("recipe.grams", { g: r.shown.oil })],
+    [t("recipe.alcohol"), t("recipe.grams", { g: r.shown.ethanol })],
+    [t("recipe.total"), t("recipe.grams", { g: r.shown.total })],
     ...(r.rest_days != null ? [[t("recipe.rested"), t("recipe.restedValue", { count: r.rest_days })]] : []),
   ];
   const to = (p) => (locale === "ar" ? (p === "/" ? "/ar" : `/ar${p}`) : p);

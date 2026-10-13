@@ -3,7 +3,7 @@ import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listBatches, deleteBatch } from "../lib/fragranceApi";
 import { downloadBatchCard } from "../lib/batchCard";
-import { actualStrength } from "../lib/calc";
+import { actualStrength, fmt2, shownTotal } from "../lib/calc";
 import { batchInsights } from "../lib/aiApi";
 import { batchStartedAt, batchReadyAt, formatDay, formatExact, readyCountdown } from "../lib/batchTiming";
 import { useI18n } from "../i18n/I18nProvider";
@@ -23,10 +23,11 @@ import BatchEdit from "./BatchEdit";
 import WaitlistButton from "./WaitlistButton";
 import { makeAgainHref } from "../lib/oilHistory";
 
+// The engine's rounding, so a stored batch reads as the calculator showed it.
 function round2(n) {
-  if (!Number.isFinite(n)) return "0.00";
-  return (Math.round(n * 100) / 100).toFixed(2);
+  return Number.isFinite(n) ? fmt2(n) : "0.00";
 }
+const totalOf = (b) => fmt2(shownTotal(Number(b.oil_g), Number(b.ethanol_g)));
 
 function BatchTiming({ batch }) {
   const { t, locale } = useI18n();
@@ -80,7 +81,7 @@ function BatchList({ batches, selectedId, onSelect }) {
                 <span className="min-w-0">
                   <span className="block truncate font-medium">{b.fragrance_name}</span>
                   <span dir="ltr" className="block font-mono text-xs text-start rtl:text-end" style={{ color: COLORS.dim }}>
-                    {Number(b.concentration_pct)}% · {round2(b.total_g)} g
+                    {Number(b.concentration_pct)}% · {totalOf(b)} g
                   </span>
                 </span>
                 <span className="text-end">
@@ -304,7 +305,7 @@ export default function Batches() {
               {[
                 [t("batches.oil"), `${round2(b.oil_g)} g`, `${round2(b.oil_ml)} mL`],
                 [t("batches.ethanol"), `${round2(b.ethanol_g)} g`, `${round2(b.ethanol_ml)} mL`],
-                [t("batches.total"), `${round2(b.total_g)} g`, null],
+                [t("batches.total"), `${totalOf(b)} g`, null],
                 b.oil_cost ? [t("batches.cost"), round2(b.oil_cost), b.price_per_gram ? `${round2(Number(b.price_per_gram))}${t("batches.perGram")}` : null] : null,
               ].filter(Boolean).map(([label, value, sub]) => (
                 <div key={label}>
