@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FAMILY_KEYS, SCORE_COMPONENTS, SELECTOR_WEIGHTS } from "./config";
 import { profileFromRow, type CatalogRow } from "./profiles";
-import { buildUserProfile, type KnownFragrance } from "./userProfile";
+import { buildUserProfile, hasSignal, type KnownFragrance } from "./userProfile";
 import {
   calculateClimateCompatibility, calculateFamilyCompatibility, calculateIntensityCompatibility,
   calculateKnownFragranceSimilarity, calculateMoodCompatibility, calculateOccasionCompatibility, calculateOverallScore,
@@ -233,6 +233,36 @@ describe("recommend", () => {
     expect(recommend(buildUserProfile({ families: ["woody"] }), []).status).toBe("empty");
     expect(profilesFromRows(null)).toEqual([]);
     expect(profilesFromRows(undefined)).toEqual([]);
+  });
+  it("counts a social-intensity answer on its own as a signal", () => {
+    for (const social of ["close", "office", "outdoor", "event"]) {
+      const user = buildUserProfile({ social });
+      expect(user.socialCap).not.toBeNull();
+      expect(hasSignal(user)).toBe(true);
+      const r = recommend(user, all);
+      expect(r.status).toBe("ok");
+      expect(r.matches.length).toBe(all.length);
+    }
+    // It ranks by intensity alone: close contact prefers the lighter scent, an event the bolder one.
+    expect(recommend(buildUserProfile({ social: "close" }), [woodyAmber, citrusFresh]).matches[0].profile.id).toBe("Citrus Air");
+    expect(recommend(buildUserProfile({ social: "event" }), [woodyAmber, citrusFresh]).matches[0].profile.id).toBe("Dark Amber");
+  });
+  it("still treats unanswered, empty and unknown answers as no signal", () => {
+    expect(hasSignal(buildUserProfile({}))).toBe(false);
+    expect(hasSignal(buildUserProfile())).toBe(false);
+    expect(hasSignal(buildUserProfile({ social: undefined }))).toBe(false);
+    expect(hasSignal(buildUserProfile({ social: "" }))).toBe(false);
+    expect(hasSignal(buildUserProfile({ social: "nonsense" }))).toBe(false);
+    expect(recommend(buildUserProfile({ social: "nonsense" }), all).status).toBe("no-signal");
+    // a number is not a valid single-choice answer
+    expect(hasSignal(buildUserProfile({ social: 3 }))).toBe(false);
+  });
+  it("keeps other single answers counting as before", () => {
+    for (const answers of [{ use: "work" }, { climate: "hot" }, { projection: "skin" }, { families: ["woody"] }]) {
+      expect(hasSignal(buildUserProfile(answers))).toBe(true);
+    }
+    expect(hasSignal(buildUserProfile({}, [loved(woodyAmber)]))).toBe(true);
+    expect(hasSignal(buildUserProfile({}, [disliked(woodyAmber)]))).toBe(true);
   });
   it("works with only dislikes, and keeps known fragrances out of the results", () => {
     const r = recommend(buildUserProfile({}, [disliked(woodyAmber)]), all);

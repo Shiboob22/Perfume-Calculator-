@@ -130,10 +130,17 @@ export function dedupe(list: FragranceProfile[]): FragranceProfile[] {
   });
 }
 
-/** True when the answers (and picks) give the engine something to rank by. */
+/**
+ * True when the answers (and picks) give the engine something to rank by.
+ * Every context answer the scoring reads counts: `socialCap` feeds the
+ * intensity component and the constraint penalty, so a profile whose only
+ * answer is how loud a scent may be still has something to rank by. `null`
+ * (unanswered, or an unknown option id) is not a signal.
+ */
 export function hasSignal(u: UserProfile): boolean {
   return FAMILY_KEYS.some((k) => u.families[k] > 0) || Object.keys(u.sensory).length > 0 || Object.keys(u.mood).length > 0 ||
-    u.loved.length > 0 || u.disliked.length > 0 || u.use !== null || u.climate !== null || u.projection !== null;
+    u.loved.length > 0 || u.disliked.length > 0 || u.use !== null || u.climate !== null || u.projection !== null ||
+    u.socialCap !== null;
 }
 
 export { MOOD_KEYS, SENSORY_KEYS };
