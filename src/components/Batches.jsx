@@ -163,7 +163,7 @@ function economicsRows(b, t) {
 export default function Batches() {
   const { t, locale } = useI18n();
   const entitlements = useEntitlements();
-  const capped = entitlements.loaded && !entitlements.features?.includes("batches.unlimited") && entitlements.batchCap != null;
+  const capped = entitlements.loaded && !can(entitlements, "batches.unlimited") && entitlements.batchCap != null;
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -360,7 +360,7 @@ export default function Batches() {
             <span className="text-xs" style={{ color: COLORS.inkSoft }}>
               {t("batches.summary", { count: batches.length, cost: round2(totalOilCost) })}
             </span>
-            {entitlements.features?.includes("ai.ask") && <button
+            {can(entitlements, "ai.ask") && <button
               type="button"
               onClick={handleInsights}
               disabled={insightsLoading}
