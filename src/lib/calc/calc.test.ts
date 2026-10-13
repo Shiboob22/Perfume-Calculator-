@@ -309,3 +309,16 @@ describe("shownTotal", () => {
     expect(_shownTotal(NaN, 1)).toBeNaN();
   });
 });
+
+describe("solveRun by weight", () => {
+  it("makes the oil exactly the stated share of the mix weight", () => {
+    const r = solveRun([{ sizeMl: 100, count: 1 }], 25, H, 0, "weight");
+    expect(r.exact.oilG / r.exact.totalG).toBeCloseTo(0.25, 12);
+    expect(r.exact.totalMl).toBeCloseTo(100, 9);
+  });
+  it("differs from the same number by volume", () => {
+    const w = solveRun([{ sizeMl: 100, count: 1 }], 25, H, 0, "weight").exact.oilG;
+    const v = solveRun([{ sizeMl: 100, count: 1 }], 25, H).exact.oilG;
+    expect(w).not.toBeCloseTo(v, 1);
+  });
+});

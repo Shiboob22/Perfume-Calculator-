@@ -492,8 +492,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             {t(measuredDensityValue != null ? "calc.densitiesUsedMeasured" : "calc.densitiesUsed", { oil: result.densities.oil, ethanol: result.densities.ethanol })}
           </p>
           {mode === "fromOil" && <FromOil densities={result.densities} defaultPct={concPct} />}
-          {mode === "adjust" && <Adjust densities={result.densities} defaultPct={concPct} />}
-          {mode === "run" && <Run densities={result.densities} defaultPct={concPct} />}
+          {mode === "adjust" && <Adjust densities={result.densities} defaultPct={concPct} defaultBasis={result.basis} />}
+          {mode === "run" && <Run densities={result.densities} defaultPct={concPct} defaultBasis={result.basis} />}
         </div>
       ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -836,7 +836,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 <IconDiamondAlert size={18} /> {t("calc.retry")}
               </button>
             ) : (
-              <button type="button" onClick={handleLogBatch} disabled={!fragName.trim() || logStatus === "saving"}
+              <button type="button" onClick={handleLogBatch} disabled={!fragName.trim() || logStatus === "saving" || !(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
                 className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium disabled:opacity-50"
                 style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}>
                 <IconBookmark size={18} /> {logStatus === "saving" ? t("calc.saving") : t("calc.log")}

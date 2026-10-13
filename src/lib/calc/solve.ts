@@ -1,6 +1,7 @@
 import type { Amounts, Basis, Densities, Warning } from "./types";
 import { byVolume, byWeight, fromWeights, concentrationOf, displayed } from "./blend";
 import { isVolumeUnit, toBase, type Unit } from "./units";
+import { weightToVolumeFraction } from "./basis";
 
 // The four ways to ask for a blend. Concentrations come in as percentages
 // (25 = 25%); every result says which basis and densities it used.
@@ -151,11 +152,13 @@ export interface Run extends Solution {
  * Several bottles from one mix (e.g. 3 × 50 mL + 2 × 10 mL), with an optional
  * overfill percentage to cover what is lost in transfer.
  */
-export function solveRun(lines: RunLine[], pct: number, d: Densities, overfillPct = 0): Run {
+export function solveRun(lines: RunLine[], pct: number, d: Densities, overfillPct = 0, basis: Basis = "volume"): Run {
   const clean = lines.filter((l) => l.sizeMl > 0 && l.count > 0);
   const bottlesMl = clean.reduce((s, l) => s + l.sizeMl * l.count, 0);
   const mixMl = bottlesMl * (1 + overfillPct / 100);
-  const sol = solveBottle(mixMl, "ml", pct, d);
+  // The strength may be given by weight; the mix is sized in mL, so convert.
+  const volPct = basis === "weight" ? weightToVolumeFraction(pct / 100, d) * 100 : pct;
+  const sol = solveBottle(mixMl, "ml", volPct, d);
   const gPerMl = sol.exact.totalMl > 0 ? sol.exact.totalG / sol.exact.totalMl : 0;
   return {
     ...sol,
