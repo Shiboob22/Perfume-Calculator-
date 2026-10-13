@@ -70,6 +70,48 @@ export function editRow(edit: any): { row: Record<string, unknown> } | { error: 
   return { row };
 }
 
+// The numbers and text of a new batch, checked before they reach the database.
+// Anything the calculator could not have produced is refused with the field
+// named: zero or negative amounts, 0 % or 100 % strength, a total far from
+// oil + ethanol (display rounding only: TOTAL_SLACK_G), text past its cap.
+const TOTAL_SLACK_G = 0.05;
+export function batchRow(b: any): { row: Record<string, unknown> } | { error: string; field: string } {
+  const row: Record<string, unknown> = {};
+  const num = (k: string, min: number, max: number, inclusiveMin = true) => {
+    const v = b[k];
+    if (typeof v === 'string' ? !v.trim() : typeof v !== 'number') return k;
+    const n = Number(v);
+    if (!Number.isFinite(n) || n > max || (inclusiveMin ? n < min : n <= min)) return k;
+    row[k] = n;
+    return null;
+  };
+  const optional = (k: string, max: number) => {
+    if (b[k] == null || b[k] === '') { row[k] = null; return null; }
+    return num(k, 0, max);
+  };
+  const text = (k: string, max: number, required = false) => {
+    const v = b[k] == null ? '' : String(b[k]).trim();
+    if ((required && !v) || v.length > max) return k;
+    row[k] = v || null;
+    return null;
+  };
+  const bad = text('fragrance_name', 120, true) || text('tier', 40, true)
+    || num('concentration_pct', 0, 100, false) || (Number(b.concentration_pct) >= 100 ? 'concentration_pct' : null)
+    || num('oil_g', 0, 100000) || num('oil_ml', 0, 100000) || num('ethanol_g', 0, 100000) || num('ethanol_ml', 0, 100000)
+    || num('total_g', 0, 100000, false) || num('total_ml', 0, 100000, false)
+    || optional('price_per_gram', 1e6) || optional('oil_cost', 1e7)
+    || optional('actual_oil_g', 100000) || optional('actual_ethanol_g', 100000)
+    || text('oil_type', 120) || text('notes', 2000) || text('blended_by', 120);
+  if (bad) return { error: `Check ${bad}.`, field: bad };
+  const d = String(b.blend_date ?? '');
+  if (!DATE.test(d) || Number.isNaN(Date.parse(`${d}T00:00:00Z`))) return { error: 'Check blend_date.', field: 'blend_date' };
+  row.blend_date = d;
+  if (Math.abs(Number(row.total_g) - (Number(row.oil_g) + Number(row.ethanol_g))) > TOTAL_SLACK_G) {
+    return { error: 'Check total_g.', field: 'total_g' };
+  }
+  return { row };
+}
+
 // Stock taken out for a freshly logged batch, when the client asks with
 // deduct_oil_g. Only on a new insert (a replay or a 23505 returns earlier,
 // so a re-sent batch never deducts twice), only on a plan with inventory,
@@ -149,29 +191,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return fail(res, 400, 'missing_fields', `Missing required batch fields: ${missing.join(', ')}`, { fields: missing });
       }
 
+      const checked = batchRow(b);
+      if ('error' in checked) {
+        return fail(res, 400, 'invalid_batch', checked.error, { field: checked.field });
+      }
+
       // Whitelist only real columns; user_id + created_at are server-set.
       // A client-chosen id makes logging idempotent (see above).
       const row = {
         ...(clientId ? { id: clientId } : {}),
         user_id: userId,
         fragrance_id: b.fragrance_id ?? null,
-        fragrance_name: b.fragrance_name,
-        tier: b.tier,
-        blend_date: b.blend_date,
-        concentration_pct: b.concentration_pct,
-        oil_g: b.oil_g,
-        oil_ml: b.oil_ml,
-        ethanol_g: b.ethanol_g,
-        ethanol_ml: b.ethanol_ml,
-        total_g: b.total_g,
-        total_ml: b.total_ml,
-        oil_type: b.oil_type ?? null,
-        price_per_gram: b.price_per_gram ?? null,
-        oil_cost: b.oil_cost ?? null,
-        notes: b.notes ?? null,
-        blended_by: b.blended_by ?? null,
-        actual_oil_g: b.actual_oil_g ?? null,
-        actual_ethanol_g: b.actual_ethanol_g ?? null,
+        ...checked.row,
         basis: b.basis === 'volume' || b.basis === 'weight' ? b.basis : null,
         oil_density: Number(b.oil_density) > 0 ? Number(b.oil_density) : null,
         ethanol_density: Number(b.ethanol_density) > 0 ? Number(b.ethanol_density) : null,

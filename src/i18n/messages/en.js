@@ -563,6 +563,7 @@ export default {
     admin_cannot_delete: "Admin accounts cannot be deleted from the app.",
     batch_cap: "Your {plan} plan keeps up to {cap} batches.",
     missing_fields: "Some of this batch's numbers are missing. Check the calculator and try again.",
+    invalid_batch: "A number in this batch does not add up (an amount at zero, a strength outside 0–100%, or totals that differ). Check the calculator and try again.",
     invalid_id: "That batch link isn't valid.",
     not_found: "That batch no longer exists.",
     slow_read: "The database is slow to respond. Please try again.",

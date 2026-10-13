@@ -259,3 +259,35 @@ describe('errors', () => {
     expect(missing).toEqual([]);
   });
 });
+
+describe('POST /api/batches validation', () => {
+  const bad: Record<string, Record<string, unknown>> = {
+    'zero volume': { total_ml: 0, oil_ml: 0, ethanol_ml: 0, oil_g: 0, ethanol_g: 0, total_g: 0 },
+    '100 percent': { concentration_pct: 100 },
+    'negative grams': { oil_g: -1 },
+    'text where a number belongs': { oil_g: 'lots' },
+    'huge number': { total_ml: 1e9 },
+    'total far from the parts': { total_g: 10 },
+    'long note': { notes: 'x'.repeat(2001) },
+    'long name': { fragrance_name: 'x'.repeat(121) },
+    'bad date': { blend_date: 'yesterday' },
+    'negative price': { price_per_gram: -2 },
+  };
+  for (const [label, patch] of Object.entries(bad)) {
+    it(`refuses ${label}`, async () => {
+      const res = await call('POST', { body: { ...BATCH, ...patch } });
+      expect(res.statusCode).toBe(400);
+      expect(res.body.code).toBe('invalid_batch');
+    });
+  }
+
+  it('accepts the handbook case', async () => {
+    const res = await call('POST', { body: BATCH });
+    expect(res.statusCode).toBe(201);
+  });
+
+  it('accepts totals that differ only by display rounding', async () => {
+    const res = await call('POST', { body: { ...BATCH, total_g: 84.5003 } });
+    expect(res.statusCode).toBe(201);
+  });
+});
