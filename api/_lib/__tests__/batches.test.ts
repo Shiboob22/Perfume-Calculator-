@@ -246,7 +246,7 @@ describe('errors', () => {
     const { readFileSync } = await import('node:fs');
     const en = (await import('../../../src/i18n/messages/en.js')).default as any;
     const ar = (await import('../../../src/i18n/messages/ar.js')).default as any;
-    const files = ['api/batches.ts', 'api/_lib/http.ts', 'api/_lib/share.ts', 'api/_lib/rateLimit.ts', 'api/_lib/entitlements.ts'];
+    const files = ['api/batches.ts', 'api/inventory.ts', 'api/_lib/http.ts', 'api/_lib/share.ts', 'api/_lib/rateLimit.ts', 'api/_lib/entitlements.ts'];
     const codes = new Set<string>();
     for (const f of files) {
       const src = readFileSync(f, 'utf8');
