@@ -337,6 +337,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
   if (req.method === 'GET') {
+    // Anyone may ask whether the key is set; the model probe (outbound calls
+    // to Google, model names) is for signed-in callers.
+    try {
+      if (!(await getUserId(req))) return res.status(200).json({ configured: Boolean(GEMINI_API_KEY) });
+    } catch {
+      return res.status(200).json({ configured: Boolean(GEMINI_API_KEY) });
+    }
     return res.status(200).json(await health());
   }
   if (req.method !== 'POST') {

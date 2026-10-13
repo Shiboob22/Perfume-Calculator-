@@ -328,6 +328,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const id = String(req.query.id || req.body?.id || '');
       if (!UUID.test(id)) return fail(res, 400, 'invalid_id', 'Missing or invalid batch ID');
+      if (await overLimit(supabase, res, 'remove', userId)) return;
 
       const { error } = await supabase
         .from('batches')

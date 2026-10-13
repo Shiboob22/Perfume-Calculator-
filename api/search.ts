@@ -2,7 +2,7 @@ import { dedupeVariants } from './_lib/dedupe.js';
 import { classifyTier } from './_lib/tier.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { clientIp, overLimit } from './_lib/rateLimit.js';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -33,11 +33,15 @@ async function getUserId(req: VercelRequest): Promise<string | null> {
   const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
   if (!token) return null;
   try {
-    const { data: { user } } = await createClient(supabaseUrl, supabaseAnonKey, {
+    const { data: { user }, error } = await createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: `Bearer ${token}` }, fetch: timedFetch }
     }).auth.getUser();
+    // A network failure is not "anonymous": a signed-in user would be rate
+    // limited by IP and lose the save. Let the caller answer 503.
+    if (error && isAuthRetryableFetchError(error)) throw error;
     return user?.id ?? null;
-  } catch {
+  } catch (err) {
+    if (isAuthRetryableFetchError(err) || isTimeout(err)) throw err;
     return null;
   }
 }
@@ -309,7 +313,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Nothing relevant found.
     return res.status(200).json({ source: 'database', results: [] });
   } catch (err: any) {
-    if (isTimeout(err)) return res.status(503).json({ error: 'Database is slow to respond — please try again.' });
+    if (isTimeout(err) || isAuthRetryableFetchError(err)) return res.status(503).json({ error: 'Database is slow to respond — please try again.' });
     return res.status(500).json({ error: err.message || 'Search execution failed' });
   }
 }

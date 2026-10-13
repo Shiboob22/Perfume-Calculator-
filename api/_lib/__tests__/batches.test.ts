@@ -291,3 +291,13 @@ describe('POST /api/batches validation', () => {
     expect(res.statusCode).toBe(201);
   });
 });
+
+describe('DELETE /api/batches rate limit', () => {
+  it('answers 429 over the limit and keeps the batch', async () => {
+    db.rows('batches').push({ id: ID, user_id: USER });
+    db.rpcHandlers.hit_rate_limit = () => ({ data: false, error: null });
+    const res = await call('DELETE', { query: { id: ID } });
+    expect(res.statusCode).toBe(429);
+    expect(db.rows('batches')).toHaveLength(1);
+  });
+});
