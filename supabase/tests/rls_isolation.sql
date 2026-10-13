@@ -323,6 +323,11 @@ begin
   select count(*) into n from public.recipe_by_slug(slug_b);
   if n <> 0 then raise exception 'RLS_ISOLATION FAILED: an unshared recipe still opens'; end if; checks := checks + 1;
 
+  -- A later CREATE OR REPLACE must not drop the pinned search_path (0014, 0021).
+  if not exists (select 1 from pg_proc where proname = 'restock_inventory' and proconfig::text ~ 'search_path') then
+    raise exception 'RLS_ISOLATION FAILED: restock_inventory has no pinned search_path';
+  end if; checks := checks + 1;
+
   raise exception 'RLS_ISOLATION PASSED: % checks (rolled back, nothing kept)', checks;
 end
 $$;
