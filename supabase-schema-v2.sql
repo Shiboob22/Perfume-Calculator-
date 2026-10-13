@@ -1,4 +1,19 @@
 -- =====================================================================
+-- HISTORICAL — DO NOT RUN THIS FILE.
+--
+-- This is the original single-user setup script. Its policies at the bottom
+-- (`using (true) with check (true)`) let anyone who holds the public anon
+-- key read and change EVERY row in these tables. That was tolerable only for
+-- a private one-person project and is unsafe for a multi-user app: the anon
+-- key is public by design and is not access control.
+--
+-- The schema is now defined by the numbered files in supabase/migrations/
+-- (applied in order, starting at 0000_baseline.sql), which add owner-only
+-- Row Level Security and move batch/inventory writes behind the API. See
+-- README.md ("Setup" and "Security model"). Kept only as a record.
+-- =====================================================================
+
+-- =====================================================================
 -- The Scent Handbook — unified schema (v2)
 -- Run this in the Supabase SQL Editor. Replaces the fragmented setup
 -- where the fragrance database lived only in the HTML tool's source
