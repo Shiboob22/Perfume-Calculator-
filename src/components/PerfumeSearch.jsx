@@ -30,7 +30,6 @@ function familyOf(tierKey, t) {
   };
 }
 
-const fmtInt = (n) => Number(n || 0).toLocaleString('en-US');
 
 // A stylised gold flacon on the dark ground, used when no bottle photo exists.
 function BottleArt({ size = 150 }) {
@@ -97,7 +96,7 @@ function Stars({ value, size = 16 }) {
 }
 
 function RatingLine({ perfume, size = 16, compact = false }) {
-  const { t } = useI18n();
+  const { t, locale, digits } = useI18n();
   if (!perfume?.rating) return null;
   const r = Number(perfume.rating);
   return (
@@ -106,7 +105,7 @@ function RatingLine({ perfume, size = 16, compact = false }) {
       <span className="font-mono" style={{ fontSize: compact ? 11 : 13, color: COLORS.ink }}>{r.toFixed(2)}</span>
       {perfume.popularity > 0 && (
         <span className="font-mono" style={{ fontSize: compact ? 10 : 12, color: COLORS.inkSoft }}>
-          {compact ? `(${fmtInt(perfume.popularity)})` : t('search.votes', { count: fmtInt(perfume.popularity) })}
+          {compact ? `(${new Intl.NumberFormat(locale, { numberingSystem: digits }).format(perfume.popularity)})` : t('search.votes', { count: Number(perfume.popularity) })}
         </span>
       )}
     </span>

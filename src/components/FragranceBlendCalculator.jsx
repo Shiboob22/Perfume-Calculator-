@@ -79,8 +79,9 @@ function Field({ label, extra, hint, htmlFor, children }) {
 function TextInput(props) {
   return (
     <input
+      inputMode={props.type === "number" ? "decimal" : undefined}
       {...props}
-      className="w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
+      className="w-full px-3 py-2 min-h-[44px] font-mono text-sm border focus:outline-none focus:ring-2"
       style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
     />
   );
@@ -92,18 +93,19 @@ function AmountWithUnit({ id, unitLabel, value, onChange, unit, onUnitChange, un
       <input
         id={id}
         type="number"
+        inputMode="decimal"
         value={value}
         min="0.01"
         step="0.1"
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 min-w-0 px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
+        className="flex-1 min-w-0 px-3 py-2 min-h-[44px] font-mono text-sm border focus:outline-none focus:ring-2"
         style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
       />
       <select
         aria-label={unitLabel}
         value={unit}
         onChange={(e) => onUnitChange(e.target.value)}
-        className="px-2 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
+        className="px-2 py-2 min-h-[44px] font-mono text-sm border focus:outline-none focus:ring-2"
         style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
       >
         {units.map((u) => (
