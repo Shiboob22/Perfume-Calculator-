@@ -35,6 +35,28 @@ export function batchRecord(b: any) {
   return Object.fromEntries(Object.entries(rec).filter(([, v]) => v != null));
 }
 
+// What the batch cost to make and what it sells for (0022). Pro only
+// (calculator.advanced): a plan without it stores none of these, and a
+// malformed value is dropped rather than refusing the log. Limits match the
+// table's check constraint.
+const SELLER: [string, number, boolean][] = [
+  ['ethanol_price_per_l', 1e6, false], ['bottle_cost', 1e6, false], ['bottles', 1e5, true],
+  ['packaging_cost', 1e6, false], ['labour_minutes', 1e5, false], ['labour_rate_per_hour', 1e6, false],
+  ['sale_price', 1e7, false],
+];
+export function sellerCosts(b: any, entitlements: any) {
+  if (!can(entitlements, 'calculator.advanced')) return {};
+  const out: Record<string, unknown> = {};
+  for (const [k, max, whole] of SELLER) {
+    const v = b[k];
+    if (v == null || v === '' || typeof v === 'boolean') continue;
+    const n = Number(v);
+    if (Number.isFinite(n) && n >= 0 && n <= max && (!whole || Number.isInteger(n))) out[k] = n;
+  }
+  if (typeof b.currency === 'string' && /^[A-Z]{3}$/.test(b.currency)) out.currency = b.currency;
+  return out;
+}
+
 // What a user may change on a logged batch: the record around the blend,
 // never the planned recipe (Make again covers a different recipe). Only the
 // fields sent change; an empty value clears an optional field.
@@ -207,6 +229,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         oil_density: Number(b.oil_density) > 0 ? Number(b.oil_density) : null,
         ethanol_density: Number(b.ethanol_density) > 0 ? Number(b.ethanol_density) : null,
         ...batchRecord(b),
+        ...sellerCosts(b, entitlements),
         created_at: new Date().toISOString(),
       };
 

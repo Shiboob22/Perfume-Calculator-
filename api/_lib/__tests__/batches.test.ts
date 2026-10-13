@@ -153,6 +153,26 @@ describe('POST /api/batches record fields', () => {
   });
 });
 
+describe('POST /api/batches seller costs', () => {
+  const costs = { ethanol_price_per_l: 40, bottle_cost: 10, bottles: 2, packaging_cost: 1.5, labour_minutes: 30, labour_rate_per_hour: 20, sale_price: 60, currency: 'SAR' };
+  it('stores them for a Pro user', async () => {
+    const res = await call('POST', { body: { ...BATCH, ...costs } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.batch).toMatchObject(costs);
+  });
+  it('stores none of them on Free, and still logs the batch', async () => {
+    db = dbFor('free');
+    const res = await call('POST', { body: { ...BATCH, ...costs } });
+    expect(res.statusCode).toBe(201);
+    for (const k of Object.keys(costs)) expect(res.body.batch).not.toHaveProperty(k);
+  });
+  it('drops malformed values instead of refusing the log', async () => {
+    const res = await call('POST', { body: { ...BATCH, bottles: 1.5, sale_price: -4, bottle_cost: 'abc', packaging_cost: true, currency: 'sar', labour_minutes: 1e9 } });
+    expect(res.statusCode).toBe(201);
+    for (const k of ['bottles', 'sale_price', 'bottle_cost', 'packaging_cost', 'currency', 'labour_minutes']) expect(res.body.batch).not.toHaveProperty(k);
+  });
+});
+
 describe('GET /api/batches', () => {
   it("lists only the user's own batches", async () => {
     db = dbFor('pro', { batches: [{ id: 'a', user_id: USER, created_at: '2026-10-01' }, { id: 'b', user_id: OTHER, created_at: '2026-10-02' }] });
