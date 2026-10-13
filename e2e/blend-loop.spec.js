@@ -197,3 +197,26 @@ test("a locked feature offers the Pro waitlist in one tap", async ({ page }) => 
   await expect(page.getByText(en.account.waitlist.joined)).toBeVisible();
   expect(sent.waitlist[0]).toMatchObject({ locale: "en", source: "locked.inventory" });
 });
+
+test("a Pro seller prices a batch and sees profit and margin, with no sideways scroll at 320 px", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page);
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/app/calculator");
+  await page.getByLabel(en.calc.pricePerGram).fill("2");
+  await page.getByLabel(en.calc.cost.bottleEach).fill("10");
+  await page.getByLabel(en.calc.cost.bottles).fill("2");
+  await page.getByLabel(en.calc.cost.salePrice).fill("60");
+  await expect(page.getByText(/^Profit:/)).toBeVisible();
+  await expect(page.getByText(/^Margin:/)).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  expect(overflow).toBe(false);
+});
+
+test("Free plan shows no cost, packaging or sale price fields", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, { plan: "free" });
+  await page.goto("/app/calculator");
+  await expect(page.getByLabel(en.calc.pricePerGram)).toBeVisible();
+  await expect(page.getByLabel(en.calc.cost.salePrice)).toHaveCount(0);
+});

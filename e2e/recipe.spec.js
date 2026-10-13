@@ -8,6 +8,7 @@ import { recipePageHtml } from "../src/lib/recipePage.js";
 const recipe = {
   slug: "oud-nights-k3x9qa", fragrance_name: "Oud Nights", tier: "woody", concentration_pct: "25", basis: "volume",
   total_ml: "100", total_g: "84.5", oil_g: "23.75", ethanol_g: "60.75", rest_days: 24,
+  shown: { oil: "23.75", ethanol: "60.75", total: "84.50", totalBottle: "84.5" },
   public_note: "Sharp for the first two weeks.\nThen the oud rounds out.\n\nBest from about day 24.", note_lang: "en", indexable: true,
 };
 
