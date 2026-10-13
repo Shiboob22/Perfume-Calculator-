@@ -3,7 +3,7 @@ import { solveBottle } from "./solve";
 import { volumeToWeightFraction, weightToVolumeFraction } from "./basis";
 import { checkPour } from "./pour";
 import { checkInputs } from "./solve";
-import { batchCost, costPer } from "./cost";
+import { batchCost, costPer, margin } from "./cost";
 import { PLAUSIBLE_DENSITY } from "../formulation";
 
 // Everything the Calculator screen shows, from its raw form inputs. The
@@ -25,6 +25,11 @@ export interface CalculatorInput {
   ethanolPricePerL?: number | string | null;
   bottleCost?: number | string | null;
   bottles?: number | string | null;
+  packagingCost?: number | string | null;
+  labourMinutes?: number | string | null;
+  labourRate?: number | string | null;
+  /** Per bottle. */
+  salePrice?: number | string | null;
 }
 
 const positive = (v: unknown) => (Number(v) > 0 ? Number(v) : null);
@@ -70,8 +75,16 @@ export function calculate(input: CalculatorInput) {
     oilPerG: price > 0 ? price : null,
     ethanolPerL: Number(input.ethanolPricePerL) > 0 ? Number(input.ethanolPricePerL) : null,
     bottleEach: Number(input.bottleCost) > 0 ? Number(input.bottleCost) : null,
+    packagingEach: positive(input.packagingCost),
+    labourMinutes: positive(input.labourMinutes),
+    labourPerHour: positive(input.labourRate),
   });
-  const per = costPer(cost.total, bottles, solution.exact.totalMl);
+  // Per mL follows what was really poured, like the ethanol cost above.
+  const pouredMl = actualOilG !== null && actualEthanolG !== null
+    ? actualOilG / d.oil + actualEthanolG / d.ethanol
+    : solution.exact.totalMl;
+  const per = costPer(cost.total, bottles, pouredMl);
+  const sale = margin(cost.total, bottles, positive(input.salePrice));
 
-  return { ...solution, otherBasisPct, actual, usedOilG, oilCost, warnings, cost: { ...cost, ...per, bottles } };
+  return { ...solution, otherBasisPct, actual, usedOilG, oilCost, warnings, cost: { ...cost, ...per, ...sale, bottles } };
 }

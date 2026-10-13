@@ -3,7 +3,7 @@ import {
   weightRatio,
   weightShare,
   round2, fmt2, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs,
-  checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, byVolume, fromWeights,
+  checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, margin, byVolume, fromWeights,
   concentrationOf, displayed, volumeToWeightFraction, weightToVolumeFraction, toBase,
   isVolumeUnit, gToOz, mlToFlOz, UNITS, type Unit,
 } from "./index";
@@ -255,6 +255,21 @@ describe("density, cost and input checks", () => {
     expect(batchCost(1, 1, 1, {}).total).toBe(0);
     expect(costPer(70.5, 2, 100)).toEqual({ perBottle: 35.25, perMl: 0.705 });
     expect(costPer(10, 0, 0)).toEqual({ perBottle: null, perMl: null });
+  });
+
+  it("adds packaging per bottle and labour by the hour", () => {
+    const c = batchCost(23.75, 75, 2, { oilPerG: 2, ethanolPerL: 40, bottleEach: 10, packagingEach: 1.5, labourMinutes: 30, labourPerHour: 20 });
+    expect([c.packaging, c.labour, c.total]).toEqual([3, 10, 83.5]);
+    expect(batchCost(1, 1, 1, { labourMinutes: 30 }).labour).toBe(0); // minutes without a rate cost nothing
+  });
+
+  it("works out revenue, profit, margin and markup per bottle price", () => {
+    expect(margin(83.5, 2, 60)).toEqual({ revenue: 120, profit: 36.5, marginPct: (36.5 / 120) * 100, markupPct: (36.5 / 83.5) * 100 });
+    expect(margin(0, 2, 60)).toMatchObject({ profit: 120, marginPct: 100, markupPct: null }); // no cost entered: no markup
+    expect(margin(100, 1, 80).profit).toBe(-20); // a loss shows as negative
+    expect(margin(50, 0, 60)).toEqual({ revenue: null, profit: null, marginPct: null, markupPct: null });
+    expect(margin(50, 2, null).revenue).toBeNull();
+    expect(margin(50, 2, 0).revenue).toBeNull();
   });
 
   const limits = { range: [20, 25] as const, oilDensity: [0.8, 1.2] as const, ethanolDensity: [0.78, 0.83] as const };
