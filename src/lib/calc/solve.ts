@@ -43,7 +43,7 @@ export function solveFromOil(oilG: number, pct: number, basis: Basis, d: Densiti
   const exact = basis === "volume"
     ? byVolume(oilG / d.oil / c, c, d)
     : byWeight(oilG / c, c, d);
-  const bottles = bottleMl && bottleMl > 0 ? Math.floor(Number((exact.totalMl / bottleMl).toPrecision(12))) : null;
+  const bottles = bottleMl && Number.isFinite(bottleMl) && bottleMl > 0 ? Math.floor(Number((exact.totalMl / bottleMl).toPrecision(12))) : null;
   const leftoverMl = bottles === null ? null : exact.totalMl - bottles * (bottleMl as number);
   return { ...solution(basis, pct, d, exact), bottles, leftoverMl };
 }
@@ -152,16 +152,19 @@ export interface Run extends Solution {
  * overfill percentage to cover what is lost in transfer.
  */
 export function solveRun(lines: RunLine[], pct: number, d: Densities, overfillPct = 0): Run {
-  const clean = lines.filter((l) => l.sizeMl > 0 && l.count > 0);
+  // Only finite, positive lines count: an Infinity size would make the whole mix infinite.
+  const clean = lines.filter((l) => Number.isFinite(l.sizeMl) && Number.isFinite(l.count) && l.sizeMl > 0 && l.count > 0);
   const bottlesMl = clean.reduce((s, l) => s + l.sizeMl * l.count, 0);
-  const mixMl = bottlesMl * (1 + overfillPct / 100);
+  // A negative or non-finite overfill is no overfill (a mix is never smaller than its bottles).
+  const overfill = Number.isFinite(overfillPct) && overfillPct > 0 ? overfillPct : 0;
+  const mixMl = bottlesMl * (1 + overfill / 100);
   const sol = solveBottle(mixMl, "ml", pct, d);
   const gPerMl = sol.exact.totalMl > 0 ? sol.exact.totalG / sol.exact.totalMl : 0;
   return {
     ...sol,
     lines: clean,
     bottlesMl,
-    overfillPct,
+    overfillPct: overfill,
     perBottle: clean.map((l) => ({ sizeMl: l.sizeMl, count: l.count, ml: l.sizeMl, g: l.sizeMl * gPerMl })),
   };
 }

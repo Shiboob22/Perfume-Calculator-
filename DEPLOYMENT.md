@@ -1,8 +1,11 @@
 # Deploying Scent Ledger — free, on your Mac
 
-Your app is a static Vite/React build — no server needed, since Supabase
-already is the backend. That makes it a perfect fit for Vercel's free
-(Hobby) tier: a few terminal commands and you get a real, live URL.
+Your app is a Vite/React build plus a handful of Vercel serverless
+functions in `api/` (batches, inventory, account, AI and so on). Supabase is
+the database and sign-in; the functions are the only code that holds the
+Supabase **service-role** key, so they need server-side environment variables
+(step 4). That fits Vercel's free (Hobby) tier: a few terminal commands and
+you get a real, live URL.
 
 ## 0. Prerequisites
 
@@ -28,8 +31,11 @@ sensible, e.g. `~/Projects/scent-handbook-app`, then in Terminal:
 
 ```bash
 cd ~/Projects/scent-handbook-app
-npm install
+npm ci
 ```
+
+(Node 22 is what CI uses. Use `npm ci`, not `npm install`, so you get the
+exact versions in `package-lock.json`.)
 
 Sanity-check it runs locally first:
 
@@ -94,23 +100,56 @@ Supabase credentials yet.
 
 ## 4. Add your Supabase credentials
 
-Unlike the standalone HTML file, a proper Vite build bakes environment
-variables in **at build time**, not read at runtime — so they need to
-live in Vercel's dashboard, not just your local `.env`.
+Unlike the standalone HTML file, a proper Vite build bakes `VITE_` variables
+in **at build time**, not read at runtime — so they need to live in Vercel's
+dashboard, not just your local `.env`. The `api/` functions read their
+variables at request time.
 
 1. Go to [vercel.com/dashboard](https://vercel.com/dashboard) → your
    project → **Settings → Environment Variables**.
-2. Add two variables (values from Supabase dashboard → Project Settings
-   → API — use the **anon / public** key, not service_role):
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-3. Redeploy so the build picks them up:
+2. Add these (values from Supabase dashboard → Project Settings → API):
+
+   | Variable | Value | Public? |
+   |---|---|---|
+   | `VITE_SUPABASE_URL` | the project URL | Yes |
+   | `VITE_SUPABASE_ANON_KEY` | the **anon / publishable** key | Yes — shipped to the browser by design; **not a secret and not access control** |
+   | `SUPABASE_SERVICE_ROLE_KEY` | the **service_role** key | **No. Server-only.** Bypasses RLS. Mark it Sensitive in Vercel |
+
+   Rules: never give a secret a `VITE_` prefix (Vite would ship it to every
+   visitor), never commit real values, and never put the service-role key in
+   a browser-side file. `npm run check:bundle` fails the build if a
+   service-role key or other secret reaches `dist/`.
+3. Use **separate Supabase projects for Preview and Production** (Preview
+   variables → staging, Production variables → production), so a preview
+   deployment never touches real users' data.
+4. Make sure the project's database was created from
+   `supabase/migrations/` (applied in order) and that Row Level Security is
+   on for user data — the anon key can only be as safe as those policies.
+   The database is set up with the migrations, **not** by running
+   `supabase-schema-v2.sql`, which is historical and permissive. This
+   guide does not tell you which migrations your project has applied: check
+   (Supabase dashboard → Database → Migrations, or `supabase migration list`).
+5. Redeploy so the build picks the variables up:
    ```bash
    vercel --prod
    ```
 
 Reload your live URL — Search, Calculator, Batches, and Inventory
 should now all work for real, from anywhere, on any device.
+
+### Validate before you deploy
+
+```bash
+npm ci
+npm run lint
+npm run typecheck
+npm test
+npm run build          # needs VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY (CI uses placeholders)
+npm run check:bundle   # fails if a secret reached dist/
+npm run e2e            # Playwright against the build
+```
+
+Deploy to a Preview first and check that deployment, not localhost.
 
 ## 5. (Optional) Turn on Gemini AI — free
 

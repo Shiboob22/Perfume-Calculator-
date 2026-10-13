@@ -43,6 +43,22 @@ function isTimeout(err: any) {
 const SLOW_READ = 'Database is slow to respond — please try again.';
 const SLOW_WRITE = 'Database is slow to respond. The change may still save — refresh before trying again.';
 
+// An unexpected failure. The detail (the database's own message and code) goes
+// to the server log with the route and user for context; the client gets a
+// fixed message, never database text, SQL, a stack or a key. Nothing from the
+// request (token, body) is logged.
+const SERVER_ERROR = 'Something went wrong. Please try again.';
+function serverError(res: VercelResponse, err: any, context: string, userId: string | null) {
+  console.error(JSON.stringify({
+    at: 'api/inventory',
+    context,
+    user: userId,
+    message: String(err?.message ?? err),
+    code: err?.code,
+  }));
+  return res.status(500).json({ error: SERVER_ERROR, code: 'server_error' });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   setCors(req, res);
 
@@ -78,7 +94,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (err: any) {
     if (isTimeout(err)) return res.status(503).json({ error: SLOW_READ });
-    return res.status(500).json({ error: err.message });
+    return serverError(res, err, 'entitlements', userId);
   }
 
   if (req.method === 'GET') {
@@ -108,7 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ items });
     } catch (err: any) {
       if (isTimeout(err)) return res.status(503).json({ error: SLOW_READ });
-      return res.status(500).json({ error: err.message });
+      return serverError(res, err, 'list', userId);
     }
   }
 
@@ -144,14 +160,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ item: data[0] });
     } catch (err: any) {
       if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
-      return res.status(500).json({ error: err.message });
+      return serverError(res, err, 'upsert', userId);
     }
   }
 
   if (req.method === 'PATCH') {
     try {
-      const { id, restock_g } = req.body;
-      const targetId = id || req.body.fragrance_id;
+      const { id, restock_g, fragrance_id } = req.body || {};
+      const targetId = id || fragrance_id;
 
       if (!targetId || typeof restock_g !== 'number' || !Number.isFinite(restock_g) || Math.abs(restock_g) > 1_000_000) {
         return res.status(400).json({ error: 'Invalid payload' });
@@ -175,7 +191,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ item: data });
     } catch (err: any) {
       if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
-      return res.status(500).json({ error: err.message });
+      return serverError(res, err, 'restock', userId);
     }
   }
 
@@ -194,7 +210,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ success: true });
     } catch (err: any) {
       if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
-      return res.status(500).json({ error: err.message });
+      return serverError(res, err, 'delete', userId);
     }
   }
 

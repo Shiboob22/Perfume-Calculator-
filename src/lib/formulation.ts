@@ -9,12 +9,35 @@
 //
 // The handbook's rule stands regardless: reference densities are starting
 // points, and a measured density always wins.
+//
+// FAMILY DENSITIES ARE PROVISIONAL. The per-family oil densities below (0.87,
+// 0.93, 0.95, 1.00, 1.02 g/mL) are starting assumptions inherited from the
+// old HTML tool, not measured constants and not the product of a published
+// survey: two legacy sources disagree on them (the handbook gives one
+// reference value, 0.95, for every family; the HTML tool gives one per
+// family; the ratios JSON gives none), and no source here says how any of the
+// values were obtained. They exist so the calculator has somewhere to start
+// before anything has been weighed. A real concentrate varies with its
+// formulation and temperature, so the density of the oil actually on the
+// bench should always be preferred:
+//   - the calculator takes a measured density per oil (`measuredDensity()` in
+//     src/lib/calc/density.ts; stored per user and oil in
+//     `fragrance_notes.measured_density`, migration 0005) and uses it in place
+//     of the family value everywhere (`oilDensity: measured ?? family`);
+//   - the family value is only the fallback when nothing has been measured.
+// Do not change an `active` number here without the owner's decision (see
+// `npm run numbers:diff`) and a stated reason; the numbers are part of every
+// calculation, label and saved batch.
 
 export type TierKey = "fresh" | "floral" | "woody" | "oriental" | "gourmand";
 export type Range = readonly [number, number];
 
 export interface FamilyValues {
-  /** Oil density, g/mL. */
+  /**
+   * Oil density, g/mL. A provisional starting assumption for the family, not a
+   * measured constant: a measured density for the actual oil takes precedence
+   * (see the note at the top of this file).
+   */
   density: number;
   /** Concentration the calculator starts at, % oil. */
   defaultConc: number;

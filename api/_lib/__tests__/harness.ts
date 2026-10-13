@@ -113,8 +113,9 @@ class Query implements PromiseLike<any> {
       for (const r of out) Object.assign(r, this.value);
       this.db.writes.push({ table: this.table, op: 'update', value: { set: this.value, where: this.filters } });
     } else if (this.op === 'upsert') {
-      const key = this.upsertConflict;
-      const existing = rows.find((r) => r[key] === this.value[key]);
+      // onConflict may name several columns ('user_id, fragrance_id').
+      const keys = this.upsertConflict.split(',').map((k) => k.trim());
+      const existing = rows.find((r) => keys.every((k) => r[k] === this.value[k]));
       if (existing) Object.assign(existing, this.value);
       else rows.push({ ...this.value });
       out = [existing ?? rows[rows.length - 1]];
