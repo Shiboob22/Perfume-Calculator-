@@ -8,6 +8,24 @@ export function usedOil(target, actualOilG) {
   return pos(actualOilG) ?? target.exact.oilG;
 }
 
+const CURRENCY = /^[A-Z]{3}$/;
+// The seller fields (0022). Left out entirely unless `seller` is given, so a
+// plan without them never sends stale ones from an old draft.
+function sellerFields(seller) {
+  if (!seller) return {};
+  const bottles = Math.floor(Number(seller.bottles));
+  return {
+    ethanol_price_per_l: pos(seller.ethanolPricePerL),
+    bottle_cost: pos(seller.bottleCost),
+    bottles: bottles > 0 ? bottles : null,
+    packaging_cost: pos(seller.packagingCost),
+    labour_minutes: pos(seller.labourMinutes),
+    labour_rate_per_hour: pos(seller.labourRate),
+    sale_price: pos(seller.salePrice),
+    currency: CURRENCY.test(seller.currency) ? seller.currency : null,
+  };
+}
+
 /**
  * `target` is the solved bottle ({ exact, basis }), `densities` the
  * { oil, ethanol } it was solved with. Optional fields left out are null.
@@ -15,7 +33,7 @@ export function usedOil(target, actualOilG) {
  */
 export function buildBatch({
   id, fragranceId, name, tier, blendDate, concPct, target, densities,
-  actualOilG, actualEthG, oilType, pricePerGram, oilCost, notes, blendedBy, lot, amount, unit,
+  actualOilG, actualEthG, oilType, pricePerGram, oilCost, notes, blendedBy, lot, amount, unit, seller,
 }) {
   const e = target.exact;
   const price = pos(pricePerGram);
@@ -43,5 +61,6 @@ export function buildBatch({
     lot: text(lot),
     amount: pos(amount),
     unit: unit || null,
+    ...sellerFields(seller),
   };
 }

@@ -45,3 +45,30 @@ export function margin(total: number, bottles: number, salePrice: number | null)
     markupPct: total > 0 ? (profit / total) * 100 : null,
   };
 }
+
+/**
+ * The economics of a logged batch, from its stored columns. Null when the
+ * batch has no seller data (a Free batch, or one logged without prices).
+ * Cost uses the oil actually poured when recorded, like the calculator.
+ */
+export function batchEconomics(b: Record<string, any>) {
+  const n = (v: unknown) => (Number(v) > 0 ? Number(v) : null);
+  const bottles = Math.floor(Number(b.bottles)) || 0;
+  const has = [b.ethanol_price_per_l, b.bottle_cost, b.packaging_cost, b.labour_minutes, b.sale_price]
+    .some((v) => n(v) !== null);
+  if (!has || bottles <= 0) return null;
+  const cost = batchCost(n(b.actual_oil_g) ?? Number(b.oil_g), Number(b.ethanol_ml), bottles, {
+    oilPerG: n(b.price_per_gram),
+    ethanolPerL: n(b.ethanol_price_per_l),
+    bottleEach: n(b.bottle_cost),
+    packagingEach: n(b.packaging_cost),
+    labourMinutes: n(b.labour_minutes),
+    labourPerHour: n(b.labour_rate_per_hour),
+  });
+  return {
+    currency: typeof b.currency === "string" ? b.currency : "",
+    total: cost.total,
+    perBottle: cost.total / bottles,
+    ...margin(cost.total, bottles, n(b.sale_price)),
+  };
+}

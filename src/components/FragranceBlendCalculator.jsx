@@ -43,6 +43,8 @@ function todayISO() {
 }
 
 const MODES = ["bottle", "fromOil", "adjust", "run"];
+// Money is only labelled with a code, never converted.
+const CURRENCIES = ["USD", "EUR", "GBP", "SAR", "AED", "KWD", "QAR", "EGP", "TRY"];
 
 function useDebouncedValue(value, delay) {
   const [debounced, setDebounced] = useState(value);
@@ -206,6 +208,14 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [ethanolPricePerL, setEthanolPricePerL] = useState(draft?.ethanolPricePerL ?? "");
   const [bottleCost, setBottleCost] = useState(draft?.bottleCost ?? "");
   const [bottles, setBottles] = useState(draft?.bottles ?? "1");
+  const [packagingCost, setPackagingCost] = useState(draft?.packagingCost ?? "");
+  const [labourMinutes, setLabourMinutes] = useState(draft?.labourMinutes ?? "");
+  const [labourRate, setLabourRate] = useState(draft?.labourRate ?? "");
+  const [salePrice, setSalePrice] = useState(draft?.salePrice ?? "");
+  const [currency, setCurrency] = useState(CURRENCIES.includes(draft?.currency) ? draft.currency : "USD");
+  // Cost, packaging, labour and sale price are Pro. A draft from before a
+  // downgrade keeps its values but they are neither shown, costed nor sent.
+  const sellerOn = can(entitlements, "calculator.advanced");
   const [oilType, setOilType] = useState(draft?.oilType ?? "");
   const [pricePerGram, setPricePerGram] = useState(draft?.pricePerGram ?? "");
   const [notes, setNotes] = useState(draft?.notes ?? "");
@@ -218,11 +228,13 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   useEffect(() => {
     saveDraft({
       fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles,
+      packagingCost, labourMinutes, labourRate, salePrice, currency,
       oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities,
       measuredDensity: measuredDensityValue ?? undefined,
       chosenFamily: chosen.current.family, chosenConc: chosen.current.conc,
     });
   }, [fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles,
+    packagingCost, labourMinutes, labourRate, salePrice, currency,
     oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities, measuredDensityValue]);
 
   const [logStatus, setLogStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
@@ -315,10 +327,11 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     actualOilG,
     actualEthanolG: actualEthG,
     pricePerGram,
-    ethanolPricePerL,
-    bottleCost,
-    bottles,
-  }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG, ethanolPricePerL, bottleCost, bottles]);
+    ...(sellerOn ? { ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice } : {}),
+  }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG, sellerOn,
+    ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice]);
+  const money = (v, digits = 2) => `${v.toFixed(digits)} ${currency}`;
+  const seller = sellerOn ? { ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice, currency } : undefined;
 
   // "Use these settings" from an earlier batch of this oil: a user choice,
   // so a later name match won't change it.
@@ -343,7 +356,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     const row = (fragranceId) => buildBatch({
       id: logId.current, fragranceId, name: fragName.trim(), tier: tierKey, blendDate, concPct,
       target: result, densities: result.densities, actualOilG, actualEthG,
-      oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit,
+      oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit, seller,
     });
     try {
       let fragrance = matched;
@@ -667,20 +680,29 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 <TextInput id="calc-price" type="number" step="0.01" min="0" value={pricePerGram} onChange={(e) => setPricePerGram(e.target.value)} placeholder="0.00" />
               </div>
             </div>
-            {can(entitlements, "calculator.advanced") && (
-              <div className="grid grid-cols-3 gap-3 items-end mb-3">
-                <div>
-                  <label htmlFor="calc-eth-price" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.ethanolPerL")}</label>
-                  <TextInput id="calc-eth-price" type="number" step="0.01" min="0" value={ethanolPricePerL} onChange={(e) => setEthanolPricePerL(e.target.value)} placeholder="0.00" />
+            {sellerOn && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 items-end mb-3">
+                <div className="col-span-2 sm:col-span-3">
+                  <label htmlFor="calc-currency" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.currency")}</label>
+                  <select id="calc-currency" value={currency} onChange={(e) => setCurrency(e.target.value)}
+                    className="w-full sm:w-40 px-3 py-2 font-mono text-sm border min-h-[44px]" style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
+                    {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
                 </div>
-                <div>
-                  <label htmlFor="calc-bottle-cost" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.bottleEach")}</label>
-                  <TextInput id="calc-bottle-cost" type="number" step="0.01" min="0" value={bottleCost} onChange={(e) => setBottleCost(e.target.value)} placeholder="0.00" />
-                </div>
-                <div>
-                  <label htmlFor="calc-bottles" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.bottles")}</label>
-                  <TextInput id="calc-bottles" type="number" step="1" min="0" value={bottles} onChange={(e) => setBottles(e.target.value)} />
-                </div>
+                {[
+                  ["calc-eth-price", "ethanolPerL", ethanolPricePerL, setEthanolPricePerL, "0.01"],
+                  ["calc-bottle-cost", "bottleEach", bottleCost, setBottleCost, "0.01"],
+                  ["calc-bottles", "bottles", bottles, setBottles, "1"],
+                  ["calc-packaging", "packagingEach", packagingCost, setPackagingCost, "0.01"],
+                  ["calc-labour-min", "labourMinutes", labourMinutes, setLabourMinutes, "1"],
+                  ["calc-labour-rate", "labourPerHour", labourRate, setLabourRate, "0.01"],
+                  ["calc-sale-price", "salePrice", salePrice, setSalePrice, "0.01"],
+                ].map(([id, key, value, set, step]) => (
+                  <div key={id}>
+                    <label htmlFor={id} className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t(`calc.cost.${key}`)}</label>
+                    <TextInput id={id} type="number" inputMode="decimal" step={step} min="0" value={value} onChange={(e) => set(e.target.value)} placeholder={key === "bottles" ? "1" : "0.00"} />
+                  </div>
+                ))}
               </div>
             )}
             <div className="grid grid-cols-2 gap-3 items-end mb-1">
@@ -757,11 +779,20 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             </div>
           )}
 
-          {can(entitlements, "calculator.advanced") && result.cost.total > 0 && (
+          {sellerOn && result.cost.total > 0 && (
             <div className="py-2 text-sm font-mono space-y-0.5" style={{ color: COLORS.ink }}>
-              <div>{t("calc.cost.total", { cost: fmt2(result.cost.total) })}</div>
-              {result.cost.perBottle != null && <div>{t("calc.cost.perBottle", { cost: fmt2(result.cost.perBottle) })}</div>}
-              {result.cost.perMl != null && <div>{t("calc.cost.perMl", { cost: result.cost.perMl.toFixed(3) })}</div>}
+              <div>{t("calc.cost.total", { cost: money(result.cost.total) })}</div>
+              {result.cost.perBottle != null && <div>{t("calc.cost.perBottle", { cost: money(result.cost.perBottle) })}</div>}
+              {result.cost.perMl != null && <div>{t("calc.cost.perMl", { cost: money(result.cost.perMl, 3) })}</div>}
+              {result.cost.bottles === 0 && <div className="font-sans text-[11px]" style={{ color: COLORS.dim }}>{t("calc.cost.needBottles")}</div>}
+              {result.cost.profit != null && (
+                <>
+                  <div>{t("calc.cost.revenue", { cost: money(result.cost.revenue) })}</div>
+                  <div>{t(result.cost.profit < 0 ? "calc.cost.loss" : "calc.cost.profit", { cost: money(Math.abs(result.cost.profit)) })}</div>
+                  <div>{t("calc.cost.margin", { pct: fmt2(result.cost.marginPct) })}</div>
+                  {result.cost.markupPct != null && <div>{t("calc.cost.markup", { pct: fmt2(result.cost.markupPct) })}</div>}
+                </>
+              )}
             </div>
           )}
 

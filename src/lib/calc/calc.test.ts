@@ -3,7 +3,7 @@ import {
   weightRatio,
   weightShare,
   round2, fmt2, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs,
-  checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, margin, byVolume, fromWeights,
+  checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, margin, batchEconomics, byVolume, fromWeights,
   concentrationOf, displayed, volumeToWeightFraction, weightToVolumeFraction, toBase,
   isVolumeUnit, gToOz, mlToFlOz, UNITS, type Unit,
 } from "./index";
@@ -261,6 +261,20 @@ describe("density, cost and input checks", () => {
     const c = batchCost(23.75, 75, 2, { oilPerG: 2, ethanolPerL: 40, bottleEach: 10, packagingEach: 1.5, labourMinutes: 30, labourPerHour: 20 });
     expect([c.packaging, c.labour, c.total]).toEqual([3, 10, 83.5]);
     expect(batchCost(1, 1, 1, { labourMinutes: 30 }).labour).toBe(0); // minutes without a rate cost nothing
+  });
+
+  it("works out a logged batch's economics from its columns", () => {
+    const b = { oil_g: 23.75, ethanol_ml: 75, price_per_gram: 2, bottles: 2, ethanol_price_per_l: 40, bottle_cost: 10, sale_price: 60, currency: "SAR" };
+    const e = batchEconomics(b)!;
+    expect(e).toMatchObject({ currency: "SAR", revenue: 120 });
+    expect(e.total).toBeCloseTo(70.5, 10);
+    expect(e.perBottle).toBeCloseTo(35.25, 10);
+    expect(e.profit).toBeCloseTo(49.5, 10);
+    // the oil really poured is what was bought
+    expect(batchEconomics({ ...b, actual_oil_g: 24 })!.total).toBeCloseTo(71, 10);
+    expect(batchEconomics({ ...b, currency: null })!.currency).toBe("");
+    expect(batchEconomics({ oil_g: 23.75, ethanol_ml: 75, price_per_gram: 2 })).toBeNull(); // no seller data
+    expect(batchEconomics({ ...b, bottles: null })).toBeNull();
   });
 
   it("works out revenue, profit, margin and markup per bottle price", () => {

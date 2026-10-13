@@ -10,7 +10,7 @@ import { PALETTES } from "./theme";
 const COLORS = PALETTES.light;
 import { TIERS, TIER_COLORS } from "./tiers";
 import { batchStartedAt, batchReadyAt, formatExact } from "./batchTiming";
-import { actualStrength, fmt2, shownTotal } from "./calc";
+import { actualStrength, batchEconomics, fmt2, shownTotal } from "./calc";
 import { dirOf } from "../i18n/core";
 import { loadArabicFonts } from "../i18n/arabicFonts";
 
@@ -76,6 +76,12 @@ export function cardRows(batch, { t, locale }) {
   }
   if (batch.oil_cost) rows.push([t("calc.oilCost"), round2(batch.oil_cost)]);
   if (batch.price_per_gram) rows.push([t("calc.pricePerGram"), round2(Number(batch.price_per_gram))]);
+  const econ = batchEconomics(batch);
+  if (econ) {
+    const m = (v) => `${fmt2(v)}${econ.currency ? ` ${econ.currency}` : ""}`;
+    rows.push([t("batches.costPerBottle"), m(econ.perBottle)]);
+    if (econ.profit != null) rows.push([t(econ.profit < 0 ? "batches.loss" : "batches.profit"), `${m(Math.abs(econ.profit))} (${fmt2(econ.marginPct)}%)`]);
+  }
   const started = batchStartedAt(batch);
   const ready = batchReadyAt(batch);
   if (started) rows.push([t("batches.created"), formatExact(started, locale)]);

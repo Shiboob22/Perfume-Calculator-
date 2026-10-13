@@ -3,7 +3,7 @@ import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listBatches, deleteBatch } from "../lib/fragranceApi";
 import { downloadBatchCard } from "../lib/batchCard";
-import { actualStrength, fmt2, shownTotal } from "../lib/calc";
+import { actualStrength, batchEconomics, fmt2, shownTotal } from "../lib/calc";
 import { batchInsights } from "../lib/aiApi";
 import { batchStartedAt, batchReadyAt, formatDay, formatExact, readyCountdown } from "../lib/batchTiming";
 import { useI18n } from "../i18n/I18nProvider";
@@ -147,6 +147,17 @@ function RestPanel({ batch }) {
       )}
     </div>
   );
+}
+
+// Cost per bottle and, when a sale price was set, profit and margin.
+function economicsRows(b, t) {
+  const e = batchEconomics(b);
+  if (!e) return [];
+  const m = (v) => `${fmt2(v)}${e.currency ? ` ${e.currency}` : ""}`;
+  return [
+    [t("batches.costPerBottle"), m(e.perBottle), null],
+    e.profit != null ? [t(e.profit < 0 ? "batches.loss" : "batches.profit"), m(Math.abs(e.profit)), `${fmt2(e.marginPct)}%`] : null,
+  ];
 }
 
 export default function Batches() {
@@ -307,6 +318,7 @@ export default function Batches() {
                 [t("batches.ethanol"), `${round2(b.ethanol_g)} g`, `${round2(b.ethanol_ml)} mL`],
                 [t("batches.total"), `${totalOf(b)} g`, null],
                 b.oil_cost ? [t("batches.cost"), round2(b.oil_cost), b.price_per_gram ? `${round2(Number(b.price_per_gram))}${t("batches.perGram")}` : null] : null,
+                ...economicsRows(b, t),
               ].filter(Boolean).map(([label, value, sub]) => (
                 <div key={label}>
                   <dt className="text-xs" style={{ color: COLORS.inkSoft }}>{label}</dt>
