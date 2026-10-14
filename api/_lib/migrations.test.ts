@@ -5,7 +5,8 @@ import { readdirSync } from 'node:fs';
 // tier_from_accords applied from a branch). Numbers must stay unique and gapless.
 describe('supabase/migrations', () => {
   const nums = readdirSync('supabase/migrations')
-    .filter((f) => f.endsWith('.sql'))
+    // A migration's reversal ("0023_x.down.sql") shares its number.
+    .filter((f) => f.endsWith('.sql') && !f.endsWith('.down.sql'))
     .map((f) => Number(f.slice(0, 4)))
     .sort((a, b) => a - b);
 
