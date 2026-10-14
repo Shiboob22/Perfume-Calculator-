@@ -12,13 +12,13 @@ const CATALOGS = { en, ar };
 // The canonical origin. Set VITE_SITE_URL once the custom domain exists.
 export const SITE_URL = (import.meta.env?.VITE_SITE_URL || BRAND.defaultSiteUrl).replace(/\/$/, "");
 
-// "/guides" in Arabic is "/ar/guides"; "/" is "/ar".
+// "/library" in Arabic is "/ar/library"; "/" is "/ar".
 export function localePath(locale, path) {
   if (locale !== "ar") return path;
   return path === "/" ? "/ar" : `/ar${path}`;
 }
 
-// Split "/ar/guides/x" into { locale: "ar", path: "/guides/x" }.
+// Split "/ar/library/x" into { locale: "ar", path: "/library/x" }.
 export function parsePath(pathname) {
   const clean = pathname.replace(/\/+$/, "") || "/";
   if (clean === "/ar") return { locale: "ar", path: "/" };
@@ -28,7 +28,7 @@ export function parsePath(pathname) {
 
 // Every public page, in both languages: what the prerender writes out.
 export function publicPaths() {
-  const base = ["/", "/pricing", "/guides", ...GUIDES.map((g) => `/guides/${g.slug}`), ...LEGAL_PAGES.map((p) => `/${p}`)];
+  const base = ["/", "/pricing", "/library", ...GUIDES.map((g) => `/library/${g.slug}`), ...LEGAL_PAGES.map((p) => `/${p}`)];
   return base.flatMap((p) => [localePath("en", p), localePath("ar", p)]);
 }
 
@@ -51,11 +51,11 @@ export function headFor(pathname) {
   } else if (path === "/pricing") {
     title = t("site.pricing.metaTitle");
     description = t("site.pricing.metaDescription");
-  } else if (path === "/guides") {
+  } else if (path === "/library") {
     title = t("site.guides.metaTitle");
     description = t("site.guides.metaDescription");
-  } else if (path.startsWith("/guides/")) {
-    const guide = guideBySlug(path.slice("/guides/".length));
+  } else if (path.startsWith("/library/")) {
+    const guide = guideBySlug(path.slice("/library/".length));
     if (!guide) return null;
     const g = guide[locale];
     title = `${g.title} — ${brandName(locale)}`;
@@ -78,7 +78,7 @@ export function headFor(pathname) {
   return {
     guideTitle,
     noindex,
-    guidesUrl: SITE_URL + localePath(locale, "/guides"),
+    guidesUrl: SITE_URL + localePath(locale, "/library"),
     guidesLabel: t("site.guides.title"),
     locale,
     dir: locale === "ar" ? "rtl" : "ltr",

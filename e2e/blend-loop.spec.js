@@ -79,7 +79,7 @@ async function fakeApi(page, { plan = "pro", onboarded: startOnboarded = true, l
 test("a recipe link survives sign-up and onboarding, and its source is saved", async ({ page }) => {
   await signIn(page);
   const sent = await fakeApi(page, { onboarded: false });
-  await page.goto("/app/calculator?family=woody&conc=25&size=50&unit=ml&name=Oud%20Nights&ref=recipe");
+  await page.goto("/bench?family=woody&conc=25&size=50&unit=ml&name=Oud%20Nights&ref=recipe");
   await page.getByRole("button", { name: en.onboarding.unit.g }).click();
   await page.getByRole("button", { name: en.onboarding.next }).click();
   await page.getByRole("button", { name: "30 g" }).click();
@@ -87,7 +87,7 @@ test("a recipe link survives sign-up and onboarding, and its source is saved", a
   await page.getByRole("button", { name: "English" }).click();
   await page.getByRole("button", { name: en.onboarding.finish }).click();
 
-  await expect(page).toHaveURL(/\/app\/calculator\?size=50&unit=ml&conc=25&family=woody&name=Oud\+Nights$/);
+  await expect(page).toHaveURL(/\/bench\?size=50&unit=ml&conc=25&family=woody&name=Oud\+Nights$/);
   await expect(page.getByRole("combobox", { name: en.calc.name })).toHaveValue("Oud Nights");
   expect(sent.profiles.some((p) => p.signup_ref === "recipe")).toBe(true);
 });
@@ -95,7 +95,7 @@ test("a recipe link survives sign-up and onboarding, and its source is saved", a
 test("the calculator keeps its inputs across a tab switch, and Start over clears them", async ({ page }) => {
   await signIn(page);
   await fakeApi(page);
-  await page.goto("/app/calculator");
+  await page.goto("/bench");
   await page.getByRole("combobox", { name: en.calc.name }).fill("Amber Draft");
   await page.getByRole("button", { name: new RegExp(en.app.tabs.batches) }).click();
   await page.getByRole("button", { name: new RegExp(en.app.tabs.calculator) }).click();
@@ -107,7 +107,7 @@ test("the calculator keeps its inputs across a tab switch, and Start over clears
 test("a retry after a slow answer sends the same batch id", async ({ page }) => {
   await signIn(page);
   const sent = await fakeApi(page, { logAnswers: ["slow", "ok"] });
-  await page.goto("/app/calculator?name=Oud%20Nights");
+  await page.goto("/bench?name=Oud%20Nights");
   const log = page.getByRole("button", { name: en.calc.log });
   await log.click();
   await expect(page.getByRole("status").filter({ hasText: en.errors.slow_write })).toBeVisible();
@@ -121,7 +121,7 @@ test("a retry after a slow answer sends the same batch id", async ({ page }) => 
 test("offline, a log waits on the device", async ({ page }) => {
   await signIn(page);
   await fakeApi(page, { logAnswers: ["offline"] });
-  await page.goto("/app/calculator?name=Oud%20Nights");
+  await page.goto("/bench?name=Oud%20Nights");
   await page.getByRole("button", { name: en.calc.log }).click();
   await expect(page.getByText(en.calc.queued)).toBeVisible();
   const queued = await page.evaluate(() => JSON.parse(localStorage.getItem("sh-outbox") || "[]"));
@@ -132,7 +132,7 @@ test("offline, a log waits on the device", async ({ page }) => {
 test("bench mode logs the full record and offers next steps", async ({ page }) => {
   await signIn(page);
   const sent = await fakeApi(page);
-  await page.goto("/app/calculator?size=50&unit=ml&conc=25&family=woody&name=Oud%20Nights");
+  await page.goto("/bench?size=50&unit=ml&conc=25&family=woody&name=Oud%20Nights");
   await page.getByRole("button", { name: en.bench.start }).click();
   await page.getByRole("checkbox").check();
   const next = page.getByRole("button", { name: en.bench.next, exact: true });
@@ -163,7 +163,7 @@ test("bench mode logs the full record and offers next steps", async ({ page }) =
 test("a batch is edited, and made again", async ({ page }) => {
   await signIn(page);
   const sent = await fakeApi(page);
-  await page.goto("/app/batches");
+  await page.goto("/bench/journal");
   await page.getByRole("button", { name: en.batches.edit.open }).click();
   await page.getByLabel(en.batches.edit.name).fill("Oud Nights II");
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
@@ -173,16 +173,16 @@ test("a batch is edited, and made again", async ({ page }) => {
   expect(sent.edits).toEqual([{ id: BATCH_ID, edit: { fragrance_name: "Oud Nights II" } }]);
 
   await page.getByRole("button", { name: en.batches.again }).click();
-  await expect(page).toHaveURL(/\/app\/calculator\?size=50&unit=ml&conc=25&family=woody&name=Oud\+Nights\+II/);
+  await expect(page).toHaveURL(/\/bench\?size=50&unit=ml&conc=25&family=woody&name=Oud\+Nights\+II/);
 });
 
 test("Arabic: the edit form and the history panel", async ({ page }) => {
   await signIn(page);
   await fakeApi(page, { locale: "ar" });
   await page.addInitScript(() => localStorage.setItem("sh-locale", "ar"));
-  await page.goto("/app/calculator?name=Oud%20Nights");
+  await page.goto("/bench?name=Oud%20Nights");
   await expect(page.getByRole("heading", { name: ar.calc.history.title })).toBeVisible();
-  await page.goto("/app/batches");
+  await page.goto("/bench/journal");
   await page.getByRole("button", { name: ar.batches.edit.open }).click();
   await expect(page.getByLabel(ar.batches.edit.lot)).toHaveValue("L-7");
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

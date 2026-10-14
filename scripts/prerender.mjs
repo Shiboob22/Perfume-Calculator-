@@ -62,7 +62,7 @@ write(join(DIST, "sitemap-pages.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n
 // The sitemap index: the pages above, written now, and the shared recipes,
 // listed live by api/recipe.ts (they change between builds).
 write(join(DIST, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <sitemap><loc>${site}/sitemap-pages.xml</loc><lastmod>${today}</lastmod></sitemap>\n  <sitemap><loc>${site}/sitemap-recipes.xml</loc></sitemap>\n</sitemapindex>\n`);
-write(join(DIST, "robots.txt"), `User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /api/\n\nSitemap: ${site}/sitemap.xml\n`);
+write(join(DIST, "robots.txt"), `User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /bench\nDisallow: /api/\n\nSitemap: ${site}/sitemap.xml\n`);
 
 // The stylesheet for the server-rendered recipe pages (api/recipe.ts), at a
 // name that doesn't change between builds: the site CSS plus the Arabic

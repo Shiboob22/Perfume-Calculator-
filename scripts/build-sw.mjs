@@ -10,7 +10,7 @@ const { count, size, warnings } = await generateSW({
   globIgnores: ["sw.js", "workbox-*.js"],
   swDest: "dist/sw.js",
   navigateFallback: "/app/index.html",
-  navigateFallbackAllowlist: [/^\/app(\/|$)/],
+  navigateFallbackAllowlist: [/^\/(app|bench)(\/|$)/],
   cleanupOutdatedCaches: true,
   clientsClaim: true,
   skipWaiting: true,

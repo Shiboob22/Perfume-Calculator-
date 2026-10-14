@@ -57,7 +57,7 @@ function Big({ label, grams }) {
 
 function Rules({ step }) {
   const { t, locale } = useI18n();
-  const guide = `${locale === "ar" ? "/ar" : ""}/guides/at-the-bench`;
+  const guide = `${locale === "ar" ? "/ar" : ""}/library/at-the-bench`;
   const rules = RULES_AT[step] || [];
   if (!rules.length) return null;
   return (
@@ -148,7 +148,7 @@ export default function BenchMode() {
     return (
       <div className="max-w-xl mx-auto p-6">
         <p style={{ color: COLORS.inkSoft }}>{t("bench.noPlan")}</p>
-        <button type="button" onClick={() => navigate("/app/calculator")} className="mt-4 underline" style={{ color: COLORS.amber }}>{t("app.tabs.calculator")}</button>
+        <button type="button" onClick={() => navigate("/bench")} className="mt-4 underline" style={{ color: COLORS.amber }}>{t("app.tabs.calculator")}</button>
       </div>
     );
   }
@@ -204,7 +204,7 @@ export default function BenchMode() {
             {t("bench.batch", { name: plan.name || t("bench.untitled"), size: plan.amount, unit, pct })}
           </p>
         </div>
-        <button type="button" onClick={() => navigate("/app/calculator")} className="text-xs underline" style={{ color: COLORS.inkSoft }}>
+        <button type="button" onClick={() => navigate("/bench")} className="text-xs underline" style={{ color: COLORS.inkSoft }}>
           {t("bench.exit")}
         </button>
       </header>
@@ -329,7 +329,7 @@ export default function BenchMode() {
               <nav aria-label={t("bench.after.title")} className="mt-6 grid gap-2">
                 <h2 className="font-serif italic text-xl" style={{ color: COLORS.amberDeep }}>{t("bench.after.title")}</h2>
                 {status === "saved" && (
-                  <button type="button" onClick={() => navigate("/app/batches")} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+                  <button type="button" onClick={() => navigate("/bench/journal")} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
                     {t("bench.after.batches")}
                   </button>
                 )}
@@ -341,7 +341,7 @@ export default function BenchMode() {
                 <button type="button" onClick={startAnother} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.amber, color: COLORS.amber }}>
                   {t("bench.label.again")}
                 </button>
-                <button type="button" onClick={() => navigate("/app/calculator")} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+                <button type="button" onClick={() => navigate("/bench")} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
                   {t("bench.after.calculator")}
                 </button>
               </nav>

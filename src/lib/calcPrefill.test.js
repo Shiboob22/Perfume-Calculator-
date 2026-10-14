@@ -42,21 +42,21 @@ describe("refFrom", () => {
 describe("afterOnboardingPath", () => {
   const answers = { default_bottle: 50, default_unit: "ml" };
   it("uses the answers when there is no link", () => {
-    expect(afterOnboardingPath("", answers)).toBe("/app/calculator?size=50&unit=ml");
-    expect(afterOnboardingPath("", {})).toBe("/app/calculator");
+    expect(afterOnboardingPath("", answers)).toBe("/bench?size=50&unit=ml");
+    expect(afterOnboardingPath("", {})).toBe("/bench");
   });
   it("keeps every value the link carried", () => {
     expect(afterOnboardingPath("?size=30&unit=g&conc=25&family=woody&name=Oud", answers))
-      .toBe("/app/calculator?size=30&unit=g&conc=25&family=woody&name=Oud");
+      .toBe("/bench?size=30&unit=g&conc=25&family=woody&name=Oud");
   });
   it("fills only the bottle the link left out", () => {
-    expect(afterOnboardingPath("?conc=20&family=fresh", answers)).toBe("/app/calculator?size=50&unit=ml&conc=20&family=fresh");
+    expect(afterOnboardingPath("?conc=20&family=fresh", answers)).toBe("/bench?size=50&unit=ml&conc=20&family=fresh");
   });
   it("never mixes a link's size with the answers' unit", () => {
-    expect(afterOnboardingPath("?size=30", answers)).toBe("/app/calculator?size=30");
+    expect(afterOnboardingPath("?size=30", answers)).toBe("/bench?size=30");
   });
   it("drops what the calculator would ignore", () => {
-    expect(afterOnboardingPath("?family=__proto__&conc=900&evil=1", answers)).toBe("/app/calculator?size=50&unit=ml");
+    expect(afterOnboardingPath("?family=__proto__&conc=900&evil=1", answers)).toBe("/bench?size=50&unit=ml");
   });
 });
 

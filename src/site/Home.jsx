@@ -36,11 +36,11 @@ export default function Home() {
           </h1>
           <p className={`mt-7 measure ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{t("site.home.lead")}</p>
           <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3">
-            <a href="/app/calculator?ref=home" className="inline-flex items-center gap-2 px-6 min-h-[52px] font-medium"
+            <a href="/bench?ref=home" className="inline-flex items-center gap-2 px-6 min-h-[52px] font-medium"
               style={{ background: COLORS.amber, color: COLORS.onAmber }}>
               {t("site.home.ctaApp")} <IconArrow size={18} />
             </a>
-            <Link to={to("/guides")} className="inline-flex items-center gap-2 min-h-[44px] underline underline-offset-4" style={{ color: COLORS.ink }}>
+            <Link to={to("/library")} className="inline-flex items-center gap-2 min-h-[44px] underline underline-offset-4" style={{ color: COLORS.ink }}>
               <IconBook size={18} /> {t("site.home.ctaGuides")}
             </Link>
           </div>
@@ -82,7 +82,7 @@ export default function Home() {
         <SectionTitle>{t("site.home.guidesTitle")}</SectionTitle>
         <p className="font-serif mb-8" style={{ color: COLORS.inkSoft }}>{t("site.home.guidesLead")}</p>
         <GuideRows />
-        <Link to={to("/guides")} className="inline-flex items-center gap-2 mt-8 text-sm font-medium min-h-[44px]" style={{ color: COLORS.forest }}>
+        <Link to={to("/library")} className="inline-flex items-center gap-2 mt-8 text-sm font-medium min-h-[44px]" style={{ color: COLORS.forest }}>
           {t("site.home.allGuides")} <IconArrow size={18} />
         </Link>
       </section>

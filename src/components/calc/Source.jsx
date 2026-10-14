@@ -23,7 +23,7 @@ export default function Source({ id }) {
   }, [open]);
   const note = t.raw(`calc.sources.${id}`);
   if (!note) return null;
-  const href = note.guide ? `${locale === "ar" ? "/ar" : ""}/guides/${note.guide}` : null;
+  const href = note.guide ? `${locale === "ar" ? "/ar" : ""}/library/${note.guide}` : null;
   return (
     <span ref={wrapRef} className="relative inline-block align-middle ms-1">
       {/* A 24px target around the 16px mark (WCAG 2.5.8), without moving the text. */}

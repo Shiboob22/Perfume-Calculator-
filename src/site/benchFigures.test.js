@@ -15,6 +15,6 @@ describe("live bench", () => {
     expect([f.oil, f.alcohol, f.total].map((g) => g.toFixed(2))).toEqual(["23.75", "60.75", "84.50"]);
   });
   it("opens the calculator at the same bottle", () => {
-    expect(benchHref(50, 30)).toBe("/app/calculator?size=50&unit=ml&conc=30&ref=home");
+    expect(benchHref(50, 30)).toBe("/bench?size=50&unit=ml&conc=30&ref=home");
   });
 });

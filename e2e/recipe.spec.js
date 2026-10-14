@@ -25,7 +25,7 @@ for (const lang of ["en", "ar"]) {
     // No sideways scrolling on a phone.
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     const make = page.getByRole("link", { name: lang === "ar" ? "اصنع هذه الخلطة" : "Make this blend" });
-    await expect(make).toHaveAttribute("href", "/app/calculator?family=woody&conc=25&size=100&unit=ml&name=Oud+Nights&ref=recipe");
+    await expect(make).toHaveAttribute("href", "/bench?family=woody&conc=25&size=100&unit=ml&name=Oud+Nights&ref=recipe");
 
     const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
     const summary = violations.map((v) => `${v.impact} ${v.id}: ${v.help} (${v.nodes.length}) e.g. ${v.nodes[0]?.target}`);

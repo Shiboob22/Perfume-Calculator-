@@ -44,7 +44,7 @@ export function afterOnboardingPath(search, answers = {}) {
   if (link.family) q.set("family", link.family);
   if (link.name) q.set("name", link.name);
   const query = q.toString();
-  return query ? `/app/calculator?${query}` : "/app/calculator";
+  return query ? `/bench?${query}` : "/bench";
 }
 
 // Where the calculator opens: a link's size/unit wins; otherwise the

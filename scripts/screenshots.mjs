@@ -76,9 +76,9 @@ async function signedIn(page, { onboarded = true } = {}) {
   });
 }
 
-const PUBLIC = { home: "/", "home-ar": "/ar", guides: "/guides", "guides-ar": "/ar/guides", guide: "/guides/at-the-bench", pricing: "/pricing", signin: "/app" };
+const PUBLIC = { home: "/", "home-ar": "/ar", guides: "/library", "guides-ar": "/ar/library", guide: "/library/at-the-bench", pricing: "/pricing", signin: "/app" };
 const APP = {
-  calculator: "/app/calculator", batches: "/app/batches", inventory: "/app/inventory", ask: "/app/ask",
+  calculator: "/bench", batches: "/bench/journal", inventory: "/app/inventory", ask: "/app/ask",
   search: "/app/search", account: "/app/account", labels: "/app/labels?batch=11111111-1111-4111-8111-111111111111", bench: "/app/bench",
 };
 
@@ -96,11 +96,11 @@ for (const [size, width, height] of [["phone", 390, 844], ["desktop", 1280, 900]
   };
   for (const [name, path] of Object.entries(PUBLIC)) await shoot(name, path);
   for (const [name, path] of Object.entries(APP)) await shoot(name, path, (p) => signedIn(p));
-  await shoot("onboarding", "/app/calculator", (p) => signedIn(p, { onboarded: false }));
+  await shoot("onboarding", "/bench", (p) => signedIn(p, { onboarded: false }));
   // The app's language is the saved preference, not the URL.
   const arabic = (p) => p.addInitScript(() => globalThis.localStorage.setItem("sh-locale", "ar"));
   await shoot("signin-ar", "/app", arabic);
-  await shoot("batches-ar", "/app/batches", async (p) => { await arabic(p); await signedIn(p); });
+  await shoot("batches-ar", "/bench/journal", async (p) => { await arabic(p); await signedIn(p); });
 }
 await browser.close();
 console.log(`screenshots: ${out}`);

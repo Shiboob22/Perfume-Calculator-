@@ -6,6 +6,22 @@ import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 
+// vercel.json redirects, applied before anything is served (query string kept),
+// as Vercel does. Supports the one `:name` segment form the config uses.
+const CONFIG = JSON.parse(await readFile(join(process.cwd(), "vercel.json"), "utf8"));
+const REDIRECTS = (CONFIG.redirects || []).map((r) => ({
+  re: new RegExp(`^${r.source.replace(/:([a-z]+)/gi, "(?<$1>[^/]+)")}$`),
+  to: r.destination,
+  status: r.statusCode || (r.permanent ? 308 : 307),
+}));
+function redirectFor(pathname) {
+  for (const r of REDIRECTS) {
+    const m = r.re.exec(pathname);
+    if (m) return { to: r.to.replace(/:([a-z]+)/gi, (_, k) => m.groups?.[k] ?? ""), status: r.status };
+  }
+  return null;
+}
+
 const ROOT = join(process.cwd(), "dist");
 const PORT = Number(process.env.PORT || 4173);
 const TYPES = {
@@ -31,9 +47,14 @@ createServer(async (req, res) => {
     res.writeHead(200, { "Content-Type": "text/javascript" });
     return res.end("");
   }
+  const moved = redirectFor(url.pathname);
+  if (moved) {
+    res.writeHead(moved.status, { Location: moved.to + url.search });
+    return res.end();
+  }
   let status = 200;
   let path = await file(join(ROOT, safe));
-  if (!path && (url.pathname === "/app" || url.pathname.startsWith("/app/"))) path = join(ROOT, "app", "index.html");
+  if (!path && (/^\/(app|bench)(\/|$)/.test(url.pathname))) path = join(ROOT, "app", "index.html");
   if (!path) { status = 404; path = join(ROOT, "404.html"); }
   const body = await readFile(path);
   res.writeHead(status, {

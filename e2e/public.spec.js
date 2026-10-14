@@ -33,26 +33,26 @@ test("home: Arabic, right to left", async ({ page }) => {
 });
 
 test("the language link keeps you on the same page", async ({ page }) => {
-  await page.goto("/guides");
+  await page.goto("/library");
   await page.getByRole("link", { name: en.site.nav.language, exact: true }).first().click();
-  await expect(page).toHaveURL(/\/ar\/guides$/);
+  await expect(page).toHaveURL(/\/ar\/library$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(ar.site.guides.title);
 });
 
 test("guides: search narrows the library", async ({ page }) => {
-  await page.goto("/guides");
-  const all = await page.locator("main article, main li a[href^='/guides/']").count();
+  await page.goto("/library");
+  const all = await page.locator("main article, main li a[href^='/library/']").count();
   await page.getByLabel(en.site.guides.search).fill("bench");
-  await expect(page.locator("a[href='/guides/at-the-bench']").first()).toBeVisible();
-  expect(await page.locator("main a[href^='/guides/']").count()).toBeLessThan(Math.max(all, GUIDES.length));
+  await expect(page.locator("a[href='/library/at-the-bench']").first()).toBeVisible();
+  expect(await page.locator("main a[href^='/library/']").count()).toBeLessThan(Math.max(all, GUIDES.length));
 });
 
 test("a guide opens the calculator at its example", async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto("/guides/the-calculation");
+  await page.goto("/library/the-calculation");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("The calculation");
   const calc = page.getByRole("link", { name: en.site.guides.openCalc });
-  await expect(calc).toHaveAttribute("href", "/app/calculator?size=100&unit=ml&conc=25&ref=guide");
+  await expect(calc).toHaveAttribute("href", "/bench?size=100&unit=ml&conc=25&ref=guide");
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
@@ -76,7 +76,7 @@ test("draft legal pages say so and stay out of search", async ({ page, request }
   expect(index).toContain("/sitemap-recipes.xml");
   const sitemap = await (await request.get("/sitemap-pages.xml")).text();
   expect(sitemap).not.toContain("/privacy");
-  expect(sitemap).toContain("/guides/the-calculation");
+  expect(sitemap).toContain("/library/the-calculation");
 });
 
 test("unknown pages answer 404", async ({ page }) => {
@@ -88,7 +88,7 @@ test("unknown pages answer 404", async ({ page }) => {
 test.describe("without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
   test("public pages are complete HTML", async ({ page }) => {
-    await page.goto("/guides/the-calculation");
+    await page.goto("/library/the-calculation");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("The calculation");
     // The Arabic guides await the author's review: noindex and no hreflang until then.
     await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveCount(0);

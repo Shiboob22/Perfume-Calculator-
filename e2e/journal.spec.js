@@ -77,7 +77,7 @@ async function fakeApi(page, { plan = "pro", offline = false } = {}) {
 test("journal: a due check-in is saved from the Batches tab", async ({ page }) => {
   await signIn(page);
   const sent = await fakeApi(page);
-  await page.goto("/app/batches");
+  await page.goto("/bench/journal");
 
   const tab = page.getByRole("button", { name: new RegExp(en.app.tabs.batches) });
   await expect(tab).toContainText("1 check-in due");
@@ -103,7 +103,7 @@ test("journal: a due check-in is saved from the Batches tab", async ({ page }) =
 test("journal: Pro sees the pattern, worded as the user's own history", async ({ page }) => {
   await signIn(page);
   await fakeApi(page);
-  await page.goto("/app/batches");
+  await page.goto("/bench/journal");
   const patterns = page.getByRole("region", { name: en.journal.pattern.title });
   await expect(patterns).toContainText("In your own log, your Woody batches rated highest around day 26 (3 batches, days 21–28).");
   await expect(patterns).toContainText(en.journal.pattern.source);
@@ -112,7 +112,7 @@ test("journal: Pro sees the pattern, worded as the user's own history", async ({
 test("journal: Free sees that a pattern is ready, not the day", async ({ page }) => {
   await signIn(page);
   await fakeApi(page, { plan: "free" });
-  await page.goto("/app/batches");
+  await page.goto("/bench/journal");
   const patterns = page.getByRole("region", { name: en.journal.pattern.title });
   await expect(patterns).toContainText("Your Woody pattern is ready.");
   await expect(patterns).not.toContainText("day 26");
@@ -122,7 +122,7 @@ test("journal: Free sees that a pattern is ready, not the day", async ({ page })
 test("journal: a check-in made offline waits on the device", async ({ page }) => {
   await signIn(page);
   const sent = await fakeApi(page, { offline: true });
-  await page.goto("/app/batches");
+  await page.goto("/bench/journal");
   const due = page.getByRole("region", { name: "1 batch is due for a check-in" });
   await due.getByLabel(/How does/).fill("Offline note");
   await due.getByRole("button", { name: en.journal.save }).click();
@@ -136,7 +136,7 @@ test("journal: a check-in made offline waits on the device", async ({ page }) =>
 test("sharing: publish with a public note, then stop sharing", async ({ page }) => {
   await signIn(page);
   const sent = await fakeApi(page);
-  await page.goto("/app/batches");
+  await page.goto("/bench/journal");
 
   await page.getByRole("button", { name: en.share.open }).click();
   const panel = page.getByRole("region", { name: en.share.title });

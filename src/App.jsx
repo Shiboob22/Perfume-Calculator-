@@ -1,5 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { tabFromPath, tabPath } from "./routes";
 import { SiteFooter, SiteHeader } from "./components/SiteChrome";
 import PerfumeSearch from "./components/PerfumeSearch";
 import { COLORS } from "./lib/theme";
@@ -48,14 +49,16 @@ function prefetchTabs() {
 const TABS = ["search", "selector", "calculator", "batches", "inventory", "ask"];
 const DEFAULT_TAB = "calculator";
 
-// The signed-in app, at /app/<tab>.
+// The signed-in app: /bench (calculator), /bench/journal (batches), /app/<tab>.
 export default function App() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { tab } = useParams();
+  const { tab: param } = useParams();
+  const { pathname } = useLocation();
+  const tab = tabFromPath(pathname, param);
   // cards and account are pages of their own, reached from links, not tabs.
   const activeTab = TABS.includes(tab) ? tab : tab === "cards" || tab === "account" || tab === "labels" ? null : DEFAULT_TAB;
-  const setActiveTab = (id) => navigate(`/app/${id}${id === "calculator" ? window.location.search : ""}`);
+  const setActiveTab = (id) => navigate(`${tabPath(id)}${id === "calculator" ? window.location.search : ""}`);
 
   // Start the search tab's popular shelf and wake the catalog functions
   // while the session is being checked.

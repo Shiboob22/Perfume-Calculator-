@@ -14,7 +14,7 @@ const METHOD = GUIDES.filter((g) => g.section === "blending");
 
 export function calculatorHref(guide) {
   const c = guide.calculator;
-  return c ? `/app/calculator?${new URLSearchParams({ size: c.size, unit: c.unit, conc: c.conc, ref: "guide" })}` : null;
+  return c ? `/bench?${new URLSearchParams({ size: c.size, unit: c.unit, conc: c.conc, ref: "guide" })}` : null;
 }
 
 export default function MethodSequence({ guides = METHOD, showCalculator = false }) {
@@ -29,7 +29,7 @@ export default function MethodSequence({ guides = METHOD, showCalculator = false
           <li key={g.slug} className="grid grid-cols-[2.75rem_minmax(0,1fr)] md:block md:pe-8">
             <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-3xl md:text-5xl md:block md:pb-3 md:border-b`} style={{ color: COLORS.amberDeep, borderColor: COLORS.field }}>{n}</span>
             <div className={`ps-5 border-s md:border-s-0 md:ps-0 md:pt-4 md:pb-0 ${last ? "pb-0" : "pb-8"}`} style={{ borderColor: COLORS.line }}>
-              <Link to={localePath(locale, `/guides/${g.slug}`)} className="group block">
+              <Link to={localePath(locale, `/library/${g.slug}`)} className="group block">
                 <span className="block font-serif text-2xl leading-snug group-hover:underline underline-offset-4" style={{ color: COLORS.forestDeep }}>{g[locale].title}</span>
                 <span className="block mt-2 leading-relaxed" style={{ color: COLORS.inkSoft }}>{g[locale].summary}</span>
               </Link>

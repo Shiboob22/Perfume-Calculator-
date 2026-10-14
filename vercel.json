@@ -3,6 +3,38 @@
   "regions": [
     "dub1"
   ],
+  "redirects": [
+    {
+      "source": "/app/calculator",
+      "destination": "/bench",
+      "statusCode": 301
+    },
+    {
+      "source": "/app/batches",
+      "destination": "/bench/journal",
+      "statusCode": 301
+    },
+    {
+      "source": "/guides",
+      "destination": "/library",
+      "statusCode": 301
+    },
+    {
+      "source": "/guides/:slug",
+      "destination": "/library/:slug",
+      "statusCode": 301
+    },
+    {
+      "source": "/ar/guides",
+      "destination": "/ar/library",
+      "statusCode": 301
+    },
+    {
+      "source": "/ar/guides/:slug",
+      "destination": "/ar/library/:slug",
+      "statusCode": 301
+    }
+  ],
   "rewrites": [
     {
       "source": "/r/:slug",
@@ -15,6 +47,14 @@
     {
       "source": "/sitemap-recipes.xml",
       "destination": "/api/recipe?sitemap=1"
+    },
+    {
+      "source": "/bench",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/bench/:path*",
+      "destination": "/app/index.html"
     },
     {
       "source": "/app/:path*",

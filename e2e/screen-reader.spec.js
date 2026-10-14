@@ -28,14 +28,14 @@ async function fakeApi(page) {
 async function openCalculator(page, query = "") {
   await signIn(page);
   await fakeApi(page);
-  await page.goto(`/app/calculator${query}`);
+  await page.goto(`/bench${query}`);
   await expect(page.getByRole("heading", { name: en.calc.readout })).toBeVisible();
 }
 
 const PAGES = [
   ["home", (page) => page.goto("/")],
   ["pricing", (page) => page.goto("/pricing")],
-  ["a guide", (page) => page.goto("/guides/the-calculation")],
+  ["a guide", (page) => page.goto("/library/the-calculation")],
   ["the Arabic home", (page) => page.goto("/ar/")],
   ["the calculator", (page) => openCalculator(page)],
 ];

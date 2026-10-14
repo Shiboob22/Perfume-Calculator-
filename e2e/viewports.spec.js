@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 // and the sign-in screen (the app itself needs an account).
 // 640 = a 1280 px window at 200% zoom.
 const WIDTHS = [320, 375, 390, 640, 768, 1024, 1440];
-const PAGES = ["/", "/pricing", "/guides", "/app/calculator", "/ar/"];
+const PAGES = ["/", "/pricing", "/library", "/bench", "/ar/"];
 
 for (const width of WIDTHS) {
   for (const path of PAGES) {

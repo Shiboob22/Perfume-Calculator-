@@ -23,7 +23,7 @@ export function makeAgainHref(b) {
   const s = batchSettings(b);
   const q = new URLSearchParams();
   for (const k of ["size", "unit", "conc", "family", "name"]) if (s[k] != null) q.set(k, String(s[k]));
-  return `/app/calculator?${q}`;
+  return `/bench?${q}`;
 }
 
 const sameName = (a, b) => (a || "").trim().toLowerCase() === (b || "").trim().toLowerCase();

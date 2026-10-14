@@ -17,5 +17,5 @@ export function benchFigures(size, pct) {
 
 /** The calculator, opened at the same bottle. */
 export function benchHref(size, pct) {
-  return `/app/calculator?${new URLSearchParams({ size: String(size), unit: "ml", conc: String(pct), ref: "home" })}`;
+  return `/bench?${new URLSearchParams({ size: String(size), unit: "ml", conc: String(pct), ref: "home" })}`;
 }

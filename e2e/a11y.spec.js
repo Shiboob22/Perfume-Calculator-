@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 // WCAG 2.2 A/AA checks on every kind of page, English and Arabic. Serious
 // and critical violations fail; moderate/minor are printed for review.
-const PAGES = ["/", "/ar", "/guides", "/ar/guides", "/guides/the-calculation", "/ar/guides/the-calculation", "/pricing", "/privacy", "/app"];
+const PAGES = ["/", "/ar", "/library", "/ar/library", "/library/the-calculation", "/ar/library/the-calculation", "/pricing", "/privacy", "/app"];
 
 // Measure the settled page: short time-based fades (the bench readout's tick)
 // would otherwise be sampled mid-way. Scroll-tied animations never "finish".
@@ -29,7 +29,7 @@ for (const path of PAGES) {
 }
 
 // The dark edition (system preference, no saved choice) passes the same checks.
-for (const path of ["/", "/guides/the-calculation", "/pricing"]) {
+for (const path of ["/", "/library/the-calculation", "/pricing"]) {
   test(`accessibility, dark theme: ${path}`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto(path);

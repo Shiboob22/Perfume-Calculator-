@@ -182,7 +182,7 @@ export default function AuthGate({ children }) {
               </>
             )}
 
-            <Link to={localePath(locale, '/guides')} className="inline-block mt-8 text-sm hover:underline" style={{ color: COLORS.amberDeep }}>
+            <Link to={localePath(locale, '/library')} className="inline-block mt-8 text-sm hover:underline" style={{ color: COLORS.amberDeep }}>
               {t('auth.backToGuides')}
             </Link>
           </div>

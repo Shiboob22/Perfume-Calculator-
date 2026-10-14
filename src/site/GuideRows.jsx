@@ -17,7 +17,7 @@ export function GuideRows({ guides = METHOD }) {
     <ol style={{ borderTop: `1px solid ${COLORS.ink}` }}>
       {guides.map((g, i) => (
         <li key={g.slug} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
-          <Link to={localePath(locale, `/guides/${g.slug}`)}
+          <Link to={localePath(locale, `/library/${g.slug}`)}
             className="group grid grid-cols-[3rem_minmax(0,1fr)_auto] sm:grid-cols-[4rem_minmax(0,1fr)_7rem_auto] gap-x-4 items-baseline py-5 hover:bg-[color:var(--c-sand)]">
             <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-3xl ps-1`} style={{ color: COLORS.brass }}>{ROMAN[i] ?? i + 1}</span>
             <span>

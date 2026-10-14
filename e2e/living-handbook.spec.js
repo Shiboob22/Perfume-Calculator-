@@ -14,7 +14,7 @@ test.describe("without JavaScript", () => {
   test("the home page shows the worked example on the bench", async ({ page }) => {
     await page.goto("/");
     await expect(readout(page)).toHaveText(["23.75 g", "60.75 g", "84.50 g"]);
-    await expect(page.getByRole("link", { name: en.site.home.bench.open })).toHaveAttribute("href", "/app/calculator?size=100&unit=ml&conc=25&ref=home");
+    await expect(page.getByRole("link", { name: en.site.home.bench.open })).toHaveAttribute("href", "/bench?size=100&unit=ml&conc=25&ref=home");
   });
 });
 
@@ -23,25 +23,25 @@ test("the live bench pours the handbook's figures for the chosen bottle", async 
   await page.getByRole("button", { name: "50 mL" }).click();
   await page.getByRole("button", { name: "30 Extrait" }).click();
   await expect(readout(page)).toHaveText(["14.25 g", "28.35 g", "42.60 g"]);
-  await expect(page.getByRole("link", { name: en.site.home.bench.open })).toHaveAttribute("href", "/app/calculator?size=50&unit=ml&conc=30&ref=home");
+  await expect(page.getByRole("link", { name: en.site.home.bench.open })).toHaveAttribute("href", "/bench?size=50&unit=ml&conc=30&ref=home");
 });
 
 test("a guide turns to the next one", async ({ page }) => {
-  await page.goto("/guides/why-weigh");
+  await page.goto("/library/why-weigh");
   await page.getByRole("navigation", { name: en.site.guides.more }).getByRole("link").last().click();
-  await expect(page).toHaveURL(/\/guides\/the-calculation$/);
+  await expect(page).toHaveURL(/\/library\/the-calculation$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("The calculation");
 });
 
 test("reduced motion turns the reading hairline and pours off", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/guides/the-calculation");
+  await page.goto("/library/the-calculation");
   await expect(page.locator(".read-progress")).toBeHidden();
   await page.goto("/");
   expect(await page.locator(".pour").first().evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0s");
 });
 
-for (const [path, lang] of [["/", "en"], ["/ar", "ar"], ["/guides/the-calculation", "en"], ["/ar/guides/the-calculation", "ar"], ["/pricing", "en"], ["/ar/guides", "ar"]]) {
+for (const [path, lang] of [["/", "en"], ["/ar", "ar"], ["/library/the-calculation", "en"], ["/ar/library/the-calculation", "ar"], ["/pricing", "en"], ["/ar/library", "ar"]]) {
   test(`axe: ${path}`, async ({ page }) => {
     await page.goto(path);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);

@@ -61,7 +61,7 @@ export function calculatorHref(r) {
   const name = cleanName(r.fragrance_name);
   if (name) q.set("name", name);
   q.set("ref", "recipe"); // where a sign-up came from (profiles.signup_ref)
-  return `/app/calculator?${q}`;
+  return `/bench?${q}`;
 }
 
 function bottleText(t, r) {
@@ -147,9 +147,9 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
             <span class="flex flex-col leading-none"><span class="font-sans font-medium text-[19px] tracking-[-0.03em]">${esc(t("brand"))}</span><span class="font-serif italic text-[13px] mt-1">${esc(t("brandTagline"))}</span><span class="font-serif italic text-[12px] mt-0.5" style="color:${COLORS.brass}">${esc(t("brandSignature"))}</span></span>
           </a>
           <nav class="flex items-center gap-x-6 flex-wrap text-sm">
-            <a href="${to("/guides")}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.guides"))}</a>
-            <a href="/app/calculator" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.calculator"))}</a>
-            <a href="/app/batches" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.journal"))}</a>
+            <a href="${to("/library")}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.guides"))}</a>
+            <a href="/bench" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.calculator"))}</a>
+            <a href="/bench/journal" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.journal"))}</a>
             <a href="${to("/pricing")}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.pricing"))}</a>
             <a href="${recipePath(other, r.slug)}" lang="${other}" hreflang="${other}" title="${esc(t("site.nav.languageLabel"))}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.language"))}</a>
           </nav>
@@ -184,7 +184,7 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
             </section>` : ""}
           </div>
           <div class="px-6 py-5 flex flex-wrap items-center justify-between gap-3" style="border-top:1px solid ${COLORS.line}">
-            <p class="text-xs max-w-[22rem]" style="color:${COLORS.inkSoft}">${esc(t("recipe.ctaLead"))} <a href="${to("/guides")}" class="underline">${esc(t("recipe.method"))}</a></p>
+            <p class="text-xs max-w-[22rem]" style="color:${COLORS.inkSoft}">${esc(t("recipe.ctaLead"))} <a href="${to("/library")}" class="underline">${esc(t("recipe.method"))}</a></p>
             <a href="${esc(calculatorHref(r))}" class="inline-flex items-center gap-2 px-5 min-h-[48px] font-medium" style="background:${COLORS.amber};color:${COLORS.onAmber}">${esc(t("recipe.cta"))} ${ARROW_SVG}</a>
           </div>
         </article>

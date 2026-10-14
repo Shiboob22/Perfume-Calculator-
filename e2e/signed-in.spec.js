@@ -57,7 +57,7 @@ test("a new user answers onboarding and joins the waitlist", async ({ page }) =>
 });
 
 test("the calculator opens at the saved bottle", async ({ page }) => {
-  await signIn(page, "/app/calculator");
+  await signIn(page, "/bench");
   await expect(page.locator("#calc-size")).toHaveValue("30");
 });
 
@@ -84,7 +84,7 @@ test("journal and sharing work against the real API and database", async ({ page
   }).select().single();
   if (error) throw error;
 
-  await signIn(page, "/app/batches");
+  await signIn(page, "/bench/journal");
   const due = page.getByRole("region", { name: "1 batch is due for a check-in" });
   await due.getByLabel(/How does/).fill("Softer now");
   await due.getByRole("radio", { name: "4 of 5" }).check({ force: true });

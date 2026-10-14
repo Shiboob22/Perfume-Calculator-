@@ -3,6 +3,7 @@ import { createRoot, hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { inject } from "@vercel/analytics";
 import Root from "./Root";
+import { isAppPath } from "./routes";
 import "@fontsource/poppins/latin-400.css";
 import "@fontsource/poppins/latin-500.css";
 import "@fontsource/lora/latin-400.css";
@@ -15,7 +16,7 @@ import "./index.css";
 // A sign-in link that lands on a public page (Supabase falls back to the
 // Site URL when /app isn't an allowed redirect) carries its tokens in the
 // hash; public pages never load the auth client, so hand it to the app.
-if (!location.pathname.startsWith("/app") && /(^|[#&])(access_token|error_description)=/.test(location.hash)) {
+if (!isAppPath(location.pathname) && /(^|[#&])(access_token|error_description)=/.test(location.hash)) {
   location.replace(`/app${location.search}${location.hash}`);
 }
 
@@ -46,7 +47,7 @@ if (import.meta.env.PROD) {
     beforeSend(event) {
       const url = new URL(event.url);
       url.hash = "";
-      if (url.pathname.startsWith("/app")) url.search = "";
+      if (isAppPath(url.pathname)) url.search = "";
       return { ...event, url: url.toString() };
     },
   });

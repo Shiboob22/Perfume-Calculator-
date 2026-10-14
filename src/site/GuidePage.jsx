@@ -182,7 +182,7 @@ export default function GuidePage() {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-10">
         <p style={{ color: COLORS.inkSoft }}>{t("site.guides.notFound")}</p>
-        <Link to={to("/guides")} className="underline" style={{ color: COLORS.amber }}>{t("site.guides.all")}</Link>
+        <Link to={to("/library")} className="underline" style={{ color: COLORS.amber }}>{t("site.guides.all")}</Link>
       </div>
     );
   }
@@ -194,11 +194,11 @@ export default function GuidePage() {
   const next = inSection[at + 1];
   const sections = g.body.filter((b) => b.h2);
   const calc = guide.calculator;
-  const calcHref = calc ? `/app/calculator?${new URLSearchParams({ size: calc.size, unit: calc.unit, conc: calc.conc, ref: "guide" })}` : null;
+  const calcHref = calc ? `/bench?${new URLSearchParams({ size: calc.size, unit: calc.unit, conc: calc.conc, ref: "guide" })}` : null;
 
   const rules = g.body.filter((b) => b.callout?.kind === "rule");
   const ruleOf = (b) => (b.callout?.kind === "rule" ? { n: rules.indexOf(b) + 1, total: rules.length } : null);
-  const bench = calcHref ?? "/app/calculator?ref=guide";
+  const bench = calcHref ?? "/bench?ref=guide";
 
   return (
     <article className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 pt-10">
@@ -245,7 +245,7 @@ export default function GuidePage() {
 
       {guide.benchCta && (
         <p className="mt-10">
-          <a href="/app/calculator?ref=guide" className="inline-block px-5 py-3 rounded-none font-semibold"
+          <a href="/bench?ref=guide" className="inline-block px-5 py-3 rounded-none font-semibold"
             style={{ background: COLORS.amber, color: COLORS.onAmber }}>
             {t("site.guides.benchCta")}
           </a>
@@ -260,13 +260,13 @@ export default function GuidePage() {
       )}
       <nav aria-label={t("site.guides.more")} className="mt-14 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
         {prev ? (
-          <Link to={to(`/guides/${prev.slug}`)} viewTransition className="block p-5 hover:bg-[color:var(--c-sand)]" style={{ border: `1px solid ${COLORS.ink}` }}>
+          <Link to={to(`/library/${prev.slug}`)} viewTransition className="block p-5 hover:bg-[color:var(--c-sand)]" style={{ border: `1px solid ${COLORS.ink}` }}>
             <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}><IconArrow size={18} className="-scale-x-100 rtl:scale-x-100" />{t("site.guides.previous")}</span>
             <span className="block mt-2 text-lg font-medium">{prev[locale].title}</span>
           </Link>
         ) : <span />}
         {next && (
-          <Link to={to(`/guides/${next.slug}`)} viewTransition className="block p-5 text-end hover:bg-[color:var(--c-sand)]" style={{ border: `1px solid ${COLORS.ink}` }}>
+          <Link to={to(`/library/${next.slug}`)} viewTransition className="block p-5 text-end hover:bg-[color:var(--c-sand)]" style={{ border: `1px solid ${COLORS.ink}` }}>
             <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("site.guides.next")}<IconArrow size={18} /></span>
             <span className="block mt-2 text-lg font-medium">{next[locale].title}</span>
           </Link>

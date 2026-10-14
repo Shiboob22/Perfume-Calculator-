@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { I18nProvider } from "./i18n/I18nProvider";
 import PublicLayout from "./site/PublicLayout";
 import Home from "./site/Home";
@@ -22,14 +22,22 @@ function AppLoading() {
   return <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }} />;
 }
 
+// Old /guides/<slug> links, for client-side navigation and `vite dev`; on the
+// server the same move is a 301 (vercel.json).
+function GuideRedirect() {
+  const { pathname, search } = useLocation();
+  return <Navigate to={pathname.replace(/\/guides(?=\/|$)/, "/library") + search} replace />;
+}
+
 function PublicRoutes() {
   return (
     <PublicLayout>
       <Routes>
         <Route index element={<Home />} />
         <Route path="pricing" element={<Pricing />} />
-        <Route path="guides" element={<GuidesIndex />} />
-        <Route path="guides/:slug" element={<GuidePage />} />
+        <Route path="library" element={<GuidesIndex />} />
+        <Route path="library/:slug" element={<GuidePage />} />
+        <Route path="guides/*" element={<GuideRedirect />} />
         <Route path="privacy" element={<LegalPage page="privacy" />} />
         <Route path="terms" element={<LegalPage page="terms" />} />
         <Route path="*" element={<NotFound />} />
@@ -38,10 +46,16 @@ function PublicRoutes() {
   );
 }
 
+const appElement = (
+  <I18nProvider><ErrorBoundary><Suspense fallback={<AppLoading />}><App /></Suspense></ErrorBoundary></I18nProvider>
+);
+
 export default function Root() {
   return (
     <Routes>
-      <Route path="/app/:tab?" element={<I18nProvider><ErrorBoundary><Suspense fallback={<AppLoading />}><App /></Suspense></ErrorBoundary></I18nProvider>} />
+      <Route path="/app/:tab?" element={appElement} />
+      <Route path="/bench" element={appElement} />
+      <Route path="/bench/journal" element={appElement} />
       {DevScreens && (
         <Route path="/dev/:screen?" element={<I18nProvider><Suspense fallback={<AppLoading />}><DevScreens /></Suspense></I18nProvider>} />
       )}

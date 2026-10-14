@@ -46,7 +46,7 @@ describe("recipePageHtml", () => {
     expect(html).not.toContain("noindex");
   });
   it("links the calculator, the report address and no script", () => {
-    expect(html).toContain('href="/app/calculator?family=woody&amp;conc=25&amp;size=100&amp;unit=ml&amp;name=Oud+Nights&amp;ref=recipe"');
+    expect(html).toContain('href="/bench?family=woody&amp;conc=25&amp;size=100&amp;unit=ml&amp;name=Oud+Nights&amp;ref=recipe"');
     expect(html).toContain("mailto:report@example.test?subject=Report%3A%20shared%20recipe%20oud-nights-k3x9qa");
     expect(html).not.toMatch(/<script/i);
     expect(recipePageHtml(recipe, { ...opts, reportEmail: "" })).not.toContain("mailto:");
@@ -69,7 +69,7 @@ describe("recipePageHtml", () => {
   it("by weight: grams for the bottle and the calculator", () => {
     const byWeight = { ...recipe, basis: "weight", total_g: "50" };
     expect(recipePageHtml(byWeight, opts)).toContain("25% oil by weight");
-    expect(calculatorHref(byWeight)).toBe(`/app/calculator?family=woody&conc=25&size=50&unit=g&name=${encodeURIComponent(byWeight.fragrance_name).replace(/%20/g, "+")}&ref=recipe`);
+    expect(calculatorHref(byWeight)).toBe(`/bench?family=woody&conc=25&size=50&unit=g&name=${encodeURIComponent(byWeight.fragrance_name).replace(/%20/g, "+")}&ref=recipe`);
   });
   it("escapes everything from the database", () => {
     const evil = { ...recipe, fragrance_name: '<img src=x onerror="x()">', public_note: "</p><script>alert(1)</script>", slug: 'x"><script>-abcdef' };

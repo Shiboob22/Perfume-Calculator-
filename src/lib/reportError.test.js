@@ -4,8 +4,8 @@ import { errorPayload } from "./reportError";
 describe("errorPayload", () => {
   it("keeps what helps debugging and drops the query and hash", () => {
     const err = new TypeError("x is undefined");
-    const p = errorPayload(err, { path: "/app/calculator?size=50#access_token=secret", componentStack: "in Calc" });
-    expect(p).toMatchObject({ message: "x is undefined", name: "TypeError", path: "/app/calculator", componentStack: "in Calc" });
+    const p = errorPayload(err, { path: "/bench?size=50#access_token=secret", componentStack: "in Calc" });
+    expect(p).toMatchObject({ message: "x is undefined", name: "TypeError", path: "/bench", componentStack: "in Calc" });
     expect(JSON.stringify(p)).not.toContain("secret");
   });
 

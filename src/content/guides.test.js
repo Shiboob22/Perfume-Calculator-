@@ -61,7 +61,7 @@ describe("private content", () => {
 describe("guide pages' head", () => {
   it("carries article structured data with the author", async () => {
     const { headFor, headHtml } = await import("../site/meta");
-    const html = headHtml(headFor("/ar/guides/why-weigh"));
+    const html = headHtml(headFor("/ar/library/why-weigh"));
     const json = JSON.parse(html.match(/<script type="application\/ld\+json">(.*)<\/script>/)[1]);
     expect(json[0]).toMatchObject({ "@type": "Article", inLanguage: "ar", author: { name: "Hisham Shiboob" } });
     expect(json[1].itemListElement).toHaveLength(2);
@@ -73,8 +73,8 @@ describe("Arabic guide drafts", () => {
   it("stay out of search until the author has reviewed them", async () => {
     const { headFor, headHtml } = await import("../site/meta");
     const draft = GUIDES.find((g) => g.ar.needsReview);
-    const ar = headFor(`/ar/guides/${draft.slug}`);
-    const en = headFor(`/guides/${draft.slug}`);
+    const ar = headFor(`/ar/library/${draft.slug}`);
+    const en = headFor(`/library/${draft.slug}`);
     expect(ar.noindex).toBe(true);
     expect(headHtml(ar)).toContain('<meta name="robots" content="noindex" />');
     expect(en.noindex).toBe(false);
@@ -87,8 +87,8 @@ describe("Arabic guide drafts", () => {
     const saved = g.ar.needsReview;
     g.ar.needsReview = false;
     try {
-      expect(headFor(`/ar/guides/${g.slug}`).noindex).toBe(false);
-      expect(headFor(`/guides/${g.slug}`).alternates.ar).toContain(`/ar/guides/${g.slug}`);
+      expect(headFor(`/ar/library/${g.slug}`).noindex).toBe(false);
+      expect(headFor(`/library/${g.slug}`).alternates.ar).toContain(`/ar/library/${g.slug}`);
     } finally {
       g.ar.needsReview = saved;
     }

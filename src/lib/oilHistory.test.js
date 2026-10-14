@@ -12,7 +12,7 @@ describe("batchSettings and makeAgainHref", () => {
     expect(batchSettings({ ...base, tier: "nope" }).family).toBeNull();
   });
   it("links the calculator with the batch's settings", () => {
-    expect(makeAgainHref(base)).toBe("/app/calculator?size=100&unit=ml&conc=25&family=woody&name=Oud+Nights");
+    expect(makeAgainHref(base)).toBe("/bench?size=100&unit=ml&conc=25&family=woody&name=Oud+Nights");
   });
 });
 

@@ -25,7 +25,7 @@ export default function PublicLayout({ children }) {
   const other = locale === "ar" ? "en" : "ar";
   const to = (p) => localePath(locale, p);
 
-  const active = path.startsWith("/guides") ? "guides" : path.startsWith("/pricing") ? "pricing" : undefined;
+  const active = path.startsWith("/library") ? "guides" : path.startsWith("/pricing") ? "pricing" : undefined;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>

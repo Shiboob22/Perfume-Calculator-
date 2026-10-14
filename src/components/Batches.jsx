@@ -94,7 +94,7 @@ function BatchList({ batches, selectedId, onSelect }) {
           );
         })}
       </ul>
-      <button type="button" onClick={() => navigate("/app/calculator")} className="w-full inline-flex items-center gap-2 px-4 min-h-[52px] text-sm font-medium" style={{ color: COLORS.forest }}>
+      <button type="button" onClick={() => navigate("/bench")} className="w-full inline-flex items-center gap-2 px-4 min-h-[52px] text-sm font-medium" style={{ color: COLORS.forest }}>
         <IconPlus size={18} /> {t("journal.newBatch")}
       </button>
     </nav>
@@ -410,7 +410,7 @@ export default function Batches() {
       {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
       {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && batches.length === 0 && (
-        <EmptyState text={t("batches.empty")} action={t("batches.emptyAction")} to="/app/calculator" />
+        <EmptyState text={t("batches.empty")} action={t("batches.emptyAction")} to="/bench" />
       )}
 
       {batches.length > 0 && selected && (
