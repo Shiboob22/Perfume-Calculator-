@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { BrandMark } from "./FlaconMark";
 import FlaconMark from "./FlaconMark";
 import ThemeToggle from "./ThemeToggle";
-import { IconBalance, IconBook, IconFlameTriangle, IconNotebook, IconSeal } from "./icons";
+import { IconBalance, IconBook, IconFlacon, IconFlameTriangle, IconNotebook, IconSeal } from "./icons";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 
@@ -22,9 +22,9 @@ function NavLink({ to, cross, active, icon: I, children }) {
 }
 
 /**
- * @param {{ zone: "site" | "app", active?: "guides"|"calculator"|"journal"|"pricing", language: React.ReactNode, extra?: React.ReactNode }} p
+ * @param {{ zone: "site" | "app", active?: "guides"|"calculator"|"journal"|"pricing"|"wardrobe", wardrobe?: boolean, language: React.ReactNode, extra?: React.ReactNode }} p
  */
-export function SiteHeader({ zone, active, language, extra }) {
+export function SiteHeader({ zone, active, language, extra, wardrobe = false }) {
   const { t, locale } = useI18n();
   const inApp = zone === "app";
   return (
@@ -37,6 +37,7 @@ export function SiteHeader({ zone, active, language, extra }) {
           <NavLink to={site(locale, "/library")} cross={inApp} active={active === "guides"} icon={IconBook}>{t("site.nav.guides")}</NavLink>
           <NavLink to="/bench" cross={!inApp} active={active === "calculator"} icon={IconBalance}>{t("site.nav.calculator")}</NavLink>
           <NavLink to="/bench/journal" cross={!inApp} active={active === "journal"} icon={IconNotebook}>{t("site.nav.journal")}</NavLink>
+          {wardrobe && <NavLink to="/wardrobe" cross={!inApp} active={active === "wardrobe"} icon={IconFlacon}>{t("site.nav.wardrobe")}</NavLink>}
           <NavLink to={site(locale, "/pricing")} cross={inApp} active={active === "pricing"} icon={IconSeal}>{t("site.nav.pricing")}</NavLink>
           <span aria-hidden="true" className="self-stretch my-3" style={{ borderInlineStart: `1px solid ${COLORS.line}` }} />
           {language}

@@ -155,3 +155,29 @@ describe("validate", () => {
     expect(wearRow({}, TODAY).errors).toEqual(["bottle_id"]);
   });
 });
+
+import { localDay } from "./day";
+describe("localDay", () => {
+  it("is the local calendar date, zero-padded", () => {
+    expect(localDay(new Date(2026, 0, 5, 23, 59))).toBe("2026-01-05");
+    expect(localDay(new Date(2026, 9, 14, 0, 1))).toBe("2026-10-14");
+  });
+});
+
+import { reasonText } from "./reasons";
+describe("reasonText", () => {
+  const t = (k, p) => (p ? `${k} ${JSON.stringify(p)}` : k);
+  it("says whether the weather suits or not by the sign of the points", () => {
+    expect(reasonText(t, { key: "weather", band: "hot", family: "fresh", points: 3 })).toContain("weatherFor");
+    expect(reasonText(t, { key: "weather", band: "hot", family: "oriental", points: -3 })).toContain("weatherAgainst");
+  });
+  it("names the wardrobe, noting a guess", () => {
+    expect(reasonText(t, { key: "cluster", cluster: "dark", inferred: true, points: 1.5 }, { occasion: "date" })).toContain("clusterGuess");
+    expect(reasonText(t, { key: "cluster", cluster: "dark", inferred: false, points: 3 }, { occasion: "date" })).toContain('"cluster":"wardrobe.clusters.dark"');
+  });
+  it("passes the days and falls back to a plain key", () => {
+    expect(reasonText(t, { key: "rested", days: 24, points: 1 })).toBe('wardrobe.reason.rested {"days":24}');
+    expect(reasonText(t, { key: "neverWorn", points: 1 })).toBe("wardrobe.reason.neverWorn");
+    expect(reasonText(t, { key: "tooStrong", projection: "statement", ceiling: "personal", points: -8 }, { occasion: "professional" })).toContain("tooStrong");
+  });
+});
