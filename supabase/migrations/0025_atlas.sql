@@ -13,7 +13,7 @@
 --     queue (atlas_review: approve, or reject without deleting anything);
 --   - atlas_wear_stats: anonymous community counts from the Wardrobe, only for
 --     people who opted in (profiles.wear_stats_opt_in, default off) and only
---     once at least 5 of them agree (k-anonymity).
+--     once at least 10 of them agree, as buckets rather than exact counts.
 -- Down: 0025_atlas.down.sql.
 
 create index if not exists fragrances_atlas_fts_idx
@@ -246,29 +246,45 @@ grant execute on function public.atlas_review(uuid, boolean) to authenticated;
 -- ---------------------------------------------------- community wear counts
 alter table public.profiles add column if not exists wear_stats_opt_in boolean not null default false;
 
--- Anonymous counts for one fragrance from people who opted in. Nothing is
--- shown below 5 people: owners need 5 opted-in owners; wearings and each
--- occasion need 5 opted-in wearers. No user is ever identifiable.
+-- Anonymous counts for one approved fragrance, from people who opted in.
+-- Built so a count can't be used to single anyone out (and so a handful of
+-- throwaway accounts can't reach it and then watch it move):
+--   - nothing at all below 10 opted-in owners;
+--   - counts are returned as "at least N" buckets (10, 25, 50, 100, 250),
+--     never exact, so one person joining or leaving changes nothing unless
+--     a bucket edge is crossed;
+--   - the number of wearers appears only from 10 wearers; there is no total
+--     of wearings;
+--   - an occasion is named only when 10 different people wore it for that
+--     occasion, and it carries no number.
+-- Residual risk, stated: an attacker who controls 10 opted-in accounts can
+-- still learn whether the real count crosses a bucket edge. Account age or
+-- activity gates would narrow that and can be added if it matters.
 create function public.atlas_wear_stats(p_id uuid) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
-declare owners int; wearers int; wearings int; occ jsonb;
+declare owners int; wearers int; occ jsonb;
 begin
+  if not exists (select 1 from public.fragrances f where f.id = p_id and f.status = 'approved') then
+    return jsonb_build_object('shown', false);
+  end if;
   select count(distinct b.user_id) into owners
     from public.wardrobe_bottles b join public.profiles p on p.user_id = b.user_id and p.wear_stats_opt_in
    where b.fragrance_id = p_id and b.status = 'owned';
-  if owners < 5 then return jsonb_build_object('shown', false); end if;
-  select count(distinct w.user_id), count(*) into wearers, wearings
+  if owners < 10 then return jsonb_build_object('shown', false); end if;
+  select count(distinct w.user_id) into wearers
     from public.wear_log w join public.wardrobe_bottles b on b.id = w.bottle_id
     join public.profiles p on p.user_id = w.user_id and p.wear_stats_opt_in
    where b.fragrance_id = p_id;
-  select coalesce(jsonb_object_agg(occasion, n), '{}') into occ from (
+  select coalesce(jsonb_agg(occasion order by n desc, occasion), '[]') into occ from (
     select w.occasion, count(distinct w.user_id) as n
       from public.wear_log w join public.wardrobe_bottles b on b.id = w.bottle_id
       join public.profiles p on p.user_id = w.user_id and p.wear_stats_opt_in
      where b.fragrance_id = p_id and w.occasion is not null
-     group by w.occasion having count(distinct w.user_id) >= 5) o;
-  return jsonb_build_object('shown', true, 'owners', owners,
-    'wearers', case when wearers >= 5 then wearers end, 'wearings', case when wearers >= 5 then wearings end, 'occasions', occ);
+     group by w.occasion having count(distinct w.user_id) >= 10) o;
+  return jsonb_build_object('shown', true,
+    'owners', case when owners >= 250 then 250 when owners >= 100 then 100 when owners >= 50 then 50 when owners >= 25 then 25 else 10 end,
+    'wearers', case when wearers < 10 then null when wearers >= 250 then 250 when wearers >= 100 then 100 when wearers >= 50 then 50 when wearers >= 25 then 25 else 10 end,
+    'occasions', occ);
 end $$;
 revoke all on function public.atlas_wear_stats(uuid) from public, anon;
 grant execute on function public.atlas_wear_stats(uuid) to authenticated;
