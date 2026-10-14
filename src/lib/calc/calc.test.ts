@@ -3,7 +3,7 @@ import {
   weightRatio,
   weightShare,
   round2, fmt2, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs,
-  checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, byVolume, fromWeights,
+  checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, margin, batchEconomics, byVolume, fromWeights,
   concentrationOf, displayed, volumeToWeightFraction, weightToVolumeFraction, toBase,
   isVolumeUnit, gToOz, mlToFlOz, UNITS, type Unit,
 } from "./index";
@@ -257,6 +257,35 @@ describe("density, cost and input checks", () => {
     expect(costPer(10, 0, 0)).toEqual({ perBottle: null, perMl: null });
   });
 
+  it("adds packaging per bottle and labour by the hour", () => {
+    const c = batchCost(23.75, 75, 2, { oilPerG: 2, ethanolPerL: 40, bottleEach: 10, packagingEach: 1.5, labourMinutes: 30, labourPerHour: 20 });
+    expect([c.packaging, c.labour, c.total]).toEqual([3, 10, 83.5]);
+    expect(batchCost(1, 1, 1, { labourMinutes: 30 }).labour).toBe(0); // minutes without a rate cost nothing
+  });
+
+  it("works out a logged batch's economics from its columns", () => {
+    const b = { oil_g: 23.75, ethanol_ml: 75, price_per_gram: 2, bottles: 2, ethanol_price_per_l: 40, bottle_cost: 10, sale_price: 60, currency: "SAR" };
+    const e = batchEconomics(b)!;
+    expect(e).toMatchObject({ currency: "SAR", revenue: 120 });
+    expect(e.total).toBeCloseTo(70.5, 10);
+    expect(e.perBottle).toBeCloseTo(35.25, 10);
+    expect(e.profit).toBeCloseTo(49.5, 10);
+    // the oil really poured is what was bought
+    expect(batchEconomics({ ...b, actual_oil_g: 24 })!.total).toBeCloseTo(71, 10);
+    expect(batchEconomics({ ...b, currency: null })!.currency).toBe("");
+    expect(batchEconomics({ oil_g: 23.75, ethanol_ml: 75, price_per_gram: 2 })).toBeNull(); // no seller data
+    expect(batchEconomics({ ...b, bottles: null })).toBeNull();
+  });
+
+  it("works out revenue, profit, margin and markup per bottle price", () => {
+    expect(margin(83.5, 2, 60)).toEqual({ revenue: 120, profit: 36.5, marginPct: (36.5 / 120) * 100, markupPct: (36.5 / 83.5) * 100 });
+    expect(margin(0, 2, 60)).toMatchObject({ profit: 120, marginPct: 100, markupPct: null }); // no cost entered: no markup
+    expect(margin(100, 1, 80).profit).toBe(-20); // a loss shows as negative
+    expect(margin(50, 0, 60)).toEqual({ revenue: null, profit: null, marginPct: null, markupPct: null });
+    expect(margin(50, 2, null).revenue).toBeNull();
+    expect(margin(50, 2, 0).revenue).toBeNull();
+  });
+
   const limits = { range: [20, 25] as const, oilDensity: [0.8, 1.2] as const, ethanolDensity: [0.78, 0.83] as const };
   it("is quiet for normal inputs", () => {
     expect(checkInputs(100, 22, H, limits)).toEqual([]);
@@ -296,5 +325,29 @@ describe("weightShare", () => {
     expect(weightShare(23.75, 60.75)).toBeCloseTo(0.2811, 4);
     expect(weightShare(0, 0)).toBe(0);
     expect(weightShare(-1, 5)).toBe(0);
+  });
+});
+
+import { shownTotal as _shownTotal, fmt2 as _fmt2 } from "./round";
+describe("shownTotal", () => {
+  it("adds the rounded pours, as the calculator shows them", () => {
+    // 30 mL at 15 %: oil 4.275 g, ethanol 20.655 g (handbook Quick Reference)
+    expect(_fmt2(_shownTotal(4.275, 20.655))).toBe("24.94");
+  });
+  it("is NaN for a non-finite pour", () => {
+    expect(_shownTotal(NaN, 1)).toBeNaN();
+  });
+});
+
+describe("solveRun by weight", () => {
+  it("makes the oil exactly the stated share of the mix weight", () => {
+    const r = solveRun([{ sizeMl: 100, count: 1 }], 25, H, 0, "weight");
+    expect(r.exact.oilG / r.exact.totalG).toBeCloseTo(0.25, 12);
+    expect(r.exact.totalMl).toBeCloseTo(100, 9);
+  });
+  it("differs from the same number by volume", () => {
+    const w = solveRun([{ sizeMl: 100, count: 1 }], 25, H, 0, "weight").exact.oilG;
+    const v = solveRun([{ sizeMl: 100, count: 1 }], 25, H).exact.oilG;
+    expect(w).not.toBeCloseTo(v, 1);
   });
 });

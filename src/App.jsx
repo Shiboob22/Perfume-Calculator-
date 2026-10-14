@@ -140,7 +140,7 @@ export default function App() {
           </button>
         </>} />
       <header className="max-w-3xl mx-auto px-4 sm:px-8 pt-6">
-        <nav aria-label={t("app.tabsLabel")} className="flex gap-2 border-b overflow-x-auto" style={{ borderColor: COLORS.line }}>
+        <nav aria-label={t("app.tabsLabel")} className="relative flex gap-2 border-b overflow-x-auto" style={{ borderColor: COLORS.line }}>
           {TABS.map((id) => (
             <button
               key={id}

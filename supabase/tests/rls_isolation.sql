@@ -323,6 +323,30 @@ begin
   select count(*) into n from public.recipe_by_slug(slug_b);
   if n <> 0 then raise exception 'RLS_ISOLATION FAILED: an unshared recipe still opens'; end if; checks := checks + 1;
 
+  -- A later CREATE OR REPLACE must not drop the pinned search_path (0014, 0021).
+  if not exists (select 1 from pg_proc where proname = 'restock_inventory' and proconfig::text ~ 'search_path') then
+    raise exception 'RLS_ISOLATION FAILED: restock_inventory has no pinned search_path';
+  end if; checks := checks + 1;
+
+  -- The rate limiter is the service role's alone (0010): a signed-in user
+  -- calling it directly could burn another user's key.
+  if has_function_privilege('authenticated', 'public.hit_rate_limit(text, integer, integer)', 'execute')
+     or has_function_privilege('anon', 'public.hit_rate_limit(text, integer, integer)', 'execute') then
+    raise exception 'RLS_ISOLATION FAILED: hit_rate_limit is callable by a user role';
+  end if; checks := checks + 1;
+
+  -- Seller costs (0022): the table refuses negative money and a lowercase currency.
+  begin
+    update public.batches set sale_price = -1 where id = batch_a;
+    raise exception 'RLS_ISOLATION FAILED: a negative sale price was accepted';
+  exception when check_violation then null;
+  end; checks := checks + 1;
+  begin
+    update public.batches set currency = 'sar' where id = batch_a;
+    raise exception 'RLS_ISOLATION FAILED: a lowercase currency was accepted';
+  exception when check_violation then null;
+  end; checks := checks + 1;
+
   raise exception 'RLS_ISOLATION PASSED: % checks (rolled back, nothing kept)', checks;
 end
 $$;

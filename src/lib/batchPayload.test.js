@@ -26,6 +26,14 @@ describe("buildBatch", () => {
   it("carries the lot and the bottle as entered", () => {
     expect(buildBatch({ ...base, lot: " L1 ", amount: "50", unit: "g" })).toMatchObject({ lot: "L1", amount: 50, unit: "g" });
   });
+  it("sends seller fields only when given, blanks as null", () => {
+    expect(buildBatch(base)).not.toHaveProperty("sale_price");
+    const seller = { ethanolPricePerL: "40", bottleCost: "10", bottles: "2.9", packagingCost: "", labourMinutes: "30", labourRate: "20", salePrice: "60", currency: "SAR" };
+    expect(buildBatch({ ...base, seller })).toMatchObject({
+      ethanol_price_per_l: 40, bottle_cost: 10, bottles: 2, packaging_cost: null, labour_minutes: 30, labour_rate_per_hour: 20, sale_price: 60, currency: "SAR",
+    });
+    expect(buildBatch({ ...base, seller: { bottles: "", currency: "sar" } })).toMatchObject({ bottles: null, currency: null });
+  });
   it("is the same row from the calculator and from bench mode", () => {
     const calc = buildBatch({ ...base, actualOilG: "23.8", actualEthG: "60.7" });
     const bench = buildBatch({ ...base, actualOilG: 23.8, actualEthG: 60.7 });

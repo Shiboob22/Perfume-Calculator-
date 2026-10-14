@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
-import { solveFromOil, adjustConcentration, solveRun, solveBottle, fmt2 } from "../../lib/calc";
+import { solveFromOil, adjustConcentration, solveRun, solveBottle, weightToVolumeFraction, fmt2 } from "../../lib/calc";
 import { STRENGTHS } from "../../lib/formulation";
 
 // Calculator modes b, c and d. All arithmetic is in src/lib/calc; these only
@@ -97,17 +97,21 @@ export function FromOil({ densities, defaultPct }) {
 }
 
 // ---------------------------------- mode c: change strength, add only
-export function Adjust({ densities, defaultPct }) {
+export function Adjust({ densities, defaultPct, defaultBasis = "volume" }) {
   const { t } = useI18n();
+  const [basis, setBasis] = useState(defaultBasis);
   const [amountMl, setAmountMl] = useState("");
   const [fromPct, setFromPct] = useState(defaultPct);
   const [toPct, setToPct] = useState("");
   const [capacityMl, setCapacityMl] = useState("");
   const [oilAvailableG, setOilAvailableG] = useState("");
   const ok = valid(amountMl, fromPct, toPct) && Number(fromPct) < 100 && Number(toPct) < 100;
-  const current = ok ? solveBottle(Number(amountMl), "ml", Number(fromPct), densities).exact : null;
+  // The blend you have is measured in mL; a strength given by weight is
+  // converted to the volume share it stands for before sizing it.
+  const fromVolPct = basis === "weight" ? weightToVolumeFraction(Number(fromPct) / 100, densities) * 100 : Number(fromPct);
+  const current = ok ? solveBottle(Number(amountMl), "ml", fromVolPct, densities).exact : null;
   const r = current
-    ? adjustConcentration(current, Number(toPct), "volume", densities, {
+    ? adjustConcentration(current, Number(toPct), basis, densities, {
         capacityMl: Number(capacityMl) > 0 ? Number(capacityMl) : undefined,
         oilAvailableG: Number(oilAvailableG) > 0 ? Number(oilAvailableG) : undefined,
       })
@@ -116,6 +120,7 @@ export function Adjust({ densities, defaultPct }) {
     <div className="space-y-4">
       <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("calc.modes.adjust.intro")}</p>
       <Num id="c-amount" label={t("calc.modes.adjust.amount")} value={amountMl} onChange={setAmountMl} step="1" />
+      <BasisToggle value={basis} onChange={setBasis} />
       <Strength id="c-from" label={t("calc.modes.adjust.from")} value={fromPct} onChange={setFromPct} />
       <Strength id="c-to" label={t("calc.modes.adjust.to")} value={toPct} onChange={setToPct} />
       <div className="grid grid-cols-2 gap-3">
@@ -145,15 +150,16 @@ export function Adjust({ densities, defaultPct }) {
 }
 
 // ------------------------------------------- mode d: several bottles
-export function Run({ densities, defaultPct }) {
+export function Run({ densities, defaultPct, defaultBasis = "volume" }) {
   const { t } = useI18n();
+  const [basis, setBasis] = useState(defaultBasis);
   const [lines, setLines] = useState([{ sizeMl: "50", count: "1" }]);
   const [pct, setPct] = useState(defaultPct);
   const [overfill, setOverfill] = useState("0");
   const set = (i, key, v) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, [key]: v } : l)));
   const clean = lines.map((l) => ({ sizeMl: Number(l.sizeMl), count: Math.floor(Number(l.count)) }));
   const ok = clean.some((l) => l.sizeMl > 0 && l.count > 0) && Number(pct) > 0 && Number(pct) < 100;
-  const r = ok ? solveRun(clean, Number(pct), densities, Number(overfill) || 0) : null;
+  const r = ok ? solveRun(clean, Number(pct), densities, Number(overfill) || 0, basis) : null;
   return (
     <div className="space-y-4">
       <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("calc.modes.run.intro")}</p>
@@ -167,6 +173,7 @@ export function Run({ densities, defaultPct }) {
       ))}
       <button type="button" onClick={() => setLines((ls) => [...ls, { sizeMl: "", count: "1" }])}
         className="text-[11px] font-mono underline" style={{ color: COLORS.amber }}>{t("calc.modes.run.addLine")}</button>
+      <BasisToggle value={basis} onChange={setBasis} />
       <Strength id="d-pct" label={t("calc.modes.strength")} value={pct} onChange={setPct} />
       <Num id="d-over" label={t("calc.modes.run.overfill")} value={overfill} onChange={setOverfill} step="1" />
       {r && (

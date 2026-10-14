@@ -153,6 +153,26 @@ describe('POST /api/batches record fields', () => {
   });
 });
 
+describe('POST /api/batches seller costs', () => {
+  const costs = { ethanol_price_per_l: 40, bottle_cost: 10, bottles: 2, packaging_cost: 1.5, labour_minutes: 30, labour_rate_per_hour: 20, sale_price: 60, currency: 'SAR' };
+  it('stores them for a Pro user', async () => {
+    const res = await call('POST', { body: { ...BATCH, ...costs } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.batch).toMatchObject(costs);
+  });
+  it('stores none of them on Free, and still logs the batch', async () => {
+    db = dbFor('free');
+    const res = await call('POST', { body: { ...BATCH, ...costs } });
+    expect(res.statusCode).toBe(201);
+    for (const k of Object.keys(costs)) expect(res.body.batch).not.toHaveProperty(k);
+  });
+  it('drops malformed values instead of refusing the log', async () => {
+    const res = await call('POST', { body: { ...BATCH, bottles: 1.5, sale_price: -4, bottle_cost: 'abc', packaging_cost: true, currency: 'sar', labour_minutes: 1e9 } });
+    expect(res.statusCode).toBe(201);
+    for (const k of ['bottles', 'sale_price', 'bottle_cost', 'packaging_cost', 'currency', 'labour_minutes']) expect(res.body.batch).not.toHaveProperty(k);
+  });
+});
+
 describe('GET /api/batches', () => {
   it("lists only the user's own batches", async () => {
     db = dbFor('pro', { batches: [{ id: 'a', user_id: USER, created_at: '2026-10-01' }, { id: 'b', user_id: OTHER, created_at: '2026-10-02' }] });
@@ -246,7 +266,7 @@ describe('errors', () => {
     const { readFileSync } = await import('node:fs');
     const en = (await import('../../../src/i18n/messages/en.js')).default as any;
     const ar = (await import('../../../src/i18n/messages/ar.js')).default as any;
-    const files = ['api/batches.ts', 'api/_lib/http.ts', 'api/_lib/share.ts', 'api/_lib/rateLimit.ts', 'api/_lib/entitlements.ts'];
+    const files = ['api/batches.ts', 'api/inventory.ts', 'api/_lib/http.ts', 'api/_lib/share.ts', 'api/_lib/rateLimit.ts', 'api/_lib/entitlements.ts'];
     const codes = new Set<string>();
     for (const f of files) {
       const src = readFileSync(f, 'utf8');
@@ -257,5 +277,47 @@ describe('errors', () => {
     expect(codes.size).toBeGreaterThan(10);
     const missing = [...codes].filter((c) => !en.errors[c] || !ar.errors[c]);
     expect(missing).toEqual([]);
+  });
+});
+
+describe('POST /api/batches validation', () => {
+  const bad: Record<string, Record<string, unknown>> = {
+    'zero volume': { total_ml: 0, oil_ml: 0, ethanol_ml: 0, oil_g: 0, ethanol_g: 0, total_g: 0 },
+    '100 percent': { concentration_pct: 100 },
+    'negative grams': { oil_g: -1 },
+    'text where a number belongs': { oil_g: 'lots' },
+    'huge number': { total_ml: 1e9 },
+    'total far from the parts': { total_g: 10 },
+    'long note': { notes: 'x'.repeat(2001) },
+    'long name': { fragrance_name: 'x'.repeat(121) },
+    'bad date': { blend_date: 'yesterday' },
+    'negative price': { price_per_gram: -2 },
+  };
+  for (const [label, patch] of Object.entries(bad)) {
+    it(`refuses ${label}`, async () => {
+      const res = await call('POST', { body: { ...BATCH, ...patch } });
+      expect(res.statusCode).toBe(400);
+      expect(res.body.code).toBe('invalid_batch');
+    });
+  }
+
+  it('accepts the handbook case', async () => {
+    const res = await call('POST', { body: BATCH });
+    expect(res.statusCode).toBe(201);
+  });
+
+  it('accepts totals that differ only by display rounding', async () => {
+    const res = await call('POST', { body: { ...BATCH, total_g: 84.5003 } });
+    expect(res.statusCode).toBe(201);
+  });
+});
+
+describe('DELETE /api/batches rate limit', () => {
+  it('answers 429 over the limit and keeps the batch', async () => {
+    db.rows('batches').push({ id: ID, user_id: USER });
+    db.rpcHandlers.hit_rate_limit = () => ({ data: false, error: null });
+    const res = await call('DELETE', { query: { id: ID } });
+    expect(res.statusCode).toBe(429);
+    expect(db.rows('batches')).toHaveLength(1);
   });
 });

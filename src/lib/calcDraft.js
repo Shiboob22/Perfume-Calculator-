@@ -7,6 +7,7 @@ const KEY = "sh-calc-draft-v1";
 const FIELDS = {
   fragName: "string", tierKey: "string", batchSize: "any", batchUnit: "string", concPct: "any",
   mode: "string", ethanolPricePerL: "any", bottleCost: "any", bottles: "any",
+  packagingCost: "any", labourMinutes: "any", labourRate: "any", salePrice: "any", currency: "string",
   oilType: "string", pricePerGram: "any", notes: "string",
   actualOilG: "any", actualEthG: "any", blendedBy: "string", blendDate: "string",
   measuredDensity: "number", densities: "object", chosenFamily: "boolean", chosenConc: "boolean",

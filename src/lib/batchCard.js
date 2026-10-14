@@ -10,13 +10,13 @@ import { PALETTES } from "./theme";
 const COLORS = PALETTES.light;
 import { TIERS, TIER_COLORS } from "./tiers";
 import { batchStartedAt, batchReadyAt, formatExact } from "./batchTiming";
-import { actualStrength } from "./calc";
+import { actualStrength, batchEconomics, fmt2, shownTotal } from "./calc";
 import { dirOf } from "../i18n/core";
 import { loadArabicFonts } from "../i18n/arabicFonts";
 
+// The engine's rounding, so the card matches what the calculator showed.
 function round2(n) {
-  if (!Number.isFinite(n)) return "0.00";
-  return (Math.round(n * 100) / 100).toFixed(2);
+  return Number.isFinite(n) ? fmt2(n) : "0.00";
 }
 
 // Logical card size (portrait, comfortable for phone share sheets). The bitmap
@@ -67,7 +67,7 @@ export function cardRows(batch, { t, locale }) {
   const rows = [
     [t("batches.oil"), t("batchCard.gramsMl", { g: round2(batch.oil_g), ml: round2(batch.oil_ml) })],
     [t("batches.ethanol"), t("batchCard.gramsMl", { g: round2(batch.ethanol_g), ml: round2(batch.ethanol_ml) })],
-    [t("batches.total"), t("batchCard.grams", { g: round2(batch.total_g) })],
+    [t("batches.total"), t("batchCard.grams", { g: fmt2(shownTotal(Number(batch.oil_g), Number(batch.ethanol_g))) })],
   ];
   const actual = actualStrength(batch);
   if (actual !== null) {
@@ -76,6 +76,12 @@ export function cardRows(batch, { t, locale }) {
   }
   if (batch.oil_cost) rows.push([t("calc.oilCost"), round2(batch.oil_cost)]);
   if (batch.price_per_gram) rows.push([t("calc.pricePerGram"), round2(Number(batch.price_per_gram))]);
+  const econ = batchEconomics(batch);
+  if (econ) {
+    const m = (v) => `${fmt2(v)}${econ.currency ? ` ${econ.currency}` : ""}`;
+    rows.push([t("batches.costPerBottle"), m(econ.perBottle)]);
+    if (econ.profit != null) rows.push([t(econ.profit < 0 ? "batches.loss" : "batches.profit"), `${m(Math.abs(econ.profit))} (${fmt2(econ.marginPct)}%)`]);
+  }
   const started = batchStartedAt(batch);
   const ready = batchReadyAt(batch);
   if (started) rows.push([t("batches.created"), formatExact(started, locale)]);

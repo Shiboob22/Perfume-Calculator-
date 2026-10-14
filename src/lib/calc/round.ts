@@ -13,3 +13,12 @@ export function fmt2(x: number): string {
   const r = round2(x);
   return Number.isFinite(r) ? r.toFixed(2) : "—";
 }
+
+/**
+ * The total the calculator shows: the sum of the two rounded pours, so the
+ * figure on a card always adds up on the scale. 30 mL at 15 % reads
+ * 4.28 + 20.66 = 24.94, where rounding the exact total would give 24.93.
+ */
+export function shownTotal(oil: number, ethanol: number): number {
+  return round2(round2(oil) + round2(ethanol));
+}

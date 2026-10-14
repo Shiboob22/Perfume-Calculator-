@@ -83,6 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const id = String(req.query.id ?? '');
       if (!UUID.test(id)) return res.status(400).json({ error: 'Missing check-in id.' });
+      if (await overLimit(supabase, res, 'remove', userId)) return;
       const { error } = await supabase.from('batch_checkins').delete().eq('id', id).eq('user_id', userId);
       if (error) throw error;
       return res.status(200).json({ success: true });

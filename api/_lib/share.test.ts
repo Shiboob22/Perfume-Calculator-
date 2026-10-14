@@ -33,3 +33,11 @@ describe('shareRow', () => {
     expect(shareRow(null, {})).toMatchObject({ code: 'share_family' });
   });
 });
+
+import { shownWeights } from '../recipe.js';
+describe('shownWeights', () => {
+  it('totals the rounded pours, as the calculator shows them', () => {
+    // 30 mL at 15 %: 4.275 g oil + 20.655 g alcohol
+    expect(shownWeights({ oil_g: '4.275', ethanol_g: '20.655' })).toMatchObject({ oil: '4.28', ethanol: '20.66', total: '24.94' });
+  });
+});
