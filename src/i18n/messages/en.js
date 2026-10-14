@@ -232,6 +232,7 @@ export default {
     byline: "By Hisham Shiboob",
   },
   bench: {
+    scale: { oil: "Oil on the scale", alcohol: "Alcohol on the scale", under: "below target", ok: "on target", over: "over target" },
     newTab: "(Opens in a new tab)",
     after: { title: "Next", batches: "See it in your batches, where you can also share it", label: "Print a label", calculator: "Back to the calculator" },
     title: "Bench mode",

@@ -233,6 +233,7 @@ export default {
     byline: "بقلم Hisham Shiboob",
   },
   bench: {
+    scale: { oil: "الزيت على الميزان", alcohol: "الكحول على الميزان", under: "أقل من المطلوب", ok: "على المطلوب", over: "أكثر من المطلوب" },
     newTab: "(تُفتح في علامة تبويب جديدة)",
     after: { title: "التالي", batches: "اعرضها في دفعاتك، ويمكنك مشاركتها من هناك", label: "اطبع ملصقًا", calculator: "العودة إلى الحاسبة" },
     title: "وضع العمل",

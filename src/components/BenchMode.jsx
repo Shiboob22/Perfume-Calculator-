@@ -11,6 +11,7 @@ import { buildBatch, usedOil } from "../lib/batchPayload";
 import { useEntitlements } from "../lib/useEntitlements";
 import { can } from "../lib/entitlements";
 import { enqueue, isOffline } from "../lib/outbox";
+import ScaleReadout from "./kx/ScaleReadout";
 
 // The handbook's Bench Workflow, one step per screen, big numbers, for a
 // phone next to the scale. The batch comes from the Calculator (router
@@ -73,6 +74,18 @@ function Rules({ step }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+// What is on the scale against what the step asks for. The tolerance is the
+// 0.01 g the scale shows, not an invented pour limit (the handbook sets none).
+function Scale({ label, value, target }) {
+  const { t } = useI18n();
+  return (
+    <div className="mt-4">
+      <ScaleReadout label={label} grams={Number(value) > 0 ? Number(value) : 0} target={target} tolerance={0.005}
+        labels={{ under: t("bench.scale.under"), ok: t("bench.scale.ok"), over: t("bench.scale.over") }} />
+    </div>
   );
 }
 
@@ -237,6 +250,7 @@ export default function BenchMode() {
           <>
             <Big label={t("bench.oil.target")} grams={fmt2(target.exact.oilG)} />
             <p className="leading-relaxed">{t("bench.oil.text")}</p>
+            <Scale label={t("bench.scale.oil")} value={oilG} target={target.exact.oilG} />
             <Grams id="bench-oil" label={t("bench.oil.actual")} value={oilG} onChange={setOilG} />
             {!actualOil && <p className="mt-2 text-sm" style={{ color: COLORS.inkSoft }}>{t("bench.oil.needActual")}</p>}
           </>
@@ -251,6 +265,7 @@ export default function BenchMode() {
               <p className="text-sm mb-3" style={{ color: COLORS.amber }}>{t("bench.alcohol.adjusted", { oil: fmt2(actualOil), pct })}</p>
             )}
             <p className="leading-relaxed">{t("bench.alcohol.text")}</p>
+            <Scale label={t("bench.scale.alcohol")} value={alcoholG} target={alcoholTarget} />
             <Grams id="bench-alcohol" label={t("bench.alcohol.actual")} value={alcoholG} onChange={setAlcoholG} />
             <div role="status">
             {pour && (

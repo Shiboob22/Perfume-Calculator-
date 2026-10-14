@@ -129,6 +129,29 @@ test("offline, a log waits on the device", async ({ page }) => {
   expect(queued[0].batch.fragrance_name).toBe("Oud Nights");
 });
 
+test("bench mode shows the weight on the scale against the target", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page);
+  await page.goto("/bench?size=50&unit=ml&conc=25&family=woody&name=Oud%20Nights");
+  await page.getByRole("button", { name: en.bench.start }).click();
+  await page.getByRole("checkbox").check();
+  const next = page.getByRole("button", { name: en.bench.next, exact: true });
+  await next.click();
+  await next.click(); // → oil (target 11.625 g)
+  const scale = page.getByRole("meter", { name: en.bench.scale.oil });
+  await expect(scale).toHaveAttribute("aria-valuenow", "0");
+  await page.getByLabel(en.bench.oil.actual).fill("6");
+  await expect(scale).toHaveAttribute("aria-valuenow", "6");
+  const live = page.getByRole("group", { name: en.bench.scale.oil }).locator("p[aria-live]");
+  await expect(live).toHaveAttribute("aria-label", new RegExp(`6\\.00 g of .*${en.bench.scale.under}`));
+  await page.getByLabel(en.bench.oil.actual).fill("11.625");
+  await expect(live).toHaveAttribute("aria-label", new RegExp(en.bench.scale.ok));
+  await page.getByLabel(en.bench.oil.actual).fill("13");
+  await expect(live).toHaveAttribute("aria-label", new RegExp(en.bench.scale.over));
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});
+
 test("bench mode logs the full record and offers next steps", async ({ page }) => {
   await signIn(page);
   const sent = await fakeApi(page);
