@@ -118,8 +118,8 @@ export const SHAPE = {
 
 // The editorial system: class strings, so prerendered HTML carries them.
 export const TYPE = {
-  display: "font-sans font-medium tracking-[-0.04em] leading-[0.98] rtl:leading-[1.3] text-[clamp(2.75rem,7.5vw,6.5rem)]",
-  title: "font-sans font-medium tracking-[-0.03em] leading-tight rtl:leading-[1.3] text-[clamp(2rem,4.5vw,3.25rem)]",
+  display: "font-serif font-normal tracking-[-0.03em] leading-[1.02] rtl:leading-[1.5] text-[clamp(2.75rem,7.5vw,6.5rem)]",
+  title: "font-serif font-normal tracking-[-0.02em] leading-tight rtl:leading-[1.3] text-[clamp(2rem,4.5vw,3.25rem)]",
   lead: "font-serif text-lg sm:text-xl leading-relaxed",
   runningHead: "running-head text-[11px] font-sans uppercase",
   label: "text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal",

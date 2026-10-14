@@ -1,14 +1,14 @@
 // Arabic webfonts, fetched only once someone switches to Arabic, so English
 // pages never download them. Arabic subsets only: Latin text keeps the
 // brand fonts, glyph by glyph.
-//   Tajawal — UI text and headings (the role of Poppins)
-//   Amiri   — body copy (the role of Lora)
+//   IBM Plex Sans Arabic — UI text (the role of Inter Tight)
+//   Amiri                — display and voice (the role of Fraunces)
 let loading = null;
 export function loadArabicFonts() {
   loading ??= Promise.all([
-    import("@fontsource/tajawal/arabic-400.css"),
-    import("@fontsource/tajawal/arabic-500.css"),
-    import("@fontsource/tajawal/arabic-700.css"),
+    import("@fontsource/ibm-plex-sans-arabic/arabic-400.css"),
+    import("@fontsource/ibm-plex-sans-arabic/arabic-500.css"),
+    import("@fontsource/ibm-plex-sans-arabic/arabic-600.css"),
     import("@fontsource/amiri/arabic-400.css"),
     import("@fontsource/amiri/arabic-700.css"),
   ]).catch(() => { loading = null; }); // system Arabic fonts remain the fallback

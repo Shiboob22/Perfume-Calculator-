@@ -4,11 +4,10 @@ import { BrowserRouter } from "react-router-dom";
 import { inject } from "@vercel/analytics";
 import Root from "./Root";
 import { isAppPath } from "./routes";
-import "@fontsource/poppins/latin-400.css";
-import "@fontsource/poppins/latin-500.css";
-import "@fontsource/lora/latin-400.css";
-import "@fontsource/lora/latin-400-italic.css";
-import "@fontsource/lora/latin-500.css";
+// Fraunces (display and voice; optical-size axis), Inter Tight (interface), IBM Plex Mono (numbers).
+import "@fontsource-variable/fraunces/opsz.css";
+import "@fontsource-variable/fraunces/opsz-italic.css";
+import "@fontsource-variable/inter-tight/wght.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./index.css";

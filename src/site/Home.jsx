@@ -4,6 +4,7 @@ import { COLORS, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { localePath } from "./meta";
 import LiveBench from "./LiveBench";
+import SmokeField from "../components/kx/SmokeField";
 import { GuideRows } from "./GuideRows";
 import { Folio } from "./editorial";
 import { IconArrow, IconBook, IconFlacon, IconPlus, IconScaleDrop, IconSeal, IconSteps, IconTile } from "../components/icons";
@@ -25,7 +26,9 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className={`${WRAP} grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-center pt-12 pb-20`}>
+      <div className="relative overflow-hidden">
+      <SmokeField className="absolute inset-0 w-full h-full" />
+      <section className={`${WRAP} relative grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-center pt-12 pb-20`}>
         <div>
           <p className={`${TYPE.label} mb-6`} style={{ color: COLORS.dim }}>{t("site.home.eyebrow")}</p>
           <h1 className={TYPE.display}>
@@ -47,6 +50,7 @@ export default function Home() {
         </div>
         <LiveBench />
       </section>
+      </div>
 
       {/* Three principles */}
       <section className="reveal" style={{ borderBlock: `1px solid ${COLORS.line}`, background: COLORS.card }}>

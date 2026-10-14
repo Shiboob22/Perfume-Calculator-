@@ -10,6 +10,8 @@ export default defineConfig({
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
+  // Visual baselines (e2e/visual.spec.js) are macOS renders, one folder per project.
+  snapshotPathTemplate: "{testDir}/__screenshots__/{projectName}/{arg}{ext}",
   use: { baseURL: "http://localhost:4173", trace: "retain-on-failure" },
   projects: [
     { name: "phone", use: { ...devices["Pixel 7"], channel } },

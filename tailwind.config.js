@@ -1,6 +1,7 @@
 // None of the brand fonts has Arabic glyphs, so Arabic text falls through,
-// glyph by glyph, to Tajawal (UI) or Amiri (body, serif) — loaded only in
-// Arabic, see src/i18n/arabicFonts.js — and then to system Arabic fonts.
+// glyph by glyph, to IBM Plex Sans Arabic (UI) or Amiri (display, serif) —
+// loaded only in Arabic, see src/i18n/arabicFonts.js — and then to system
+// Arabic fonts.
 const ARABIC_SYSTEM = ["'Geeza Pro'", "'Noto Sans Arabic'", "'Segoe UI'", "Tahoma"];
 
 import plugin from "tailwindcss/plugin";
@@ -18,9 +19,9 @@ export default {
       ringColor: { DEFAULT: COLORS.focus },
       ringOpacity: { DEFAULT: "1" },
       fontFamily: {
-        serif: ["'Lora'", "'Amiri'", "Georgia", ...ARABIC_SYSTEM, "serif"],
-        sans: ["'Poppins'", "'Tajawal'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
-        mono: ["'IBM Plex Mono'", "'Tajawal'", ...ARABIC_SYSTEM, "ui-monospace", "monospace"],
+        serif: ["'Fraunces Variable'", "'Amiri'", "Georgia", ...ARABIC_SYSTEM, "serif"],
+        sans: ["'Inter Tight Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
+        mono: ["'IBM Plex Mono'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "ui-monospace", "monospace"],
       },
     },
   },

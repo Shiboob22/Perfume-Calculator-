@@ -22,7 +22,7 @@ function write(file, html) {
 // The faces above the fold (headline, body, buttons, figures): preloaded so first paint already uses
 // them. Without this, the headline reflows when the display face arrives and
 // pushes the page down (measured CLS 0.11 on the home page on Slow 4G).
-const CRITICAL_FONTS = ["poppins-latin-500-normal-", "poppins-latin-400-normal-", "lora-latin-400-normal-", "ibm-plex-mono-latin-400-normal-"];
+const CRITICAL_FONTS = ["inter-tight-latin-wght-normal-", "fraunces-latin-opsz-normal-", "fraunces-latin-opsz-italic-", "ibm-plex-mono-latin-400-normal-"];
 const assets = readdirSync(join(DIST, "assets"));
 const preloads = CRITICAL_FONTS.map((prefix) => {
   const file = assets.find((f) => f.startsWith(prefix) && f.endsWith(".woff2"));

@@ -8,6 +8,9 @@ import { chromium } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import KyphiraMark from "../src/components/kx/KyphiraMark.jsx";
 import { PALETTES } from "../src/lib/theme.js";
 
 const C = PALETTES.light; // a PNG can't follow the reader's theme: paper
@@ -15,35 +18,34 @@ import { TIER_COLORS } from "../src/lib/tiers.js";
 import en from "../src/i18n/messages/en.js";
 import ar from "../src/i18n/messages/ar.js";
 
+const vfont = (pkg, file) => pathToFileURL(resolve("node_modules/@fontsource-variable", pkg, "files", file)).href;
 const font = (pkg, file) => pathToFileURL(resolve("node_modules/@fontsource", pkg, "files", file)).href;
 const FACES = `
-  @font-face { font-family: Poppins; font-weight: 500; src: url(${font("poppins", "poppins-latin-500-normal.woff2")}); }
-  @font-face { font-family: Lora; font-style: italic; font-weight: 400; src: url(${font("lora", "lora-latin-400-italic.woff2")}); }
-  @font-face { font-family: Tajawal; font-weight: 500; src: url(${font("tajawal", "tajawal-arabic-500-normal.woff2")}); }
+  @font-face { font-family: Fraunces; font-weight: 100 900; src: url(${vfont("fraunces", "fraunces-latin-opsz-normal.woff2")}); }
+  @font-face { font-family: Fraunces; font-style: italic; font-weight: 100 900; src: url(${vfont("fraunces", "fraunces-latin-opsz-italic.woff2")}); }
+  @font-face { font-family: "Inter Tight"; font-weight: 100 900; src: url(${vfont("inter-tight", "inter-tight-latin-wght-normal.woff2")}); }
+  @font-face { font-family: "IBM Plex Sans Arabic"; font-weight: 500; src: url(${font("ibm-plex-sans-arabic", "ibm-plex-sans-arabic-arabic-500-normal.woff2")}); }
+  @font-face { font-family: Amiri; font-weight: 400; src: url(${font("amiri", "amiri-arabic-400-normal.woff2")}); }
 `;
 
-// The brand flacon (as FlaconMark): ink outline and cap, the family's colour as the liquid line.
-const flacon = (color) => `<svg width="92" height="118" viewBox="0 0 28 36" fill="none">
-  <rect x="10" y="1" width="8" height="5" fill="${C.ink}" />
-  <path d="M12 6v3.5M16 6v3.5" stroke="${C.ink}" stroke-width="1.2" />
-  <rect x="3.7" y="10.2" width="20.6" height="24.1" stroke="${C.ink}" stroke-width="1.2" />
-  <path d="M6.5 24.5h15" stroke="${color}" stroke-width="2.6" />
-</svg>`;
+// The Kyphira mark (direction A): ink censer, the family's colour as the smoke.
+const flacon = (color) => renderToStaticMarkup(React.createElement(KyphiraMark, { variant: "A", size: 128, inkColor: C.ink, smokeColor: color }));
 
 function card(family, lang) {
   const m = lang === "ar" ? ar : en;
   const rtl = lang === "ar";
-  const display = rtl ? "Tajawal, Poppins" : "Poppins";
+  const display = rtl ? "Amiri, Fraunces" : "Fraunces";
+  const ui = rtl ? "IBM Plex Sans Arabic, Inter Tight" : "Inter Tight";
   return `<!doctype html><html lang="${lang}" dir="${rtl ? "rtl" : "ltr"}"><head><meta charset="utf-8"><style>
     ${FACES}
     * { margin: 0; box-sizing: border-box; }
     body { width: 1200px; height: 630px; background: ${C.sand}; color: ${C.ink}; display: flex; }
     .frame { margin: 36px 52px 52px 36px; flex: 1; border: 2px solid ${C.ink}; background: ${C.card}; box-shadow: 16px 16px 0 ${C.line}; position: relative; padding: 72px 80px; display: flex; flex-direction: column; justify-content: space-between; }
     .strip { position: absolute; inset: 0 0 auto 0; height: 14px; background: ${TIER_COLORS[family]}; }
-    .eyebrow { font: 500 28px ${display}; color: ${C.dim}; letter-spacing: ${rtl ? "0" : "0.15em"}; text-transform: uppercase; }
-    .family { font: 500 108px ${display}; letter-spacing: ${rtl ? "0" : "-0.04em"}; color: ${C.ink}; margin-top: 18px; line-height: ${rtl ? 1.3 : 1.05}; }
+    .eyebrow { font: 500 28px ${ui}; color: ${C.dim}; letter-spacing: ${rtl ? "0" : "0.15em"}; text-transform: uppercase; }
+    .family { font: 400 108px ${display}; letter-spacing: ${rtl ? "0" : "-0.04em"}; color: ${C.ink}; margin-top: 18px; line-height: ${rtl ? 1.3 : 1.05}; }
     .row { display: flex; align-items: flex-end; justify-content: space-between; }
-    .brand { font: 500 48px Poppins; letter-spacing: -0.03em; color: ${C.ink}; } .tag { font: ${rtl ? "500 26px Tajawal" : "italic 400 26px Lora"}; color: ${C.inkSoft}; margin-top: 8px; }
+    .brand { font: 400 52px ${display}; letter-spacing: -0.02em; color: ${C.ink}; } .tag { font: ${rtl ? "500 26px IBM Plex Sans Arabic" : "italic 400 26px Fraunces"}; color: ${C.inkSoft}; margin-top: 8px; }
   </style></head><body><div class="frame"><div class="strip"></div>
     <div><div class="eyebrow">${m.recipe.eyebrow}</div><div class="family">${m.families[family].label}</div></div>
     <div class="row"><div><div class="brand">${m.brand}</div><div class="tag">${m.brandTagline}</div></div>${flacon(TIER_COLORS[family])}</div>

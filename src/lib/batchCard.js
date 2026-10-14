@@ -25,13 +25,13 @@ const W = 1000;
 const H = 1400;
 const SCALE = 2;
 const PAD = 70; // outer paper margin around the inner frame
-const SERIF = "Lora, Georgia, 'Times New Roman', serif";
+const SERIF = "'Fraunces Variable', Georgia, 'Times New Roman', serif";
 const MONO = "'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace";
 // Arabic: the app's faces (arabicFonts.js). Amiri's subset is Arabic only,
 // so Latin names fall through to Georgia. Labels use a proportional face:
 // monospaced Arabic stretches badly.
 const SERIF_AR = "Amiri, Georgia, 'Geeza Pro', 'Noto Naskh Arabic', serif";
-const LABEL_AR = "Tajawal, 'Geeza Pro', 'Noto Sans Arabic', Tahoma, sans-serif";
+const LABEL_AR = "'IBM Plex Sans Arabic', 'Geeza Pro', 'Noto Sans Arabic', Tahoma, sans-serif";
 
 // Unicode isolates. Text from the user or the catalog (a Latin name like
 // "1 Million", notes ending in "."), and ISO dates, would otherwise be
