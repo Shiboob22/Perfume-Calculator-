@@ -765,7 +765,7 @@ export default {
     waitlist: { title: "قائمة انتظار Pro", lead: "خطة Pro ليست معروضة للبيع بعد. انضم إلى القائمة لتكون أول من يعلم عند إطلاقها. لن نطلب أي بيانات دفع.", join: "انضم إلى قائمة انتظار Pro", joined: "أنت في القائمة.", failed: "تعذّر الانضمام. حاول مرة أخرى." },
     prefs: { title: "التفضيلات", language: "اللغة", unit: "وحدة القياس", bottle: "حجم الزجاجة المعتاد", digits: "الأرقام", saved: "تم الحفظ.", saveFailed: "تعذّر الحفظ." },
     data: { title: "بياناتك", lead: "نزّل كل ما حفظته: الخلطات والمخزون والملاحظات والإعدادات المحفوظة والتفضيلات.", json: "تنزيل الكل (JSON)", csv: "تنزيل {table} (CSV)", empty: "لا شيء محفوظ بعد.", failed: "تعذّر تجهيز التنزيل.",
-      tables: { batches: "الخلطات", batch_checkins: "تسجيلات اليوميات", shared_recipes: "الوصفات المشتركة", inventory: "المخزون", fragrance_notes: "الملاحظات", calc_presets: "الإعدادات المحفوظة", recipes: "الوصفات", recipe_versions: "إصدارات الوصفات", profiles: "التفضيلات", pro_waitlist: "قائمة الانتظار", user_plans: "الخطة", fragrances: "العطور التي أضفتها" } },
+      tables: { batches: "الخلطات", batch_checkins: "تسجيلات اليوميات", shared_recipes: "الوصفات المشتركة", inventory: "المخزون", fragrance_notes: "الملاحظات", calc_presets: "الإعدادات المحفوظة", recipes: "الوصفات", recipe_versions: "إصدارات الوصفات", wardrobe_bottles: "زجاجات الخزانة", wear_log: "سجل الاستعمال", profiles: "التفضيلات", pro_waitlist: "قائمة الانتظار", user_plans: "الخطة", fragrances: "العطور التي أضفتها" } },
     delete: {
       title: "حذف الحساب",
       lead: "سيُحذف حسابك وكل ما فيه — الخلطات والمخزون والملاحظات والإعدادات المحفوظة والتفضيلات — فورًا، ولا يمكن التراجع عن ذلك. نزّل بياناتك أولًا إن أردت نسخة منها.",

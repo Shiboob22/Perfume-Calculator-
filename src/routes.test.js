@@ -5,7 +5,7 @@ import { REDIRECTS, isAppPath, tabPath, tabFromPath } from "./routes.js";
 
 describe("routes", () => {
   it("serves /app and /bench as the app", () => {
-    expect(["/app", "/app/search", "/bench", "/bench/journal"].every(isAppPath)).toBe(true);
+    expect(["/app", "/app/search", "/bench", "/bench/journal", "/wardrobe"].every(isAppPath)).toBe(true);
     expect(["/", "/benchmark", "/library", "/ar/bench"].some(isAppPath)).toBe(false);
   });
 
@@ -17,6 +17,8 @@ describe("routes", () => {
     expect(tabFromPath("/bench/journal", undefined)).toBe("batches");
     expect(tabFromPath("/app/inventory", "inventory")).toBe("inventory");
     expect(tabFromPath("/app", undefined)).toBeUndefined();
+    expect(tabPath("wardrobe")).toBe("/wardrobe");
+    expect(tabFromPath("/wardrobe", undefined)).toBe("wardrobe");
   });
 
   it("matches the 301s in vercel.json, one for one", () => {
@@ -30,6 +32,7 @@ describe("routes", () => {
     const to = (source) => rewrites.find((r) => r.source === source)?.destination;
     expect(to("/bench")).toBe("/app/index.html");
     expect(to("/bench/:path*")).toBe("/app/index.html");
+    expect(to("/wardrobe")).toBe("/app/index.html");
   });
 
   it("leaves no link to a retired address in the source", () => {

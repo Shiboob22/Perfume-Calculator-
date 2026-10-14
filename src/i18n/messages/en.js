@@ -764,7 +764,7 @@ export default {
     waitlist: { title: "Pro waitlist", lead: "Pro is not on sale yet. Join the list and you will hear first when it opens. No payment details are asked for.", join: "Join the Pro waitlist", joined: "You are on the list.", failed: "Could not join. Try again." },
     prefs: { title: "Preferences", language: "Language", unit: "Measure in", bottle: "Usual bottle size", digits: "Digits", saved: "Saved.", saveFailed: "Could not save." },
     data: { title: "Your data", lead: "Download everything you have saved: batches, inventory, notes, presets and preferences.", json: "Download all (JSON)", csv: "Download {table} (CSV)", empty: "Nothing saved yet.", failed: "Could not prepare the download.",
-      tables: { batches: "batches", batch_checkins: "journal check-ins", shared_recipes: "shared recipes", inventory: "inventory", fragrance_notes: "notes", calc_presets: "presets", recipes: "recipes", recipe_versions: "recipe versions", profiles: "preferences", pro_waitlist: "waitlist", user_plans: "plan", fragrances: "fragrances you added" } },
+      tables: { batches: "batches", batch_checkins: "journal check-ins", shared_recipes: "shared recipes", inventory: "inventory", fragrance_notes: "notes", calc_presets: "presets", recipes: "recipes", recipe_versions: "recipe versions", wardrobe_bottles: "wardrobe bottles", wear_log: "wear log", profiles: "preferences", pro_waitlist: "waitlist", user_plans: "plan", fragrances: "fragrances you added" } },
     delete: {
       title: "Delete account",
       lead: "This deletes your account and everything in it — batches, inventory, notes, presets and preferences — straight away. It cannot be undone. Download your data first if you want a copy.",

@@ -57,6 +57,14 @@
       "destination": "/app/index.html"
     },
     {
+      "source": "/wardrobe",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/wardrobe/:path*",
+      "destination": "/app/index.html"
+    },
+    {
       "source": "/app/:path*",
       "destination": "/app/index.html"
     }

@@ -22,6 +22,9 @@ declare
   r_a uuid;           -- a recipe and version of user A (0023)
   rv_a uuid;
   r_b uuid;
+  wb_a uuid;          -- a Wardrobe bottle of user A (0024)
+  wb_b uuid;
+  wb_wish uuid;
   slug_a text := 'a-indexed-' || substr(md5(random()::text), 1, 6);
   slug_b text := 'b-unlisted-' || substr(md5(random()::text), 1, 6);
   n int;
@@ -59,6 +62,8 @@ begin
   insert into public.recipes (user_id, name, family) values (a, 'A secret blend', 'woody') returning id into r_a;
   insert into public.recipe_versions (recipe_id, user_id, amount, unit, concentration_pct) values (r_a, a, 100, 'ml', 25) returning id into rv_a;
   update public.batches set recipe_version_id = rv_a where id = batch_a;
+  insert into public.wardrobe_bottles (user_id, name, status) values (a, 'A bottle', 'owned') returning id into wb_a;
+  insert into public.wear_log (user_id, bottle_id, occasion) values (a, wb_a, 'date');
   insert into public.batch_checkins (id, batch_id, user_id, day, scheduled_day, note, rating)
   values (gen_random_uuid(), batch_a, a, 1, 1, 'A day one', 3);
   -- A check-in can't belong to somebody else's batch (0012's composite key).
@@ -308,6 +313,61 @@ begin
   if not ok then raise exception 'RLS_ISOLATION FAILED: a 51st recipe was accepted'; end if; checks := checks + 1;
   if has_table_privilege('anon', 'public.recipes', 'select') or has_table_privilege('anon', 'public.recipe_versions', 'select') then
     raise exception 'RLS_ISOLATION FAILED: anon can read recipes';
+  end if; checks := checks + 1;
+
+  -- The Wardrobe (0024): owner-only, a wear row only on one's own bottle,
+  -- nothing worn from the wish list, caps and value checks, cascade on delete.
+  select count(*) into n from public.wardrobe_bottles;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s bottles'; end if; checks := checks + 1;
+  select count(*) into n from public.wear_log;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s wear log'; end if; checks := checks + 1;
+  update public.wardrobe_bottles set name = 'tampered'; get diagnostics n = row_count;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B renamed A''s bottle'; end if; checks := checks + 1;
+  delete from public.wardrobe_bottles; get diagnostics n = row_count;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B deleted A''s bottle'; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.wardrobe_bottles (user_id, name) values (a, 'forged');
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B added a bottle as A'; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.wear_log (bottle_id, occasion) values (wb_a, 'date');
+  exception when foreign_key_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B wore A''s bottle'; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.wear_log (user_id, bottle_id) values (a, wb_a);
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B logged a wearing as A'; end if; checks := checks + 1;
+  insert into public.wardrobe_bottles (name, status) values ('B bottle', 'owned') returning id into wb_b;
+  insert into public.wardrobe_bottles (name, status) values ('B wish', 'wishlist') returning id into wb_wish;
+  ok := false;
+  begin insert into public.wear_log (bottle_id) values (wb_wish);
+  exception when check_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a wish-list bottle was worn'; end if; checks := checks + 1;
+  insert into public.wear_log (bottle_id, occasion, time_of_day, temp_c, sprays) values (wb_b, 'professional', 'morning', 31, 2);
+  select count(*) into n from public.wear_log;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B sees % wear rows, expected its own 1', n; end if; checks := checks + 1;
+  ok := false;
+  begin update public.wardrobe_bottles set fill_pct = 101 where id = wb_b;
+  exception when check_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a fill level over 100 was accepted'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.wardrobe_bottles set clusters = array['bogus'] where id = wb_b;
+  exception when check_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: an unknown cluster was accepted'; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.wear_log (bottle_id, sprays) values (wb_b, 51);
+  exception when check_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: 51 sprays was accepted'; end if; checks := checks + 1;
+  for i in 1..298 loop insert into public.wardrobe_bottles (name) values ('B bulk ' || i); end loop;
+  ok := false;
+  begin insert into public.wardrobe_bottles (name) values ('one too many');
+  exception when program_limit_exceeded then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a 301st bottle was accepted'; end if; checks := checks + 1;
+  delete from public.wardrobe_bottles where id = wb_b;
+  select count(*) into n from public.wear_log;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: deleting a bottle kept its wear log'; end if; checks := checks + 1;
+  if has_table_privilege('anon', 'public.wardrobe_bottles', 'select') or has_table_privilege('anon', 'public.wear_log', 'select') then
+    raise exception 'RLS_ISOLATION FAILED: anon can read the Wardrobe';
   end if; checks := checks + 1;
 
   -- ------------------------------------------------------ act as user A

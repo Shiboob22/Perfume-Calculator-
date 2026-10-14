@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { inject } from "@vercel/analytics";
 import Root from "./Root";
 import { isAppPath } from "./routes";
+import { applyFlagLink } from "./lib/flags";
 // Fraunces (display and voice; optical-size axis), Inter Tight (interface), IBM Plex Mono (numbers).
 import "@fontsource-variable/fraunces/opsz.css";
 import "@fontsource-variable/fraunces/opsz-italic.css";
@@ -18,6 +19,9 @@ import "./index.css";
 if (!isAppPath(location.pathname) && /(^|[#&])(access_token|error_description)=/.test(location.hash)) {
   location.replace(`/app${location.search}${location.hash}`);
 }
+
+// ?flag=wardrobe / ?unflag=wardrobe: try a flagged room on this device.
+applyFlagLink(location.search);
 
 const tree = (
   <React.StrictMode>
