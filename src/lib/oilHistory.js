@@ -23,6 +23,8 @@ export function makeAgainHref(b) {
   const s = batchSettings(b);
   const q = new URLSearchParams();
   for (const k of ["size", "unit", "conc", "family", "name"]) if (s[k] != null) q.set(k, String(s[k]));
+  // The recipe version it was made from: the calculator reopens it if it is still there.
+  if (b.recipe_version_id) q.set("recipe", b.recipe_version_id);
   return `/bench?${q}`;
 }
 

@@ -14,6 +14,7 @@ import { STRENGTHS } from "../lib/formulation";
 const CALC_STRENGTHS = [...STRENGTHS.filter((s) => s.pct < 22), { pct: 22, name: "" }, ...STRENGTHS.filter((s) => s.pct > 22)];
 import MeasuredDensity from "./calc/MeasuredDensity";
 import Presets from "./calc/Presets";
+import Recipes from "./calc/Recipes";
 import OilHistory from "./calc/OilHistory";
 import WaitlistButton from "./WaitlistButton";
 import Source from "./calc/Source";
@@ -197,6 +198,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [batchSize, setBatchSize] = useState(draft?.batchSize ?? start.size);
   const [batchUnit, setBatchUnit] = useState(UNIT_LABELS[draft?.batchUnit] ? draft.batchUnit : start.unit); // ml | floz | g | oz
   const [concPct, setConcPct] = useState(draft?.concPct ?? prefill.conc ?? (prefill.family ? TIERS[prefill.family].defaultConc : 20));
+  // The recipe version a logged batch will be linked to (null: none, or the settings were changed).
+  const [recipeVersionId, setRecipeVersionId] = useState(null);
   const [densities, setDensities] = useState(() => ({
     ...Object.fromEntries(Object.entries(TIERS).map(([k, t]) => [k, t.density])),
     ethanol: ETHANOL_DENSITY_DEFAULT,
@@ -346,6 +349,20 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     if (st.unit) setBatchUnit(st.unit);
   }
 
+  // Opening a recipe version: its size, unit, strength, family and densities.
+  function applyRecipe(st) {
+    chosen.current.family = true;
+    chosen.current.conc = true;
+    const family = st.family && TIERS[st.family] ? st.family : tierKey;
+    if (family !== tierKey) setTierKey(family);
+    setConcPct(st.conc);
+    setBatchSize(st.size);
+    setBatchUnit(st.unit);
+    if (st.oilDensity != null || st.ethanolDensity != null) {
+      setDensities((d) => ({ ...d, ...(st.oilDensity != null ? { [family]: st.oilDensity } : {}), ...(st.ethanolDensity != null ? { ethanol: st.ethanolDensity } : {}) }));
+    }
+  }
+
   // One id per batch the user means to log, kept across retries: if a
   // send reached the server but the answer was lost, the retry is
   // recognised as the same batch instead of logging it twice.
@@ -358,7 +375,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     const row = (fragranceId) => buildBatch({
       id: logId.current, fragranceId, name: fragName.trim(), tier: tierKey, blendDate, concPct,
       target: result, densities: result.densities, actualOilG, actualEthG,
-      oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit, seller,
+      oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit, seller, recipeVersionId,
     });
     try {
       let fragrance = matched;
@@ -590,6 +607,14 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           <Presets
             current={{ amount: batchSize, unit: batchUnit, concPct }}
             onApply={({ amount, unit, concPct: c }) => { chosen.current.conc = true; setBatchSize(amount); setBatchUnit(unit); setConcPct(c); }}
+          />
+
+          <Recipes
+            current={{ amount: batchSize, unit: batchUnit, concPct, oilDensity: result.densities.oil, ethanolDensity: result.densities.ethanol }}
+            family={tierKey}
+            onApply={applyRecipe}
+            onLink={setRecipeVersionId}
+            initialVersionId={prefill.recipe}
           />
 
           <Field label={t("calc.batchSize")} htmlFor="calc-size">

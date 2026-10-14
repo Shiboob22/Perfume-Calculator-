@@ -3,18 +3,28 @@ import { prefillFromQuery, startingBottle, afterOnboardingPath, cleanName, refFr
 
 const q = (s) => prefillFromQuery(new URLSearchParams(s));
 
+describe("prefillFromQuery recipe", () => {
+  const V = "33333333-3333-4333-8333-333333333333";
+  it("accepts a recipe version id and nothing else", () => {
+    expect(q(`recipe=${V}`).recipe).toBe(V);
+    expect(q("recipe=oops").recipe).toBeNull();
+    expect(q("recipe=%3Cscript%3E").recipe).toBeNull();
+    expect(q("").recipe).toBeNull();
+  });
+});
+
 describe("prefillFromQuery", () => {
   it("reads a guide's link", () => {
-    expect(q("size=100&unit=ml&conc=25")).toEqual({ size: 100, unit: "ml", conc: 25, family: null, name: null });
+    expect(q("size=100&unit=ml&conc=25")).toEqual({ size: 100, unit: "ml", conc: 25, family: null, name: null, recipe: null });
   });
   it("reads a shared recipe's family", () => {
-    expect(q("size=50&unit=g&conc=30&family=oriental")).toEqual({ size: 50, unit: "g", conc: 30, family: "oriental", name: null });
+    expect(q("size=50&unit=g&conc=30&family=oriental")).toEqual({ size: 50, unit: "g", conc: 30, family: "oriental", name: null, recipe: null });
     expect(q("family=__proto__").family).toBeNull();
   });
   it("ignores missing, unknown and out-of-range values", () => {
-    expect(q("")).toEqual({ size: null, unit: null, conc: null, family: null, name: null });
-    expect(q("size=-5&unit=gallon&conc=150&family=citrus")).toEqual({ size: null, unit: null, conc: null, family: null, name: null });
-    expect(q("size=abc&unit=__proto__&conc=0")).toEqual({ size: null, unit: null, conc: null, family: null, name: null });
+    expect(q("")).toEqual({ size: null, unit: null, conc: null, family: null, name: null, recipe: null });
+    expect(q("size=-5&unit=gallon&conc=150&family=citrus")).toEqual({ size: null, unit: null, conc: null, family: null, name: null, recipe: null });
+    expect(q("size=abc&unit=__proto__&conc=0")).toEqual({ size: null, unit: null, conc: null, family: null, name: null, recipe: null });
   });
 });
 

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
-import { listBatches, deleteBatch } from "../lib/fragranceApi";
+import { listBatches, deleteBatch, listRecipes } from "../lib/fragranceApi";
+import { recipeLabel, versionIndex } from "../lib/recipes";
 import { downloadBatchCard } from "../lib/batchCard";
 import { actualStrength, batchEconomics, fmt2, shownTotal } from "../lib/calc";
 import { batchInsights } from "../lib/aiApi";
@@ -175,6 +176,9 @@ export default function Batches() {
   const [refused, setRefused] = useState(() => refusedBatches());
   const [patternsVersion, setPatternsVersion] = useState(0);
   const [selectedId, setSelectedId] = useState(null);
+  // versionId → { name, version }, to name the recipe a batch was made from.
+  const [recipeNames, setRecipeNames] = useState(() => new Map());
+  useEffect(() => { listRecipes().then((r) => setRecipeNames(versionIndex(r))).catch(() => {}); }, []);
   const headingRef = useRef(null);
   const navigate = useNavigate();
   const due = loading || error ? [] : dueNow(batches);
@@ -268,6 +272,9 @@ export default function Batches() {
                 <div className="text-xs mt-0.5" style={{ color: COLORS.inkSoft }}>
                   {t("batches.meta", { family: TIERS[b.tier] ? t(`families.${b.tier}.label`) : b.tier, pct: b.concentration_pct, date: formatDay(b.blend_date, locale) })}
                 </div>
+                {recipeNames.has(b.recipe_version_id) && (
+                  <div className="text-xs mt-0.5" style={{ color: COLORS.inkSoft }}>{t("batches.recipe", { label: recipeLabel(recipeNames.get(b.recipe_version_id)) })}</div>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-3 shrink-0 sm:ms-3">
                 <BatchEdit batch={b} onSaved={handleEdited} onStatus={setStatus} />

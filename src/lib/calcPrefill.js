@@ -3,6 +3,8 @@ import { cleanName } from "./cleanName.js";
 
 export { cleanName };
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const UNIT_LABELS = { ml: "mL", floz: "fl oz", g: "g", oz: "oz" };
 
 // Starting values from the URL (?size=100&unit=ml&conc=25&family=woody&name=…),
@@ -19,6 +21,8 @@ export function prefillFromQuery(params) {
     conc: Number.isFinite(conc) && conc >= 1 && conc <= 100 ? conc : null,
     family: TIER_KEYS.includes(family) ? family : null,
     name: cleanName(params.get("name")),
+    // A recipe version to reopen ("Make again" from a batch made from one).
+    recipe: UUID.test(params.get("recipe") ?? "") ? params.get("recipe") : null,
   };
 }
 
