@@ -17,7 +17,7 @@ test("home: English, left to right, the method in the headline", async ({ page }
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(en.site.home.hero[0]);
-  await expect(page.getByRole("link", { name: en.site.home.ctaApp })).toHaveAttribute("href", /\/app/);
+  await expect(page.getByRole("link", { name: en.site.home.ctaApp })).toHaveAttribute("href", /\/bench/);
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
