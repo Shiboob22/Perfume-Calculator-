@@ -85,6 +85,47 @@ describe('POST /api/batches', () => {
   });
 });
 
+describe('POST /api/batches recipe link', () => {
+  const VERSION = '33333333-3333-4333-8333-333333333333';
+  const own = { id: VERSION, user_id: USER, recipe_id: 'r1', version: 2 };
+
+  it('stores the link to the caller\'s own recipe version', async () => {
+    db = dbFor('free', { recipe_versions: [own] });
+    const res = await call('POST', { body: { ...BATCH, recipe_version_id: VERSION } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.batch.recipe_version_id).toBe(VERSION);
+  });
+
+  it('drops a version that belongs to someone else, and still logs the batch', async () => {
+    db = dbFor('pro', { recipe_versions: [{ ...own, user_id: OTHER }] });
+    const res = await call('POST', { body: { ...BATCH, recipe_version_id: VERSION } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.batch).not.toHaveProperty('recipe_version_id');
+  });
+
+  it('drops a malformed or unknown id', async () => {
+    db = dbFor('pro', { recipe_versions: [own] });
+    for (const bad of ['not-a-uuid', 42, '44444444-4444-4444-8444-444444444444', { x: 1 }]) {
+      const res = await call('POST', { body: { ...BATCH, recipe_version_id: bad } });
+      expect(res.statusCode).toBe(201);
+      expect(res.body.batch).not.toHaveProperty('recipe_version_id');
+    }
+  });
+
+  it('logs the batch without the link when the lookup fails (no 0023 yet)', async () => {
+    db = dbFor('pro', { recipe_versions: [own] });
+    db.fail('recipe_versions', 'select', { code: '42P01', message: 'relation "recipe_versions" does not exist' });
+    const res = await call('POST', { body: { ...BATCH, recipe_version_id: VERSION } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.batch).not.toHaveProperty('recipe_version_id');
+  });
+
+  it('sends nothing when no recipe is given', async () => {
+    const res = await call('POST', { body: BATCH });
+    expect(res.body.batch).not.toHaveProperty('recipe_version_id');
+  });
+});
+
 describe('POST /api/batches stock deduction', () => {
   const FRAG = '22222222-2222-4222-8222-222222222222';
   const tracked = () => { db.rpcHandlers.restock_inventory = (a: any) => ({ data: { fragrance_id: a.p_fragrance_id, stock_g: 76.25 }, error: null }); };

@@ -33,7 +33,7 @@ function sellerFields(seller) {
  */
 export function buildBatch({
   id, fragranceId, name, tier, blendDate, concPct, target, densities,
-  actualOilG, actualEthG, oilType, pricePerGram, oilCost, notes, blendedBy, lot, amount, unit, seller,
+  actualOilG, actualEthG, oilType, pricePerGram, oilCost, notes, blendedBy, lot, amount, unit, seller, recipeVersionId,
 }) {
   const e = target.exact;
   const price = pos(pricePerGram);
@@ -62,5 +62,7 @@ export function buildBatch({
     amount: pos(amount),
     unit: unit || null,
     ...sellerFields(seller),
+    // The API keeps it only if the version is the caller's (0023).
+    ...(recipeVersionId ? { recipe_version_id: recipeVersionId } : {}),
   };
 }

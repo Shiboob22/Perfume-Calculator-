@@ -57,6 +57,24 @@ export function sellerCosts(b: any, entitlements: any) {
   return out;
 }
 
+// The recipe version a batch was made from (0023). Recipes are on every plan,
+// but the link is stored only for a version that belongs to the caller: the
+// batch row is written with the service role, so the foreign key alone would
+// let anyone point at someone else's version. Anything else (malformed, not
+// theirs, a database without 0023) is dropped, never a reason to lose a log.
+export async function recipeLink(supabase: any, userId: string, b: any): Promise<Record<string, string>> {
+  const id = b.recipe_version_id;
+  if (typeof id !== 'string' || !UUID.test(id)) return {};
+  try {
+    const { data, error } = await supabase.from('recipe_versions').select('id').eq('id', id).eq('user_id', userId).maybeSingle();
+    if (error) throw error;
+    return data ? { recipe_version_id: id } : {};
+  } catch (err: any) {
+    console.error(JSON.stringify({ at: 'api/batches', context: 'recipe_link', message: String(err?.message ?? err), code: err?.code }));
+    return {};
+  }
+}
+
 // What a user may change on a logged batch: the record around the blend,
 // never the planned recipe (Make again covers a different recipe). Only the
 // fields sent change; an empty value clears an optional field.
@@ -230,6 +248,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ethanol_density: Number(b.ethanol_density) > 0 ? Number(b.ethanol_density) : null,
         ...batchRecord(b),
         ...sellerCosts(b, entitlements),
+        ...(await recipeLink(supabase, userId, b)),
         created_at: new Date().toISOString(),
       };
 

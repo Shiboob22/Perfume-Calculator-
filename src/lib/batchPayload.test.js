@@ -26,6 +26,11 @@ describe("buildBatch", () => {
   it("carries the lot and the bottle as entered", () => {
     expect(buildBatch({ ...base, lot: " L1 ", amount: "50", unit: "g" })).toMatchObject({ lot: "L1", amount: 50, unit: "g" });
   });
+  it("links the recipe version only when given", () => {
+    expect(buildBatch(base)).not.toHaveProperty("recipe_version_id");
+    expect(buildBatch({ ...base, recipeVersionId: "" })).not.toHaveProperty("recipe_version_id");
+    expect(buildBatch({ ...base, recipeVersionId: "v-1" }).recipe_version_id).toBe("v-1");
+  });
   it("sends seller fields only when given, blanks as null", () => {
     expect(buildBatch(base)).not.toHaveProperty("sale_price");
     const seller = { ethanolPricePerL: "40", bottleCost: "10", bottles: "2.9", packagingCost: "", labourMinutes: "30", labourRate: "20", salePrice: "60", currency: "SAR" };
