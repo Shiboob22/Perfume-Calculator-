@@ -165,7 +165,7 @@ export default function Recipes({ current, family, onApply, onLink, initialVersi
 
       {/* Which version a logged batch will carry, so it is never a surprise. */}
       <p role="status" className="text-xs mt-1" style={{ color: COLORS.inkSoft }}>
-        {saved || (activeVersion ? t(same ? "calc.recipes.linked" : "calc.recipes.changed", { label }) : "")}
+        {saved}{saved && activeVersion ? " " : ""}{activeVersion ? t(same ? "calc.recipes.linked" : "calc.recipes.changed", { label }) : ""}
       </p>
       {error && <p role="alert" className="text-xs mt-1" style={{ color: COLORS.danger }}>{error}</p>}
     </div>
