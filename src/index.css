@@ -117,7 +117,13 @@ a, button, summary { transition: color 180ms cubic-bezier(.2,0,0,1), background-
 *:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 3px; }
 summary::-webkit-details-marker { display: none; }
 
+/* Kyphira smoke line: a slow horizontal drift (a divider is still; a loading line moves). */
+.kx-smoke { display: block; overflow: visible; }
+.kx-smoke--loading path { stroke-dasharray: 120 60; animation: kx-drift 2400ms linear infinite; }
+@keyframes kx-drift { to { stroke-dashoffset: -180; } }
+
 @media (prefers-reduced-motion: reduce) {
+  .kx-smoke--loading path { animation: none !important; stroke-dasharray: none; }
   a, button, summary, .fill-anim { transition: none !important; }
   .reveal, .read-progress, .pour, .readout { animation: none !important; transition: none !important; }
   .read-progress { display: none; }

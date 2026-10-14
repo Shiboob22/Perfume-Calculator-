@@ -4,6 +4,10 @@ export default {
   brandTagline: "Every drop, weighed with care.",
   brandSignature: "By Hisham Shiboob",
   language: { switchTo: "العربية", switchLabel: "Switch to Arabic" },
+  notice: {
+    dismiss: "Dismiss",
+    renamed: { title: "{former} is now {name}", text: "Same bench, same batches, same account. Only the name and the look have changed." },
+  },
   app: {
     tabsLabel: "Sections",
     loading: "Loading…",

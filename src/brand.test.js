@@ -18,7 +18,7 @@ describe("brand config", () => {
   });
 
   it("keeps the former name out of the product, except in the rename notice", () => {
-    const allowed = new Set([join("src", "brand.js"), join("src", "brand.test.js"), join("src", "lib", "theme.js")]);
+    const allowed = new Set([join("src", "brand.js"), join("src", "brand.test.js"), join("src", "lib", "theme.js"), join("src", "components", "kx", "RenameNotice.jsx")]);
     const hits = [];
     const walk = (dir) => {
       for (const name of readdirSync(dir)) {

@@ -1,10 +1,14 @@
 // Arabic UI strings — drafts, pending the owner's review.
-// The product name stays in English until the owner picks an Arabic name.
+// The product name is كيفيرا (draft spelling, for the owner to confirm).
 export default {
   brand: "كيفيرا",
   brandTagline: "كل قطرة بميزان وعناية.",
   brandSignature: "بقلم Hisham Shiboob",
   language: { switchTo: "English", switchLabel: "التبديل إلى الإنجليزية" },
+  notice: {
+    dismiss: "إغلاق",
+    renamed: { title: "أصبح {former} الآن {name}", text: "المقعد نفسه والخلطات نفسها والحساب نفسه. تغيّر الاسم والمظهر فقط." },
+  },
   app: {
     tabsLabel: "الأقسام",
     loading: "جارٍ التحميل…",

@@ -17,6 +17,7 @@ const App = lazy(() => import("./App"));
 // Dev-only screen previews; `import.meta.env.DEV` is false in production
 // builds, so this route and its chunk are dropped there.
 const DevScreens = import.meta.env.DEV ? lazy(() => import("./dev/DevScreens")) : null;
+const Styleguide = import.meta.env.DEV ? lazy(() => import("./dev/Styleguide")) : null;
 
 function AppLoading() {
   return <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }} />;
@@ -58,6 +59,12 @@ export default function Root() {
       <Route path="/bench/journal" element={appElement} />
       {DevScreens && (
         <Route path="/dev/:screen?" element={<I18nProvider><Suspense fallback={<AppLoading />}><DevScreens /></Suspense></I18nProvider>} />
+      )}
+      {Styleguide && (
+        <>
+          <Route path="/styleguide" element={<I18nProvider locale="en"><Suspense fallback={<AppLoading />}><Styleguide /></Suspense></I18nProvider>} />
+          <Route path="/ar/styleguide" element={<I18nProvider locale="ar"><Suspense fallback={<AppLoading />}><Styleguide /></Suspense></I18nProvider>} />
+        </>
       )}
       <Route path="/ar/*" element={<I18nProvider locale="ar"><PublicRoutes /></I18nProvider>} />
       <Route path="/*" element={<I18nProvider locale="en"><PublicRoutes /></I18nProvider>} />

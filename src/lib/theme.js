@@ -22,7 +22,7 @@ const light = {
 
   amber: "#1F4A36",      // primary action (forest)
   amberDeep: "#7A581B",  // oil, text-safe (≥4.5:1 on paper)
-  ember: "#7A581B",
+  ember: "#B3361A",        // warnings, incl. the ethanol notice
   onAmber: "#F6F2EA",    // text on the action fill
   actionHover: "#163828",
 
@@ -40,35 +40,44 @@ const light = {
   dangerBg: "#FBF1EE",
   dangerLine: "#E5C9C1",
 
+  // Kyphira accents. Plain names are fills and marks; the *Text names are the
+  // shades safe for type (≥4.5:1 on paper, card and sand).
+  resin: "#C8893A",        // amber resin: the brand accent
+  resinText: "#7A581B",
+  myrrh: "#8C3B2A",        // secondary accent, used sparingly
+  myrrhText: "#8C3B2A",
+  verdigris: "#5E8C7A",    // rested / ready (copper patina)
+  verdigrisText: "#2F5E4D",
+
   forest: "#1F4A36",
   forestDeep: "#100E0A",
   brass: "#7A581B",
 };
 
 const dark = {
-  paper: "#100E0A",
-  ink1: "#15120C",
-  card: "#1A150D",
-  cardHi: "#221B10",
-  sand: "#221B10",
+  paper: "#100E0A",      // ink-0
+  ink1: "#17140F",       // ink-1: raised surfaces
+  card: "#17140F",
+  cardHi: "#221D16",     // ink-2: cards, inputs
+  sand: "#221D16",
 
-  ink: "#F0E8D7",
-  inkSoft: "#A79C82",
+  ink: "#EDE4D3",        // papyrus
+  inkSoft: "#A89C86",    // papyrus-dim
   dim: "#918568",
 
-  amber: "#E9C88A",
+  amber: "#C8893A",      // resin: primary action
   amberDeep: "#C9A15A",
-  ember: "#A5673A",
-  onAmber: "#201400",
-  actionHover: "#F5DDAE",
+  ember: "#E26A4F",      // warnings, incl. the ethanol notice
+  onAmber: "#100E0A",
+  actionHover: "#DDA04F",
 
-  oil: "#C9A15A",
+  oil: "#C8893A",
   mist: "#3A4A42",
   inkBand: "#070605",
-  onInk: "#F0E8D7",
+  onInk: "#EDE4D3",
 
-  line: "#2A2113",
-  field: "#7A7058",
+  line: "#3A3226",
+  field: "#857A60",
   focus: "#E9C88A",
   hair: "rgba(233,200,138,0.14)",
 
@@ -76,7 +85,14 @@ const dark = {
   dangerBg: "#2A140E",
   dangerLine: "#5A2A1C",
 
-  forest: "#E9C88A",
+  resin: "#C8893A",
+  resinText: "#C8893A",
+  myrrh: "#8C3B2A",
+  myrrhText: "#D98A6A",
+  verdigris: "#5E8C7A",
+  verdigrisText: "#7FB5A0",
+
+  forest: "#C8893A",
   forestDeep: "#F5EEDD",
   brass: "#C9A15A",
 };

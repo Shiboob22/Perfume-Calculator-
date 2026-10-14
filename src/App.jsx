@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { tabFromPath, tabPath } from "./routes";
+import RenameNotice from "./components/kx/RenameNotice";
 import { SiteFooter, SiteHeader } from "./components/SiteChrome";
 import PerfumeSearch from "./components/PerfumeSearch";
 import { COLORS } from "./lib/theme";
@@ -165,6 +166,7 @@ export default function App() {
         </nav>
       </header>
 
+      <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-4 empty:hidden"><RenameNotice /></div>
       <main className="pb-16">
         {/* One h1 per page for screen readers; Selector and Account title themselves. */}
         {pageHeading && <h1 className="sr-only">{pageHeading}</h1>}
