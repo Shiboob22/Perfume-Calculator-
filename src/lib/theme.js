@@ -1,4 +1,4 @@
-// Shared visual identity — Scent Ledger v3: paper, ink and one warm oil
+// Shared visual identity — Kyphira (Scent Ledger v3 base): paper, ink and one warm oil
 // accent, with a dark edition (the former "Atelier Noir" ground) behind a
 // toggle. Colours live in two palettes; the page reads them as CSS custom
 // properties (generated from PALETTES by tailwind.config.js), so COLORS below

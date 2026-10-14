@@ -1,5 +1,6 @@
 // "Export my data": everything a user owns, as one JSON file or one CSV per
 // table. Pure functions; the account page fetches the rows and saves the file.
+import { BRAND } from "../brand.js";
 
 // The tables a user owns, in the order the export lists them. user_id is
 // dropped from every row: it is the same on all of them and means nothing
@@ -15,7 +16,7 @@ function strip(rows) {
 }
 
 export function toJson(data, exportedAt = new Date()) {
-  const out = { exported_at: exportedAt.toISOString(), app: "Scent Ledger" };
+  const out = { exported_at: exportedAt.toISOString(), app: BRAND.name };
   for (const table of EXPORT_TABLES) out[table] = strip(data[table]);
   return JSON.stringify(out, null, 2);
 }

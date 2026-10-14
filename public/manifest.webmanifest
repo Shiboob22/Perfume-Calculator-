@@ -1,6 +1,6 @@
 {
-  "name": "Scent Ledger",
-  "short_name": "Scent Ledger",
+  "name": "Kyphira",
+  "short_name": "Kyphira",
   "description": "Blend fragrance by weight: the calculator and bench method.",
   "start_url": "/app/calculator",
   "scope": "/",

@@ -5,11 +5,12 @@ import en from "../i18n/messages/en";
 import ar from "../i18n/messages/ar";
 import { GUIDES, guideBySlug } from "../content/guides";
 import { LEGAL, LEGAL_PAGES } from "../content/legal";
+import { BRAND, brandName } from "../brand.js";
 
 const CATALOGS = { en, ar };
 
 // The canonical origin. Set VITE_SITE_URL once the custom domain exists.
-export const SITE_URL = (import.meta.env?.VITE_SITE_URL || "https://scent-handbook-app.vercel.app").replace(/\/$/, "");
+export const SITE_URL = (import.meta.env?.VITE_SITE_URL || BRAND.defaultSiteUrl).replace(/\/$/, "");
 
 // "/guides" in Arabic is "/ar/guides"; "/" is "/ar".
 export function localePath(locale, path) {
@@ -57,7 +58,7 @@ export function headFor(pathname) {
     const guide = guideBySlug(path.slice("/guides/".length));
     if (!guide) return null;
     const g = guide[locale];
-    title = `${g.title} — Scent Ledger`;
+    title = `${g.title} — ${brandName(locale)}`;
     description = g.summary;
     type = "article";
     guideTitle = g.title;
@@ -65,7 +66,7 @@ export function headFor(pathname) {
     noindex = locale === "ar" && arDraft;
   } else if (LEGAL_PAGES.includes(path.slice(1))) {
     const doc = LEGAL[path.slice(1)];
-    title = `${doc[locale].title} — Scent Ledger`;
+    title = `${doc[locale].title} — ${brandName(locale)}`;
     description = doc[locale].summary;
     // Drafts are reachable (the footer links them) but kept out of search.
     noindex = doc.draft;
@@ -107,7 +108,7 @@ export function headHtml(head) {
     `<meta property="og:title" content="${esc(head.title)}" />`,
     `<meta property="og:description" content="${esc(head.description)}" />`,
     `<meta property="og:url" content="${esc(head.canonical)}" />`,
-    `<meta property="og:site_name" content="Scent Ledger" />`,
+    `<meta property="og:site_name" content="${BRAND.name}" />`,
     `<meta property="og:locale" content="${head.locale === "ar" ? "ar_EG" : "en_US"}" />`,
     `<meta name="twitter:card" content="summary" />`,
     ...(head.type === "article" ? [`<script type="application/ld+json">${jsonLd(head)}</script>`] : []),
@@ -125,7 +126,7 @@ function jsonLd(head) {
       inLanguage: head.locale,
       url: head.canonical,
       author: { "@type": "Person", name: "Hisham Shiboob" },
-      publisher: { "@type": "Organization", name: "Scent Ledger" },
+      publisher: { "@type": "Organization", name: BRAND.name },
       isPartOf: { "@type": "Book", name: "The Scent Handbook", author: { "@type": "Person", name: "Hisham Shiboob" } },
     },
     {

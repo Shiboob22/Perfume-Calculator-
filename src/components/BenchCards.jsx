@@ -69,7 +69,7 @@ export default function BenchCards() {
         </button>
       </div>
       <article className="print-card">
-        <p className="print-brand">Scent Ledger · {t("cards.byline")}</p>
+        <p className="print-brand">Kyphira · {t("cards.byline")}</p>
         <Card id={card} />
       </article>
     </div>

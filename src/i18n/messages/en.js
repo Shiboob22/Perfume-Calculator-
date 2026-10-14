@@ -1,6 +1,6 @@
 // English UI strings. Every key here needs a match in ar.js.
 export default {
-  brand: "Scent Ledger",
+  brand: "Kyphira",
   brandTagline: "Every drop, weighed with care.",
   brandSignature: "By Hisham Shiboob",
   language: { switchTo: "العربية", switchLabel: "Switch to Arabic" },
@@ -185,8 +185,8 @@ export default {
     close: "Close",
   },
   recipe: {
-    metaTitle: "{name} at {pct}% — a shared recipe · Scent Ledger",
-    metaDescription: "A {family} blend at {pct}% oil in a {size} bottle, shared by a blender on Scent Ledger.",
+    metaTitle: "{name} at {pct}% — a shared recipe · Kyphira",
+    metaDescription: "A {family} blend at {pct}% oil in a {size} bottle, shared by a blender on Kyphira.",
     eyebrow: "Shared recipe",
     strength: "Strength",
     strengthValue: { volume: "{pct}% oil by volume", weight: "{pct}% oil by weight" },
@@ -199,7 +199,7 @@ export default {
     rested: "Rested",
     restedValue: { one: "{count} day", other: "{count} days" },
     note: "The blender's note",
-    disclaimer: "Shared by a Scent Ledger blender: their own batch and notes, not advice from the handbooks. Check every weight on your own scale.",
+    disclaimer: "Shared by a Kyphira blender: their own batch and notes, not advice from the handbooks. Check every weight on your own scale.",
     cta: "Make this blend",
     ctaLead: "Opens the calculator at this family, strength and bottle size.",
     method: "How to blend by weight",
@@ -758,12 +758,12 @@ export default {
     useWestern: "Digits: 123",
   },
   site: {
-    nav: { main: "Main", calculator: "Calculator", journal: "Journal", privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "Scent Ledger, home", language: "العربية", languageLabel: "Read this page in Arabic" },
+    nav: { main: "Main", calculator: "Calculator", journal: "Journal", privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "Kyphira, home", language: "العربية", languageLabel: "Read this page in Arabic" },
     legal: { draft: "Draft — not yet reviewed. This page may change before launch.", updated: "Last updated {date}" },
     safety: { title: "Safety", text: "Perfumer's alcohol is flammable: blend away from flame and heat, in a ventilated room, out of reach of children. Fragrance oils can irritate skin and eyes — wear gloves and read each material's safety data sheet. The numbers here are starting points; check every weight on your own scale.", more: "Safety and responsibility" },
-    footer: { line: "Scent Ledger grew from The Scent Handbook, a printed handbook in three volumes: Application, Wardrobe and Formulation.", credit: "Hisham Shiboob · Scent Ledger", safety: "Ethanol is highly flammable. Keep away from flame, heat and children.", by: "By Hisham Shiboob", rights: "© 2026 Scent Ledger" },
+    footer: { line: "Kyphira grew from The Scent Handbook, a printed handbook in three volumes: Application, Wardrobe and Formulation.", credit: "Hisham Shiboob · Kyphira", safety: "Ethanol is highly flammable. Keep away from flame, heat and children.", by: "By Hisham Shiboob", rights: "© 2026 Kyphira" },
     home: {
-      metaTitle: "Scent Ledger — a fragrance blending calculator by weight",
+      metaTitle: "Kyphira — a fragrance blending calculator by weight",
       metaDescription: "Dilute fragrance oil with 96% ethanol by weight. Exact grams for a 0.01 g scale, the bench method step by step, and a free library of guides.",
       title: "Blend your own fragrance by weight.",
       lead: "A calculator and bench guide for diluting fragrance oil with 96% ethanol. Choose a bottle size and a strength, and get the two numbers to put on the scale.",
@@ -807,8 +807,8 @@ export default {
       waitlistTitle: "Want Pro when it opens?",
       waitlistLead: "Join the waitlist from your account. You will hear first when Pro goes on sale; no payment details are asked for.",
       waitlistCta: "Join the Pro waitlist",
-      metaTitle: "Pricing — Scent Ledger",
-      metaDescription: "Free and Pro plans for Scent Ledger. Pro is in early access and not on sale yet.",
+      metaTitle: "Pricing — Kyphira",
+      metaDescription: "Free and Pro plans for Kyphira. Pro is in early access and not on sale yet.",
       title: "The bench is free.",
       titleEm: "The journal is Pro.",
       lead: "Everyone starts on Free. Pro is in early access and not on sale yet.",
@@ -832,7 +832,7 @@ export default {
     notFound: { title: "Page not found", home: "Back to the home page" },
     guides: {
       eyebrow: "Guide {n} of {total} · {minutes} min", tryBench: "Try it on the bench",
-      metaTitle: "Guides — Scent Ledger",
+      metaTitle: "Guides — Kyphira",
       metaDescription: "The method from The Scent Handbook: blending fragrance by weight, and wearing it well. By Hisham Shiboob, free to read.",
       title: "Guides",
       lead: "The method from The Scent Handbook, free to read.",
@@ -865,7 +865,7 @@ export default {
     },
   },
   auth: {
-    loading: "Loading Scent Ledger…",
+    loading: "Loading Kyphira…",
     signIn: "Sign in",
     heading: "Sign in to your bench.",
     lead: "Batches, journal and stock stay with your account.",

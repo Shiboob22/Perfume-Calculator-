@@ -10,6 +10,7 @@ import en from "../i18n/messages/en.js";
 import ar from "../i18n/messages/ar.js";
 import { COLORS, OFFSET_SHADOW, TYPE } from "./theme.js";
 import { cleanName } from "./cleanName.js";
+import { BRAND, brandName } from "../brand.js";
 
 const CATALOGS = { en, ar };
 const OG_LOCALE = { en: "en_US", ar: "ar_EG" };
@@ -112,7 +113,7 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
     `<meta property="og:image" content="${esc(image)}" />`,
     `<meta property="og:image:width" content="1200" />`,
     `<meta property="og:image:height" content="630" />`,
-    `<meta property="og:site_name" content="Scent Ledger" />`,
+    `<meta property="og:site_name" content="${BRAND.name}" />`,
     `<meta property="og:locale" content="${OG_LOCALE[locale]}" />`,
     `<meta property="og:locale:alternate" content="${OG_LOCALE[other]}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
@@ -221,7 +222,7 @@ export function goneHtml({ lang = "en", stylesheet, failed = false }) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
-    <title>${esc(title)} — Scent Ledger</title>
+    <title>${esc(title)} — ${brandName(locale)}</title>
     <link rel="stylesheet" href="${esc(stylesheet)}" />
   </head>
   <body>

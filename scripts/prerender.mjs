@@ -10,7 +10,7 @@ const DIST = "dist";
 const { render, publicPaths, headFor, headHtml } = await import(pathToFileURL(join("dist-ssr", "entry-server.js")).href);
 const template = readFileSync(join(DIST, "index.html"), "utf8");
 
-for (const marker of ['<html lang="en">', "<title>Scent Ledger</title>", '<div id="root"></div>']) {
+for (const marker of ['<html lang="en">', "<title>Kyphira</title>", '<div id="root"></div>']) {
   if (!template.includes(marker)) throw new Error(`prerender: index.html no longer contains ${marker}`);
 }
 
@@ -33,12 +33,12 @@ const preloads = CRITICAL_FONTS.map((prefix) => {
 function page(url, head) {
   return template
     .replace('<html lang="en">', `<html lang="${head.locale}" dir="${head.dir}">`)
-    .replace("<title>Scent Ledger</title>", `${preloads}\n    ${headHtml(head)}`)
+    .replace("<title>Kyphira</title>", `${preloads}\n    ${headHtml(head)}`)
     .replace('<div id="root"></div>', `<div id="root">${render(url)}</div>`);
 }
 
 // The app shell first: index.html is about to become the prerendered home.
-write(join(DIST, "app", "index.html"), template.replace("<title>Scent Ledger</title>", '<title>Scent Ledger</title>\n    <meta name="robots" content="noindex" />'));
+write(join(DIST, "app", "index.html"), template.replace("<title>Kyphira</title>", '<title>Kyphira</title>\n    <meta name="robots" content="noindex" />'));
 
 const paths = publicPaths();
 for (const url of paths) {
@@ -47,7 +47,7 @@ for (const url of paths) {
 }
 
 // Not-found page for any other URL (Vercel serves 404.html).
-const notFound = { ...headFor("/"), title: "Page not found — Scent Ledger" };
+const notFound = { ...headFor("/"), title: "Page not found — Kyphira" };
 write(join(DIST, "404.html"), page("/this-page-does-not-exist", notFound).replace("<head>", '<head>\n    <meta name="robots" content="noindex" />'));
 
 const site = headFor("/").canonical.replace(/\/$/, "");
