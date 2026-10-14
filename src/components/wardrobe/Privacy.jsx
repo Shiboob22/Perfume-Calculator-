@@ -22,8 +22,9 @@ export default function Privacy() {
 
   async function toggle(next) {
     setStatus(""); setError("");
-    try { await setWearOptIn(next); setOn(next); setStatus(t("wardrobe.privacy.saved")); }
-    catch { setError(t("wardrobe.privacy.failed")); }
+    setOn(next); // shown at once; put back if it can't be saved
+    try { await setWearOptIn(next); setStatus(t("wardrobe.privacy.saved")); }
+    catch { setOn(!next); setError(t("wardrobe.privacy.failed")); }
   }
 
   return (
