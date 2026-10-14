@@ -9,6 +9,7 @@ import { PALETTES } from "./theme";
 // A canvas can't read CSS variables: the shared card is always on paper.
 const COLORS = PALETTES.light;
 import { TIERS, TIER_COLORS } from "./tiers";
+import { SYMBOL } from "../components/kx/logoData";
 import { batchStartedAt, batchReadyAt, formatExact } from "./batchTiming";
 import { actualStrength, batchEconomics, fmt2, shownTotal } from "./calc";
 import { dirOf } from "../i18n/core";
@@ -135,22 +136,24 @@ export function renderBatchCard(batch, { t, locale = "en" }) {
   const inner = fw - 100; // text column width inside the frame
   let y = fy + 110;
 
-  // Flacon mark — a minimal bottle glyph echoing FlaconMark.jsx.
+  // The Kyphira symbol (design/logo/), 94 px tall, drawn from its path data.
   ctx.save();
-  ctx.strokeStyle = tierColor;
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(cx - 12, y - 46); // neck
-  ctx.lineTo(cx + 12, y - 46);
-  ctx.moveTo(cx - 10, y - 46);
-  ctx.lineTo(cx - 10, y - 34);
-  ctx.lineTo(cx - 26, y - 18);
-  ctx.lineTo(cx - 26, y + 22);
-  ctx.arc(cx, y + 22, 26, Math.PI, 0, true); // rounded-none shoulders + base
-  ctx.lineTo(cx + 26, y - 18);
-  ctx.lineTo(cx + 10, y - 34);
-  ctx.lineTo(cx + 10, y - 46);
-  ctx.stroke();
+  const k = 94 / 330;
+  ctx.translate(cx - (148 * k) / 2, y - 46);
+  ctx.scale(k, k);
+  ctx.translate(-70, -16);
+  for (const p of SYMBOL) {
+    const path = new Path2D(p.d);
+    if (p.stroke) {
+      ctx.strokeStyle = p.stroke;
+      ctx.lineWidth = p.strokeWidth;
+      ctx.lineCap = "round";
+      ctx.stroke(path);
+    } else {
+      ctx.fillStyle = p.fill === "ink" ? COLORS.ink : p.fill;
+      ctx.fill(path);
+    }
+  }
   ctx.restore();
   // Clear the full height of the flacon (base sits ~48px below anchor) plus
   // the name's cap height, so a wrapped 2-line title never collides with it.

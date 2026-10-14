@@ -17,7 +17,7 @@ import { contrastRatio, wcagGrade } from "../lib/contrast.js";
 import { useI18n } from "../i18n/I18nProvider";
 import { SiteHeader, SiteFooter } from "../components/SiteChrome";
 import LanguageToggle from "../components/LanguageToggle";
-import { Button, Card, Field, KyphiraMark, MARK_VARIANTS, Notice, ScaleReadout, SmokeLine } from "../components/kx";
+import { Button, Card, Field, KyphiraLogo, Notice, ScaleReadout, SmokeLine } from "../components/kx";
 
 const DISPLAY = { fontFamily: "'Fraunces Variable', 'Amiri', Georgia, serif", fontVariationSettings: '"opsz" 144', fontWeight: 400 };
 const UI = { fontFamily: "'Inter Tight Variable', 'IBM Plex Sans Arabic', system-ui, sans-serif" };
@@ -98,21 +98,23 @@ export default function Styleguide() {
           </ol>
         </Section>
 
-        <Section id="sg-mark" title="The mark: three directions">
-          <p className="mb-6 max-w-[60ch]" style={{ color: COLORS.inkSoft }}>A is the provisional default. Each shown in ink, mono and reversed, and at favicon size.</p>
+        <Section id="sg-mark" title="The logo">
+          <p className="mb-6 max-w-[60ch]" style={{ color: COLORS.inkSoft }}>The owner's three forms (design/logo/): symbol, horizontal, stacked. The ink follows the theme; the flame is brass. Files in public/brand/.</p>
           <div className="grid gap-4 sm:grid-cols-3">
-            {MARK_VARIANTS.map((v) => (
-              <div key={v} className="p-4" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
-                <p className="mb-3 text-sm" style={{ color: COLORS.dim }}>Option {v}</p>
+            {["symbol", "horizontal", "stacked"].map((form) => (
+              <div key={form} className="p-4" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card, color: COLORS.ink }}>
+                <p className="mb-3 text-sm" style={{ color: COLORS.dim }}>{form}</p>
                 <div className="flex items-end gap-4">
-                  <KyphiraMark variant={v} size={88} title={`Kyphira mark ${v}`} />
-                  <KyphiraMark variant={v} size={88} tone="mono" />
-                  <div className="p-2" style={{ background: COLORS.inkBand }}><KyphiraMark variant={v} size={64} tone="reversed" /></div>
-                  <KyphiraMark variant={v} size={16} />
-                  <KyphiraMark variant={v} size={32} />
+                  <KyphiraLogo form={form} height={form === "horizontal" ? 72 : 120} title={`Kyphira logo, ${form}`} />
+                  <div className="p-2" style={{ background: COLORS.inkBand, color: COLORS.onInk }}><KyphiraLogo form={form} height={form === "horizontal" ? 40 : 64} /></div>
                 </div>
               </div>
             ))}
+          </div>
+          <div className="mt-4 flex items-end gap-6" style={{ color: COLORS.ink }}>
+            <KyphiraLogo form="symbol" height={16} />
+            <KyphiraLogo form="symbol" height={32} />
+            <KyphiraLogo form="symbol" height={48} />
           </div>
         </Section>
 

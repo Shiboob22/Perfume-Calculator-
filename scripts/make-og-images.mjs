@@ -10,7 +10,7 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import KyphiraMark from "../src/components/kx/KyphiraMark.jsx";
+import KyphiraLogo from "../src/components/kx/KyphiraLogo.jsx";
 import { PALETTES } from "../src/lib/theme.js";
 
 const C = PALETTES.light; // a PNG can't follow the reader's theme: paper
@@ -28,8 +28,9 @@ const FACES = `
   @font-face { font-family: Amiri; font-weight: 400; src: url(${font("amiri", "amiri-arabic-400-normal.woff2")}); }
 `;
 
-// The Kyphira mark (direction A): ink censer, the family's colour as the smoke.
-const flacon = (color) => renderToStaticMarkup(React.createElement(KyphiraMark, { variant: "A", size: 128, inkColor: C.ink, smokeColor: color }));
+// The Kyphira symbol (design/logo/): ink flacon and smoke, the brand's brass flame.
+// The family's colour is the strip along the top of the frame. `currentColor` is the card's ink.
+const flacon = () => renderToStaticMarkup(React.createElement(KyphiraLogo, { form: "symbol", height: 150 }));
 
 function card(family, lang) {
   const m = lang === "ar" ? ar : en;
@@ -48,7 +49,7 @@ function card(family, lang) {
     .brand { font: 400 52px ${display}; letter-spacing: -0.02em; color: ${C.ink}; } .tag { font: ${rtl ? "500 26px IBM Plex Sans Arabic" : "italic 400 26px Fraunces"}; color: ${C.inkSoft}; margin-top: 8px; }
   </style></head><body><div class="frame"><div class="strip"></div>
     <div><div class="eyebrow">${m.recipe.eyebrow}</div><div class="family">${m.families[family].label}</div></div>
-    <div class="row"><div><div class="brand">${m.brand}</div><div class="tag">${m.brandTagline}</div></div>${flacon(TIER_COLORS[family])}</div>
+    <div class="row"><div><div class="brand">${m.brand}</div><div class="tag">${m.brandTagline}</div></div>${flacon()}</div>
   </div></body></html>`;
 }
 
