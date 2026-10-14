@@ -54,7 +54,7 @@ createServer(async (req, res) => {
   }
   let status = 200;
   let path = await file(join(ROOT, safe));
-  if (!path && (/^\/(app|bench|wardrobe)(\/|$)/.test(url.pathname))) path = join(ROOT, "app", "index.html");
+  if (!path && (/^\/(app|bench|wardrobe|atlas)(\/|$)/.test(url.pathname))) path = join(ROOT, "app", "index.html");
   if (!path) { status = 404; path = join(ROOT, "404.html"); }
   const body = await readFile(path);
   res.writeHead(status, {

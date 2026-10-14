@@ -20,6 +20,7 @@ describe("flagOn", () => {
   });
   it("knows only the listed rooms", () => {
     expect(FLAGS).toContain("wardrobe");
+    expect(FLAGS).toContain("atlas");
     expect(flagOn("nose", { env: { VITE_FLAG_NOSE: "1" }, storage: memory() })).toBe(false);
   });
   it("survives unusable storage", () => {

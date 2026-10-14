@@ -65,6 +65,14 @@
       "destination": "/app/index.html"
     },
     {
+      "source": "/atlas",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/atlas/:path*",
+      "destination": "/app/index.html"
+    },
+    {
       "source": "/app/:path*",
       "destination": "/app/index.html"
     }

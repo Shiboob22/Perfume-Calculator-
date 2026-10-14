@@ -8,6 +8,7 @@ import Today from "./Today";
 import Collection from "./Collection";
 import Stats from "./Stats";
 import Lists from "./Lists";
+import Privacy from "./Privacy";
 
 const SECTIONS = ["today", "collection", "stats", "lists"];
 
@@ -55,6 +56,7 @@ export default function Wardrobe() {
           {section === "collection" && <Collection bottles={bottles} wear={wear} today={today} setBottles={setBottles} onGone={(id) => setWear((l) => l.filter((w) => w.bottle_id !== id))} />}
           {section === "stats" && <Stats bottles={bottles} wear={wear} />}
           {section === "lists" && <Lists bottles={bottles} today={today} setBottles={setBottles} />}
+          <Privacy />
         </>
       )}
     </div>
