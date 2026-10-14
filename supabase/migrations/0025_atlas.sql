@@ -256,10 +256,12 @@ alter table public.profiles add column if not exists wear_stats_opt_in boolean n
 --   - the number of wearers appears only from 10 wearers; there is no total
 --     of wearings;
 --   - an occasion is named only when 10 different people wore it for that
---     occasion, and it carries no number.
--- Residual risk, stated: an attacker who controls 10 opted-in accounts can
--- still learn whether the real count crosses a bucket edge. Account age or
--- activity gates would narrow that and can be added if it matters.
+--     occasion, and it carries no number;
+--   - only accounts at least 7 days old are counted, so a batch of new
+--     accounts can't be made and used on the spot.
+-- Residual risk, stated: someone who keeps 10 opted-in accounts for a week
+-- can still learn whether the real count crosses a bucket edge. Snapshots
+-- or noise would narrow that further if it ever matters.
 create function public.atlas_wear_stats(p_id uuid) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 declare owners int; wearers int; occ jsonb;
@@ -269,16 +271,19 @@ begin
   end if;
   select count(distinct b.user_id) into owners
     from public.wardrobe_bottles b join public.profiles p on p.user_id = b.user_id and p.wear_stats_opt_in
+    join auth.users au on au.id = b.user_id and au.created_at <= now() - interval '7 days'
    where b.fragrance_id = p_id and b.status = 'owned';
   if owners < 10 then return jsonb_build_object('shown', false); end if;
   select count(distinct w.user_id) into wearers
     from public.wear_log w join public.wardrobe_bottles b on b.id = w.bottle_id
     join public.profiles p on p.user_id = w.user_id and p.wear_stats_opt_in
+    join auth.users au on au.id = w.user_id and au.created_at <= now() - interval '7 days'
    where b.fragrance_id = p_id;
   select coalesce(jsonb_agg(occasion order by n desc, occasion), '[]') into occ from (
     select w.occasion, count(distinct w.user_id) as n
       from public.wear_log w join public.wardrobe_bottles b on b.id = w.bottle_id
       join public.profiles p on p.user_id = w.user_id and p.wear_stats_opt_in
+      join auth.users au on au.id = w.user_id and au.created_at <= now() - interval '7 days'
      where b.fragrance_id = p_id and w.occasion is not null
      group by w.occasion having count(distinct w.user_id) >= 10) o;
   return jsonb_build_object('shown', true,

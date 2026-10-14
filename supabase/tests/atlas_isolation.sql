@@ -31,6 +31,8 @@ begin
     insert into public.wardrobe_bottles (user_id, name, fragrance_id, status) values (u, 'bottle', f_shared, 'owned') returning id into bt;
     insert into public.wear_log (user_id, bottle_id, occasion) values (u, bt, 'date');
   end loop;
+  -- The accounts must be a week old to count (a throwaway account doesn't).
+  update auth.users set created_at = now() - interval '30 days' where id = any(extra);
   -- b owns it too but did not opt in: must not be counted.
   insert into public.profiles (user_id) values (b);
   insert into public.wardrobe_bottles (user_id, name, fragrance_id, status) values (b, 'bottle', f_shared, 'owned') returning id into bt;
@@ -45,6 +47,10 @@ begin
   j := public.atlas_wear_stats(f_shared);
   if (j->>'shown')::boolean is not false or j ? 'owners' then raise exception 'ATLAS FAILED: counts shown with only 9 opted-in owners: %', j; end if; checks := checks + 1;
   update public.profiles set wear_stats_opt_in = true where user_id = extra[1];
+  update auth.users set created_at = now() where id = extra[2];
+  j := public.atlas_wear_stats(f_shared);
+  if (j->>'shown')::boolean is not false then raise exception 'ATLAS FAILED: a brand-new account counted toward the community counts'; end if; checks := checks + 1;
+  update auth.users set created_at = now() - interval '30 days' where id = extra[2];
   update public.fragrances set status = 'pending' where id = f_shared;
   j := public.atlas_wear_stats(f_shared);
   if (j->>'shown')::boolean is not false then raise exception 'ATLAS FAILED: counts shown for a fragrance that is not approved'; end if; checks := checks + 1;
