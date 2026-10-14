@@ -1,6 +1,6 @@
 # Phase 3 — Bench upgrades: scope and status
 
-Branch `redesign/kyphira-p3-bench` (off `redesign/kyphira-p2-reskin`). **Paused for one decision (below).**
+Branch `redesign/kyphira-p3-bench` (off `redesign/kyphira-p2-reskin`). **Unpaused 2026-10-14: Phase 11 merged (1-a), recipes Free. See [PHASE-3.md](PHASE-3.md).**
 
 ## What the brief lists, and what the code already does
 | Brief item | State |
