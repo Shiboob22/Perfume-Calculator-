@@ -169,6 +169,41 @@ export async function deletePreset(id) {
   if (error) throw error;
 }
 
+/* ---------------- Saved recipes with versions (0023) ---------------- */
+
+const RECIPE_COLUMNS = "id, name, family, created_at, updated_at, recipe_versions ( id, version, amount, unit, concentration_pct, oil_density, ethanol_density, note, created_at )";
+
+/** Every recipe with its versions, newest recipe activity first. */
+export async function listRecipes() {
+  const { data, error } = await supabase.from("recipes").select(RECIPE_COLUMNS).order("updated_at", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+/** A new recipe with its first version; the recipe is removed again if the version is refused. */
+export async function createRecipe({ name, family, version }) {
+  const { data: recipe, error } = await supabase.from("recipes").insert({ name, family: family || null }).select("id").single();
+  if (error) throw error;
+  const { error: versionError } = await supabase.from("recipe_versions").insert({ recipe_id: recipe.id, ...version });
+  if (versionError) {
+    await supabase.from("recipes").delete().eq("id", recipe.id);
+    throw versionError;
+  }
+  return (await listRecipes()).find((r) => r.id === recipe.id);
+}
+
+/** The next version of a recipe (the database numbers it). */
+export async function addRecipeVersion(recipeId, version) {
+  const { error } = await supabase.from("recipe_versions").insert({ recipe_id: recipeId, ...version });
+  if (error) throw error;
+  return (await listRecipes()).find((r) => r.id === recipeId);
+}
+
+export async function deleteRecipe(id) {
+  const { error } = await supabase.from("recipes").delete().eq("id", id);
+  if (error) throw error;
+}
+
 /* ---------------- Batches (production history) ---------------- */
 
 export async function logBatch(batch) {

@@ -46,7 +46,7 @@ const SELECT = { inventory: "*, fragrances(name)", fragrance_notes: "*, fragranc
 // The hosted API returns at most 1000 rows per request; page through, in a
 // stable order (a unique column) so no row moves between pages.
 const PAGE = 1000;
-const ORDER = { batches: "id", batch_checkins: "id", shared_recipes: "batch_id", inventory: "fragrance_id", fragrance_notes: "fragrance_id", calc_presets: "id", profiles: "user_id", pro_waitlist: "user_id", user_plans: "user_id", fragrances: "id" };
+const ORDER = { batches: "id", batch_checkins: "id", shared_recipes: "batch_id", inventory: "fragrance_id", fragrance_notes: "fragrance_id", calc_presets: "id", recipes: "id", recipe_versions: "id", profiles: "user_id", pro_waitlist: "user_id", user_plans: "user_id", fragrances: "id" };
 // The catalog is shared and readable by everyone: only the rows this user added.
 const MINE = { fragrances: "added_by" };
 
@@ -56,6 +56,9 @@ async function fetchAll(table, userId) {
     let query = supabase.from(table).select(SELECT[table] || "*");
     if (MINE[table]) query = query.eq(MINE[table], userId);
     const { data, error } = await query.order(ORDER[table]).range(from, from + PAGE - 1);
+    // A table whose migration isn't on this database yet (the app can deploy
+    // first) has nothing to export; it must not block the rest.
+    if (error && (error.code === "PGRST205" || error.code === "42P01")) return rows;
     if (error) throw error;
     rows.push(...(data || []));
     if (!data || data.length < PAGE) return rows;

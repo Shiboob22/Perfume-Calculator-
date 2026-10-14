@@ -19,6 +19,9 @@ declare
   f_a_pending uuid;   -- a row user A added (pending)
   batch_a uuid;
   batch_b uuid;
+  r_a uuid;           -- a recipe and version of user A (0023)
+  rv_a uuid;
+  r_b uuid;
   slug_a text := 'a-indexed-' || substr(md5(random()::text), 1, 6);
   slug_b text := 'b-unlisted-' || substr(md5(random()::text), 1, 6);
   n int;
@@ -53,6 +56,9 @@ begin
   insert into public.rate_limits (key, window_start, hits) values ('test:' || a, now(), 1);
   select id into batch_a from public.batches where user_id = a;
   select id into batch_b from public.batches where user_id = b;
+  insert into public.recipes (user_id, name, family) values (a, 'A secret blend', 'woody') returning id into r_a;
+  insert into public.recipe_versions (recipe_id, user_id, amount, unit, concentration_pct) values (r_a, a, 100, 'ml', 25) returning id into rv_a;
+  update public.batches set recipe_version_id = rv_a where id = batch_a;
   insert into public.batch_checkins (id, batch_id, user_id, day, scheduled_day, note, rating)
   values (gen_random_uuid(), batch_a, a, 1, 1, 'A day one', 3);
   -- A check-in can't belong to somebody else's batch (0012's composite key).
@@ -268,6 +274,42 @@ begin
   select count(*) into n from public.add_fragrance_photo(f_a_pending, 'https://example.test/a.jpg');
   if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B added a photo to A''s private row'; end if; checks := checks + 1;
 
+  -- Saved recipes (0023): owner-only; versions are history (no edits).
+  select count(*) into n from public.recipes;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s recipes'; end if; checks := checks + 1;
+  select count(*) into n from public.recipe_versions;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s recipe versions'; end if; checks := checks + 1;
+  update public.recipes set name = 'tampered'; get diagnostics n = row_count;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B renamed A''s recipe'; end if; checks := checks + 1;
+  delete from public.recipes; get diagnostics n = row_count;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B deleted A''s recipe'; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.recipes (user_id, name) values (a, 'forged');
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B added a recipe as A'; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.recipe_versions (recipe_id, amount, unit, concentration_pct) values (r_a, 10, 'ml', 20);
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B added a version to A''s recipe'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.recipe_versions set amount = 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a recipe version can be edited'; end if; checks := checks + 1;
+  -- B's own recipe: the trigger numbers versions 1, 2, and stops a 51st recipe.
+  insert into public.recipes (name) values ('B blend') returning id into r_b;
+  insert into public.recipe_versions (recipe_id, amount, unit, concentration_pct) values (r_b, 50, 'ml', 20);
+  insert into public.recipe_versions (recipe_id, amount, unit, concentration_pct) values (r_b, 50, 'ml', 22);
+  select max(version) into n from public.recipe_versions where recipe_id = r_b;
+  if n <> 2 then raise exception 'RLS_ISOLATION FAILED: versions numbered up to %, expected 2', n; end if; checks := checks + 1;
+  for i in 1..49 loop insert into public.recipes (name) values ('B bulk ' || i); end loop;
+  ok := false;
+  begin insert into public.recipes (name) values ('one too many');
+  exception when program_limit_exceeded then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a 51st recipe was accepted'; end if; checks := checks + 1;
+  if has_table_privilege('anon', 'public.recipes', 'select') or has_table_privilege('anon', 'public.recipe_versions', 'select') then
+    raise exception 'RLS_ISOLATION FAILED: anon can read recipes';
+  end if; checks := checks + 1;
+
   -- ------------------------------------------------------ act as user A
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   perform set_config('request.jwt.claim.sub', a::text, true);
@@ -336,6 +378,8 @@ begin
   end if; checks := checks + 1;
 
   -- Seller costs (0022): the table refuses negative money and a lowercase currency.
+  -- (As the table owner: users can't update batches directly, see 0011.)
+  perform set_config('role', 'none', true);
   begin
     update public.batches set sale_price = -1 where id = batch_a;
     raise exception 'RLS_ISOLATION FAILED: a negative sale price was accepted';
