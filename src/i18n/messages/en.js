@@ -596,10 +596,11 @@ export default {
     method_not_allowed: "That action isn't supported.",
   },
   onboarding: {
-    title: "Three questions, then the calculator.",
-    step: "Question {n} of 3",
+    title: "Four questions, then the calculator.",
+    step: "Question {n} of 4",
     unit: { question: "How do you measure?", ml: "Millilitres (mL)", floz: "Fluid ounces (fl oz)", g: "Grams (g)", oz: "Ounces (oz)", hint: "Grams are the most accurate on a 0.01 g scale. You can change this any time." },
     bottle: { size: "{size} {unit}", question: "What size bottle do you usually fill?", custom: "Another size", hint: "The calculator opens at this size." },
+    sells: { question: "Do you sell what you blend?", no: "No, it is for me", yes: "Yes, in small batches", currency: "Currency", hint: "Selling adds cost, packaging and margin to the calculator (Pro). You can change this any time." },
     language: { question: "Which language?" },
     back: "Back",
     next: "Next",
