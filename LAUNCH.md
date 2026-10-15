@@ -57,6 +57,11 @@ not on the list fall back to the home page.
   users keep `salon_has_link`, which the CHECK constraints call. Checked with
   `has_function_privilege`: anon runs none of the seven, `authenticated` only
   `salon_has_link`. The full Salon test passed 56 checks on staging after 0028.
+- 2026-10-15, late: 0029 (`fragrances_approved_popularity_idx`, a partial index;
+  additive, no data change) applied to staging, then production. The first live
+  Nose question took 77 s: two Gemini calls at the default thinking level plus a
+  3.7 s full catalog scan. The scan is now 1 ms (staging), and both Nose calls ask
+  Gemini for minimal thinking (`d9685b4`); the `nose` log line has per-step times.
 - Supabase security advisor, production: no errors. Warnings that are intended:
   the four `atlas_*` views and the `atlas_*` functions are readable by signed-in
   users only (anon has no SELECT and no EXECUTE on any of them; checked);

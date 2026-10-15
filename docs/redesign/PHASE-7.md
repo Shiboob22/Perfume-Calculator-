@@ -1,6 +1,6 @@
 # Phase 7: The Nose (flagged)
 
-Branch `redesign/kyphira-p7-nose`, stacked on Phase 6 (and `main`). Flag `nose` (`?flag=nose`, or `VITE_FLAG_NOSE=1`); off, `/nose` returns to the Bench and the nav has no Nose link. Signed-in only. **No database change** (no migration): limits use the existing `hit_rate_limit` counter.
+Branch `redesign/kyphira-p7-nose`, stacked on Phase 6 (and `main`). Flag `nose` (`?flag=nose`, or `VITE_FLAG_NOSE=1`); off, `/nose` returns to the Bench and the nav has no Nose link. Signed-in only. No schema change for the feature itself: limits use the existing `hit_rate_limit` counter. Migration 0029 (2026-10-15) only adds an index that speeds up the Nose's catalog query.
 
 ## What it is
 
