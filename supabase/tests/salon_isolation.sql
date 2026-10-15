@@ -1,5 +1,5 @@
 -- =====================================================================
--- Salon test (migration 0027). Run against STAGING (never production), like
+-- Salon test (migrations 0027, 0028). Run against STAGING (never production), like
 -- atlas_isolation.sql: the Supabase MCP `execute_sql`, or psql -f. It creates
 -- throwaway users, acts as each one through the JWT claims PostgREST uses,
 -- and always ends by raising "SALON PASSED …", so everything rolls back.
@@ -240,6 +240,17 @@ begin
      or has_table_privilege('anon', 'public.salon_reports', 'select') or has_table_privilege('anon', 'public.salon_actions', 'select')
      or has_table_privilege('authenticated', 'public.salon_suspensions', 'select') or has_function_privilege('authenticated', 'public.salon_is_public(uuid)', 'execute') then
     raise exception 'SALON FAILED: anon can read a Salon table';
+  end if; checks := checks + 1;
+  -- ------------------------------------------- function grants (0028)
+  if has_function_privilege('anon', 'public.salon_has_link(text)', 'execute')
+     or has_function_privilege('anon', 'public.salon_post_before_insert()', 'execute')
+     or has_function_privilege('authenticated', 'public.salon_post_before_insert()', 'execute')
+     or has_function_privilege('authenticated', 'public.salon_report_after_insert()', 'execute')
+     or has_function_privilege('authenticated', 'public.salon_post_before_delete()', 'execute') then
+    raise exception 'SALON FAILED: a Salon helper or trigger function is executable by anon or authenticated';
+  end if;
+  if not has_function_privilege('authenticated', 'public.salon_has_link(text)', 'execute') then
+    raise exception 'SALON FAILED: authenticated lost salon_has_link (the CHECK constraints need it)';
   end if; checks := checks + 1;
   delete from auth.users where id = a;
   select count(*) into n from public.salon_profiles where user_id = a;
