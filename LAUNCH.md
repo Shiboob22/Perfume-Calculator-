@@ -8,15 +8,16 @@ depend on are settled. Nothing here touches production until step 4.
 
 ## 0. The rooms: what is live, what is flagged, in what order to switch on
 
-Production today (2026-10-15) runs `main` at the Salon branch: the **Bench**
-and the **Library** are live. **Wardrobe, Atlas, Salon and Nose are built but
-off.** A room is off unless its flag is on; off, its address returns to the
+Production today (2026-10-16) runs `main`: the **Bench**, the **Library** and
+the **Wardrobe** are live (Wardrobe switched on 2026-10-16 on the owner's go:
+`VITE_FLAG_WARDROBE=1` in Vercel Production, deploy `dpl_5fqL8erpmVsKzAdHmhUNM5ATEMj5`).
+**Atlas, Salon and Nose are built but off.** A room is off unless its flag is on; off, its address returns to the
 Bench and its nav link is hidden. Flags do not protect data (row-level
 security does that); they only decide what is shown.
 
 | Room | Flag | Needs on production first | Owner decisions first |
 |---|---|---|---|
-| Wardrobe `/wardrobe` | `wardrobe` | nothing (0024 applied) | Arabic review; your scoring-weights review |
+| Wardrobe `/wardrobe` | `wardrobe` | **on since 2026-10-16** (0024 applied) | still open: Arabic review; your scoring-weights review |
 | Atlas `/atlas` | `atlas` | nothing (0025 applied); a nightly `atlas_refresh()` | catalog licence route (§1 #8, `docs/redesign/DATA-ROUTE.md`); Arabic review |
 | Salon `/salon` | `salon` | nothing (0027 and 0028 applied; `supabase/tests/salon_isolation.sql` passes 56 checks on staging) | privacy and terms wording for user posts (`docs/redesign/LEGAL-BRIEF.md`); who the editors are (rows in `admins`); Arabic review |
 | Nose `/nose` | `nose` | nothing (no migration); `GEMINI_API_KEY` set | privacy line on Gemini; Free vs Pro; is 400 questions a day right; Arabic review |
