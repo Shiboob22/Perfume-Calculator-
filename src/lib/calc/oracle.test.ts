@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculate, solveBottle, solveFromOil, solveRun, adjustConcentration, fmt2 } from "./index";
+import { calculate, solveBottle, solveFromOil, solveRun, adjustConcentration, adjustBottle, fmt2 } from "./index";
 
 // Independent oracle: every expected value below is plain arithmetic written
 // out here, never read back from the module under test.
@@ -171,5 +171,45 @@ describe("rounding boundaries", () => {
       const s = solveBottle(5 + rand() * 300, "ml", 5 + rand() * 40, { oil: 0.95, ethanol: 0.81 }).shown;
       near(s.totalG, Math.round((s.oilG + s.ethanolG) * 100) / 100, 1e-9);
     }
+  });
+});
+
+describe("by-weight strengths in Adjust and Run (0.95 / 0.81)", () => {
+  const d = { oil: 0.95, ethanol: 0.81 };
+  // A 100 mL bottle that is 25% by WEIGHT: 25 g oil to 75 g alcohol takes
+  // 25/0.95 + 75/0.81 mL, so the bottle holds this fraction of that batch.
+  const k = 100 / (25 / 0.95 + 75 / 0.81);
+  const oilG = 25 * k;
+  const totalG = 100 * k;
+
+  it("25% → 20% by weight adds oil/0.20 − total grams of alcohol", () => {
+    const a = adjustBottle(100, 25, 20, "weight", d);
+    expect(a.add.material).toBe("ethanol");
+    near(a.add.grams, oilG / 0.2 - totalG);
+    near(a.add.ml, (oilG / 0.2 - totalG) / 0.81);
+    near(a.from, 25, 1e-9);
+  });
+  it("the result really is 20% by weight, and not 20% by volume", () => {
+    const a = adjustBottle(100, 25, 20, "weight", d);
+    near((a.result.oilG / a.result.totalG) * 100, 20, 1e-9);
+    const byVol = adjustBottle(100, 25, 20, "volume", d);
+    expect(Math.abs(byVol.add.grams - a.add.grams)).toBeGreaterThan(0.5); // treating weight as volume under-adds ~0.77 g here
+  });
+  it("by volume is unchanged by the new argument", () => {
+    const a = adjustBottle(100, 25, 20, "volume", d);
+    near(a.add.ml, 25);
+  });
+
+  it("a run at 25% by weight pours 25% oil by mass", () => {
+    const r = solveRun([{ sizeMl: 50, count: 3 }], 25, d, 0, "weight");
+    expect(r.basis).toBe("weight");
+    near(r.exact.oilG / r.exact.totalG, 0.25, 1e-9);
+    near(r.exact.totalMl, 150, 1e-9);
+    // 150 mL mix: scale the 25 g : 75 g batch to 150 mL
+    near(r.exact.oilG, 25 * (150 / (25 / 0.95 + 75 / 0.81)), 1e-9);
+  });
+  it("a run by volume is unchanged by the new argument", () => {
+    const r = solveRun([{ sizeMl: 50, count: 3 }], 25, d);
+    near(r.exact.oilMl / r.exact.totalMl, 0.25, 1e-9);
   });
 });

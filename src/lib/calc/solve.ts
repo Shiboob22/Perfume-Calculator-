@@ -1,5 +1,6 @@
 import type { Amounts, Basis, Densities, Warning } from "./types";
 import { byVolume, byWeight, fromWeights, concentrationOf, displayed } from "./blend";
+import { weightToVolumeFraction } from "./basis";
 import { isVolumeUnit, toBase, type Unit } from "./units";
 
 // The four ways to ask for a blend. Concentrations come in as percentages
@@ -132,6 +133,24 @@ export function adjustConcentration(
   };
 }
 
+/**
+ * A bottle of `amountMl` at `fromPct` (on `basis`), taken to `toPct` by
+ * adding only. The bottle's volume is always mL; the strengths are by volume
+ * or by weight as the user measured them.
+ */
+export function adjustBottle(
+  amountMl: number,
+  fromPct: number,
+  toPct: number,
+  basis: Basis,
+  d: Densities,
+  limits: { capacityMl?: number; oilAvailableG?: number } = {},
+): Adjustment {
+  const volPct = basis === "weight" ? weightToVolumeFraction(fromPct / 100, d) * 100 : fromPct;
+  const current = solveBottle(amountMl, "ml", volPct, d).exact;
+  return adjustConcentration(current, toPct, basis, d, limits);
+}
+
 // ------------------------------------------------------------------ mode d
 export interface RunLine {
   sizeMl: number;
@@ -149,13 +168,17 @@ export interface Run extends Solution {
 
 /**
  * Several bottles from one mix (e.g. 3 × 50 mL + 2 × 10 mL), with an optional
- * overfill percentage to cover what is lost in transfer.
+ * overfill percentage to cover what is lost in transfer. `pct` is by volume
+ * unless `basis` says weight.
  */
-export function solveRun(lines: RunLine[], pct: number, d: Densities, overfillPct = 0): Run {
+export function solveRun(lines: RunLine[], pct: number, d: Densities, overfillPct = 0, basis: Basis = "volume"): Run {
   const clean = lines.filter((l) => l.sizeMl > 0 && l.count > 0);
   const bottlesMl = clean.reduce((s, l) => s + l.sizeMl * l.count, 0);
   const mixMl = bottlesMl * (1 + overfillPct / 100);
-  const sol = solveBottle(mixMl, "ml", pct, d);
+  // The bottles are measured in mL; a by-weight strength is first turned into
+  // the volume share that gives it, so the mix has the strength asked for.
+  const volPct = basis === "weight" ? weightToVolumeFraction(pct / 100, d) * 100 : pct;
+  const sol = { ...solveBottle(mixMl, "ml", volPct, d), basis, concentration: pct };
   const gPerMl = sol.exact.totalMl > 0 ? sol.exact.totalG / sol.exact.totalMl : 0;
   return {
     ...sol,
