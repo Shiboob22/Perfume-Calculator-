@@ -18,7 +18,7 @@ security does that); they only decide what is shown.
 |---|---|---|---|
 | Wardrobe `/wardrobe` | `wardrobe` | nothing (0024 applied) | Arabic review; your scoring-weights review |
 | Atlas `/atlas` | `atlas` | nothing (0025 applied); a nightly `atlas_refresh()` | catalog licence route (§1 #8, `docs/redesign/DATA-ROUTE.md`); Arabic review |
-| Salon `/salon` | `salon` | **migration 0027** (approve the SQL; test `supabase/tests/salon_isolation.sql` passes 55 checks on staging) | privacy and terms wording for user posts (`docs/redesign/LEGAL-BRIEF.md`); who the editors are (rows in `admins`); Arabic review |
+| Salon `/salon` | `salon` | nothing: **migration 0027 applied to production 2026-10-15** (owner approved; `supabase/tests/salon_isolation.sql` passes 55 checks on staging) | privacy and terms wording for user posts (`docs/redesign/LEGAL-BRIEF.md`); who the editors are (rows in `admins`); Arabic review |
 | Nose `/nose` | `nose` | nothing (no migration); `GEMINI_API_KEY` set | privacy line on Gemini; Free vs Pro; is 400 questions a day right; Arabic review |
 
 **Suggested order**, one at a time, a day or two apart so a problem has one
@@ -48,7 +48,7 @@ room addresses. Add `https://<domain>/bench/**`, `/wardrobe/**`, `/atlas/**`,
 not on the list fall back to the home page.
 
 **Checked 2026-10-15 (Phase 8):**
-- Production has migrations 0001–0026 (0026 is `profile_seller`); only the Salon's 0027 is missing.
+- Production has migrations 0001–0027 (0026 is `profile_seller`, 0027 the Salon, applied 2026-10-15 after the owner's approval; catalog, batches and admins unchanged; the 7 Salon tables have RLS and `anon` has no grant on any). Seven Salon trigger functions and the pure `salon_has_link` text check are still executable by `anon` through the default PUBLIC grant; Postgres refuses to run trigger functions outside a trigger, so there is no exposure, but a later migration can revoke them to quieten the advisor.
 - Supabase security advisor, production: no errors. Warnings that are intended:
   the four `atlas_*` views and the `atlas_*` functions are readable by signed-in
   users only (anon has no SELECT and no EXECUTE on any of them; checked);

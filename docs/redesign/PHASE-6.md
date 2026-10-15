@@ -12,7 +12,7 @@ People who choose to can share recipes and fragrance reviews, like and follow. E
 - **Feed** `/salon`: All, Recipes, Reviews, Following; 20 at a time. **Profile page** `/salon/u/<handle>`: counts, follow, report, their posts.
 - **Reporting and moderation**: anyone can report a post or a profile (spam, abuse, unsafe advice, other). Editors (the `admins` table) get `/salon/moderation`: hide or restore a post, dismiss a report, suspend an author, lift a suspension. Nothing is deleted by moderation and every decision is logged (`salon_actions`).
 
-## Database (migration 0027, staging only; production is untouched)
+## Database (migration 0027; staging 2026-10-14, production 2026-10-15)
 
 Seven tables (`salon_profiles`, `salon_posts`, `salon_likes`, `salon_follows`, `salon_reports`, `salon_actions`, `salon_suspensions`), all with RLS and `ON DELETE CASCADE` from `auth.users`. Down file: `0027_salon.down.sql`.
 
@@ -45,4 +45,4 @@ Design points:
 1. Salon privacy and terms wording (the lawyer's `/privacy` and `/terms` don't mention user posts yet).
 2. Who the editors are: today, rows in `admins`.
 3. Whether "public" should ever mean the open web (then SEO pages).
-4. Production: migration 0027 needs your SQL approval; the Salon would stay flagged off.
+4. Production: migration 0027 was approved and applied 2026-10-15; the Salon stays flagged off.
