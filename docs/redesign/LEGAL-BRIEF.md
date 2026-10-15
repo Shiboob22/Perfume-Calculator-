@@ -22,7 +22,7 @@ Status 2026-10-15. The draft pages (`src/content/legal.js`) predate the Wardrobe
 
 - See `DATA-ROUTE.md`: the catalog's source rights are unresolved and this blocks a commercial launch of the Atlas.
 - Atlas contributions: a signed-in user may suggest a fragrance; it is pending until an admin approves it. Questions: who owns a contribution and who is responsible for it.
-- Optional anonymous wear counts ("wear opt-in"): off by default; the Atlas shows only totals above a minimum, never individuals.
+- Optional anonymous wear counts ("wear opt-in", `profiles.wear_stats_opt_in`, off by default): the Atlas shows a fragrance's owner and wearer counts only when at least 10 opted-in people with accounts older than 7 days have it, as rounded bands (10, 25, 50, 100, 250+), never individuals; occasions only where at least 10 people share one.
 
 ## Wardrobe
 
