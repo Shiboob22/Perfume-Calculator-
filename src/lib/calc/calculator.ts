@@ -3,7 +3,7 @@ import { solveBottle } from "./solve";
 import { volumeToWeightFraction, weightToVolumeFraction } from "./basis";
 import { checkPour } from "./pour";
 import { checkInputs } from "./solve";
-import { batchCost, costPer } from "./cost";
+import { batchCost, costPer, sellerFigures } from "./cost";
 import { PLAUSIBLE_DENSITY } from "../formulation";
 
 // Everything the Calculator screen shows, from its raw form inputs. The
@@ -25,6 +25,11 @@ export interface CalculatorInput {
   ethanolPricePerL?: number | string | null;
   bottleCost?: number | string | null;
   bottles?: number | string | null;
+  /** Seller layer (Pro): packaging per bottle, labour, and the sale price of one bottle. */
+  packagingCost?: number | string | null;
+  labourMinutes?: number | string | null;
+  labourRate?: number | string | null;
+  salePrice?: number | string | null;
 }
 
 const positive = (v: unknown) => (Number(v) > 0 ? Number(v) : null);
@@ -70,6 +75,9 @@ export function calculate(input: CalculatorInput) {
     oilPerG: price > 0 ? price : null,
     ethanolPerL: Number(input.ethanolPricePerL) > 0 ? Number(input.ethanolPricePerL) : null,
     bottleEach: Number(input.bottleCost) > 0 ? Number(input.bottleCost) : null,
+    packagingEach: positive(input.packagingCost),
+    labourMinutes: positive(input.labourMinutes),
+    labourPerHour: positive(input.labourRate),
   });
   // Per mL follows what was really poured when both pours were recorded.
   const costMl = actualOilG !== null && actualEthanolG !== null ? actualOilG / d.oil + actualEthanolG / d.ethanol : solution.exact.totalMl;
@@ -77,5 +85,7 @@ export function calculate(input: CalculatorInput) {
   // A bottle price with no bottles would leave glass out of the total unannounced.
   if (positive(input.bottleCost) !== null && bottles === 0) warnings.push({ code: "bottles_missing" });
 
-  return { ...solution, otherBasisPct, actual, usedOilG, oilCost, warnings, cost: { ...cost, ...per, bottles } };
+  const seller = sellerFigures(cost.total, bottles, Number(input.salePrice));
+
+  return { ...solution, otherBasisPct, actual, usedOilG, oilCost, warnings, cost: { ...cost, ...per, bottles, seller } };
 }

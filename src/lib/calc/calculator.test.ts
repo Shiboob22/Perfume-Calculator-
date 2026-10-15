@@ -23,6 +23,20 @@ describe("calculate (Calculator screen)", () => {
     expect(poured.cost.ethanol).toBeCloseTo(1, 10); // 81 g / 0.81 = 100 mL
   });
 
+  it("prices a seller's batch: packaging, labour, then margin on the sale price", () => {
+    const r = calculate({
+      ...base, pricePerGram: 2, ethanolPricePerL: 40, bottleCost: 10, bottles: 2,
+      packagingCost: 1.5, labourMinutes: 45, labourRate: 20, salePrice: 50,
+    });
+    expect(r.cost.total).toBeCloseTo(70.5 + 3 + 15, 10);
+    expect(r.cost.seller!.revenue).toBe(100);
+    expect(r.cost.seller!.profit).toBeCloseTo(100 - 88.5, 10);
+    expect(r.cost.seller!.marginPct).toBeCloseTo(11.5, 10);
+    expect(calculate({ ...base, bottles: 2, salePrice: 50 }).cost.seller).not.toBeNull(); // oil unpriced: all profit
+    expect(calculate(base).cost.seller).toBeNull(); // no price, no bottles: nothing shown
+    expect(calculate({ ...base, bottles: 2 }).cost.seller).toBeNull();
+  });
+
   it("solves the batch and gives the other basis", () => {
     const r = calculate(base);
     expect([r.shown.oilG, r.shown.ethanolG, r.shown.totalG]).toEqual([23.75, 60.75, 84.5]);
