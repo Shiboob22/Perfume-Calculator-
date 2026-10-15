@@ -70,6 +70,67 @@ export function editRow(edit: any): { row: Record<string, unknown> } | { error: 
   return { row };
 }
 
+// A batch to log: the planned recipe and its record, checked before it
+// reaches the database (the columns are bare numerics). Same caps as editRow.
+// A number is a finite positive value up to 100 000 (grams or mL); the
+// concentration is 1-99 %. total_g must be the oil plus the alcohol, within
+// rounding. Returns the row's own columns; ids, user_id and created_at are
+// the handler's.
+const MAX_AMOUNT = 100000;
+export function batchRow(b: any): { row: Record<string, unknown> } | { error: string; field: string } {
+  if (!b || typeof b !== 'object' || Array.isArray(b)) return { error: 'Check the batch.', field: 'batch' };
+  const row: Record<string, unknown> = {};
+
+  const name = typeof b.fragrance_name === 'string' ? b.fragrance_name.trim() : '';
+  if (!name || name.length > 120) return { error: 'Check fragrance_name.', field: 'fragrance_name' };
+  row.fragrance_name = name;
+
+  const tier = typeof b.tier === 'string' ? b.tier.trim() : '';
+  if (!tier || tier.length > 40) return { error: 'Check tier.', field: 'tier' };
+  row.tier = tier;
+
+  const d = String(b.blend_date ?? '');
+  if (!DATE.test(d) || Number.isNaN(Date.parse(`${d}T00:00:00Z`))) return { error: 'Check blend_date.', field: 'blend_date' };
+  row.blend_date = d;
+
+  // Numbers must arrive as numbers (or numeric strings), never '', null or NaN.
+  const num = (v: unknown) => (v === null || v === '' || typeof v === 'boolean' || Array.isArray(v) ? NaN : Number(v));
+  const pct = num(b.concentration_pct);
+  if (!(pct >= 1 && pct <= 99)) return { error: 'Check concentration_pct.', field: 'concentration_pct' };
+  row.concentration_pct = pct;
+  for (const k of ['oil_g', 'oil_ml', 'ethanol_g', 'ethanol_ml', 'total_g', 'total_ml']) {
+    const n = num(b[k]);
+    if (!(n > 0 && n <= MAX_AMOUNT)) return { error: `Check ${k}.`, field: k };
+    row[k] = n;
+  }
+  const sum = (row.oil_g as number) + (row.ethanol_g as number);
+  if (Math.abs((row.total_g as number) - sum) > 0.01 * (row.total_g as number) + 0.05) {
+    return { error: 'Check total_g.', field: 'total_g' };
+  }
+
+  // Optional fields: absent or empty means none; present but wrong is refused.
+  const optText = (k: string, max: number) => {
+    if (b[k] == null || b[k] === '') { row[k] = null; return null; }
+    const v = typeof b[k] === 'string' ? b[k].trim() : null;
+    if (v === null || v.length > max) return k;
+    row[k] = v || null;
+    return null;
+  };
+  const optNum = (k: string, max: number) => {
+    if (b[k] == null || b[k] === '') { row[k] = null; return null; }
+    const n = num(b[k]);
+    if (!(n >= 0 && n <= max)) return k;
+    row[k] = n;
+    return null;
+  };
+  const bad = optText('oil_type', 120) || optText('notes', 2000) || optText('blended_by', 120)
+    || optNum('price_per_gram', 1e6) || optNum('oil_cost', 1e9)
+    || optNum('actual_oil_g', MAX_AMOUNT) || optNum('actual_ethanol_g', MAX_AMOUNT);
+  if (bad) return { error: `Check ${bad}.`, field: bad };
+  for (const k of ['actual_oil_g', 'actual_ethanol_g']) if (row[k] === 0) row[k] = null;
+  return { row };
+}
+
 // Stock taken out for a freshly logged batch, when the client asks with
 // deduct_oil_g. Only on a new insert (a replay or a 23505 returns earlier,
 // so a re-sent batch never deducts twice), only on a plan with inventory,
@@ -148,30 +209,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (missing.length) {
         return fail(res, 400, 'missing_fields', `Missing required batch fields: ${missing.join(', ')}`, { fields: missing });
       }
+      const checked = batchRow(b);
+      if ('error' in checked) return fail(res, 400, 'invalid_batch', checked.error, { field: checked.field });
 
       // Whitelist only real columns; user_id + created_at are server-set.
       // A client-chosen id makes logging idempotent (see above).
       const row = {
         ...(clientId ? { id: clientId } : {}),
         user_id: userId,
-        fragrance_id: b.fragrance_id ?? null,
-        fragrance_name: b.fragrance_name,
-        tier: b.tier,
-        blend_date: b.blend_date,
-        concentration_pct: b.concentration_pct,
-        oil_g: b.oil_g,
-        oil_ml: b.oil_ml,
-        ethanol_g: b.ethanol_g,
-        ethanol_ml: b.ethanol_ml,
-        total_g: b.total_g,
-        total_ml: b.total_ml,
-        oil_type: b.oil_type ?? null,
-        price_per_gram: b.price_per_gram ?? null,
-        oil_cost: b.oil_cost ?? null,
-        notes: b.notes ?? null,
-        blended_by: b.blended_by ?? null,
-        actual_oil_g: b.actual_oil_g ?? null,
-        actual_ethanol_g: b.actual_ethanol_g ?? null,
+        fragrance_id: typeof b.fragrance_id === 'string' && UUID.test(b.fragrance_id) ? b.fragrance_id : null,
+        ...checked.row,
         basis: b.basis === 'volume' || b.basis === 'weight' ? b.basis : null,
         oil_density: Number(b.oil_density) > 0 ? Number(b.oil_density) : null,
         ethanol_density: Number(b.ethanol_density) > 0 ? Number(b.ethanol_density) : null,

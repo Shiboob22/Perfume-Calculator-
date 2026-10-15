@@ -85,6 +85,67 @@ describe('POST /api/batches', () => {
   });
 });
 
+describe('POST /api/batches validation', () => {
+  const refused = async (patch: Record<string, unknown>, field: string) => {
+    const res = await call('POST', { body: { ...BATCH, ...patch } });
+    expect(res.statusCode, field).toBe(400);
+    expect(res.body.code).toBe('invalid_batch');
+    expect(res.body.field).toBe(field);
+    expect(db.rows('batches')).toHaveLength(0);
+  };
+
+  it('refuses a zero, negative or huge size', async () => {
+    await refused({ total_ml: 0 }, 'total_ml');
+    await refused({ oil_g: -1 }, 'oil_g');
+    await refused({ ethanol_ml: 1e9 }, 'ethanol_ml');
+    await refused({ oil_ml: 'abc' }, 'oil_ml');
+    await refused({ oil_ml: [5] }, 'oil_ml');
+  });
+
+  it('refuses a concentration outside 1-99 %', async () => {
+    await refused({ concentration_pct: 100 }, 'concentration_pct');
+    await refused({ concentration_pct: 0 }, 'concentration_pct');
+    await refused({ concentration_pct: -5 }, 'concentration_pct');
+  });
+
+  it('refuses a total that is not oil plus alcohol', async () => {
+    await refused({ total_g: 200 }, 'total_g');
+  });
+
+  it('refuses a bad name, tier or date', async () => {
+    await refused({ fragrance_name: '   ' }, 'fragrance_name');
+    await refused({ fragrance_name: 'x'.repeat(121) }, 'fragrance_name');
+    await refused({ tier: '  ' }, 'tier');
+    await refused({ blend_date: '2026-13-45' }, 'blend_date');
+    await refused({ blend_date: 'yesterday' }, 'blend_date');
+  });
+
+  it('refuses unbounded text and out-of-range optional numbers', async () => {
+    await refused({ notes: 'x'.repeat(2001) }, 'notes');
+    await refused({ blended_by: 'x'.repeat(121) }, 'blended_by');
+    await refused({ price_per_gram: -1 }, 'price_per_gram');
+    await refused({ actual_oil_g: 1e7 }, 'actual_oil_g');
+    await refused({ oil_type: { a: 1 } }, 'oil_type');
+  });
+
+  it('accepts the Quick Reference batch and the edges of the range', async () => {
+    expect((await call('POST', { body: BATCH })).statusCode).toBe(201);
+    const edge = { ...BATCH, concentration_pct: 99, notes: 'x'.repeat(2000), price_per_gram: 0, actual_oil_g: 23.8 };
+    expect((await call('POST', { body: edge })).statusCode).toBe(201);
+  });
+
+  it('stores trimmed text and drops a bad fragrance id', async () => {
+    const res = await call('POST', { body: { ...BATCH, fragrance_name: '  Oud  ', fragrance_id: 'nope', notes: '' } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.batch).toMatchObject({ fragrance_name: 'Oud', fragrance_id: null, notes: null });
+  });
+
+  it('keeps an unrounded total that matches its parts', async () => {
+    const exact = { ...BATCH, oil_g: 23.7499999, ethanol_g: 60.7500001, total_g: 84.5 };
+    expect((await call('POST', { body: exact })).statusCode).toBe(201);
+  });
+});
+
 describe('POST /api/batches stock deduction', () => {
   const FRAG = '22222222-2222-4222-8222-222222222222';
   const tracked = () => { db.rpcHandlers.restock_inventory = (a: any) => ({ data: { fragrance_id: a.p_fragrance_id, stock_g: 76.25 }, error: null }); };
