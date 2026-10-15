@@ -252,6 +252,76 @@ begin
   end;
   if not ok then raise exception 'RLS_ISOLATION FAILED: B could call restock_inventory'; end if; checks := checks + 1;
 
+  -- Rate limits are the service role's: a user can't call hit_rate_limit
+  -- (0010) to burn another user's allowance or reset a key.
+  ok := false;
+  begin perform public.hit_rate_limit('test:' || a, 10, 60);
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B could call hit_rate_limit'; end if; checks := checks + 1;
+
+  -- Check-ins and shared recipes can't be updated or deleted by users, not
+  -- even their own rows (0012, 0013): the API is the only writer.
+  ok := false;
+  begin update public.batch_checkins set note = 'tampered';
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a user could update check-ins directly'; end if; checks := checks + 1;
+  ok := false;
+  begin delete from public.batch_checkins;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a user could delete check-ins directly'; end if; checks := checks + 1;
+  ok := false;
+  begin delete from public.shared_recipes;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a user could delete shared recipes directly'; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.shared_recipes (batch_id, user_id, slug, fragrance_name, tier, concentration_pct, total_ml, total_g, oil_g, ethanol_g)
+        values (batch_b, b, 'b-direct-' || substr(md5(random()::text), 1, 6), 'B', 'fresh', 20, 100, 83.8, 19, 64.8);
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a user could share a recipe around the API'; end if; checks := checks + 1;
+
+  -- The selector's candidate function is for signed-in users only (0018).
+  perform 1 from public.selector_candidates(array['woody'], 5);
+  checks := checks + 1;
+
+  -- The Pro plan includes the journal (0017); Free doesn't. The settings the
+  -- advisor wants on functions are still there after 0019's replace (0021).
+  if not exists (select 1 from public.plans where id = 'pro' and 'journal.checkins' = any(features)) then
+    raise exception 'RLS_ISOLATION FAILED: Pro lacks journal.checkins (0017)';
+  end if; checks := checks + 1;
+  if exists (select 1 from public.plans where id = 'free' and 'journal.checkins' = any(features)) then
+    raise exception 'RLS_ISOLATION FAILED: Free includes journal.checkins';
+  end if; checks := checks + 1;
+  if not exists (
+    select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = 'restock_inventory'
+      and coalesce(p.proconfig, '{}') && array['search_path=public, pg_temp']
+  ) then
+    raise exception 'RLS_ISOLATION FAILED: restock_inventory lost its fixed search_path (0014/0019/0021)';
+  end if; checks := checks + 1;
+  -- Every public function that has a fixed search_path in this schema keeps
+  -- one; none of the app's functions may have a mutable one (0014 advisor).
+  if exists (
+    select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.proname in ('restock_inventory', 'selector_candidates', 'classify_tier', 'fragrances_set_tier')
+      and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%')
+  ) then
+    raise exception 'RLS_ISOLATION FAILED: a function has a mutable search_path';
+  end if; checks := checks + 1;
+
+  -- Stock never goes below zero (0019), as the owner of the table (the API's
+  -- service role would be the same): the constraint and the function.
+  perform set_config('role', 'none', true);
+  ok := false;
+  begin update public.inventory set stock_g = -1 where user_id = a;
+  exception when check_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: stock can be set below zero'; end if; checks := checks + 1;
+  perform public.restock_inventory(a, f_shared, -1000);
+  select stock_g::int into n from public.inventory where user_id = a and fragrance_id = f_shared;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: restock_inventory left stock at % (expected 0)', n; end if; checks := checks + 1;
+  update public.inventory set stock_g = 100 where user_id = a and fragrance_id = f_shared;  -- as the fixtures had it
+  perform set_config('role', 'authenticated', true);
+
   -- What B may do: add its own pending row, and reuse an existing name.
   insert into public.fragrances (name, tier) values ('RLS test B own ' || b, 'floral');
   select count(*) into n from public.fragrances where name = 'RLS test B own ' || b and added_by = b and status = 'pending';
