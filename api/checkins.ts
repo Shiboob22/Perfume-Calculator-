@@ -75,7 +75,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(201).json({ checkin: data });
     } catch (err: any) {
       if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
-      return res.status(500).json({ error: err.message || 'Failed to save the check-in' });
+      console.error(JSON.stringify({ at: 'api/checkins', context: 'save', message: String(err?.message ?? err) }));
+    return res.status(500).json({ error: 'Something went wrong. Please try again.', code: 'server_error' });
     }
   }
 
@@ -89,7 +90,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ success: true });
     } catch (err: any) {
       if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
-      return res.status(500).json({ error: err.message || 'Failed to delete the check-in' });
+      console.error(JSON.stringify({ at: 'api/checkins', context: 'delete', message: String(err?.message ?? err) }));
+    return res.status(500).json({ error: 'Something went wrong. Please try again.', code: 'server_error' });
     }
   }
 
@@ -112,7 +114,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ ready: Object.keys(patterns), locked: true });
     } catch (err: any) {
       if (isTimeout(err)) return res.status(503).json({ error: SLOW_READ });
-      return res.status(500).json({ error: err.message || 'Failed to read the journal' });
+      console.error(JSON.stringify({ at: 'api/checkins', context: 'read', message: String(err?.message ?? err) }));
+    return res.status(500).json({ error: 'Something went wrong. Please try again.', code: 'server_error' });
     }
   }
 

@@ -314,6 +314,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ source: 'database', results: [] });
   } catch (err: any) {
     if (isTimeout(err) || isAuthRetryableFetchError(err)) return res.status(503).json({ error: 'Database is slow to respond — please try again.' });
-    return res.status(500).json({ error: err.message || 'Search execution failed' });
+    console.error(JSON.stringify({ at: 'api/search', context: 'search', message: String(err?.message ?? err) }));
+    return res.status(500).json({ error: 'Something went wrong. Please try again.', code: 'server_error' });
   }
 }
