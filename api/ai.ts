@@ -1,8 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
+import { createClient, isAuthRetryableFetchError, type SupabaseClient } from '@supabase/supabase-js';
 import { overLimit } from './_lib/rateLimit.js';
 import { loadEntitlements, can, lockedFeature } from './_lib/entitlements.js';
 import { TIER_KEYS as FAMILY_KEYS, familyGuide } from '../src/lib/formulation.js';
+import {
+  NOSE_LIMITS, ANSWER_SCHEMA, answerPrompt, answerSystem, cleanPrefs, cleanQuestion, dailyCap, groundAnswer,
+  killSwitchOn, preRedirect, prefsSchema, prefsSystem, rankCandidates,
+} from './_lib/nose.js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -330,6 +334,71 @@ async function insights(userId: string): Promise<string> {
   return plain(await generate({ system, contents: userTurn(`My batches, newest first:\n${describeBatches(batches)}`) }));
 }
 
+/* ---------------- The Nose ---------------- */
+
+// Accord names the model may filter by: the catalog's own, biggest first.
+let vocabCache: { at: number; names: string[] } | null = null;
+async function accordVocabulary(admin: SupabaseClient): Promise<string[]> {
+  if (vocabCache && Date.now() - vocabCache.at < 3_600_000) return vocabCache.names;
+  const { data, error } = await admin.from('atlas_accords').select('name, fragrances').order('fragrances', { ascending: false }).limit(60);
+  if (error) throw error;
+  const names = (data || []).map((r: any) => String(r.name)).filter(Boolean);
+  if (names.length) vocabCache = { at: Date.now(), names };
+  return names;
+}
+
+async function nose(admin: SupabaseClient, userId: string, b: any) {
+  const started = Date.now();
+  // What is logged: the outcome and timing. Never the question, the answer or who asked.
+  const done = <T extends object>(outcome: string, body: T, extra: object = {}): T => {
+    console.info(JSON.stringify({ event: 'nose', outcome, ms: Date.now() - started, ...extra }));
+    return body;
+  };
+
+  const question = cleanQuestion(b.question);
+  if (question.length < 3) throw new AiError(400, 'Describe the scent you are after.');
+  const locale: 'en' | 'ar' = b.locale === 'ar' ? 'ar' : 'en';
+
+  // Health and how-to-blend questions are answered with a pointer, before anything is spent.
+  const early = preRedirect(question);
+  if (early) return done('redirect', { kind: 'redirect', reason: early }, { by: 'rule' });
+
+  const vocab = await accordVocabulary(admin);
+  if (vocab.length === 0) throw new AiError(503, 'The catalog is not ready for the Nose yet.');
+
+  const prefs = cleanPrefs(
+    parseJson(await generate({ system: prefsSystem(vocab), contents: userTurn(question), schema: prefsSchema(vocab) })),
+    vocab,
+  );
+  if (prefs.intent !== 'recommend') return done('redirect', { kind: 'redirect', reason: prefs.intent }, { by: 'model' });
+
+  let q = admin.from('fragrances')
+    .select('id, name, brand, year, tier, olfactory_family, accords, rating, popularity')
+    .eq('status', 'approved');
+  if (prefs.accords.length) q = q.overlaps('accords', prefs.accords);
+  const { data: rows, error } = await q.order('popularity', { ascending: false, nullsFirst: false }).limit(300);
+  if (error) throw error;
+
+  const candidates = rankCandidates((rows || []) as any[], prefs);
+  if (candidates.length === 0) return done('none', { kind: 'none' });
+
+  let answer;
+  try {
+    answer = groundAnswer(parseJson(await generate({
+      system: answerSystem(locale), contents: userTurn(answerPrompt(question, candidates)), schema: ANSWER_SCHEMA,
+    })), candidates);
+  } catch (err) {
+    // The matches are real even when the wording step fails: show them with their accords.
+    if (!(err instanceof AiError) || err.status === 400) throw err;
+    answer = groundAnswer(null, candidates);
+  }
+  return done('picks', answer, { picks: answer.picks.length });
+}
+
+function parseJson(text: string): unknown {
+  try { return JSON.parse(text); } catch { throw new AiError(502, 'Gemini returned an unreadable answer.'); }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   setCors(req, res);
 
@@ -359,6 +428,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const admin = createClient(supabaseUrl, supabaseServiceKey, { global: { fetch: timedFetch } });
     if (!can(await loadEntitlements(admin, userId), 'ai.ask')) {
       return res.status(403).json(lockedFeature('ai.ask'));
+    }
+    if (b.task === 'nose') {
+      // Its own limits, not Ask's: a question is two model calls.
+      if (killSwitchOn(process.env)) return res.status(503).json({ error: 'The Nose is switched off for now.', code: 'nose_off' });
+      for (const [key, [limit, windowSeconds]] of [[`nose:${userId}`, NOSE_LIMITS.hour], [`nose-day:${userId}`, NOSE_LIMITS.day]] as const) {
+        const { data, error } = await admin.rpc('hit_rate_limit', { p_key: key, p_limit: limit, p_window_seconds: windowSeconds });
+        if (!error && data === false) {
+          res.setHeader('Retry-After', String(windowSeconds));
+          return res.status(429).json({ error: 'You have asked the Nose a lot — try again later.', code: 'nose_limit' });
+        }
+      }
+      // The free Gemini key is shared by everyone: a whole-site daily cap keeps it from running dry for Ask.
+      const { data: roomLeft, error: capError } = await admin.rpc('hit_rate_limit', { p_key: 'nose:all', p_limit: dailyCap(process.env), p_window_seconds: 86400 });
+      if (!capError && roomLeft === false) return res.status(503).json({ error: 'The Nose has reached its limit for today.', code: 'nose_busy' });
+      return res.status(200).json(await nose(admin, userId, b));
     }
     if (await overLimit(admin, res, 'ai', userId)) return;
 
