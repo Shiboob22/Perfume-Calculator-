@@ -93,6 +93,7 @@ Billing: **free for now, billing-ready.** Plans + entitlements exist and gate fe
 - **Handbook content is the owner's.** Don't invent techniques, numbers or claims. If a page needs something the handbooks don't cover, list the gap and ask.
 - **Push back before building** if something in the brief is wrong or a better approach exists.
 - The owner checks the **deployed** URL, not localhost.
+- **Standing access (owner, 2026-10-16):** Claude commits, merges and pushes to `main` itself once tests are green (no commands handed to the owner); applies migrations to production after they pass on staging, without a per-migration SQL approval (destructive SQL is still shown first); and may turn room flags on or off in Vercel. Still ask first on pricing or Free-vs-Pro, spending money, licensing data, deleting or rewriting user data, and removing features. Never force-push.
 
 ---
 
