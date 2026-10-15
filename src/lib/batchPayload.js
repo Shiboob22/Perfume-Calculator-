@@ -36,6 +36,9 @@ export function buildBatch({
   actualOilG, actualEthG, oilType, pricePerGram, oilCost, notes, blendedBy, lot, amount, unit, seller, recipeVersionId,
 }) {
   const e = target.exact;
+  // A density left blank was replaced by a fallback to compute; the batch
+  // records only a density the user really entered (null reads as unknown).
+  const blank = new Set((target.warnings || []).map((w) => w.code));
   const price = pos(pricePerGram);
   const cost = oilCost === undefined ? (price ? usedOil(target, actualOilG) * price : null) : oilCost;
   return {
@@ -56,8 +59,8 @@ export function buildBatch({
     actual_oil_g: pos(actualOilG),
     actual_ethanol_g: pos(actualEthG),
     basis: target.basis,
-    oil_density: densities.oil,
-    ethanol_density: densities.ethanol,
+    oil_density: blank.has("oil_density_missing") ? null : densities.oil,
+    ethanol_density: blank.has("ethanol_density_missing") ? null : densities.ethanol,
     lot: text(lot),
     amount: pos(amount),
     unit: unit || null,

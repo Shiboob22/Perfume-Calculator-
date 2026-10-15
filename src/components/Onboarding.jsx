@@ -4,6 +4,7 @@ import { COLORS, SHAPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { useProfile } from "../lib/useProfile";
 import { UNIT_LABELS, afterOnboardingPath, refFrom } from "../lib/calcPrefill";
+import { CURRENCIES } from "../lib/currencies";
 import FlaconMark from "./FlaconMark";
 
 const UNITS = ["ml", "floz", "g", "oz"];
@@ -11,7 +12,7 @@ const UNITS = ["ml", "floz", "g", "oz"];
 const SIZES = { ml: [10, 30, 50, 100], floz: [1, 1.7, 3.4], g: [10, 30, 50, 100], oz: [1, 2, 4] };
 const DEFAULT_SIZE = { ml: 50, floz: 1.7, g: 50, oz: 2 };
 
-// First run: three questions (units, usual bottle, language), then the
+// First run: four questions (units, usual bottle, selling, language), then the
 // calculator opens at the answers. Skipping still marks onboarding done so
 // it never comes back; everything can be changed under Account.
 export default function Onboarding() {
@@ -22,6 +23,8 @@ export default function Onboarding() {
   const [unit, setUnit] = useState("ml");
   const [bottle, setBottle] = useState(50);
   const [custom, setCustom] = useState("");
+  const [sells, setSells] = useState(false);
+  const [currency, setCurrency] = useState("USD");
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -33,7 +36,7 @@ export default function Onboarding() {
     setError(null);
     // Onboarding runs once per user, so the page that brought them is saved once.
     const ref = refFrom(window.location.search);
-    const answers = { ...(skipped ? {} : { default_unit: unit, default_bottle: size, locale }), ...(ref ? { signup_ref: ref } : {}), onboarded_at: new Date().toISOString() };
+    const answers = { ...(skipped ? {} : { default_unit: unit, default_bottle: size, locale, sells, ...(sells ? { currency } : {}) }), ...(ref ? { signup_ref: ref } : {}), onboarded_at: new Date().toISOString() };
     try {
       await save(answers);
     } catch {
@@ -67,8 +70,8 @@ export default function Onboarding() {
       <div className="w-full max-w-md">
         {/* The questions really are a sequence, so they get a step indicator. */}
         <p className="text-sm" style={{ color: COLORS.amberDeep }}>{t("onboarding.step", { n: step })}</p>
-        <div aria-hidden="true" className="mt-2 mb-6 grid grid-cols-3 gap-1.5">
-          {[1, 2, 3].map((n) => <span key={n} className="h-1" style={{ background: n <= step ? COLORS.amber : COLORS.line }} />)}
+        <div aria-hidden="true" className="mt-2 mb-6 grid grid-cols-4 gap-1.5">
+          {[1, 2, 3, 4].map((n) => <span key={n} className="h-1" style={{ background: n <= step ? COLORS.amber : COLORS.line }} />)}
         </div>
         <h1 className="font-serif italic text-3xl sm:text-4xl leading-tight mb-8" style={{ color: COLORS.forestDeep }}>{t("onboarding.title")}</h1>
 
@@ -108,6 +111,29 @@ export default function Onboarding() {
           )}
           {step === 3 && (
             <>
+              <legend className="text-lg mb-3" style={{ color: COLORS.ink }}>{t("onboarding.sells.question")}</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {[false, true].map((v) => (
+                  <button key={String(v)} type="button" aria-pressed={sells === v} onClick={() => setSells(v)}
+                    className={`px-3 py-3 text-sm text-start ${SHAPE.control}`} style={choice(sells === v)}>
+                    {t(`onboarding.sells.${v ? "yes" : "no"}`)}
+                  </button>
+                ))}
+              </div>
+              {sells && (
+                <label className="block mt-4 text-sm" style={{ color: COLORS.inkSoft }}>
+                  {t("onboarding.sells.currency")}
+                  <select value={currency} onChange={(e) => setCurrency(e.target.value)}
+                    className="mt-1 w-full sm:w-40 px-3 py-2 min-h-[44px] rounded-none font-mono" style={{ background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` }}>
+                    {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </label>
+              )}
+              <p className="text-xs mt-3" style={{ color: COLORS.inkSoft }}>{t("onboarding.sells.hint")}</p>
+            </>
+          )}
+          {step === 4 && (
+            <>
               <legend className="text-lg mb-3" style={{ color: COLORS.ink }}>{t("onboarding.language.question")}</legend>
               <div className="grid grid-cols-2 gap-2">
                 <button type="button" lang="en" aria-pressed={locale === "en"} onClick={() => setLocale("en")} className="px-3 py-3 rounded-none" style={choice(locale === "en")}>English</button>
@@ -123,7 +149,7 @@ export default function Onboarding() {
           {step > 1
             ? <button type="button" onClick={() => setStep(step - 1)} className="text-sm underline" style={{ color: COLORS.inkSoft }}>{t("onboarding.back")}</button>
             : <button type="button" disabled={saving} onClick={() => finish(true)} className="text-sm underline" style={{ color: COLORS.inkSoft }}>{t("onboarding.skip")}</button>}
-          {step < 3
+          {step < 4
             ? <button type="button" disabled={step === 2 && !sizeValid} onClick={() => setStep(step + 1)}
                 className="px-5 py-2 rounded-none text-sm font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("onboarding.next")}</button>
             : <button type="button" disabled={saving} onClick={() => finish(false)}

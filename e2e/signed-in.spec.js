@@ -48,6 +48,7 @@ test("a new user answers onboarding and joins the waitlist", async ({ page }) =>
   await page.getByRole("button", { name: en.onboarding.next }).click();
   await page.getByRole("button", { name: "30 g" }).click();
   await page.getByRole("button", { name: en.onboarding.next }).click();
+  await page.getByRole("button", { name: en.onboarding.next }).click(); // "do you sell": the default, no
   await page.getByRole("button", { name: "English" }).click();
   await page.getByRole("button", { name: en.onboarding.finish }).click();
 

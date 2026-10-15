@@ -35,6 +35,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import { useProfile } from "../lib/useProfile";
+import { CURRENCIES } from "../lib/currencies";
 import { can } from "../lib/entitlements";
 import { blendTips } from "../lib/aiApi";
 
@@ -44,8 +45,6 @@ function todayISO() {
 }
 
 const MODES = ["bottle", "fromOil", "adjust", "run"];
-// Money is only labelled with a code, never converted.
-const CURRENCIES = ["USD", "EUR", "GBP", "SAR", "AED", "KWD", "QAR", "EGP", "TRY"];
 
 function useDebouncedValue(value, delay) {
   const [debounced, setDebounced] = useState(value);
@@ -217,7 +216,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [labourMinutes, setLabourMinutes] = useState(draft?.labourMinutes ?? "");
   const [labourRate, setLabourRate] = useState(draft?.labourRate ?? "");
   const [salePrice, setSalePrice] = useState(draft?.salePrice ?? "");
-  const [currency, setCurrency] = useState(CURRENCIES.includes(draft?.currency) ? draft.currency : "USD");
+  const [currency, setCurrency] = useState(CURRENCIES.includes(draft?.currency) ? draft.currency : CURRENCIES.includes(profile?.currency) ? profile.currency : "USD");
   // Cost, packaging, labour and sale price are Pro. A draft from before a
   // downgrade keeps its values but they are neither shown, costed nor sent.
   const sellerOn = can(entitlements, "calculator.advanced");

@@ -7,7 +7,7 @@ import { EXPORT_TABLES } from "./exportData";
 // the user's own session can only ever touch their own rows. Deleting the
 // account needs the service role and goes through /api/account.
 
-const PROFILE_FIELDS = "locale, default_unit, default_bottle, digits, onboarded_at";
+const PROFILE_FIELDS = "locale, default_unit, default_bottle, digits, onboarded_at, sells, currency";
 
 // The user's profile, or null if they have never saved one.
 export async function getProfile() {

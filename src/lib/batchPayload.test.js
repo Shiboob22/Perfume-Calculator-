@@ -39,6 +39,11 @@ describe("buildBatch", () => {
     });
     expect(buildBatch({ ...base, seller: { bottles: "", currency: "sar" } })).toMatchObject({ bottles: null, currency: null });
   });
+  it("does not record a fallback density as if it were entered", () => {
+    const warned = { ...target, warnings: [{ code: "oil_density_missing", used: 1 }, { code: "ethanol_density_missing", used: 0.81 }] };
+    expect(buildBatch({ ...base, target: warned })).toMatchObject({ oil_density: null, ethanol_density: null });
+    expect(buildBatch({ ...base, target: { ...target, warnings: [] } })).toMatchObject({ oil_density: 0.95, ethanol_density: 0.81 });
+  });
   it("is the same row from the calculator and from bench mode", () => {
     const calc = buildBatch({ ...base, actualOilG: "23.8", actualEthG: "60.7" });
     const bench = buildBatch({ ...base, actualOilG: 23.8, actualEthG: 60.7 });

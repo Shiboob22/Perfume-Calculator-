@@ -84,12 +84,16 @@ test("a recipe link survives sign-up and onboarding, and its source is saved", a
   await page.getByRole("button", { name: en.onboarding.next }).click();
   await page.getByRole("button", { name: "30 g" }).click();
   await page.getByRole("button", { name: en.onboarding.next }).click();
+  await page.getByRole("button", { name: en.onboarding.sells.yes }).click();
+  await page.getByLabel(en.onboarding.sells.currency).selectOption("SAR");
+  await page.getByRole("button", { name: en.onboarding.next }).click();
   await page.getByRole("button", { name: "English" }).click();
   await page.getByRole("button", { name: en.onboarding.finish }).click();
 
   await expect(page).toHaveURL(/\/bench\?size=50&unit=ml&conc=25&family=woody&name=Oud\+Nights$/);
   await expect(page.getByRole("combobox", { name: en.calc.name })).toHaveValue("Oud Nights");
   expect(sent.profiles.some((p) => p.signup_ref === "recipe")).toBe(true);
+  expect(sent.profiles.some((p) => p.sells === true && p.currency === "SAR")).toBe(true);
 });
 
 test("the calculator keeps its inputs across a tab switch, and Start over clears them", async ({ page }) => {
