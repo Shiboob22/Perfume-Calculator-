@@ -48,8 +48,8 @@ begin
     raise exception 'SALON FAILED: created a profile for someone else';
   exception when sqlstate '42501' then null; end; checks := checks + 1;
   begin
-    update public.salon_profiles set suspended = false where user_id = a;
-    raise exception 'SALON FAILED: a user can touch the suspended column';
+    insert into public.salon_suspensions (user_id) values (a);
+    raise exception 'SALON FAILED: a user can write the suspensions table';
   exception when sqlstate '42501' then null; end; checks := checks + 1;
   begin
     insert into public.salon_profiles (handle) values ('Bad Handle!');
@@ -197,6 +197,9 @@ begin
   perform set_config('role', 'none', true);
   select status into st from public.salon_posts where id = p2;
   if st <> 'hidden' then raise exception 'SALON FAILED: hide'; end if; checks := checks + 1;
+  perform pg_temp.act(a);
+  begin delete from public.salon_posts where id = p2; raise exception 'SALON FAILED: an author deleted a hidden post';
+  exception when sqlstate '42501' then null; end; checks := checks + 1;
   perform pg_temp.act(b);
   insert into public.salon_reports (profile_user_id, reason) values (a, 'abuse');
   perform pg_temp.act(adm);
@@ -207,6 +210,11 @@ begin
   if n <> 0 or public.salon_profile(ha) is not null then raise exception 'SALON FAILED: a suspended author is still visible'; end if; checks := checks + 1;
   perform pg_temp.act(a);
   begin insert into public.salon_posts (kind, title, snapshot) values ('recipe', 'While suspended', snap); raise exception 'SALON FAILED: a suspended user posted';
+  exception when sqlstate '42501' then null; end; checks := checks + 1;
+  -- Deleting the profile and making it again doesn't lift a suspension.
+  delete from public.salon_profiles where user_id = a;
+  insert into public.salon_profiles (handle, is_public) values (ha, true);
+  begin insert into public.salon_posts (kind, title, snapshot) values ('recipe', 'Fresh start', snap); raise exception 'SALON FAILED: re-creating the profile lifted a suspension';
   exception when sqlstate '42501' then null; end; checks := checks + 1;
   perform pg_temp.act(adm);
   perform public.salon_unsuspend(ha);
@@ -229,12 +237,15 @@ begin
   end if; checks := checks + 1;
   if has_table_privilege('anon', 'public.salon_profiles', 'select') or has_table_privilege('anon', 'public.salon_posts', 'select')
      or has_table_privilege('anon', 'public.salon_likes', 'select') or has_table_privilege('anon', 'public.salon_follows', 'select')
-     or has_table_privilege('anon', 'public.salon_reports', 'select') or has_table_privilege('anon', 'public.salon_actions', 'select') then
+     or has_table_privilege('anon', 'public.salon_reports', 'select') or has_table_privilege('anon', 'public.salon_actions', 'select')
+     or has_table_privilege('authenticated', 'public.salon_suspensions', 'select') or has_function_privilege('authenticated', 'public.salon_is_public(uuid)', 'execute') then
     raise exception 'SALON FAILED: anon can read a Salon table';
   end if; checks := checks + 1;
   delete from auth.users where id = a;
   select count(*) into n from public.salon_profiles where user_id = a;
-  if n <> 0 then raise exception 'SALON FAILED: deleting the account left Salon rows'; end if; checks := checks + 1;
+  select n + count(*) into n from public.salon_posts where user_id = a;
+  select n + count(*) into n from public.salon_suspensions where user_id = a;
+  if n <> 0 then raise exception 'SALON FAILED: deleting the account left Salon rows (hidden posts included)'; end if; checks := checks + 1;
 
   raise exception 'SALON PASSED: % checks (rolled back, nothing kept)', checks;
 end

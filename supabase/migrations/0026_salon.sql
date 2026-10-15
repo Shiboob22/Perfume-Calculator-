@@ -14,6 +14,9 @@
 --     snapshot range-checked by a trigger;
 --   - caps by trigger: 10 posts a day, 300 likes a day, 500 follows, 20
 --     reports a day; posting needs an account at least a day old;
+--   - a suspension lives in its own table (salon_suspensions) that no user can
+--     write, so deleting and re-creating a profile doesn't lift it; a hidden
+--     post can't be deleted by its author (account deletion still cascades);
 --   - reporting: any signed-in user can report a post or profile; three
 --     reports from accounts at least 7 days old hide a post at once (an editor
 --     can restore it); editors see a queue and can hide, dismiss, restore or
@@ -33,9 +36,23 @@ create table public.salon_profiles (
   display_name text check (display_name is null or (char_length(btrim(display_name)) between 1 and 60 and not salon_has_link(display_name))),
   bio text check (bio is null or (char_length(bio) <= 300 and not salon_has_link(bio))),
   is_public boolean not null default false,
-  suspended boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+-- Written only by salon_moderate / salon_unsuspend (no grants, no policies).
+create table public.salon_suspensions (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+-- Whether someone's Salon presence is shown to others: a public profile and
+-- no suspension. Only the SECURITY DEFINER functions below call it.
+create function public.salon_is_public(uid uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.salon_profiles p where p.user_id = uid and p.is_public)
+     and not exists (select 1 from public.salon_suspensions z where z.user_id = uid)
+$$;
+revoke all on function public.salon_is_public(uuid) from public, anon, authenticated;
 
 create table public.salon_posts (
   id uuid primary key default gen_random_uuid(),
@@ -105,8 +122,8 @@ create function public.salon_post_before_insert() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare ok boolean; created timestamptz;
 begin
-  select (p.is_public and not p.suspended) into ok from public.salon_profiles p where p.user_id = new.user_id;
-  if not coalesce(ok, false) then raise exception 'public profile needed' using errcode = '42501'; end if;
+  ok := public.salon_is_public(new.user_id);
+  if not ok then raise exception 'public profile needed' using errcode = '42501'; end if;
   select au.created_at into created from auth.users au where au.id = new.user_id;
   if created is null or created > now() - interval '1 day' then raise exception 'account too new' using errcode = '42501'; end if;
   if (select count(*) from public.salon_posts where user_id = new.user_id and created_at > now() - interval '1 day') >= 10 then
@@ -136,8 +153,7 @@ create unique index salon_posts_one_review on public.salon_posts (user_id, fragr
 create function public.salon_like_before_insert() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  if not exists (select 1 from public.salon_posts p join public.salon_profiles s on s.user_id = p.user_id
-                  where p.id = new.post_id and p.status = 'published' and s.is_public and not s.suspended) then
+  if not exists (select 1 from public.salon_posts p where p.id = new.post_id and p.status = 'published' and public.salon_is_public(p.user_id)) then
     raise exception 'post not found' using errcode = '42501';
   end if;
   if (select count(*) from public.salon_likes where user_id = new.user_id and created_at > now() - interval '1 day') >= 300 then
@@ -151,7 +167,7 @@ create trigger salon_likes_before_insert before insert on public.salon_likes
 create function public.salon_follow_before_insert() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  if not exists (select 1 from public.salon_profiles s where s.user_id = new.followee_id and s.is_public and not s.suspended) then
+  if not public.salon_is_public(new.followee_id) then
     raise exception 'profile not found' using errcode = '42501';
   end if;
   if (select count(*) from public.salon_follows where user_id = new.user_id) >= 500 then
@@ -177,7 +193,7 @@ begin
     if author is null then raise exception 'post not found' using errcode = '42501'; end if;
   else
     author := new.profile_user_id;
-    if not exists (select 1 from public.salon_profiles s where s.user_id = author and s.is_public) then
+    if not public.salon_is_public(author) then
       raise exception 'profile not found' using errcode = '42501';
     end if;
   end if;
@@ -202,6 +218,20 @@ end $$;
 create trigger salon_reports_after_insert after insert on public.salon_reports
   for each row execute function public.salon_report_after_insert();
 
+-- A hidden post can't be deleted by its author (that would let it be posted
+-- again as if nothing happened). Depth 1 is a direct delete; the cascade from
+-- deleting an account runs one level deeper and is allowed.
+create function public.salon_post_before_delete() returns trigger
+language plpgsql set search_path = public as $$
+begin
+  if old.status = 'hidden' and pg_trigger_depth() = 1 then
+    raise exception 'post is under review' using errcode = '42501';
+  end if;
+  return old;
+end $$;
+create trigger salon_posts_before_delete before delete on public.salon_posts
+  for each row execute function public.salon_post_before_delete();
+
 -- ------------------------------------------------------------------- RLS
 alter table public.salon_profiles enable row level security;
 alter table public.salon_posts enable row level security;
@@ -209,6 +239,7 @@ alter table public.salon_likes enable row level security;
 alter table public.salon_follows enable row level security;
 alter table public.salon_reports enable row level security;
 alter table public.salon_actions enable row level security;
+alter table public.salon_suspensions enable row level security;
 
 create policy salon_profiles_own on public.salon_profiles for all to authenticated
   using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
@@ -224,7 +255,7 @@ create policy salon_actions_admin on public.salon_actions for select to authenti
 
 -- Column grants: what a user may set themselves. Status, suspension and every
 -- moderation column are reachable only through the editor functions.
-revoke all on public.salon_profiles, public.salon_posts, public.salon_likes, public.salon_follows, public.salon_reports, public.salon_actions from anon, authenticated;
+revoke all on public.salon_profiles, public.salon_posts, public.salon_likes, public.salon_follows, public.salon_reports, public.salon_actions, public.salon_suspensions from anon, authenticated;
 grant select, delete on public.salon_profiles to authenticated;
 grant insert (user_id, handle, display_name, bio, is_public) on public.salon_profiles to authenticated;
 grant update (handle, display_name, bio, is_public) on public.salon_profiles to authenticated;
@@ -259,7 +290,7 @@ begin
   from public.salon_posts p
   join public.salon_profiles s on s.user_id = p.user_id
   left join public.fragrances f on f.id = p.fragrance_id
-  where (p.user_id = me or (p.status = 'published' and s.is_public and not s.suspended))
+  where (p.user_id = me or (p.status = 'published' and s.is_public and not exists (select 1 from public.salon_suspensions z where z.user_id = p.user_id)))
     and (p_kind is null or p.kind = p_kind)
     and (p_handle is null or s.handle = lower(p_handle))
     and (not p_following or exists (select 1 from public.salon_follows fl where fl.user_id = me and fl.followee_id = p.user_id))
@@ -278,9 +309,9 @@ declare me uuid := auth.uid(); s public.salon_profiles;
 begin
   if me is null then raise exception 'not signed in' using errcode = '42501'; end if;
   select * into s from public.salon_profiles where handle = lower(p_handle);
-  if not found or (s.user_id <> me and (not s.is_public or s.suspended)) then return null; end if;
+  if not found or (s.user_id <> me and not public.salon_is_public(s.user_id)) then return null; end if;
   return jsonb_build_object('handle', s.handle, 'display_name', s.display_name, 'bio', s.bio, 'mine', s.user_id = me,
-    'is_public', s.is_public, 'suspended', s.suspended,
+    'is_public', s.is_public, 'suspended', exists (select 1 from public.salon_suspensions z where z.user_id = s.user_id),
     'posts', (select count(*) from public.salon_posts p where p.user_id = s.user_id and p.status = 'published'),
     'followers', (select count(*) from public.salon_follows f where f.followee_id = s.user_id),
     'following', (select count(*) from public.salon_follows f where f.user_id = s.user_id),
@@ -334,7 +365,7 @@ begin
     update public.salon_posts set status = 'published' where id = r.post_id;
     update public.salon_reports set status = 'dismissed' where post_id = r.post_id and status = 'open';
   elsif p_action = 'suspend' then
-    update public.salon_profiles set suspended = true where user_id = author;
+    insert into public.salon_suspensions (user_id) values (author) on conflict do nothing;
     update public.salon_reports set status = 'actioned' where status = 'open' and (profile_user_id = author or post_id in (select id from public.salon_posts where user_id = author));
   else
     update public.salon_reports set status = 'dismissed' where id = p_report;
@@ -350,8 +381,9 @@ language plpgsql security definer set search_path = public as $$
 declare uid uuid;
 begin
   if not (select is_admin()) then raise exception 'not allowed' using errcode = '42501'; end if;
-  update public.salon_profiles set suspended = false where handle = lower(p_handle) and suspended returning user_id into uid;
-  if uid is null then raise exception 'not suspended' using errcode = 'P0002'; end if;
+  select user_id into uid from public.salon_profiles where handle = lower(p_handle);
+  delete from public.salon_suspensions where user_id = uid;
+  if uid is null or not found then raise exception 'not suspended' using errcode = 'P0002'; end if;
   insert into public.salon_actions (action, target_user_id) values ('unsuspend', uid);
 end $$;
 revoke all on function public.salon_unsuspend(text) from public, anon;
