@@ -308,7 +308,7 @@ export default function BenchMode() {
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.bottle")}</dt><dd dir="ltr" className="text-start">{plan.amount} {unit}</dd>
               <dt style={{ color: COLORS.inkSoft }}><label htmlFor="bench-lot">{t("bench.label.lot")}</label></dt>
               <dd><input id="bench-lot" value={lot} onChange={(e) => setLot(e.target.value)} maxLength={60}
-                className="w-full px-2 py-1 font-mono text-sm border" style={{ borderColor: COLORS.field, background: COLORS.cardHi, color: COLORS.ink }} /></dd>
+                className="w-full px-3 py-2 min-h-[44px] font-mono text-sm border" style={{ borderColor: COLORS.field, background: COLORS.cardHi, color: COLORS.ink }} /></dd>
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.date")}</dt><dd>{today()}</dd>
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.oil")}</dt><dd dir="ltr" className="text-start font-mono">{fmt2(labelled.oil)} g</dd>
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.alcohol")}</dt><dd dir="ltr" className="text-start font-mono">{fmt2(labelled.ethanol)} g</dd>

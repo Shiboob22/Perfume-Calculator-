@@ -75,10 +75,13 @@ function Field({ label, extra, hint, htmlFor, children }) {
 }
 
 function TextInput(props) {
+  // Number fields open the phone's decimal pad; type stays "number" for the spinner and validation.
+  const mode = props.type === "number" ? { inputMode: props.step === "1" ? "numeric" : "decimal" } : {};
   return (
     <input
+      {...mode}
       {...props}
-      className="w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
+      className="w-full px-3 py-2 min-h-[44px] font-mono text-sm border focus:outline-none focus:ring-2"
       style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
     />
   );
@@ -668,7 +671,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               </div>
             </div>
             {can(entitlements, "calculator.advanced") && (
-              <div className="grid grid-cols-3 gap-3 items-end mb-3">
+              <div className="grid grid-cols-1 min-[400px]:grid-cols-3 gap-3 items-end mb-3">
                 <div>
                   <label htmlFor="calc-eth-price" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.ethanolPerL")}</label>
                   <TextInput id="calc-eth-price" type="number" step="0.01" min="0" value={ethanolPricePerL} onChange={(e) => setEthanolPricePerL(e.target.value)} placeholder="0.00" />

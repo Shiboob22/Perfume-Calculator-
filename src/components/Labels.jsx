@@ -66,9 +66,9 @@ export default function Labels() {
             {sizeKey === "custom" && (
               <div className="flex gap-2 mt-2 items-center text-sm" style={{ color: COLORS.inkSoft }}>
                 <label className="flex items-center gap-1">{t("labels.width")}
-                  <input type="number" inputMode="decimal" value={custom.w} onChange={(e) => setCustom((c) => ({ ...c, w: e.target.value }))} className="w-20 px-2 py-1 rounded-none font-mono" style={inputStyle} /></label>
+                  <input type="number" inputMode="decimal" value={custom.w} onChange={(e) => setCustom((c) => ({ ...c, w: e.target.value }))} className="w-20 px-2 py-2 min-h-[44px] rounded-none font-mono" style={inputStyle} /></label>
                 <label className="flex items-center gap-1">{t("labels.height")}
-                  <input type="number" inputMode="decimal" value={custom.h} onChange={(e) => setCustom((c) => ({ ...c, h: e.target.value }))} className="w-20 px-2 py-1 rounded-none font-mono" style={inputStyle} /></label>
+                  <input type="number" inputMode="decimal" value={custom.h} onChange={(e) => setCustom((c) => ({ ...c, h: e.target.value }))} className="w-20 px-2 py-2 min-h-[44px] rounded-none font-mono" style={inputStyle} /></label>
               </div>
             )}
             <p role="status" className="text-xs mt-2" style={{ color: size ? COLORS.inkSoft : COLORS.danger }}>
