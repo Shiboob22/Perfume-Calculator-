@@ -224,6 +224,15 @@ describe('GET /api/batches', () => {
 });
 
 describe('DELETE /api/batches', () => {
+  it('is rate-limited', async () => {
+    db.rpcHandlers.hit_rate_limit = () => ({ data: false, error: null });
+    db.rows('batches').push({ id: ID, user_id: USER });
+    const res = await call('DELETE', { query: { id: ID } });
+    expect(res.statusCode).toBe(429);
+    expect(res.body.code).toBe('rate_limited');
+    expect(db.rows('batches')).toHaveLength(1);
+  });
+
   it("deletes only the user's own batch", async () => {
     db = dbFor('pro', { batches: [{ id: ID, user_id: OTHER }] });
     const res = await call('DELETE', { query: { id: ID } });

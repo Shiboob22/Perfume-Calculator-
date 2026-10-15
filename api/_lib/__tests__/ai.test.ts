@@ -48,6 +48,37 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
+describe('Ask API health (GET)', () => {
+  const get = async (handler: any, headers: Record<string, string> = {}) => {
+    const res = fakeRes();
+    await handler(fakeReq('GET', { headers }), res);
+    return res as any;
+  };
+
+  it('tells an anonymous caller only whether a key is set, without calling Gemini', async () => {
+    const res = await get(await load('k'), { authorization: '' });
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ configured: true });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect((await get(await load(undefined), { authorization: '' })).body).toEqual({ configured: false });
+  });
+
+  it('probes the models for a signed-in caller', async () => {
+    fetchMock.mockResolvedValue(new Response('{}', { status: 200 }));
+    const res = await get(await load('k'), { authorization: 'Bearer token' });
+    expect(res.body.configured).toBe(true);
+    expect(Object.keys(res.body.models).length).toBeGreaterThan(0);
+    expect(fetchMock).toHaveBeenCalled();
+  });
+
+  it('treats an invalid session as anonymous', async () => {
+    state.user = null;
+    const res = await get(await load('k'), { authorization: 'Bearer stale' });
+    expect(res.body).toEqual({ configured: true });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
 describe('Ask API', () => {
   it('refuses an invalid or expired session', async () => {
     state.user = null;

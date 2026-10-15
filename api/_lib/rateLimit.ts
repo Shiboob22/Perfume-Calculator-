@@ -10,6 +10,8 @@ export const LIMITS = {
   deleteAccount: [5, 3600],
   log: [30, 600],          // client error reports per IP
   checkin: [60, 600],      // journal check-ins: 60 per 10 minutes
+  inventory: [120, 600],   // stock writes: 120 per 10 minutes
+  remove: [60, 600],       // deleting batches and check-ins: 60 per 10 minutes
   share: [20, 3600],       // sharing / unsharing recipes: 20 an hour
 } as const satisfies Record<string, readonly [number, number]>;
 

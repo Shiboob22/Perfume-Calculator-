@@ -2,7 +2,7 @@ import { dedupeVariants } from './_lib/dedupe.js';
 import { classifyTier } from './_lib/tier.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { clientIp, overLimit } from './_lib/rateLimit.js';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -32,15 +32,18 @@ async function getUserId(req: VercelRequest): Promise<string | null> {
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
   if (!token) return null;
-  try {
-    const { data: { user } } = await createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` }, fetch: timedFetch }
-    }).auth.getUser();
-    return user?.id ?? null;
-  } catch {
-    return null;
-  }
+  // A bad or expired token is an anonymous visitor. An unreachable auth
+  // service is not: treating it as one would quietly drop the caller's saves
+  // and put them under the anonymous rate limit, so it throws and the handler
+  // answers 503.
+  const { data: { user }, error } = await createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` }, fetch: timedFetch }
+  }).auth.getUser();
+  if (error && isAuthRetryableFetchError(error)) throw new AuthUnreachable();
+  return user?.id ?? null;
 }
+
+class AuthUnreachable extends Error {}
 
 // Live Parfumo Scraper Helper
 async function fetchParfumoData(query: string) {
@@ -309,7 +312,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Nothing relevant found.
     return res.status(200).json({ source: 'database', results: [] });
   } catch (err: any) {
-    if (isTimeout(err)) return res.status(503).json({ error: 'Database is slow to respond — please try again.' });
-    return res.status(500).json({ error: err.message || 'Search execution failed' });
+    if (err instanceof AuthUnreachable) return res.status(503).json({ error: 'Sign-in service is slow to respond — please try again.', code: 'slow_read' });
+    if (isTimeout(err)) return res.status(503).json({ error: 'Database is slow to respond — please try again.', code: 'slow_read' });
+    console.error(JSON.stringify({ at: 'api/search', context: 'search', message: String(err?.message ?? err), code: err?.code }));
+    return res.status(500).json({ error: 'Something went wrong. Please try again.', code: 'server_error' });
   }
 }

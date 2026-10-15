@@ -337,6 +337,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
   if (req.method === 'GET') {
+    // Public: only whether a key is set. The probe of Gemini's model list (which
+    // costs requests against the shared key and names the models) is for
+    // signed-in callers.
+    const user = await getUserId(req).catch(() => null);
+    if (!user) return res.status(200).json({ configured: Boolean(GEMINI_API_KEY) });
     return res.status(200).json(await health());
   }
   if (req.method !== 'POST') {

@@ -57,6 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (/TimeoutError/.test(String(err?.message ?? ''))) {
       return res.status(503).json({ error: 'Database is slow to respond — please try again.' });
     }
-    return res.status(500).json({ error: err.message || 'Could not delete the account.' });
+    console.error(JSON.stringify({ at: 'api/account', context: 'delete', message: String(err?.message ?? err), code: err?.code }));
+    return res.status(500).json({ error: 'Something went wrong. Please try again.', code: 'server_error' });
   }
 }

@@ -1,84 +1,43 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { loadEntitlements, can, lockedFeature } from './_lib/entitlements.js';
+import { overLimit } from './_lib/rateLimit.js';
+import { setCors, serviceClient, requireUser, isTimeout, SLOW_READ, SLOW_WRITE, UUID } from './_lib/http.js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!;
-
-// Reflect the request Origin only when it is one of the app's own domains.
-// Same-origin requests (the app calling its own /api) ignore CORS entirely, so
-// this does not affect the app — it just stops arbitrary cross-origin sites
-// from scripting these authenticated endpoints, which the previous `*` allowed.
-const ALLOWED_ORIGINS = [
-  'https://scent-handbook-app.vercel.app',
-  'https://scent-handbook-app-shiboob22s-projects.vercel.app',
-];
-
-function setCors(req: VercelRequest, res: VercelResponse) {
-  const origin = req.headers.origin;
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+// Inventory (Pro): the signed-in user's stock per oil. Service role, so every
+// query scopes by user_id. CORS, the 5 s / 15 s Supabase timeouts and auth
+// come from _lib/http.ts.
+//
+// Every error answer carries a code the app translates (errors.<code>). A 500
+// never returns database text: the detail goes to the server log.
+function fail(res: VercelResponse, status: number, code: string, error: string, extra: Record<string, unknown> = {}) {
+  return res.status(status).json({ error, code, ...extra });
+}
+function failFrom(res: VercelResponse, err: any, write: boolean, context: string) {
+  if (isTimeout(err)) return fail(res, 503, write ? 'slow_write' : 'slow_read', write ? SLOW_WRITE : SLOW_READ);
+  console.error(JSON.stringify({ at: 'api/inventory', context, message: String(err?.message ?? err), code: err?.code }));
+  return fail(res, 500, 'server_error', 'Something went wrong. Please try again.');
 }
 
-// Supabase calls must never hang a request: on 2026-09-24 some calls stalled
-// 18-153 s on the network path before reaching Supabase. Reads get 5 s per
-// try (PostgREST retries GETs on its own); writes get 15 s and are not
-// retried, because a stalled write can still land later.
-function timedFetch(input: Parameters<typeof fetch>[0], init: RequestInit = {}) {
-  const method = (init.method || 'GET').toUpperCase();
-  const ms = method === 'GET' || method === 'HEAD' ? 5_000 : 15_000;
-  // Nothing here passes its own abort signal; if something ever does, keep it.
-  return fetch(input, { ...init, signal: init.signal ?? AbortSignal.timeout(ms) });
-}
-
-function isTimeout(err: any) {
-  return /TimeoutError/.test(String(err?.message ?? ''));
-}
-
-const SLOW_READ = 'Database is slow to respond — please try again.';
-const SLOW_WRITE = 'Database is slow to respond. The change may still save — refresh before trying again.';
+// Grams on a bench scale: finite, never negative.
+const isNum = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1_000_000;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  setCors(req, res);
+  setCors(req, res, 'GET, POST, PATCH, DELETE');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, { global: { fetch: timedFetch } });
-  
-  let userId: string | null = null;
-  if (token) {
-    const { data: { user }, error: authError } = await createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` }, fetch: timedFetch }
-    }).auth.getUser();
-
-    // A network failure is not a bad token — don't report it as 401.
-    if (authError && isAuthRetryableFetchError(authError)) {
-      return res.status(503).json({ error: SLOW_READ });
-    }
-    if (user) userId = user.id;
-  }
-
-  if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
-  }
+  const userId = await requireUser(req, res);
+  if (!userId) return;
+  const supabase = serviceClient();
 
   try {
     if (!can(await loadEntitlements(supabase, userId), 'inventory')) {
       return res.status(403).json(lockedFeature('inventory'));
     }
   } catch (err: any) {
-    if (isTimeout(err)) return res.status(503).json({ error: SLOW_READ });
-    return res.status(500).json({ error: err.message });
+    return failFrom(res, err, false, 'entitlements');
   }
 
   if (req.method === 'GET') {
@@ -107,21 +66,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       return res.status(200).json({ items });
     } catch (err: any) {
-      if (isTimeout(err)) return res.status(503).json({ error: SLOW_READ });
-      return res.status(500).json({ error: err.message });
+      return failFrom(res, err, false, 'list');
     }
   }
 
   if (req.method === 'POST') {
     try {
       const { fragrance_id, stock_g, low_stock_threshold_g } = req.body || {};
-      // Stock and thresholds are grams on a bench scale: finite, never negative.
-      const isNum = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1_000_000;
-      if (!fragrance_id
-        || (stock_g !== undefined && !isNum(stock_g))
-        || (low_stock_threshold_g !== undefined && !isNum(low_stock_threshold_g))) {
-        return res.status(400).json({ error: 'Invalid payload' });
+      if (typeof fragrance_id !== 'string' || !UUID.test(fragrance_id)) {
+        return fail(res, 400, 'invalid_fragrance_id', 'Invalid fragrance ID.');
       }
+      if ((stock_g !== undefined && !isNum(stock_g)) || (low_stock_threshold_g !== undefined && !isNum(low_stock_threshold_g))) {
+        return fail(res, 400, 'invalid_payload', 'Invalid payload.');
+      }
+      if (await overLimit(supabase, res, 'inventory', userId)) return;
 
       // Only the fields sent are written. On an existing row the others keep
       // their values (PostgREST merges only the columns in the payload); a new
@@ -143,19 +101,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (error) throw error;
       return res.status(200).json({ item: data[0] });
     } catch (err: any) {
-      if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
-      return res.status(500).json({ error: err.message });
+      return failFrom(res, err, true, 'upsert');
     }
   }
 
   if (req.method === 'PATCH') {
     try {
-      const { id, restock_g } = req.body;
-      const targetId = id || req.body.fragrance_id;
+      const { id, restock_g, fragrance_id } = req.body || {};
+      const targetId = id || fragrance_id;
 
-      if (!targetId || typeof restock_g !== 'number' || !Number.isFinite(restock_g) || Math.abs(restock_g) > 1_000_000) {
-        return res.status(400).json({ error: 'Invalid payload' });
+      if (typeof targetId !== 'string' || !UUID.test(targetId)) {
+        return fail(res, 400, 'invalid_fragrance_id', 'Invalid fragrance ID.');
       }
+      if (typeof restock_g !== 'number' || !Number.isFinite(restock_g) || Math.abs(restock_g) > 1_000_000) {
+        return fail(res, 400, 'invalid_payload', 'Invalid payload.');
+      }
+      if (await overLimit(supabase, res, 'inventory', userId)) return;
 
       // Atomic increment via the restock_inventory() DB function: the add
       // happens inside one UPDATE under a row lock, so concurrent restocks
@@ -170,33 +131,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // No row for this oil: depending on the PostgREST version the function's
       // composite result arrives as null or as an object of nulls.
       if (!data || data.fragrance_id == null) {
-        return res.status(404).json({ error: 'Inventory item not found', code: 'not_tracked' });
+        return fail(res, 404, 'not_tracked', 'Inventory item not found.');
       }
       return res.status(200).json({ item: data });
     } catch (err: any) {
-      if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
-      return res.status(500).json({ error: err.message });
+      return failFrom(res, err, true, 'restock');
     }
   }
 
   if (req.method === 'DELETE') {
     try {
-      const { id } = req.query;
-      if (!id) return res.status(400).json({ error: 'Missing item ID' });
+      const id = String(req.query.id ?? '');
+      if (!UUID.test(id)) return fail(res, 400, 'invalid_fragrance_id', 'Missing or invalid fragrance ID.');
+      if (await overLimit(supabase, res, 'inventory', userId)) return;
 
       const { error } = await supabase
         .from('inventory')
         .delete()
-        .eq('fragrance_id', id as string)
+        .eq('fragrance_id', id)
         .eq('user_id', userId);
 
       if (error) throw error;
       return res.status(200).json({ success: true });
     } catch (err: any) {
-      if (isTimeout(err)) return res.status(503).json({ error: SLOW_WRITE });
-      return res.status(500).json({ error: err.message });
+      return failFrom(res, err, true, 'delete');
     }
   }
 
-  return res.status(405).json({ error: 'Method not allowed' });
+  return fail(res, 405, 'method_not_allowed', 'Method not allowed.');
 }
