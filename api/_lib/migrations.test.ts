@@ -18,7 +18,14 @@ describe('supabase/migrations', () => {
     expect(dupes).toEqual([]);
   });
 
-  it('has no gap', () => {
-    nums.forEach((n, i) => expect(n).toBe(i));
+  // 0023-0025 (recipes, wardrobe, atlas) were applied to production from the
+  // redesign branches and are not in this one yet; their numbers stay taken.
+  const OTHER_BRANCHES = [23, 24, 25];
+  it('has no gap, except numbers taken by another branch', () => {
+    const expected = Array.from({ length: Math.max(...nums) + 1 }, (_, i) => i).filter((n) => !OTHER_BRANCHES.includes(n));
+    expect(nums).toEqual(expected);
+  });
+  it('does not reuse a number another branch took', () => {
+    expect(nums.filter((n) => OTHER_BRANCHES.includes(n))).toEqual([]);
   });
 });
