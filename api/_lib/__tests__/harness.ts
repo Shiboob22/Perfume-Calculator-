@@ -152,7 +152,7 @@ export function fakeRes() {
 
 export const USER = '00000000-0000-4000-8000-000000000001';
 export const OTHER = '00000000-0000-4000-8000-000000000002';
-export const PRO_PLAN = { id: 'pro', name: 'Pro', features: ['batches.unlimited', 'inventory', 'ai.ask', 'export.labels', 'cards.download', 'journal.insights'], batch_cap: null };
+export const PRO_PLAN = { id: 'pro', name: 'Pro', features: ['batches.unlimited', 'inventory', 'ai.ask', 'export.labels', 'calculator.advanced', 'cards.download', 'journal.insights', 'journal.checkins'], batch_cap: null };
 export const FREE_PLAN = { id: 'free', name: 'Free', features: ['cards.download'], batch_cap: 25 };
 
 /** A fake db with the two plans and the user on `plan`. */

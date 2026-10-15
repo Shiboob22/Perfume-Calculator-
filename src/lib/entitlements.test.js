@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { can, batchesLeft, canLogBatch, fromPlanRow, FALLBACK } from "./entitlements";
+import plans from "../site/plans.json";
+import { FEATURES, can, batchesLeft, canLogBatch, fromPlanRow, FALLBACK } from "./entitlements";
 
 const free = fromPlanRow({ id: "free", name: "Free", features: ["cards.download"], batch_cap: 25 });
 const pro = fromPlanRow({ id: "pro", name: "Pro", features: ["batches.unlimited", "ai.ask", "inventory"], batch_cap: null });
@@ -12,7 +13,16 @@ describe("can", () => {
   });
   it("denies everything for missing entitlements", () => {
     expect(can(undefined, "ai.ask")).toBe(false);
-    expect(can(FALLBACK, "cards.download")).toBe(false);
+    expect(can(FALLBACK, "ai.ask")).toBe(false);
+    expect(can(FALLBACK, "export.labels")).toBe(false);
+  });
+  it("falls back to the Free plan the site and the database list", () => {
+    const freeRow = plans.find((p) => p.id === "free");
+    expect([...FALLBACK.features].sort()).toEqual([...freeRow.features].sort());
+    expect(FALLBACK.batchCap).toBe(freeRow.batch_cap);
+  });
+  it("lists only known features on every plan", () => {
+    for (const p of plans) for (const f of p.features) expect(FEATURES, f).toContain(f);
   });
 });
 

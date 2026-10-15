@@ -6,6 +6,7 @@ import WaitlistButton from "./WaitlistButton";
 // Shown in place of a feature the user's plan doesn't include.
 export default function ProLocked({ feature }) {
   const { t } = useI18n();
+  const key = `plan.locked.${feature}`;
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8">
       <div className="p-6 border rounded-none" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card }}>
@@ -13,7 +14,7 @@ export default function ProLocked({ feature }) {
           {t("plan.pro")}
         </p>
         <h2 className="text-lg font-serif font-semibold mb-2" style={{ color: COLORS.forestDeep }}>
-          {t(`plan.locked.${feature}`)}
+          {typeof t.raw(key) === "string" ? t(key) : t("plan.locked.generic")}
         </h2>
         <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("plan.earlyAccess")}</p>
         <WaitlistButton source={`locked.${feature}`.replace(/[^a-z0-9_.-]/gi, "-").toLowerCase().slice(0, 40)} />

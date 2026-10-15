@@ -43,6 +43,17 @@ describe("plan features", () => {
   });
 });
 
+describe("locked features", () => {
+  it("each plan feature has a locked line in both languages", async () => {
+    const { FEATURES } = await import("../lib/entitlements");
+    const get = (obj, key) => key.split(".").reduce((o, k) => o?.[k], obj);
+    for (const f of FEATURES) {
+      expect(typeof get(en.plan.locked, f), f).toBe("string");
+      expect(typeof get(ar.plan.locked, f), f).toBe("string");
+    }
+  });
+});
+
 describe("family texts", () => {
   it("match the numbers module word for word in English", async () => {
     const { FAMILIES } = await import("../lib/formulation");

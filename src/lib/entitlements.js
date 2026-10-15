@@ -13,8 +13,11 @@ export const FEATURES = [
   "journal.checkins",
 ];
 
-// What a user gets when no plan row can be loaded: Free, with nothing extra.
-export const FALLBACK = Object.freeze({ plan: "free", name: "Free", features: [], batchCap: 25 });
+// What a user gets when no plan row can be loaded: the Free plan as the
+// `plans` table defines it (0003). cards.download is not gated anywhere, so it
+// offers nothing Pro; the test in entitlements.test.js keeps this equal to
+// the Free row in src/site/plans.json.
+export const FALLBACK = Object.freeze({ plan: "free", name: "Free", features: Object.freeze(["cards.download"]), batchCap: 25 });
 
 // Normalise a `plans` row (snake_case, from the database) into entitlements.
 export function fromPlanRow(row) {
