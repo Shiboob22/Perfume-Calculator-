@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   weightRatio,
   weightShare,
-  round2, fmt2, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs, isBlocking,
+  round2, fmt2, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs, isBlocking, shownTotalG,
   checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, byVolume, fromWeights,
   concentrationOf, displayed, volumeToWeightFraction, weightToVolumeFraction, toBase,
   isVolumeUnit, gToOz, mlToFlOz, UNITS, type Unit,
@@ -303,5 +303,21 @@ describe("weightShare", () => {
     expect(weightShare(23.75, 60.75)).toBeCloseTo(0.2811, 4);
     expect(weightShare(0, 0)).toBe(0);
     expect(weightShare(-1, 5)).toBe(0);
+  });
+});
+
+describe("shownTotalG", () => {
+  it("is the sum of the rounded pours, as the calculator shows it", () => {
+    // 30 mL at 15%: 4.275 g oil + 20.655 g alcohol → 4.28 + 20.66 = 24.94, not round(24.93)
+    expect(shownTotalG(4.275, 20.655)).toBe(24.94);
+    expect(fmt2(shownTotalG(23.75, 60.75))).toBe("84.50");
+  });
+  it("equals the calculator's own total for any solved bottle", () => {
+    for (const ml of [10, 30, 50, 100, 250]) {
+      for (const pct of [15, 20, 25, 30]) {
+        const s = solveBottle(ml, "ml", pct, H);
+        expect(shownTotalG(s.exact.oilG, s.exact.ethanolG)).toBe(s.shown.totalG);
+      }
+    }
   });
 });

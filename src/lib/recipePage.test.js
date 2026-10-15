@@ -106,3 +106,15 @@ describe("helpers", () => {
     expect(esc(`<a href="x">'&`)).toBe("&lt;a href=&quot;x&quot;&gt;&#39;&amp;");
   });
 });
+
+describe("recipe page rounding", () => {
+  it("agrees with the calculator's round2, fmt2 and shown total", async () => {
+    const calc = await import("./calc");
+    const page = await import("./recipePage.js");
+    for (const x of [0, 4.275, 20.655, 23.75, 24.935, 84.5, 1.005, 0.015, 99999.995, -2.675]) {
+      expect(page.round2(x)).toBe(calc.round2(x));
+      expect(page.fmt2(x)).toBe(calc.fmt2(x));
+    }
+    expect(page.shownTotalG(4.275, 20.655)).toBe(calc.shownTotalG(4.275, 20.655));
+  });
+});

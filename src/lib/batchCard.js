@@ -10,14 +10,9 @@ import { PALETTES } from "./theme";
 const COLORS = PALETTES.light;
 import { TIERS, TIER_COLORS } from "./tiers";
 import { batchStartedAt, batchReadyAt, formatExact } from "./batchTiming";
-import { actualStrength } from "./calc";
+import { actualStrength, fmt2, shownTotalG } from "./calc";
 import { dirOf } from "../i18n/core";
 import { loadArabicFonts } from "../i18n/arabicFonts";
-
-function round2(n) {
-  if (!Number.isFinite(n)) return "0.00";
-  return (Math.round(n * 100) / 100).toFixed(2);
-}
 
 // Logical card size (portrait, comfortable for phone share sheets). The bitmap
 // is rendered at SCALE× for crisp text on hi-dpi screens.
@@ -61,21 +56,21 @@ function wrapLines(ctx, text, maxWidth) {
 }
 
 // The rows of the card as [label, value] pairs, translated. Pure, so it
-// can be tested without a canvas. Figures stay Western (round2 strings),
+// can be tested without a canvas. Figures stay Western (fmt2 strings),
 // matching the scale, whatever the digit setting.
 export function cardRows(batch, { t, locale }) {
   const rows = [
-    [t("batches.oil"), t("batchCard.gramsMl", { g: round2(batch.oil_g), ml: round2(batch.oil_ml) })],
-    [t("batches.ethanol"), t("batchCard.gramsMl", { g: round2(batch.ethanol_g), ml: round2(batch.ethanol_ml) })],
-    [t("batches.total"), t("batchCard.grams", { g: round2(batch.total_g) })],
+    [t("batches.oil"), t("batchCard.gramsMl", { g: fmt2(batch.oil_g), ml: fmt2(batch.oil_ml) })],
+    [t("batches.ethanol"), t("batchCard.gramsMl", { g: fmt2(batch.ethanol_g), ml: fmt2(batch.ethanol_ml) })],
+    [t("batches.total"), t("batchCard.grams", { g: fmt2(shownTotalG(batch.oil_g, batch.ethanol_g)) })],
   ];
   const actual = actualStrength(batch);
   if (actual !== null) {
-    rows.push([t("batchCard.actualPour"), t("batchCard.actualPourValue", { oil: round2(Number(batch.actual_oil_g)), ethanol: round2(Number(batch.actual_ethanol_g)) })]);
-    rows.push([t("batchCard.actualRatioLabel"), t(`batchCard.actualRatio.${actual.basisKnown ? actual.basis : "assumed"}`, { pct: round2(actual.pct) })]);
+    rows.push([t("batchCard.actualPour"), t("batchCard.actualPourValue", { oil: fmt2(Number(batch.actual_oil_g)), ethanol: fmt2(Number(batch.actual_ethanol_g)) })]);
+    rows.push([t("batchCard.actualRatioLabel"), t(`batchCard.actualRatio.${actual.basisKnown ? actual.basis : "assumed"}`, { pct: fmt2(actual.pct) })]);
   }
-  if (batch.oil_cost) rows.push([t("calc.oilCost"), round2(batch.oil_cost)]);
-  if (batch.price_per_gram) rows.push([t("calc.pricePerGram"), round2(Number(batch.price_per_gram))]);
+  if (batch.oil_cost) rows.push([t("calc.oilCost"), fmt2(batch.oil_cost)]);
+  if (batch.price_per_gram) rows.push([t("calc.pricePerGram"), fmt2(Number(batch.price_per_gram))]);
   const started = batchStartedAt(batch);
   const ready = batchReadyAt(batch);
   if (started) rows.push([t("batches.created"), formatExact(started, locale)]);

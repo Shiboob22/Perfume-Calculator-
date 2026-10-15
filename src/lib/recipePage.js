@@ -25,8 +25,20 @@ export function esc(value) {
 }
 
 // 84.5 → "84.50" (grams, as on the scale); 100 → "100" (bottle sizes).
-const grams = (n) => (Math.round(Number(n) * 100) / 100).toFixed(2);
-const size = (n) => String(Math.round(Number(n) * 100) / 100);
+// The same rounding as src/lib/calc/round.ts (half away from zero on the
+// decimal the blender means, so 4.275 prints 4.28), written out here because
+// this file runs in the /r function, which cannot import the TypeScript
+// engine. recipePage.test.js checks the two agree.
+export const round2 = (x) => {
+  if (!Number.isFinite(x)) return NaN;
+  const scaled = Number((x * 100).toPrecision(12));
+  return (Math.sign(scaled) * Math.round(Math.abs(scaled))) / 100 + 0;
+};
+export const fmt2 = (x) => (Number.isFinite(round2(x)) ? round2(x).toFixed(2) : "—");
+// The total on the scale: the two rounded pours added (see calc/round.ts).
+export const shownTotalG = (oilG, ethanolG) => round2(round2(Number(oilG)) + round2(Number(ethanolG)));
+const grams = (n) => fmt2(Number(n));
+const size = (n) => String(round2(Number(n)));
 
 // Static SVG (the page has no script): the brand flacon, the drop that opens
 // the note, and the forward arrow (mirrored in Arabic).
@@ -125,7 +137,7 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
     [t("recipe.bottle"), bottleText(t, r)],
     [t("recipe.oil"), t("recipe.grams", { g: grams(r.oil_g) })],
     [t("recipe.alcohol"), t("recipe.grams", { g: grams(r.ethanol_g) })],
-    [t("recipe.total"), t("recipe.grams", { g: grams(r.total_g) })],
+    [t("recipe.total"), t("recipe.grams", { g: grams(shownTotalG(r.oil_g, r.ethanol_g)) })],
     ...(r.rest_days != null ? [[t("recipe.rested"), t("recipe.restedValue", { count: r.rest_days })]] : []),
   ];
   const to = (p) => (locale === "ar" ? (p === "/" ? "/ar" : `/ar${p}`) : p);

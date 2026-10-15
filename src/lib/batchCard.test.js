@@ -11,6 +11,15 @@ const batch = {
   oil_type: "Oud Wood.", blended_by: "Sam",
 };
 
+describe("cardRows total", () => {
+  it("shows the calculator's total (30 mL at 15%: 4.28 + 20.66 = 24.94), not the re-rounded stored one", () => {
+    const t = createTranslator("en", { en, ar });
+    const batch = { oil_g: 4.275, oil_ml: 4.5, ethanol_g: 20.655, ethanol_ml: 25.5, total_g: 24.93, total_ml: 30 };
+    const total = cardRows(batch, { t, locale: "en" }).find(([label]) => label === en.batches.total);
+    expect(total[1]).toContain("24.94");
+  });
+});
+
 describe("cardRows", () => {
   it("translates every label and keeps figures Western", () => {
     const t = createTranslator("ar", CATALOGS, undefined, { numberingSystem: "arab" });

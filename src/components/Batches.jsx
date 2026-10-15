@@ -3,7 +3,7 @@ import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listBatches, deleteBatch } from "../lib/fragranceApi";
 import { downloadBatchCard } from "../lib/batchCard";
-import { actualStrength } from "../lib/calc";
+import { actualStrength, fmt2, shownTotalG } from "../lib/calc";
 import { batchInsights } from "../lib/aiApi";
 import { batchStartedAt, batchReadyAt, formatDay, formatExact, readyCountdown } from "../lib/batchTiming";
 import { useI18n } from "../i18n/I18nProvider";
@@ -22,11 +22,6 @@ import SharePanel from "./SharePanel";
 import BatchEdit from "./BatchEdit";
 import WaitlistButton from "./WaitlistButton";
 import { makeAgainHref } from "../lib/oilHistory";
-
-function round2(n) {
-  if (!Number.isFinite(n)) return "0.00";
-  return (Math.round(n * 100) / 100).toFixed(2);
-}
 
 function BatchTiming({ batch }) {
   const { t, locale } = useI18n();
@@ -80,7 +75,7 @@ function BatchList({ batches, selectedId, onSelect }) {
                 <span className="min-w-0">
                   <span className="block truncate font-medium">{b.fragrance_name}</span>
                   <span dir="ltr" className="block font-mono text-xs text-start rtl:text-end" style={{ color: COLORS.dim }}>
-                    {Number(b.concentration_pct)}% · {round2(b.total_g)} g
+                    {Number(b.concentration_pct)}% · {fmt2(shownTotalG(b.oil_g, b.ethanol_g))} g
                   </span>
                 </span>
                 <span className="text-end">
@@ -113,7 +108,7 @@ function RestPanel({ batch }) {
         <div>
           <h3 className="text-2xl font-medium tracking-[-0.03em] rtl:tracking-normal">{batch.fragrance_name}</h3>
           <p dir="ltr" className="mt-1 font-mono text-sm text-start rtl:text-end" style={{ color: COLORS.inkSoft }}>
-            {Number(batch.concentration_pct)}% · {round2(batch.oil_g)} g + {round2(batch.ethanol_g)} g
+            {Number(batch.concentration_pct)}% · {fmt2(batch.oil_g)} g + {fmt2(batch.ethanol_g)} g
           </p>
         </div>
         {tl && (
@@ -302,10 +297,10 @@ export default function Batches() {
             {/* The weights are the record: a labelled grid, numbers in mono. */}
             <dl className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
               {[
-                [t("batches.oil"), `${round2(b.oil_g)} g`, `${round2(b.oil_ml)} mL`],
-                [t("batches.ethanol"), `${round2(b.ethanol_g)} g`, `${round2(b.ethanol_ml)} mL`],
-                [t("batches.total"), `${round2(b.total_g)} g`, null],
-                b.oil_cost ? [t("batches.cost"), round2(b.oil_cost), b.price_per_gram ? `${round2(Number(b.price_per_gram))}${t("batches.perGram")}` : null] : null,
+                [t("batches.oil"), `${fmt2(b.oil_g)} g`, `${fmt2(b.oil_ml)} mL`],
+                [t("batches.ethanol"), `${fmt2(b.ethanol_g)} g`, `${fmt2(b.ethanol_ml)} mL`],
+                [t("batches.total"), `${fmt2(shownTotalG(b.oil_g, b.ethanol_g))} g`, null],
+                b.oil_cost ? [t("batches.cost"), fmt2(b.oil_cost), b.price_per_gram ? `${fmt2(Number(b.price_per_gram))}${t("batches.perGram")}` : null] : null,
               ].filter(Boolean).map(([label, value, sub]) => (
                 <div key={label}>
                   <dt className="text-xs" style={{ color: COLORS.inkSoft }}>{label}</dt>
@@ -317,7 +312,7 @@ export default function Batches() {
             </dl>
             {actualStrength(b) !== null && (
               <div className="text-xs font-mono mt-1" style={{ color: COLORS.ink }}>
-                {t(`batches.actualPour.${actualStrength(b).basisKnown ? actualStrength(b).basis : "assumed"}`, { oil: round2(Number(b.actual_oil_g)), ethanol: round2(Number(b.actual_ethanol_g)), pct: round2(actualStrength(b).pct), target: b.concentration_pct })}
+                {t(`batches.actualPour.${actualStrength(b).basisKnown ? actualStrength(b).basis : "assumed"}`, { oil: fmt2(Number(b.actual_oil_g)), ethanol: fmt2(Number(b.actual_ethanol_g)), pct: fmt2(actualStrength(b).pct), target: b.concentration_pct })}
               </div>
             )}
             <BatchTiming batch={b} />
@@ -345,7 +340,7 @@ export default function Batches() {
         {batches.length > 0 && (
           <div className="flex items-center gap-3">
             <span className="text-xs" style={{ color: COLORS.inkSoft }}>
-              {t("batches.summary", { count: batches.length, cost: round2(totalOilCost) })}
+              {t("batches.summary", { count: batches.length, cost: fmt2(totalOilCost) })}
             </span>
             {can(entitlements, "ai.ask") && <button
               type="button"
@@ -391,8 +386,8 @@ export default function Batches() {
               <li key={item.batch?.id} className="flex items-start justify-between gap-3 font-mono text-xs">
                 <span>{t("batches.refused.item", {
                   name: item.batch?.fragrance_name || t("bench.untitled"),
-                  oil: round2(Number(item.batch?.actual_oil_g ?? item.batch?.oil_g)),
-                  ethanol: round2(Number(item.batch?.actual_ethanol_g ?? item.batch?.ethanol_g)),
+                  oil: fmt2(Number(item.batch?.actual_oil_g ?? item.batch?.oil_g)),
+                  ethanol: fmt2(Number(item.batch?.actual_ethanol_g ?? item.batch?.ethanol_g)),
                   error: errorText(t, { code: item.code, message: item.error }),
                 })}</span>
                 <button type="button" onClick={() => setRefused(dismissRefused(item.batch?.id))} className="underline shrink-0 min-h-[24px]" style={{ color: COLORS.inkSoft }}>

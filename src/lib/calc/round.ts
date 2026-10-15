@@ -13,3 +13,13 @@ export function fmt2(x: number): string {
   const r = round2(x);
   return Number.isFinite(r) ? r.toFixed(2) : "—";
 }
+
+/**
+ * The total the scale shows: the sum of the two pours as rounded, which is
+ * how the handbook's quick-reference table prints it (30 ml at 15%:
+ * 4.28 + 20.66 = 24.94, not round(24.93)). Every surface that shows a
+ * stored batch uses this, so it never disagrees with the calculator.
+ */
+export function shownTotalG(oilG: number, ethanolG: number): number {
+  return round2(round2(oilG) + round2(ethanolG));
+}

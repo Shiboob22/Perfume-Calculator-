@@ -1,5 +1,5 @@
 import type { Amounts, Basis, Densities } from "./types";
-import { round2 } from "./round";
+import { round2, shownTotalG } from "./round";
 
 // Concentration C (a fraction) means "share of oil" on the basis the batch
 // was specified in: by volume for mL / fl oz, by weight for g / oz. The
@@ -37,18 +37,14 @@ export function concentrationOf(a: Amounts, basis: Basis): number {
   return total > 0 ? oil / total : NaN;
 }
 
-/**
- * What the scale shows: each pour rounded to 0.01 g, and the total as the
- * sum of the two rounded pours — which is how the handbook's quick-reference
- * table prints it (30 ml at 15%: 4.28 + 20.66 = 24.94, not round(24.93)).
- */
+/** What the scale shows: each pour rounded to 0.01 g, and that total. */
 export function displayed(a: Amounts) {
   const oilG = round2(a.oilG);
   const ethanolG = round2(a.ethanolG);
   return {
     oilG,
     ethanolG,
-    totalG: round2(oilG + ethanolG),
+    totalG: shownTotalG(oilG, ethanolG),
     oilMl: round2(a.oilMl),
     ethanolMl: round2(a.ethanolMl),
     totalMl: round2(a.totalMl),
