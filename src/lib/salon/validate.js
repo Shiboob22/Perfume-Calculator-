@@ -1,4 +1,4 @@
-// What the Salon checks before anything is sent, mirroring migration 0026 so a
+// What the Salon checks before anything is sent, mirroring migration 0027 so a
 // person is told what is wrong before the database says no. Pure: the forms
 // call these and only show the result. The database stays the authority.
 import { latestVersion } from "../recipes.js";

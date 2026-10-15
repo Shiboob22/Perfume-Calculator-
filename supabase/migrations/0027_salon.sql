@@ -1,4 +1,4 @@
--- 0026 — The Salon (Kyphira Phase 6). Additive; the room is behind a flag.
+-- 0027 — The Salon (Kyphira Phase 6). Additive; the room is behind a flag.
 --
 -- The Salon is where people who choose to can share: a public profile
 -- (off by default), recipe posts (a snapshot of a saved recipe's numbers,
@@ -23,7 +23,7 @@
 --     suspend, and every decision is logged. Nothing is ever deleted by
 --     moderation.
 -- Every table references auth.users ON DELETE CASCADE (account deletion).
--- Down: 0026_salon.down.sql.
+-- Down: 0027_salon.down.sql.
 
 create function public.salon_has_link(t text) returns boolean
 language sql immutable parallel safe as $$

@@ -1,4 +1,4 @@
-// The Salon's data (migration 0026), read and written straight from the
+// The Salon's data (migration 0027), read and written straight from the
 // browser under row-level security. Other people's posts and profiles are
 // only reachable through salon_feed / salon_profile (signed-in only); the
 // tables themselves answer to their owner alone. Nothing here can set a

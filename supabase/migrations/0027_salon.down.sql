@@ -1,4 +1,4 @@
--- Reverses 0026_salon.sql. Drops the Salon's objects only; nothing else is touched.
+-- Reverses 0027_salon.sql. Drops the Salon's objects only; nothing else is touched.
 -- (Destroys Salon data: profiles, posts, likes, follows, reports, the action log.)
 drop function if exists public.salon_unsuspend(text);
 drop function if exists public.salon_moderate(uuid, text);
