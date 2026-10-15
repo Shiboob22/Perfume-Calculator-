@@ -5,7 +5,7 @@ import { REDIRECTS, isAppPath, tabPath, tabFromPath } from "./routes.js";
 
 describe("routes", () => {
   it("serves /app and /bench as the app", () => {
-    expect(["/app", "/app/search", "/bench", "/bench/journal", "/wardrobe", "/atlas", "/atlas/fragrance/x", "/salon", "/salon/u/ada"].every(isAppPath)).toBe(true);
+    expect(["/app", "/app/search", "/bench", "/bench/journal", "/wardrobe", "/atlas", "/atlas/fragrance/x", "/salon", "/salon/u/ada", "/nose"].every(isAppPath)).toBe(true);
     expect(["/", "/benchmark", "/library", "/ar/bench"].some(isAppPath)).toBe(false);
   });
 
@@ -23,6 +23,8 @@ describe("routes", () => {
     expect(tabFromPath("/atlas/browse", undefined)).toBe("atlas");
     expect(tabPath("salon")).toBe("/salon");
     expect(tabFromPath("/salon/u/ada", undefined)).toBe("salon");
+    expect(tabPath("nose")).toBe("/nose");
+    expect(tabFromPath("/nose", undefined)).toBe("nose");
   });
 
   it("matches the 301s in vercel.json, one for one", () => {
@@ -41,6 +43,7 @@ describe("routes", () => {
     expect(to("/atlas/:path*")).toBe("/app/index.html");
     expect(to("/salon")).toBe("/app/index.html");
     expect(to("/salon/:path*")).toBe("/app/index.html");
+    expect(to("/nose")).toBe("/app/index.html");
   });
 
   it("leaves no link to a retired address in the source", () => {

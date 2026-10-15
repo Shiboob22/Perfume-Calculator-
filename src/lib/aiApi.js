@@ -30,3 +30,10 @@ export async function blendTips({ name, tier, concentration_pct, total_ml }) {
 export async function batchInsights() {
   return (await callAi("insights")).text;
 }
+
+// The Nose: { question, locale } → { kind: "picks", intro, picks: [{ id, name, brand, year, family, matched, reason }] }
+// | { kind: "redirect", reason: "health" | "diy" | "off_topic" } | { kind: "none" }.
+// Failures carry the API's code: nose_off, nose_limit, nose_busy, feature_locked, rate_limited.
+export async function askNose(question, locale) {
+  return callAi("nose", { question, locale });
+}

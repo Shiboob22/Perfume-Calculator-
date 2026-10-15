@@ -62,6 +62,7 @@ export default function Root() {
       <Route path="/atlas" element={appElement} />
       <Route path="/salon/*" element={appElement} />
       <Route path="/salon" element={appElement} />
+      <Route path="/nose" element={appElement} />
       {DevScreens && (
         <Route path="/dev/:screen?" element={<I18nProvider><Suspense fallback={<AppLoading />}><DevScreens /></Suspense></I18nProvider>} />
       )}

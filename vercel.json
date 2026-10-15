@@ -81,6 +81,10 @@
       "destination": "/app/index.html"
     },
     {
+      "source": "/nose",
+      "destination": "/app/index.html"
+    },
+    {
       "source": "/app/:path*",
       "destination": "/app/index.html"
     }

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { BrandMark } from "./FlaconMark";
 import FlaconMark from "./FlaconMark";
 import ThemeToggle from "./ThemeToggle";
-import { IconBalance, IconBook, IconBookmark, IconCrosshair, IconFlacon, IconFlameTriangle, IconNotebook, IconSeal } from "./icons";
+import { IconBalance, IconBook, IconBookmark, IconCrosshair, IconDrop, IconFlacon, IconFlameTriangle, IconNotebook, IconSeal } from "./icons";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 
@@ -22,9 +22,9 @@ function NavLink({ to, cross, active, icon: I, children }) {
 }
 
 /**
- * @param {{ zone: "site" | "app", active?: "guides"|"calculator"|"journal"|"pricing"|"wardrobe"|"atlas"|"salon", wardrobe?: boolean, atlas?: boolean, salon?: boolean, language: React.ReactNode, extra?: React.ReactNode }} p
+ * @param {{ zone: "site" | "app", active?: "guides"|"calculator"|"journal"|"pricing"|"wardrobe"|"atlas"|"salon"|"nose", wardrobe?: boolean, atlas?: boolean, salon?: boolean, nose?: boolean, language: React.ReactNode, extra?: React.ReactNode }} p
  */
-export function SiteHeader({ zone, active, language, extra, wardrobe = false, atlas = false, salon = false }) {
+export function SiteHeader({ zone, active, language, extra, wardrobe = false, atlas = false, salon = false, nose = false }) {
   const { t, locale } = useI18n();
   const inApp = zone === "app";
   return (
@@ -39,6 +39,7 @@ export function SiteHeader({ zone, active, language, extra, wardrobe = false, at
           <NavLink to="/bench/journal" cross={!inApp} active={active === "journal"} icon={IconNotebook}>{t("site.nav.journal")}</NavLink>
           {atlas && <NavLink to="/atlas" cross={!inApp} active={active === "atlas"} icon={IconCrosshair}>{t("site.nav.atlas")}</NavLink>}
           {salon && <NavLink to="/salon" cross={!inApp} active={active === "salon"} icon={IconBookmark}>{t("site.nav.salon")}</NavLink>}
+          {nose && <NavLink to="/nose" cross={!inApp} active={active === "nose"} icon={IconDrop}>{t("site.nav.nose")}</NavLink>}
           {wardrobe && <NavLink to="/wardrobe" cross={!inApp} active={active === "wardrobe"} icon={IconFlacon}>{t("site.nav.wardrobe")}</NavLink>}
           <NavLink to={site(locale, "/pricing")} cross={inApp} active={active === "pricing"} icon={IconSeal}>{t("site.nav.pricing")}</NavLink>
           <span aria-hidden="true" className="self-stretch my-3" style={{ borderInlineStart: `1px solid ${COLORS.line}` }} />

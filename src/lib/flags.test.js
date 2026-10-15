@@ -22,7 +22,8 @@ describe("flagOn", () => {
     expect(FLAGS).toContain("wardrobe");
     expect(FLAGS).toContain("atlas");
     expect(FLAGS).toContain("salon");
-    expect(flagOn("nose", { env: { VITE_FLAG_NOSE: "1" }, storage: memory() })).toBe(false);
+    expect(FLAGS).toContain("nose");
+    expect(flagOn("bazaar", { env: { VITE_FLAG_BAZAAR: "1" }, storage: memory() })).toBe(false);
   });
   it("survives unusable storage", () => {
     const broken = { getItem() { throw new Error("blocked"); } };

@@ -43,6 +43,7 @@ const Labels = lazy(() => import("./components/Labels"));
 const Wardrobe = lazy(() => import("./components/wardrobe/Wardrobe"));
 const Atlas = lazy(() => import("./components/atlas/Atlas"));
 const Salon = lazy(() => import("./components/salon/Salon"));
+const Nose = lazy(() => import("./components/nose/Nose"));
 const Onboarding = lazy(() => import("./components/Onboarding"));
 
 function prefetchTabs() {
@@ -62,10 +63,11 @@ export default function App() {
   const { pathname } = useLocation();
   const tab = tabFromPath(pathname, param);
   // cards and account are pages of their own, reached from links, not tabs.
-  const activeTab = TABS.includes(tab) ? tab : tab === "cards" || tab === "account" || tab === "labels" || tab === "wardrobe" || tab === "atlas" || tab === "salon" ? null : DEFAULT_TAB;
+  const activeTab = TABS.includes(tab) ? tab : tab === "cards" || tab === "account" || tab === "labels" || tab === "wardrobe" || tab === "atlas" || tab === "salon" || tab === "nose" ? null : DEFAULT_TAB;
   const wardrobeOn = flagOn("wardrobe");
   const atlasOn = flagOn("atlas");
   const salonOn = flagOn("salon");
+  const noseOn = flagOn("nose");
   const setActiveTab = (id) => navigate(`${tabPath(id)}${id === "calculator" ? window.location.search : ""}`);
 
   // Start the search tab's popular shelf and wake the catalog functions
@@ -75,10 +77,10 @@ export default function App() {
 
   // Each tab is its own page to screen readers and the tab switcher.
   const page = activeTab ?? tab;
-  const pageHeading = page === "selector" || page === "account" || page === "wardrobe" || page === "atlas" || page === "salon" ? null
+  const pageHeading = page === "selector" || page === "account" || page === "wardrobe" || page === "atlas" || page === "salon" || page === "nose" ? null
     : TABS.includes(page) ? t(`app.tabs.${page}`) : page === "labels" ? t("labels.title") : page === "cards" ? t("cards.open") : null;
   useEffect(() => {
-    const name = TABS.includes(page) ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : page === "labels" ? t("labels.title") : page === "wardrobe" ? t("wardrobe.title") : page === "atlas" ? t("atlas.title") : page === "salon" ? t("salon.title") : null;
+    const name = TABS.includes(page) ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : page === "labels" ? t("labels.title") : page === "wardrobe" ? t("wardrobe.title") : page === "atlas" ? t("atlas.title") : page === "salon" ? t("salon.title") : page === "nose" ? t("nose.title") : null;
     document.title = name ? `${name} — ${t("brand")}` : t("brand");
   }, [page, t]);
 
@@ -133,8 +135,8 @@ export default function App() {
           <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
         ) : (
         <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }}>
-      <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "batches" ? "journal" : tab === "wardrobe" ? "wardrobe" : tab === "atlas" ? "atlas" : tab === "salon" ? "salon" : undefined}
-        wardrobe={wardrobeOn} atlas={atlasOn} salon={salonOn}
+      <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "batches" ? "journal" : tab === "wardrobe" ? "wardrobe" : tab === "atlas" ? "atlas" : tab === "salon" ? "salon" : tab === "nose" ? "nose" : undefined}
+        wardrobe={wardrobeOn} atlas={atlasOn} salon={salonOn} nose={noseOn}
         language={<><LanguageToggle /><DigitToggle /></>}
         extra={<>
           <button type="button" onClick={() => navigate("/app/account")}
@@ -182,6 +184,7 @@ export default function App() {
         {tab === "cards" && <BenchCards />}
         {tab === "atlas" && (atlasOn ? <Atlas /> : <Navigate to="/bench" replace />)}
         {tab === "salon" && (salonOn ? <Salon /> : <Navigate to="/bench" replace />)}
+        {tab === "nose" && (noseOn ? <Nose /> : <Navigate to="/bench" replace />)}
         {tab === "wardrobe" && (wardrobeOn ? <Wardrobe /> : <Navigate to="/bench" replace />)}
         {tab === "account" && <Account user={user} />}
         {tab === "labels" && <Labels />}
