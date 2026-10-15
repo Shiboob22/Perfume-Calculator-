@@ -102,7 +102,7 @@ describe('POST /api/batches validation', () => {
     await refused({ oil_ml: [5] }, 'oil_ml');
   });
 
-  it('refuses a concentration outside 1-99 %', async () => {
+  it('refuses a concentration outside 0-100 % (exclusive)', async () => {
     await refused({ concentration_pct: 100 }, 'concentration_pct');
     await refused({ concentration_pct: 0 }, 'concentration_pct');
     await refused({ concentration_pct: -5 }, 'concentration_pct');
@@ -130,7 +130,7 @@ describe('POST /api/batches validation', () => {
 
   it('accepts the Quick Reference batch and the edges of the range', async () => {
     expect((await call('POST', { body: BATCH })).statusCode).toBe(201);
-    const edge = { ...BATCH, concentration_pct: 99, notes: 'x'.repeat(2000), price_per_gram: 0, actual_oil_g: 23.8 };
+    const edge = { ...BATCH, concentration_pct: 99.5, notes: 'x'.repeat(2000), price_per_gram: 0, actual_oil_g: 23.8 };
     expect((await call('POST', { body: edge })).statusCode).toBe(201);
   });
 

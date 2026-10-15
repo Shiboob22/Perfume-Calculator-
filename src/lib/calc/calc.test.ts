@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   weightRatio,
   weightShare,
-  round2, fmt2, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs,
+  round2, fmt2, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs, isBlocking,
   checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, byVolume, fromWeights,
   concentrationOf, displayed, volumeToWeightFraction, weightToVolumeFraction, toBase,
   isVolumeUnit, gToOz, mlToFlOz, UNITS, type Unit,
@@ -261,6 +261,13 @@ describe("density, cost and input checks", () => {
   it("is quiet for normal inputs", () => {
     expect(checkInputs(100, 22, H, limits)).toEqual([]);
     expect(checkInputs(100, 40, H, { ...limits, range: null })).toEqual([]);
+  });
+  it("blocks logging only for meaningless numbers, not for advice", () => {
+    expect(isBlocking(checkInputs(0, 22, H, limits))).toBe(true);
+    expect(isBlocking(checkInputs(100, 100, H, limits))).toBe(true);
+    expect(isBlocking(checkInputs(100, 40, H, limits))).toBe(false); // outside the family range
+    expect(isBlocking(checkInputs(100, 22, { oil: 2, ethanol: 0.81 }, limits))).toBe(false); // odd density
+    expect(isBlocking([])).toBe(false);
   });
   it("flags zero amounts, impossible or out-of-range strengths, odd densities", () => {
     const codes = (a: number, p: number, d = H) => checkInputs(a, p, d, limits).map((w) => w.code);

@@ -73,7 +73,7 @@ export function editRow(edit: any): { row: Record<string, unknown> } | { error: 
 // A batch to log: the planned recipe and its record, checked before it
 // reaches the database (the columns are bare numerics). Same caps as editRow.
 // A number is a finite positive value up to 100 000 (grams or mL); the
-// concentration is 1-99 %. total_g must be the oil plus the alcohol, within
+// concentration is above 0 and below 100 %. total_g must be the oil plus the alcohol, within
 // rounding. Returns the row's own columns; ids, user_id and created_at are
 // the handler's.
 const MAX_AMOUNT = 100000;
@@ -96,7 +96,7 @@ export function batchRow(b: any): { row: Record<string, unknown> } | { error: st
   // Numbers must arrive as numbers (or numeric strings), never '', null or NaN.
   const num = (v: unknown) => (v === null || v === '' || typeof v === 'boolean' || Array.isArray(v) ? NaN : Number(v));
   const pct = num(b.concentration_pct);
-  if (!(pct >= 1 && pct <= 99)) return { error: 'Check concentration_pct.', field: 'concentration_pct' };
+  if (!(pct > 0 && pct < 100)) return { error: 'Check concentration_pct.', field: 'concentration_pct' };
   row.concentration_pct = pct;
   for (const k of ['oil_g', 'oil_ml', 'ethanol_g', 'ethanol_ml', 'total_g', 'total_ml']) {
     const n = num(b[k]);

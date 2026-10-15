@@ -179,6 +179,10 @@ export interface Limits {
  * Anything worth saying before the user pours. Quiet in normal use: an empty
  * list means nothing looks off.
  */
+/** Warnings that make the numbers meaningless: nothing should be logged from them. */
+export const BLOCKING_WARNINGS = ["amount_not_positive", "concentration_out_of_bounds"];
+export const isBlocking = (warnings: Warning[]): boolean => warnings.some((w) => BLOCKING_WARNINGS.includes(w.code));
+
 export function checkInputs(amount: number, pct: number, d: Densities, limits: Limits): Warning[] {
   const w: Warning[] = [];
   if (!(amount > 0)) w.push({ code: "amount_not_positive" });

@@ -4,7 +4,7 @@ import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefil
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
 import { enqueue, isOffline } from "../lib/outbox";
-import { calculate, fmt2, gToOz, mlToFlOz, weightShare } from "../lib/calc";
+import { calculate, isBlocking, fmt2, gToOz, mlToFlOz, weightShare } from "../lib/calc";
 import { BottleFill, RatioBar } from "./Bottle";
 import { IconBookmark, IconBookmarkCheck, IconCheck, IconCopy, IconDiamondAlert, IconDrop, IconFlameTriangle } from "./icons";
 import { STRENGTHS } from "../lib/formulation";
@@ -340,7 +340,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const logId = useRef(null);
 
   async function handleLogBatch() {
-    if (!fragName.trim()) return;
+    if (!fragName.trim() || isBlocking(result.warnings)) return;
     setLogStatus("saving"); setLogError(""); setLogNote(""); setCapHit(false);
     logId.current ??= crypto.randomUUID();
     const row = (fragranceId) => buildBatch({
@@ -839,7 +839,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 <IconDiamondAlert size={18} /> {t("calc.retry")}
               </button>
             ) : (
-              <button type="button" onClick={handleLogBatch} disabled={!fragName.trim() || logStatus === "saving"}
+              <button type="button" onClick={handleLogBatch} disabled={!fragName.trim() || isBlocking(result.warnings) || logStatus === "saving"}
                 className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium disabled:opacity-50"
                 style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}>
                 <IconBookmark size={18} /> {logStatus === "saving" ? t("calc.saving") : t("calc.log")}
