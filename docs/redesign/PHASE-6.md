@@ -12,9 +12,11 @@ People who choose to can share recipes and fragrance reviews, like and follow. E
 - **Feed** `/salon`: All, Recipes, Reviews, Following; 20 at a time. **Profile page** `/salon/u/<handle>`: counts, follow, report, their posts.
 - **Reporting and moderation**: anyone can report a post or a profile (spam, abuse, unsafe advice, other). Editors (the `admins` table) get `/salon/moderation`: hide or restore a post, dismiss a report, suspend an author, lift a suspension. Nothing is deleted by moderation and every decision is logged (`salon_actions`).
 
-## Database (migration 0027, staging only; production is untouched)
+## Database (migrations 0027 and 0028; staging and production)
 
 Seven tables (`salon_profiles`, `salon_posts`, `salon_likes`, `salon_follows`, `salon_reports`, `salon_actions`, `salon_suspensions`), all with RLS and `ON DELETE CASCADE` from `auth.users`. Down file: `0027_salon.down.sql`.
+
+Migration 0028 (`0028_salon_function_grants.sql`, down file alongside) removes Postgres's default PUBLIC EXECUTE from the six Salon trigger functions and from `salon_has_link`; signed-in users keep `salon_has_link` because the CHECK constraints call it as the inserting role. Applied to staging, then to production on 2026-10-15 with the owner's approval; checked with `has_function_privilege` on both.
 
 Design points:
 
@@ -28,7 +30,7 @@ Design points:
 
 ## Tests
 
-- `supabase/tests/salon_isolation.sql`: 55 checks on staging, rolled back (private by default; column grants; links, bad snapshots, duplicate reviews; the daily post cap; account age; feed visibility; likes and follows; private/suspended hides everything; report rules; auto-hide with week-old versus new reporters; queue and moderation; non-editors refused; hidden posts undeletable; suspension survives a profile re-create; anon has nothing; account deletion cascades). Not covered: the likes, follows and reports caps (same trigger shape as the post cap).
+- `supabase/tests/salon_isolation.sql`: 56 checks on staging after 0028, rolled back (private by default; column grants; links, bad snapshots, duplicate reviews; the daily post cap; account age; feed visibility; likes and follows; private/suspended hides everything; report rules; auto-hide with week-old versus new reporters; queue and moderation; non-editors refused; hidden posts undeletable; suspension survives a profile re-create; anon has nothing; trigger and helper functions not executable (0028); account deletion cascades). Not covered: the likes, follows and reports caps (same trigger shape as the post cap).
 - Vitest: logic in `src/lib/salon/` (paths, link rule, profile/post validation, snapshots, bench links).
 - Playwright `e2e/salon.spec.js` (11 scenarios per project): flag off, feed and filters and the safety copy, private profile, like and report, making a profile (private first, link refused, public, removal), recipe post carries only the blend, review validation and the daily limit, follow and report a profile, not-found, the editors' queue (and non-editors refused), Arabic at 320 px with axe on five pages.
 
@@ -45,4 +47,4 @@ Design points:
 1. Salon privacy and terms wording (the lawyer's `/privacy` and `/terms` don't mention user posts yet).
 2. Who the editors are: today, rows in `admins`.
 3. Whether "public" should ever mean the open web (then SEO pages).
-4. Production: migration 0027 needs your SQL approval; the Salon would stay flagged off.
+4. Done 2026-10-15: migrations 0027 and 0028 are on production. The Salon stays flagged off.

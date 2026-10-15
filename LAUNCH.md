@@ -18,13 +18,13 @@ security does that); they only decide what is shown.
 |---|---|---|---|
 | Wardrobe `/wardrobe` | `wardrobe` | nothing (0024 applied) | Arabic review; your scoring-weights review |
 | Atlas `/atlas` | `atlas` | nothing (0025 applied); a nightly `atlas_refresh()` | catalog licence route (§1 #8, `docs/redesign/DATA-ROUTE.md`); Arabic review |
-| Salon `/salon` | `salon` | **migration 0027** (approve the SQL; test `supabase/tests/salon_isolation.sql` passes 55 checks on staging) | privacy and terms wording for user posts (`docs/redesign/LEGAL-BRIEF.md`); who the editors are (rows in `admins`); Arabic review |
+| Salon `/salon` | `salon` | nothing (0027 and 0028 applied; `supabase/tests/salon_isolation.sql` passes 56 checks on staging) | privacy and terms wording for user posts (`docs/redesign/LEGAL-BRIEF.md`); who the editors are (rows in `admins`); Arabic review |
 | Nose `/nose` | `nose` | nothing (no migration); `GEMINI_API_KEY` set | privacy line on Gemini; Free vs Pro; is 400 questions a day right; Arabic review |
 
 **Suggested order**, one at a time, a day or two apart so a problem has one
 suspect: **Wardrobe → Atlas → Nose → Salon.** Salon goes last because it is the
-only room where strangers' words appear, so it needs the legal text, an
-editor, and migration 0027.
+only room where strangers' words appear, so it needs the legal text and an
+editor.
 
 **How to turn one on** (for everyone): Vercel → Settings → Environment
 Variables → add `VITE_FLAG_<NAME>=1` (Production) → redeploy. To try one
@@ -48,7 +48,13 @@ room addresses. Add `https://<domain>/bench/**`, `/wardrobe/**`, `/atlas/**`,
 not on the list fall back to the home page.
 
 **Checked 2026-10-15 (Phase 8):**
-- Production has migrations 0001–0026 (0026 is `profile_seller`); only the Salon's 0027 is missing.
+- Production has migrations 0001–0026 (0026 is `profile_seller`); the Salon's 0027 and 0028 followed later the same day (next line).
+- Later on 2026-10-15: 0027 (Salon) and 0028 (Salon function grants) applied to
+  production with the owner's approval. 0028 removes the default PUBLIC EXECUTE
+  from the six Salon trigger functions and from `salon_has_link`; signed-in
+  users keep `salon_has_link`, which the CHECK constraints call. Checked with
+  `has_function_privilege`: anon runs none of the seven, `authenticated` only
+  `salon_has_link`. The full Salon test passed 56 checks on staging after 0028.
 - Supabase security advisor, production: no errors. Warnings that are intended:
   the four `atlas_*` views and the `atlas_*` functions are readable by signed-in
   users only (anon has no SELECT and no EXECUTE on any of them; checked);
