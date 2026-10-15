@@ -50,7 +50,8 @@ not on the list fall back to the home page.
 **Checked 2026-10-15 (Phase 8):**
 - Production has migrations 0001–0026 (0026 is `profile_seller`); the Salon's 0027 and 0028 followed later the same day (next line).
 - Later on 2026-10-15: 0027 (Salon) and 0028 (Salon function grants) applied to
-  production with the owner's approval. 0028 removes the default PUBLIC EXECUTE
+  production with the owner's approval (after 0027: catalog, batches and admins
+  unchanged; the 7 Salon tables have RLS and `anon` has no grant on any). 0028 removes the default PUBLIC EXECUTE
   from the six Salon trigger functions and from `salon_has_link`; signed-in
   users keep `salon_has_link`, which the CHECK constraints call. Checked with
   `has_function_privilege`: anon runs none of the seven, `authenticated` only
