@@ -45,3 +45,34 @@ export function costPer(total: number, bottles: number, totalMl: number) {
     perMl: totalMl > 0 ? total / totalMl : null,
   };
 }
+
+/** A logged batch row (the batches table) as far as pricing goes. */
+export interface PricedBatch {
+  oil_g: number | string; ethanol_ml: number | string; total_ml: number | string;
+  actual_oil_g?: number | string | null; actual_ethanol_g?: number | string | null; ethanol_density?: number | string | null;
+  price_per_gram?: number | string | null; ethanol_price_per_l?: number | string | null; bottle_cost?: number | string | null;
+  bottles?: number | string | null; packaging_cost?: number | string | null;
+  labour_minutes?: number | string | null; labour_rate?: number | string | null; sale_price?: number | string | null;
+}
+
+const num = (v: unknown) => (Number(v) > 0 ? Number(v) : null);
+
+/**
+ * What a logged batch cost and earned, from the prices saved on it: the same
+ * sums as the calculator, on what was really poured when that was recorded.
+ * Null when the batch carries no prices at all, so nothing is invented for
+ * batches logged before the seller layer.
+ */
+export function storedBatchCost(b: PricedBatch) {
+  const prices = {
+    oilPerG: num(b.price_per_gram), ethanolPerL: num(b.ethanol_price_per_l), bottleEach: num(b.bottle_cost),
+    packagingEach: num(b.packaging_cost), labourMinutes: num(b.labour_minutes), labourPerHour: num(b.labour_rate),
+  };
+  if (Object.values(prices).every((v) => v === null)) return null;
+  const actualEth = num(b.actual_ethanol_g);
+  const ethMl = actualEth !== null ? actualEth / (num(b.ethanol_density) ?? 0.81) : Number(b.ethanol_ml);
+  const bottles = Math.max(Math.floor(Number(b.bottles) || 0), 0);
+  const cost = batchCost(num(b.actual_oil_g) ?? Number(b.oil_g), ethMl, bottles, prices);
+  const per = costPer(cost.total, bottles, Number(b.total_ml));
+  return { ...cost, ...per, bottles, seller: sellerFigures(cost.total, bottles, Number(b.sale_price)) };
+}

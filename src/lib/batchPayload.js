@@ -22,13 +22,34 @@ export function storedDensities(result) {
 }
 
 /**
+ * The cost and sale figures a batch was priced with (Pro; the server drops
+ * them on a plan without them). `seller` holds the form's values, or is left
+ * out on Free; blank means not given and is sent as null.
+ */
+export function sellerColumns(seller) {
+  const s = seller || {};
+  const cur = typeof s.currency === "string" && /^[A-Za-z]{3}$/.test(s.currency) ? s.currency.toUpperCase() : null;
+  const bottles = Math.floor(Number(s.bottles));
+  return {
+    ethanol_price_per_l: pos(s.ethanolPricePerL),
+    bottle_cost: pos(s.bottleCost),
+    bottles: bottles > 0 ? bottles : null,
+    packaging_cost: pos(s.packagingCost),
+    labour_minutes: pos(s.labourMinutes),
+    labour_rate: pos(s.labourRate),
+    sale_price: pos(s.salePrice),
+    currency: cur,
+  };
+}
+
+/**
  * `target` is the solved bottle ({ exact, basis }), `densities` the
  * { oil, ethanol } it was solved with. Optional fields left out are null.
  * Without an `oilCost`, the cost is the oil used times the price per gram.
  */
 export function buildBatch({
   id, fragranceId, name, tier, blendDate, concPct, target, densities,
-  actualOilG, actualEthG, oilType, pricePerGram, oilCost, notes, blendedBy, lot, amount, unit,
+  actualOilG, actualEthG, oilType, pricePerGram, oilCost, notes, blendedBy, lot, amount, unit, seller,
 }) {
   const e = target.exact;
   const price = pos(pricePerGram);
@@ -56,5 +77,6 @@ export function buildBatch({
     lot: text(lot),
     amount: pos(amount),
     unit: unit || null,
+    ...sellerColumns(seller),
   };
 }

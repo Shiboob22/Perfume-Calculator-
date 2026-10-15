@@ -131,6 +131,32 @@ export function batchRow(b: any): { row: Record<string, unknown> } | { error: st
   return { row };
 }
 
+// The seller layer (Pro, `calculator.advanced`): what the batch was priced
+// with and sold for. Checked like the rest, and kept only on a plan that
+// includes it: for Free the fields are dropped and the batch is saved without
+// them (the answer says `cost: 'locked'`), so an offline log is never lost.
+const SELLER_MONEY = ['ethanol_price_per_l', 'bottle_cost', 'packaging_cost', 'labour_rate', 'sale_price'] as const;
+const SELLER_FIELDS = [...SELLER_MONEY, 'bottles', 'labour_minutes', 'currency'] as const;
+export function sellerRow(b: any): { row: Record<string, unknown>; sent: boolean } | { error: string; field: string } {
+  const row: Record<string, unknown> = {};
+  let sent = false;
+  for (const k of SELLER_FIELDS) {
+    const v = b?.[k];
+    if (v == null || v === '') continue;
+    sent = true;
+    if (k === 'currency') {
+      if (typeof v !== 'string' || !/^[A-Z]{3}$/.test(v)) return { error: 'Check currency.', field: k };
+      row[k] = v;
+      continue;
+    }
+    const n = typeof v === 'boolean' || Array.isArray(v) ? NaN : Number(v);
+    const max = k === 'bottles' ? 100000 : k === 'labour_minutes' ? 100000 : 1_000_000;
+    if (!(n >= 0 && n <= max) || (k === 'bottles' && !Number.isInteger(n))) return { error: `Check ${k}.`, field: k };
+    row[k] = n;
+  }
+  return { row, sent };
+}
+
 // Stock taken out for a freshly logged batch, when the client asks with
 // deduct_oil_g. Only on a new insert (a replay or a 23505 returns earlier,
 // so a re-sent batch never deducts twice), only on a plan with inventory,
@@ -212,6 +238,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const checked = batchRow(b);
       if ('error' in checked) return fail(res, 400, 'invalid_batch', checked.error, { field: checked.field });
 
+      const seller = sellerRow(b);
+      if ('error' in seller) return fail(res, 400, 'invalid_batch', seller.error, { field: seller.field });
+      const sellerKept = can(entitlements, 'calculator.advanced') ? seller.row : {};
+
       // Whitelist only real columns; user_id + created_at are server-set.
       // A client-chosen id makes logging idempotent (see above).
       const row = {
@@ -223,6 +253,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         oil_density: Number(b.oil_density) > 0 ? Number(b.oil_density) : null,
         ethanol_density: Number(b.ethanol_density) > 0 ? Number(b.ethanol_density) : null,
         ...batchRecord(b),
+        ...sellerKept,
         created_at: new Date().toISOString(),
       };
 
@@ -239,7 +270,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (error) throw error;
 
       const stock = await deductOnLog(supabase, userId, entitlements, row.fragrance_id, b.deduct_oil_g);
-      return res.status(201).json({ success: true, batch: data[0], ...(stock ? { stock } : {}) });
+      return res.status(201).json({
+        success: true, batch: data[0],
+        ...(stock ? { stock } : {}),
+        ...(seller.sent && !can(entitlements, 'calculator.advanced') ? { cost: 'locked' } : {}),
+      });
     } catch (err: any) {
       return failFrom(res, err, true, 'log');
     }

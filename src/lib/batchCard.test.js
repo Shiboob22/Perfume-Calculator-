@@ -57,3 +57,32 @@ describe("helpers", () => {
     expect(safeFileName({ fragrance_name: "***" })).toBe("batch-card.png");
   });
 });
+
+describe("cardRows pricing", () => {
+  const t = createTranslator("en", { en, ar });
+  const priced = { ...batch, price_per_gram: 2, ethanol_price_per_l: 40, bottle_cost: 10, bottles: 2, packaging_cost: 1.5, labour_minutes: 45, labour_rate: 20, sale_price: 50, currency: "EUR" };
+  it("adds cost, sale price, profit and margin when the batch was priced", () => {
+    const rows = cardRows(priced, { t, locale: "en" });
+    const get = (label) => rows.find(([l]) => l === label)?.[1];
+    expect(get(en.batches.totalCost)).toContain("€");
+    expect(get(en.batches.salePrice)).toContain("50.00");
+    expect(get(en.batches.profit)).toBeDefined();
+    expect(get(en.batches.margin)).toMatch(/%$/);
+  });
+  it("adds nothing for a batch logged without prices", () => {
+    const labels = cardRows(batch, { t, locale: "en" }).map(([l]) => l);
+    for (const k of ["totalCost", "salePrice", "profit", "margin"]) expect(labels).not.toContain(en.batches[k]);
+  });
+  it("calls a sale below cost a loss", () => {
+    const rows = cardRows({ ...priced, sale_price: 5 }, { t, locale: "en" });
+    expect(rows.map(([l]) => l)).toContain(en.batches.loss);
+  });
+});
+
+describe("cardRows oil-only pricing", () => {
+  it("does not repeat the oil cost as a total", () => {
+    const t = createTranslator("en", { en, ar });
+    const labels = cardRows({ ...batch, price_per_gram: 2, oil_cost: 38 }, { t, locale: "en" }).map(([l]) => l);
+    expect(labels).not.toContain(en.batches.totalCost);
+  });
+});

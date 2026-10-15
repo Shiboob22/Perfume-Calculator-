@@ -320,6 +320,22 @@ begin
   select stock_g::int into n from public.inventory where user_id = a and fragrance_id = f_shared;
   if n <> 0 then raise exception 'RLS_ISOLATION FAILED: restock_inventory left stock at % (expected 0)', n; end if; checks := checks + 1;
   update public.inventory set stock_g = 100 where user_id = a and fragrance_id = f_shared;  -- as the fixtures had it
+
+  -- The seller layer's columns refuse nonsense (0022): money below zero, a
+  -- currency that isn't a three-capital code, on a batch and on a profile.
+  ok := false;
+  begin update public.batches set sale_price = -1 where user_id = a;
+  exception when check_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a batch can have a negative sale price'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.batches set currency = 'eur' where user_id = a;
+  exception when check_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a batch can have a lower-case currency'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.profiles set currency = 'EURO' where user_id = a;
+  exception when check_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: a profile can have a four-letter currency'; end if; checks := checks + 1;
+  update public.batches set sale_price = 35, currency = 'EUR', bottles = 3 where user_id = a;  -- valid values go in
   perform set_config('role', 'authenticated', true);
 
   -- What B may do: add its own pending row, and reuse an existing name.

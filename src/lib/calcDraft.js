@@ -8,6 +8,7 @@ const FIELDS = {
   fragName: "string", tierKey: "string", batchSize: "any", batchUnit: "string", concPct: "any",
   mode: "string", ethanolPricePerL: "any", bottleCost: "any", bottles: "any",
   oilType: "string", pricePerGram: "any", notes: "string",
+  packagingCost: "any", labourMinutes: "any", labourRate: "any", salePrice: "any",
   actualOilG: "any", actualEthG: "any", blendedBy: "string", blendDate: "string",
   measuredDensity: "number", densities: "object", chosenFamily: "boolean", chosenConc: "boolean",
 };

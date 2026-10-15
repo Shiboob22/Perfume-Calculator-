@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch, storedDensities } from "../lib/batchPayload";
+import { formatMoney } from "../lib/money";
 import { enqueue, isOffline } from "../lib/outbox";
 import { calculate, isBlocking, fmt2, gToOz, mlToFlOz, weightShare } from "../lib/calc";
 import { BottleFill, RatioBar } from "./Bottle";
@@ -167,7 +168,7 @@ export default function FragranceBlendCalculator(props) {
 }
 
 function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
-  const { t } = useI18n();
+  const { t, locale, digits } = useI18n();
   const navigate = useNavigate();
   const entitlements = useEntitlements();
   const [searchParams] = useSearchParams();
@@ -209,6 +210,10 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [ethanolPricePerL, setEthanolPricePerL] = useState(draft?.ethanolPricePerL ?? "");
   const [bottleCost, setBottleCost] = useState(draft?.bottleCost ?? "");
   const [bottles, setBottles] = useState(draft?.bottles ?? "1");
+  const [packagingCost, setPackagingCost] = useState(draft?.packagingCost ?? "");
+  const [labourMinutes, setLabourMinutes] = useState(draft?.labourMinutes ?? "");
+  const [labourRate, setLabourRate] = useState(draft?.labourRate ?? "");
+  const [salePrice, setSalePrice] = useState(draft?.salePrice ?? "");
   const [oilType, setOilType] = useState(draft?.oilType ?? "");
   const [pricePerGram, setPricePerGram] = useState(draft?.pricePerGram ?? "");
   const [notes, setNotes] = useState(draft?.notes ?? "");
@@ -223,16 +228,21 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   // batch). While the plan is still loading nothing is dropped.
   const advanced = can(entitlements, "calculator.advanced");
   const dropCost = entitlements.loaded && !advanced;
+  // The seller fields (sale price, packaging, labour) are an opt-in layer on
+  // top of the Pro cost fields: the Account switch turns them on.
+  const sellerOn = advanced && Boolean(profile?.is_seller);
+  const currency = profile?.currency || "";
+  const money = (v) => formatMoney(v, currency, { locale, digits });
 
   useEffect(() => {
     saveDraft({
       fragName, tierKey, batchSize, batchUnit, concPct, mode, bottles,
-      ...(dropCost ? {} : { ethanolPricePerL, bottleCost }),
+      ...(dropCost ? {} : { ethanolPricePerL, bottleCost, packagingCost, labourMinutes, labourRate, salePrice }),
       oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities,
       measuredDensity: measuredDensityValue ?? undefined,
       chosenFamily: chosen.current.family, chosenConc: chosen.current.conc,
     });
-  }, [fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles, dropCost,
+  }, [fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles, dropCost, packagingCost, labourMinutes, labourRate, salePrice,
     oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities, measuredDensityValue]);
 
   const [logStatus, setLogStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
@@ -328,7 +338,11 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     ethanolPricePerL: advanced ? ethanolPricePerL : "",
     bottleCost: advanced ? bottleCost : "",
     bottles,
-  }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG, advanced, ethanolPricePerL, bottleCost, bottles]);
+    packagingCost: sellerOn ? packagingCost : "",
+    labourMinutes: sellerOn ? labourMinutes : "",
+    labourRate: sellerOn ? labourRate : "",
+    salePrice: sellerOn ? salePrice : "",
+  }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG, advanced, sellerOn, ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice]);
 
   // "Use these settings" from an earlier batch of this oil: a user choice,
   // so a later name match won't change it.
@@ -354,6 +368,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       id: logId.current, fragranceId, name: fragName.trim(), tier: tierKey, blendDate, concPct,
       target: result, densities: storedDensities(result), actualOilG, actualEthG,
       oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit,
+      seller: advanced ? { ethanolPricePerL, bottleCost, bottles, ...(sellerOn ? { packagingCost, labourMinutes, labourRate, salePrice, currency } : {}) } : undefined,
     });
     try {
       let fragrance = matched;
@@ -693,6 +708,29 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 </div>
               </div>
             )}
+            {sellerOn && (
+              <fieldset className="mb-3">
+                <legend className="text-[11px] mb-1" style={{ color: COLORS.inkSoft }}>{t("calc.seller.title")}{currency ? ` (${currency})` : ""}</legend>
+                <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 items-end">
+                  <div>
+                    <label htmlFor="calc-packaging" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.seller.packagingEach")}</label>
+                    <TextInput id="calc-packaging" type="number" step="0.01" min="0" value={packagingCost} onChange={(e) => setPackagingCost(e.target.value)} placeholder="0.00" />
+                  </div>
+                  <div>
+                    <label htmlFor="calc-sale-price" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.seller.salePrice")}</label>
+                    <TextInput id="calc-sale-price" type="number" step="0.01" min="0" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} placeholder="0.00" />
+                  </div>
+                  <div>
+                    <label htmlFor="calc-labour-min" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.seller.labourMinutes")}</label>
+                    <TextInput id="calc-labour-min" type="number" step="1" min="0" value={labourMinutes} onChange={(e) => setLabourMinutes(e.target.value)} />
+                  </div>
+                  <div>
+                    <label htmlFor="calc-labour-rate" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.seller.labourRate")}</label>
+                    <TextInput id="calc-labour-rate" type="number" step="0.01" min="0" value={labourRate} onChange={(e) => setLabourRate(e.target.value)} placeholder="0.00" />
+                  </div>
+                </div>
+              </fieldset>
+            )}
             <div className="grid grid-cols-2 gap-3 items-end mb-1">
               <div>
                 <label htmlFor="calc-actual-oil" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualOil")}</label>
@@ -769,9 +807,26 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
           {can(entitlements, "calculator.advanced") && result.cost.total > 0 && (
             <div className="py-2 text-sm font-mono space-y-0.5" style={{ color: COLORS.ink }}>
-              <div>{t("calc.cost.total", { cost: fmt2(result.cost.total) })}</div>
-              {result.cost.perBottle != null && <div>{t("calc.cost.perBottle", { cost: fmt2(result.cost.perBottle) })}</div>}
+              <div>{t("calc.cost.total", { cost: money(result.cost.total) })}</div>
+              {result.cost.packaging > 0 && <div>{t("calc.cost.packaging", { cost: money(result.cost.packaging) })}</div>}
+              {result.cost.labour > 0 && <div>{t("calc.cost.labour", { cost: money(result.cost.labour) })}</div>}
+              {result.cost.perBottle != null && <div>{t("calc.cost.perBottle", { cost: money(result.cost.perBottle) })}</div>}
               {result.cost.perMl != null && <div>{t("calc.cost.perMl", { cost: result.cost.perMl.toFixed(3) })}</div>}
+            </div>
+          )}
+          {sellerOn && Number(salePrice) > 0 && result.cost.seller == null && (
+            <p className="text-xs" style={{ color: COLORS.inkSoft }}>{t("calc.seller.needBottles")}</p>
+          )}
+          {sellerOn && result.cost.seller && (
+            <div className="py-2 text-sm font-mono space-y-0.5" style={{ color: COLORS.ink }}>
+              <div>{t("calc.seller.revenue", { amount: money(result.cost.seller.revenue) })}</div>
+              <div style={{ color: result.cost.seller.profit < 0 ? COLORS.danger : COLORS.forest }}>
+                {t(result.cost.seller.profit < 0 ? "calc.seller.loss" : "calc.seller.profit", {
+                  amount: money(Math.abs(result.cost.seller.profit)), perBottle: money(Math.abs(result.cost.seller.profitPerBottle)),
+                })}
+              </div>
+              <div>{t("calc.seller.margin", { pct: fmt2(result.cost.seller.marginPct) })}</div>
+              {result.cost.seller.markupPct != null && <div>{t("calc.seller.markup", { pct: fmt2(result.cost.seller.markupPct) })}</div>}
             </div>
           )}
 

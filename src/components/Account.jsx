@@ -125,6 +125,7 @@ function Preferences({ profile, save, locale, setLocale, digits, setDigits }) {
   const [bottle, setBottle] = useState(profile?.default_bottle ?? "");
   const [status, setStatus] = useState(null);
   const unit = profile?.default_unit ?? "ml";
+  const [currency, setCurrency] = useState(profile?.currency ?? "");
 
   async function update(changes) {
     setStatus(null);
@@ -168,6 +169,26 @@ function Preferences({ profile, save, locale, setLocale, digits, setDigits }) {
           <option value="arab">١٢٣</option>
         </select>
       </label>
+      <label className={row} style={{ borderColor: COLORS.line }}>
+        <span>
+          <span className="block" style={{ color: COLORS.ink }}>{t("account.prefs.seller")}</span>
+          <span className="block text-xs" style={{ color: COLORS.inkSoft }}>{t("account.prefs.sellerHint")}</span>
+        </span>
+        <input type="checkbox" checked={Boolean(profile?.is_seller)} onChange={(e) => update({ is_seller: e.target.checked })}
+          className="h-6 w-6" style={{ accentColor: COLORS.forest }} />
+      </label>
+      {profile?.is_seller && (
+        <label className={row} style={{ borderColor: COLORS.line }}>
+          <span>
+            <span className="block" style={{ color: COLORS.ink }}>{t("account.prefs.currency")}</span>
+            <span className="block text-xs" style={{ color: COLORS.inkSoft }}>{t("account.prefs.currencyHint")}</span>
+          </span>
+          <input value={currency} maxLength={3} autoCapitalize="characters" spellCheck={false} dir="ltr"
+            onChange={(e) => setCurrency(e.target.value.toUpperCase().replace(/[^A-Z]/g, ""))}
+            onBlur={() => { if (currency !== (profile?.currency ?? "") && (currency === "" || currency.length === 3)) update({ currency: currency || null }); }}
+            className="w-24 px-3 py-2 rounded-none font-mono min-h-[44px]" style={inputStyle} />
+        </label>
+      )}
       <p role="status" className="text-xs mt-2 min-h-[1rem]" style={{ color: status === "failed" ? COLORS.danger : COLORS.inkSoft }}>
         {status === "saved" && t("account.prefs.saved")}
         {status === "failed" && t("account.prefs.saveFailed")}

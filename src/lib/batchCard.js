@@ -11,6 +11,7 @@ const COLORS = PALETTES.light;
 import { TIERS, TIER_COLORS } from "./tiers";
 import { batchStartedAt, batchReadyAt, formatExact } from "./batchTiming";
 import { actualStrength, fmt2, shownTotalG } from "./calc";
+import { pricingRows } from "./batchPricing";
 import { dirOf } from "../i18n/core";
 import { loadArabicFonts } from "../i18n/arabicFonts";
 
@@ -71,6 +72,7 @@ export function cardRows(batch, { t, locale }) {
   }
   if (batch.oil_cost) rows.push([t("calc.oilCost"), fmt2(batch.oil_cost)]);
   if (batch.price_per_gram) rows.push([t("calc.pricePerGram"), fmt2(Number(batch.price_per_gram))]);
+  rows.push(...pricingRows(batch, t, { locale: "en", digits: "latn" })); // figures stay Western, like the weights
   const started = batchStartedAt(batch);
   const ready = batchReadyAt(batch);
   if (started) rows.push([t("batches.created"), formatExact(started, locale)]);

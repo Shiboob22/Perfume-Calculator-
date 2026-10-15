@@ -146,6 +146,49 @@ describe('POST /api/batches validation', () => {
   });
 });
 
+describe('POST /api/batches seller layer', () => {
+  const SELLER = {
+    ethanol_price_per_l: 12, bottle_cost: 1.5, bottles: 3, packaging_cost: 0.8,
+    labour_minutes: 45, labour_rate: 20, sale_price: 35, currency: 'EUR',
+  };
+
+  it('keeps the cost and sale figures on a plan that includes them', async () => {
+    const res = await call('POST', { body: { ...BATCH, ...SELLER } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.batch).toMatchObject(SELLER);
+    expect(res.body).not.toHaveProperty('cost');
+  });
+
+  it('saves the batch without them on Free, and says so', async () => {
+    db = dbFor('free');
+    const res = await call('POST', { body: { ...BATCH, ...SELLER } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.cost).toBe('locked');
+    for (const k of Object.keys(SELLER)) expect(res.body.batch, k).not.toHaveProperty(k);
+    expect(db.rows('batches')).toHaveLength(1);
+  });
+
+  it('says nothing about cost when none was sent', async () => {
+    db = dbFor('free');
+    expect((await call('POST', { body: BATCH })).body).not.toHaveProperty('cost');
+  });
+
+  it('refuses nonsense figures, even on Pro', async () => {
+    for (const [k, v] of [['sale_price', -1], ['bottle_cost', 1e9], ['bottles', 2.5], ['labour_minutes', 'abc'], ['currency', 'eur'], ['currency', 'EURO'], ['packaging_cost', [1]]] as const) {
+      const res = await call('POST', { body: { ...BATCH, [k]: v } });
+      expect(res.statusCode, `${k}=${v}`).toBe(400);
+      expect(res.body.code).toBe('invalid_batch');
+      expect(res.body.field).toBe(k);
+    }
+    expect(db.rows('batches')).toHaveLength(0);
+  });
+
+  it('treats blank fields as not sent', async () => {
+    const res = await call('POST', { body: { ...BATCH, sale_price: '', currency: null, bottles: null } });
+    expect(res.statusCode).toBe(201);
+  });
+});
+
 describe('POST /api/batches stock deduction', () => {
   const FRAG = '22222222-2222-4222-8222-222222222222';
   const tracked = () => { db.rpcHandlers.restock_inventory = (a: any) => ({ data: { fragrance_id: a.p_fragrance_id, stock_g: 76.25 }, error: null }); };

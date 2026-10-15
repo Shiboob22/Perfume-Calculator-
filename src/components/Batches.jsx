@@ -22,6 +22,7 @@ import SharePanel from "./SharePanel";
 import BatchEdit from "./BatchEdit";
 import WaitlistButton from "./WaitlistButton";
 import { makeAgainHref } from "../lib/oilHistory";
+import { pricingRows } from "../lib/batchPricing";
 
 function BatchTiming({ batch }) {
   const { t, locale } = useI18n();
@@ -144,7 +145,7 @@ function RestPanel({ batch }) {
 }
 
 export default function Batches() {
-  const { t, locale } = useI18n();
+  const { t, locale, digits } = useI18n();
   const entitlements = useEntitlements();
   const capped = entitlements.loaded && !can(entitlements, "batches.unlimited") && entitlements.batchCap != null;
   const [batches, setBatches] = useState([]);
@@ -301,6 +302,7 @@ export default function Batches() {
                 [t("batches.ethanol"), `${fmt2(b.ethanol_g)} g`, `${fmt2(b.ethanol_ml)} mL`],
                 [t("batches.total"), `${fmt2(shownTotalG(b.oil_g, b.ethanol_g))} g`, null],
                 b.oil_cost ? [t("batches.cost"), fmt2(b.oil_cost), b.price_per_gram ? `${fmt2(Number(b.price_per_gram))}${t("batches.perGram")}` : null] : null,
+                ...pricingRows(b, t, { locale, digits }),
               ].filter(Boolean).map(([label, value, sub]) => (
                 <div key={label}>
                   <dt className="text-xs" style={{ color: COLORS.inkSoft }}>{label}</dt>

@@ -65,3 +65,20 @@ describe("cost", () => {
     expect(calculate({ ...input, bottleCost: "", bottles: "" }).warnings.map((w) => w.code)).not.toContain("bottles_missing");
   });
 });
+
+describe("seller figures in a batch", () => {
+  const result = calculate({ amount: 100, unit: "ml", concPct: 25, oilDensity: 0.95, ethanolDensity: 0.81 });
+  const mk = (seller) => buildBatch({ id: "x", name: "n", tier: "woody", blendDate: "2026-10-01", concPct: 25, target: result, densities: { oil: 0.95, ethanol: 0.81 }, seller });
+  it("sends none on Free (no seller object): all null", () => {
+    const row = mk(undefined);
+    for (const k of ["ethanol_price_per_l", "bottle_cost", "bottles", "packaging_cost", "labour_minutes", "labour_rate", "sale_price", "currency"]) expect(row[k], k).toBeNull();
+  });
+  it("sends what the form holds, as numbers, with the currency in capitals", () => {
+    const row = mk({ ethanolPricePerL: "12", bottleCost: "1.5", bottles: "3", packagingCost: "0.8", labourMinutes: "45", labourRate: "20", salePrice: "35", currency: "eur" });
+    expect(row).toMatchObject({ ethanol_price_per_l: 12, bottle_cost: 1.5, bottles: 3, packaging_cost: 0.8, labour_minutes: 45, labour_rate: 20, sale_price: 35, currency: "EUR" });
+  });
+  it("leaves blank, zero or malformed values out", () => {
+    const row = mk({ ethanolPricePerL: "", bottleCost: 0, bottles: "0", salePrice: "abc", currency: "euro" });
+    expect([row.ethanol_price_per_l, row.bottle_cost, row.bottles, row.sale_price, row.currency]).toEqual([null, null, null, null, null]);
+  });
+});

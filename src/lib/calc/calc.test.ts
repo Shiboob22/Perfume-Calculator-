@@ -4,7 +4,7 @@ import {
   weightShare,
   round2, fmt2, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs, isBlocking, shownTotalG,
   checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, byVolume, fromWeights,
-  sellerFigures, concentrationOf, displayed, volumeToWeightFraction, weightToVolumeFraction, toBase,
+  sellerFigures, storedBatchCost, concentrationOf, displayed, volumeToWeightFraction, weightToVolumeFraction, toBase,
   isVolumeUnit, gToOz, mlToFlOz, UNITS, type Unit,
 } from "./index";
 import { REFERENCE, FAMILIES } from "../formulation";
@@ -262,6 +262,22 @@ describe("density, cost and input checks", () => {
     expect([c.packaging, c.labour]).toEqual([3, 15]);
     expect(c.total).toBeCloseTo(70.5 + 3 + 15, 12);
     expect(batchCost(1, 1, 1, { labourMinutes: 30 }).labour).toBe(0); // minutes without a rate cost nothing
+  });
+
+  it("prices a logged batch from the figures saved on it", () => {
+    const row = { oil_g: 23.75, ethanol_ml: 75, total_ml: 100, price_per_gram: 2, ethanol_price_per_l: 40, bottle_cost: 10, bottles: 2, packaging_cost: 1.5, labour_minutes: 45, labour_rate: 20, sale_price: 50 };
+    const c = storedBatchCost(row)!;
+    expect(c.total).toBeCloseTo(88.5, 10);
+    expect(c.perBottle).toBeCloseTo(44.25, 10);
+    expect(c.seller!.profit).toBeCloseTo(11.5, 10);
+    // what was poured counts, as in the calculator: 30 g oil, 81 g alcohol at 0.81 = 100 mL
+    const poured = storedBatchCost({ ...row, actual_oil_g: 30, actual_ethanol_g: 81, ethanol_density: 0.81 })!;
+    expect(poured.oil).toBe(60);
+    expect(poured.ethanol).toBeCloseTo(4, 10);
+    expect(storedBatchCost({ ...row, actual_ethanol_g: 81, ethanol_density: null })!.ethanol).toBeCloseTo((40 * (81 / 0.81)) / 1000, 10);
+    // unpriced, or logged before the seller layer: nothing to show
+    expect(storedBatchCost({ oil_g: 23.75, ethanol_ml: 75, total_ml: 100 })).toBeNull();
+    expect(storedBatchCost({ oil_g: 23.75, ethanol_ml: 75, total_ml: 100, price_per_gram: 2 })!.seller).toBeNull(); // oil price alone: a cost, no sale
   });
 
   it("works out revenue, profit, margin and markup from the sale price", () => {
