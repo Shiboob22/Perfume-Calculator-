@@ -169,6 +169,26 @@ describe('Nose API: picks from the real catalog', () => {
     expect(fetchMock.mock.calls[1][1].headers['x-goog-api-key']).toBe('secret-key');
   });
 
+  it('asks Gemini to think minimally on both steps (2026-10-15: 77 s at the default)', async () => {
+    fetchMock.mockResolvedValueOnce(gem(PREFS)).mockResolvedValueOnce(gem({ intro: '', picks: [{ id: 'a', reason: 'x' }] }));
+    await ask(await load(), { question: 'a warm woody scent for winter' });
+    for (const call of fetchMock.mock.calls) {
+      expect(JSON.parse(call[1].body).generationConfig.thinkingConfig).toEqual({ thinkingLevel: 'minimal' });
+    }
+  });
+
+  it('asks again without the thinking setting when a model refuses it', async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response('Invalid value at thinking_config.thinking_level', { status: 400 }))
+      .mockResolvedValueOnce(gem(PREFS))
+      .mockResolvedValueOnce(gem({ intro: '', picks: [{ id: 'a', reason: 'x' }] }));
+    const res = await ask(await load(), { question: 'a warm woody scent for winter' });
+    expect(res.statusCode).toBe(200);
+    const retry = JSON.parse(fetchMock.mock.calls[1][1].body).generationConfig;
+    expect(retry.thinkingConfig).toBeUndefined();
+    expect(retry.responseMimeType).toBe('application/json');
+  });
+
   it('asks for Arabic when the locale is ar', async () => {
     fetchMock.mockResolvedValueOnce(gem(PREFS)).mockResolvedValueOnce(gem({ intro: '', picks: [{ id: 'a', reason: 'x' }] }));
     await ask(await load(), { question: 'عطر خشبي دافئ', locale: 'ar' });

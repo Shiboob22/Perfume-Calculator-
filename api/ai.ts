@@ -123,20 +123,36 @@ function plain(text: string) {
   return text.replace(/\*\*(.+?)\*\*/g, '$1').replace(/^#+\s*/gm, '').trim();
 }
 
-async function generate(opts: { system: string; contents: Content[]; schema?: object }): Promise<string> {
+// Gemini 3 thinks at its highest level unless told otherwise; on 2026-10-15
+// one Nose question (two calls) took 77 s that way. 'minimal' suits the
+// Nose's picking from fixed lists. A model that refuses the setting is
+// asked once more without it.
+type Thinking = 'minimal' | 'low';
+
+async function generate(opts: { system: string; contents: Content[]; schema?: object; thinking?: Thinking }): Promise<string> {
   if (!GEMINI_API_KEY) throw new AiError(503, 'AI is not configured yet.');
 
   const body: Record<string, unknown> = {
     systemInstruction: { parts: [{ text: opts.system }] },
     contents: opts.contents,
   };
-  if (opts.schema) {
-    body.generationConfig = { responseMimeType: 'application/json', responseSchema: opts.schema };
-  }
+  const config: Record<string, unknown> = {};
+  if (opts.schema) Object.assign(config, { responseMimeType: 'application/json', responseSchema: opts.schema });
+  if (opts.thinking) config.thinkingConfig = { thinkingLevel: opts.thinking };
+  if (Object.keys(config).length) body.generationConfig = config;
 
-  let res = await callGemini(PRIMARY_MODEL, body);
+  const send = async (model: string) => {
+    const r = await callGemini(model, body);
+    if (r.status !== 400 || !opts.thinking) return r;
+    const detail = await r.clone().text().catch(() => '');
+    if (!/thinking/i.test(detail)) return r;
+    const { thinkingConfig: _drop, ...rest } = config;
+    return callGemini(model, { ...body, generationConfig: Object.keys(rest).length ? rest : undefined });
+  };
+
+  let res = await send(PRIMARY_MODEL);
   if (shouldFallBack(res.status) && FALLBACK_MODEL !== PRIMARY_MODEL) {
-    res = await callGemini(FALLBACK_MODEL, body);
+    res = await send(FALLBACK_MODEL);
   }
 
   if (res.status === 429) throw new AiError(429, 'Free AI quota used up — try again later.');
@@ -366,11 +382,17 @@ async function nose(admin: SupabaseClient, userId: string, b: any) {
   const vocab = await accordVocabulary(admin);
   if (vocab.length === 0) throw new AiError(503, 'The catalog is not ready for the Nose yet.');
 
+  let mark = started;
+  const steps: Record<string, number> = {};
+  const step = (name: string) => { steps[name] = Date.now() - mark; mark = Date.now(); };
+  step('vocab');
+
   const prefs = cleanPrefs(
-    parseJson(await generate({ system: prefsSystem(vocab), contents: userTurn(question), schema: prefsSchema(vocab) })),
+    parseJson(await generate({ system: prefsSystem(vocab), contents: userTurn(question), schema: prefsSchema(vocab), thinking: 'minimal' })),
     vocab,
   );
-  if (prefs.intent !== 'recommend') return done('redirect', { kind: 'redirect', reason: prefs.intent }, { by: 'model' });
+  step('read');
+  if (prefs.intent !== 'recommend') return done('redirect', { kind: 'redirect', reason: prefs.intent }, { by: 'model', steps });
 
   let q = admin.from('fragrances')
     .select('id, name, brand, year, tier, olfactory_family, accords, rating, popularity')
@@ -378,21 +400,23 @@ async function nose(admin: SupabaseClient, userId: string, b: any) {
   if (prefs.accords.length) q = q.overlaps('accords', prefs.accords);
   const { data: rows, error } = await q.order('popularity', { ascending: false, nullsFirst: false }).limit(300);
   if (error) throw error;
+  step('catalog');
 
   const candidates = rankCandidates((rows || []) as any[], prefs);
-  if (candidates.length === 0) return done('none', { kind: 'none' });
+  if (candidates.length === 0) return done('none', { kind: 'none' }, { steps });
 
   let answer;
   try {
     answer = groundAnswer(parseJson(await generate({
-      system: answerSystem(locale), contents: userTurn(answerPrompt(question, candidates)), schema: ANSWER_SCHEMA,
+      system: answerSystem(locale), contents: userTurn(answerPrompt(question, candidates)), schema: ANSWER_SCHEMA, thinking: 'minimal',
     })), candidates);
   } catch (err) {
     // The matches are real even when the wording step fails: show them with their accords.
     if (!(err instanceof AiError) || err.status === 400) throw err;
     answer = groundAnswer(null, candidates);
   }
-  return done('picks', answer, { picks: answer.picks.length });
+  step('answer');
+  return done('picks', answer, { picks: answer.picks.length, steps });
 }
 
 function parseJson(text: string): unknown {
