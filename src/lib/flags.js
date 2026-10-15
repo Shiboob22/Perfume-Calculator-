@@ -1,5 +1,5 @@
-// Feature flags for the rooms that aren't finished (Wardrobe and Atlas now;
-// Salon and Nose later). A room is hidden unless its flag is on:
+// Feature flags for the rooms that aren't finished (Wardrobe, Atlas and Salon
+// now; Nose later). A room is hidden unless its flag is on:
 //   - at build time: VITE_FLAG_<NAME>=1 (a preview or production build),
 //   - or on one device: localStorage "kyphira.flag.<name>" = "1", set by
 //     opening any page with ?flag=<name> (and cleared with ?unflag=<name>),
@@ -7,7 +7,7 @@
 // A flag only decides what is *shown*. Every room's data is private behind
 // row-level security whatever the flag says, so turning one on in the
 // browser exposes nothing. Pure: env and storage are passed in for tests.
-export const FLAGS = ["wardrobe", "atlas"];
+export const FLAGS = ["wardrobe", "atlas", "salon"];
 
 const key = (name) => `kyphira.flag.${name}`;
 

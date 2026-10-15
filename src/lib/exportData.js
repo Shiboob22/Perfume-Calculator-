@@ -5,7 +5,7 @@ import { BRAND } from "../brand.js";
 // The tables a user owns, in the order the export lists them. user_id is
 // dropped from every row: it is the same on all of them and means nothing
 // outside this database.
-export const EXPORT_TABLES = ["batches", "batch_checkins", "shared_recipes", "inventory", "fragrance_notes", "calc_presets", "recipes", "recipe_versions", "wardrobe_bottles", "wear_log", "profiles", "pro_waitlist", "user_plans", "fragrances"];
+export const EXPORT_TABLES = ["batches", "batch_checkins", "shared_recipes", "inventory", "fragrance_notes", "calc_presets", "recipes", "recipe_versions", "wardrobe_bottles", "wear_log", "salon_profiles", "salon_posts", "salon_likes", "salon_follows", "salon_reports", "profiles", "pro_waitlist", "user_plans", "fragrances"];
 
 // A catalog id means nothing outside this database either: rows fetched
 // with their fragrance ({ fragrances: { name } }) get a fragrance_name
