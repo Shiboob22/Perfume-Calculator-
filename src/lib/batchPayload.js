@@ -9,6 +9,19 @@ export function usedOil(target, actualOilG) {
 }
 
 /**
+ * The densities a batch records: only ones the user gave. A blank field is
+ * calculated with a fallback (and warned about), but the fallback is not the
+ * user's measurement, so it is stored as null. `result` is calculate()'s answer.
+ */
+export function storedDensities(result) {
+  const blank = (code) => result.warnings.some((w) => w.code === code);
+  return {
+    oil: blank("oil_density_missing") ? null : result.densities.oil,
+    ethanol: blank("ethanol_density_missing") ? null : result.densities.ethanol,
+  };
+}
+
+/**
  * `target` is the solved bottle ({ exact, basis }), `densities` the
  * { oil, ethanol } it was solved with. Optional fields left out are null.
  * Without an `oilCost`, the cost is the oil used times the price per gram.

@@ -71,7 +71,11 @@ export function calculate(input: CalculatorInput) {
     ethanolPerL: Number(input.ethanolPricePerL) > 0 ? Number(input.ethanolPricePerL) : null,
     bottleEach: Number(input.bottleCost) > 0 ? Number(input.bottleCost) : null,
   });
-  const per = costPer(cost.total, bottles, solution.exact.totalMl);
+  // Per mL follows what was really poured when both pours were recorded.
+  const costMl = actualOilG !== null && actualEthanolG !== null ? actualOilG / d.oil + actualEthanolG / d.ethanol : solution.exact.totalMl;
+  const per = costPer(cost.total, bottles, costMl);
+  // A bottle price with no bottles would leave glass out of the total unannounced.
+  if (positive(input.bottleCost) !== null && bottles === 0) warnings.push({ code: "bottles_missing" });
 
   return { ...solution, otherBasisPct, actual, usedOilG, oilCost, warnings, cost: { ...cost, ...per, bottles } };
 }

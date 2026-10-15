@@ -403,6 +403,7 @@ export default {
       oil_density_implausible: "An oil density of {density} g/mL is unusual (most fall between {min} and {max}). Check the value.",
       ethanol_density_implausible: "An ethanol density of {density} g/mL is unusual for 96% ethanol ({min}–{max}). Check the value.",
       oil_density_missing: "Oil density is blank, so {used} g/mL is being used. Enter your own value if you know it.",
+      bottles_missing: "A bottle cost is entered but the number of bottles is blank, so bottles are not in the total.",
       ethanol_density_missing: "Ethanol density is blank, so {used} g/mL is being used.",
     },
     cost: {

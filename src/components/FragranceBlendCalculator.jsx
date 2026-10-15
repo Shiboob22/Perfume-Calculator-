@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
-import { buildBatch } from "../lib/batchPayload";
+import { buildBatch, storedDensities } from "../lib/batchPayload";
 import { enqueue, isOffline } from "../lib/outbox";
 import { calculate, isBlocking, fmt2, gToOz, mlToFlOz, weightShare } from "../lib/calc";
 import { BottleFill, RatioBar } from "./Bottle";
@@ -218,14 +218,21 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [blendedBy, setBlendedBy] = useState(draft?.blendedBy ?? "");
   const [blendDate, setBlendDate] = useState(draft?.blendDate ?? todayISO());
 
+  // Cost fields belong to Pro: with a plan loaded that lacks them, they are
+  // neither used nor kept in the draft (a downgrade doesn't keep pricing the
+  // batch). While the plan is still loading nothing is dropped.
+  const advanced = can(entitlements, "calculator.advanced");
+  const dropCost = entitlements.loaded && !advanced;
+
   useEffect(() => {
     saveDraft({
-      fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles,
+      fragName, tierKey, batchSize, batchUnit, concPct, mode, bottles,
+      ...(dropCost ? {} : { ethanolPricePerL, bottleCost }),
       oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities,
       measuredDensity: measuredDensityValue ?? undefined,
       chosenFamily: chosen.current.family, chosenConc: chosen.current.conc,
     });
-  }, [fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles,
+  }, [fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles, dropCost,
     oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities, measuredDensityValue]);
 
   const [logStatus, setLogStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
@@ -318,10 +325,10 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     actualOilG,
     actualEthanolG: actualEthG,
     pricePerGram,
-    ethanolPricePerL,
-    bottleCost,
+    ethanolPricePerL: advanced ? ethanolPricePerL : "",
+    bottleCost: advanced ? bottleCost : "",
     bottles,
-  }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG, ethanolPricePerL, bottleCost, bottles]);
+  }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG, advanced, ethanolPricePerL, bottleCost, bottles]);
 
   // "Use these settings" from an earlier batch of this oil: a user choice,
   // so a later name match won't change it.
@@ -345,7 +352,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     logId.current ??= crypto.randomUUID();
     const row = (fragranceId) => buildBatch({
       id: logId.current, fragranceId, name: fragName.trim(), tier: tierKey, blendDate, concPct,
-      target: result, densities: result.densities, actualOilG, actualEthG,
+      target: result, densities: storedDensities(result), actualOilG, actualEthG,
       oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit,
     });
     try {
