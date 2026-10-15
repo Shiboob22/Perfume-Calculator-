@@ -1,8 +1,69 @@
-# Launch checklist — Scent Ledger
+# Launch checklist — Kyphira
 
 Work top to bottom. **Owner** items need a decision or an account only you
 hold; **Claude** items can be done in a session once the owner items they
 depend on are settled. Nothing here touches production until step 4.
+
+---
+
+## 0. The rooms: what is live, what is flagged, in what order to switch on
+
+Production today (2026-10-15) runs `main` at the Salon branch: the **Bench**
+and the **Library** are live. **Wardrobe, Atlas, Salon and Nose are built but
+off.** A room is off unless its flag is on; off, its address returns to the
+Bench and its nav link is hidden. Flags do not protect data (row-level
+security does that); they only decide what is shown.
+
+| Room | Flag | Needs on production first | Owner decisions first |
+|---|---|---|---|
+| Wardrobe `/wardrobe` | `wardrobe` | nothing (0024 applied) | Arabic review; your scoring-weights review |
+| Atlas `/atlas` | `atlas` | nothing (0025 applied); a nightly `atlas_refresh()` | catalog licence route (§1 #8, `docs/redesign/DATA-ROUTE.md`); Arabic review |
+| Salon `/salon` | `salon` | **migration 0027** (approve the SQL; test `supabase/tests/salon_isolation.sql` passes 55 checks on staging) | privacy and terms wording for user posts (`docs/redesign/LEGAL-BRIEF.md`); who the editors are (rows in `admins`); Arabic review |
+| Nose `/nose` | `nose` | nothing (no migration); `GEMINI_API_KEY` set | privacy line on Gemini; Free vs Pro; is 400 questions a day right; Arabic review |
+
+**Suggested order**, one at a time, a day or two apart so a problem has one
+suspect: **Wardrobe → Atlas → Nose → Salon.** Salon goes last because it is the
+only room where strangers' words appear, so it needs the legal text, an
+editor, and migration 0027.
+
+**How to turn one on** (for everyone): Vercel → Settings → Environment
+Variables → add `VITE_FLAG_<NAME>=1` (Production) → redeploy. To try one
+yourself first, open any page with `?flag=<name>` (clear it with `?unflag=<name>`).
+**To turn one off:** remove the variable and redeploy (or Instant Rollback).
+
+**Switches and limits in Vercel env** (none of these are secrets):
+
+| Variable | Effect | Default |
+|---|---|---|
+| `NOSE_ENABLED=0` | Nose answers 503 `nose_off` at once, nothing counted or sent | on |
+| `NOSE_DAILY_CAP` | whole-site Nose questions a day (each is two Gemini calls) | 400 |
+| `STOCK_ON_LOG=client` | stock is deducted from the browser again | server |
+
+Per-user Nose limits are 8 an hour and 25 a day (`api/_lib/nose.ts`).
+
+**Before turning any room on:** Supabase Auth → URL configuration must list the
+room addresses. Add `https://<domain>/bench/**`, `/wardrobe/**`, `/atlas/**`,
+`/salon/**` and `/nose` next to `/app/**` (also for
+`https://scent-handbook-app.vercel.app`). Sign-in links that return to a page
+not on the list fall back to the home page.
+
+**Checked 2026-10-15 (Phase 8):**
+- Production has migrations 0001–0026 (0026 is `profile_seller`); only the Salon's 0027 is missing.
+- Supabase security advisor, production: no errors. Warnings that are intended:
+  the four `atlas_*` views and the `atlas_*` functions are readable by signed-in
+  users only (anon has no SELECT and no EXECUTE on any of them; checked);
+  `recipe_by_slug` / `recipe_sitemap` are public on purpose (shared recipe
+  pages, published rows only). "Leaked password protection" is moot: sign-in is
+  email link or Google, there are no passwords. `admins`, `billing_events` and
+  `rate_limits` have RLS on and no policy on purpose (service role only).
+- Lighthouse mobile, production: Accessibility, Best Practices and SEO are
+  100 on `/`, `/ar`, `/pricing` and `/library`. **Performance is 91, 93, 85 and 92 against the 95 target**
+  (below). Simulated slow-4G mobile: first paint ~2.0 s, largest paint 1.9-4.0 s,
+  no layout shift, blocking time 50-130 ms. The signed-in rooms are not
+  scored by Lighthouse; they are covered by axe and the e2e suite.
+- `e2e/launch.spec.js`: with no flags no unfinished room is reachable or
+  linked; with all flags each opens from the nav; Arabic at 320 px has no
+  sideways scroll and no axe violations in any room.
 
 ---
 
@@ -17,7 +78,7 @@ depend on are settled. Nothing here touches production until step 4.
 | 5 | Account deletion: immediate (built) or a grace period | `api/account.ts` | open |
 | 6 | Rate limits: Ask 30/h, live lookups 20/10 min, batch logs 60/10 min, deletion 5/h, error reports 30/10 min | `api/_lib/rateLimit.ts` | **approved 2026-10-02** |
 | 7 | Gemini: paid key (prompts not used for training), or keep the free tier and its disclosure | `api/ai.ts`, privacy page | open |
-| 8 | Catalog data licensing (the Parfumo-derived catalog and live lookups) | `api/search.ts` | open — **blocks a commercial launch** |
+| 8 | Catalog data licensing (the Parfumo-derived catalog and live lookups). Route proposed in `docs/redesign/DATA-ROUTE.md`; Wikidata checked 2026-10-15 and is too small (369 perfume items) | `api/search.ts` | open — **blocks a commercial launch** |
 | 9 | Review of every Arabic string, the Arabic guide drafts, and the Arabic byline | `src/i18n/messages/ar.js`, `src/content/` | open |
 | 10 | Landing copy approval | `src/i18n/messages/*.js` → `site.home` | open |
 | 11 | Neutral examples for the Choosing (Wardrobe) guides | Phase 3 | open |
@@ -25,6 +86,8 @@ depend on are settled. Nothing here touches production until step 4.
 | 13 | Resting Journal: cadence (day 1 · rest start · rest end · end + 14), check-ins Free and outside the cap, patterns Pro | Phase 6 | **approved 2026-10-02** |
 | 14 | Per-batch "peak day" rule for patterns: the earliest day a batch reached its best rating | `peakDay()` in `src/lib/calc/journal.ts` | review |
 | 15 | Shared recipe names may name designer perfumes (trademark): with the lawyer, alongside `/terms` | Phase 6 | open, not blocking |
+| 17 | Nose: Free or Pro (uses `ai.ask` today), daily site cap (400), privacy line on Gemini | `api/_lib/nose.ts` | open |
+| 18 | Salon: who the editors are; privacy and terms for user posts; whether "public" may ever mean the open web | `docs/redesign/LEGAL-BRIEF.md` | open |
 | 16 | Pricing page lines for the journal and recipe sharing (both plans) and patterns (Pro) | `site.pricing` | drafted 2026-10-03; approve with the landing copy (#10) |
 
 ## 2. Accounts and hosting (owner)
@@ -154,11 +217,13 @@ function's `search_path` confirmed; data counts unchanged (36 batches,
 - The app: Vercel → Deployments → previous → *Instant Rollback*.
 - The database: migrations are additive, so the old app runs against the new
   schema. Don't reverse migrations by hand.
-- **There is no database backup.** The pre-migration `backup_20261002` schema
-  was dropped on 2026-10-02 at the owner's request, and the Supabase free plan
-  keeps none. Wrong or lost data cannot be restored until Supabase Pro (daily
-  backups, §2) is on. Until then, export your own account from
-  `/app/account` before risky changes.
+- **Backups.** `backup_20261014` (a copy of every user table and the user-added
+  catalog rows, taken before migrations 0021-0025; no access for the API
+  roles) is still in the production database; drop it with
+  `drop schema backup_20261014 cascade` once you no longer need it. It is not a
+  substitute for a restorable `pg_dump` or Supabase Pro daily backups (§2):
+  until one of those exists, wrong or lost data may not be recoverable.
+  Export your own account from `/app/account` before risky changes.
 
 ## 8. After launch
 
