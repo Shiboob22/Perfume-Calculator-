@@ -3,7 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 // End-to-end tests against the production build (npm run build), served
 // the way Vercel serves it (scripts/serve-dist.mjs). Locally they drive the
 // installed Google Chrome; CI installs Playwright's Chromium.
-const channel = process.env.CI ? undefined : "chrome";
+// CHROMIUM_PATH points at a Chromium already on the machine (a cloud container).
+const channel = process.env.CI || process.env.CHROMIUM_PATH ? undefined : "chrome";
+const launchOptions = process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {};
 
 export default defineConfig({
   testDir: "e2e",
@@ -14,8 +16,8 @@ export default defineConfig({
   snapshotPathTemplate: "{testDir}/__screenshots__/{projectName}/{arg}{ext}",
   use: { baseURL: "http://localhost:4173", trace: "retain-on-failure" },
   projects: [
-    { name: "phone", use: { ...devices["Pixel 7"], channel } },
-    { name: "desktop", use: { ...devices["Desktop Chrome"], channel } },
+    { name: "phone", use: { ...devices["Pixel 7"], channel, launchOptions } },
+    { name: "desktop", use: { ...devices["Desktop Chrome"], channel, launchOptions } },
   ],
   webServer: {
     command: "node scripts/serve-dist.mjs",

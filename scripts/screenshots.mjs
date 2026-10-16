@@ -82,7 +82,9 @@ const APP = {
   search: "/app/search", account: "/app/account", labels: "/app/labels?batch=11111111-1111-4111-8111-111111111111", bench: "/app/bench",
 };
 
-const browser = await chromium.launch({ channel: process.env.CI ? undefined : "chrome" });
+const browser = await chromium.launch(process.env.CHROMIUM_PATH
+  ? { executablePath: process.env.CHROMIUM_PATH }
+  : { channel: process.env.CI ? undefined : "chrome" });
 for (const [size, width, height] of [["phone", 390, 844], ["desktop", 1280, 900]]) {
   const shoot = async (name, path, setup) => {
     const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, serviceWorkers: "block", reducedMotion: "reduce" }); // full-page shots never scroll, so scroll-tied reveals would stay hidden
