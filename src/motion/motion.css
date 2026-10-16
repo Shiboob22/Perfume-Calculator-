@@ -1,0 +1,121 @@
+/* The motion layer. Quiet and precise: fades with a small rise, masked words,
+   hairlines drawn, slow settles; only transform and opacity move.
+
+   Tokens (--mo-*) are written onto :root by tailwind.config.js from
+   src/motion/config.js. Every rule is scoped to html[data-motion], which the
+   `motion` flag sets (index.html before first paint, initMotion() after), so
+   with the flag off nothing here applies.
+
+   Entrances are CSS animations, not transitions: they end on the element's own
+   styles, so nothing is left holding a transition list that would swallow a
+   hover. The server markup is always the fully visible page; the hidden state
+   is set on the DOM after hydration, and only for elements below the fold.
+
+   @media blocks stay at the top level (not inside @supports) so that
+   /dev/motion can switch reduced motion by rewriting them. */
+
+:root[dir="rtl"] { --mo-dir: -1; }
+
+/* ── Entrances: Reveal, Stagger, TextReveal, DrawLine ── */
+@keyframes mo-enter { from { opacity: 0; translate: var(--mo-from, 0 var(--mo-d-m)); } }
+@keyframes mo-word { from { translate: 0 110%; } }
+@keyframes mo-draw { from { transform: scaleX(0); } }
+@keyframes mo-settle { from { translate: 0 calc(var(--mo-d-m) * -1); } }
+@keyframes mo-settle-up { from { translate: 0 var(--mo-d-m); } }
+@keyframes mo-fade { from { opacity: 0; } }
+@keyframes mo-fade-out { to { opacity: 0; } }
+@keyframes mo-sheet-in { from { translate: 0 100%; } }
+@keyframes mo-sheet-out { to { translate: 0 100%; } }
+@keyframes mo-leave { to { opacity: 0; translate: 0 calc(var(--mo-d-xs) * -1); } }
+@keyframes mo-sweep { from { translate: calc(var(--mo-dir) * -100%) 0; } to { translate: calc(var(--mo-dir) * 100%) 0; } }
+@keyframes mo-par { from { translate: 0 calc(var(--mo-par) * -1); } to { translate: 0 var(--mo-par); } }
+
+.mo-line { display: block; height: 1px; background: currentColor; }
+.mo-skel { display: block; position: relative; overflow: clip; background: var(--c-sand); }
+.mo-skel::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, var(--c-card), transparent); display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-motion] .mo-reveal[data-mo-from="start"] { --mo-from: calc(var(--mo-dir) * var(--mo-d-m) * -1) 0; }
+  html[data-motion] .mo-reveal[data-mo-from="end"] { --mo-from: calc(var(--mo-dir) * var(--mo-d-m)) 0; }
+
+  html[data-motion] .mo-reveal[data-mo="hidden"],
+  html[data-motion] .mo-stagger[data-mo="hidden"] > .mo-item { opacity: 0; translate: var(--mo-from, 0 var(--mo-d-m)); }
+  html[data-motion] .mo-reveal[data-mo="in"] { animation: mo-enter var(--mo-slow) var(--mo-ease) backwards; }
+  html[data-motion] .mo-stagger[data-mo="in"] > .mo-item { animation: mo-enter var(--mo-slow) var(--mo-ease) backwards; animation-delay: calc(var(--i, 0) * var(--mo-step)); }
+
+  /* Content that appears after load plays on mount, shorter. */
+  html[data-motion] .mo-reveal[data-mo="enter"] { animation: mo-enter var(--mo-base) var(--mo-ease) backwards; }
+  html[data-motion] .mo-stagger[data-mo="enter"] > .mo-item { animation: mo-enter var(--mo-base) var(--mo-ease) backwards; animation-delay: calc(var(--i, 0) * var(--mo-step)); }
+
+  /* Headings: each word rises out of a mask. Descenders and Arabic marks need room, so the mask is padded and pulled back. */
+  html[data-motion] .mo-text .mo-w { display: inline-block; overflow: clip; vertical-align: top; padding-block: 0.16em; margin-block: -0.16em; }
+  html[data-motion] .mo-text .mo-wi { display: inline-block; }
+  html[data-motion] .mo-text[data-mo="hidden"] .mo-wi { translate: 0 110%; }
+  html[data-motion] .mo-text[data-mo="in"] .mo-wi { animation: mo-word var(--mo-slow) var(--mo-ease) backwards; animation-delay: calc(var(--i, 0) * var(--mo-word)); }
+
+  /* A hairline draws from the start edge (the right in Arabic). */
+  html[data-motion] .mo-line { transform-origin: 0 50%; }
+  html[data-motion]:is([dir="rtl"]) .mo-line { transform-origin: 100% 50%; }
+  html[data-motion] .mo-line[data-mo="hidden"] { transform: scaleX(0); }
+  html[data-motion] .mo-line[data-mo="in"] { animation: mo-draw var(--mo-slow) var(--mo-ease-io) backwards; }
+
+  /* The page's chrome settles in once, on load: translate only, so the first paint is whole (no fade on the LCP). */
+  html[data-motion] [data-mo-chrome="header"] { animation: mo-settle var(--mo-slow) var(--mo-ease) backwards; }
+  html[data-motion] [data-mo-chrome="bar"] { animation: mo-settle-up var(--mo-slow) var(--mo-ease) backwards; }
+
+  /* Hover, press and open/close share one set of timings. */
+  html[data-motion] :is(button, [role="button"], a.mo-press):not(:disabled, [aria-disabled="true"]):active { translate: 0 1px; }
+  html[data-motion] .mo-sheet-scrim { animation: mo-fade var(--mo-base) var(--mo-ease) backwards; }
+  html[data-motion] .mo-sheet-panel { animation: mo-sheet-in var(--mo-base) var(--mo-ease) backwards; }
+  html[data-motion] [data-leaving] > .mo-sheet-scrim { animation: mo-fade-out var(--mo-base) var(--mo-ease) forwards; }
+  html[data-motion] [data-leaving] > .mo-sheet-panel { animation: mo-sheet-out var(--mo-base) var(--mo-ease) forwards; }
+  html[data-motion] .mo-notice:not([data-tone="warning"]) { animation: mo-enter var(--mo-base) var(--mo-ease) backwards; --mo-from: 0 var(--mo-d-s); }
+  html[data-motion] .mo-notice[data-leaving] { animation: mo-leave var(--mo-fast) var(--mo-ease) forwards; }
+
+  /* Loading: a slow sweep, stopped while off screen. */
+  html[data-motion] .mo-skel::after { display: block; animation: mo-sweep var(--mo-ambient) linear infinite; }
+  html[data-motion] .mo-skel[data-mo-off]::after { animation-play-state: paused; }
+
+  /* Parallax and the pin run on scroll timelines where the browser has them. */
+  @supports (animation-timeline: view()) {
+    html[data-motion]:not([data-mo-low]) .mo-parallax { animation: mo-par linear both; animation-timeline: view(); }
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  html[data-motion] .mo-lift { transition: translate var(--mo-base) var(--mo-ease); }
+  html[data-motion] .mo-lift:is(:hover, :focus-within) { translate: 0 calc(var(--mo-d-xs) * -0.5); }
+}
+
+/* Shared timings for what already transitions (links, buttons, fields). Focus rings stay instant. */
+html[data-motion] :is(a, button, summary, [role="button"]) { transition-duration: var(--mo-fast); transition-timing-function: var(--mo-ease); }
+html[data-motion] :is(input, textarea, select) { transition: border-color var(--mo-fast) var(--mo-ease), background-color var(--mo-fast) var(--mo-ease); }
+
+/* The old scroll-tied section ease gives way to Reveal, which plays once. */
+html[data-motion] .reveal { animation: none; }
+
+/* A stage that stays while the page scrolls through it. */
+.mo-pin__stage { display: block; }
+html[data-motion] .mo-pin { view-timeline: --mo-pin block; height: var(--mo-pin-h, 300vh); }
+html[data-motion] .mo-pin__stage { position: sticky; top: 0; height: 100svh; overflow: clip; }
+
+/* ── Route changes ── The page crossfades; the header and the bar stay, and
+   the active-room marker slides. Names exist only while a transition runs
+   (html[data-mo-vt], set by startNav): a name alone makes a stacking context. */
+html[data-motion]::view-transition-old(root), html[data-motion]::view-transition-new(root) { animation-duration: var(--mo-base); animation-timing-function: var(--mo-ease); }
+html[data-mo-vt] [data-mo-chrome="header"] { view-transition-name: mo-header; }
+html[data-mo-vt] [data-mo-chrome="bar"] { view-transition-name: mo-bar; }
+html[data-mo-vt] [data-mo-ind="site"][data-on] { view-transition-name: mo-ind-site; }
+html[data-mo-vt] [data-mo-ind="tab"][data-on] { view-transition-name: mo-ind-tab; }
+html[data-mo-vt] [data-mo-ind="bar"][data-on] { view-transition-name: mo-ind-bar; }
+html[data-motion]::view-transition-group(mo-ind-site), html[data-motion]::view-transition-group(mo-ind-tab), html[data-motion]::view-transition-group(mo-ind-bar) { animation-duration: var(--mo-base); animation-timing-function: var(--mo-ease-io); }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-motion]::view-transition-group(*), html[data-motion]::view-transition-old(*), html[data-motion]::view-transition-new(*) { animation: none !important; }
+  html[data-motion] .mo-pin { height: auto; }
+  html[data-motion] .mo-pin__stage { position: static; height: auto; overflow: visible; }
+}
+
+@media print {
+  html[data-motion] [data-mo="hidden"], html[data-motion] [data-mo="hidden"] > .mo-item, html[data-motion] [data-mo="hidden"] .mo-wi { opacity: 1 !important; translate: none !important; transform: none !important; }
+}

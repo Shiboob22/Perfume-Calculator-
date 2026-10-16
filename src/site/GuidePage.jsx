@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { Link } from "../motion";
 import { COLORS, TYPE } from "../lib/theme";
 import { ChapterMark, Folio } from "./editorial";
 import { useI18n } from "../i18n/I18nProvider";

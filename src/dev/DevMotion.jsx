@@ -6,6 +6,8 @@
 // scene's media rules in place, and the scene is told through window.__cmp.
 import React, { useEffect, useRef, useState } from "react";
 import Compounding from "../site/compounding/Compounding";
+import DevPrimitives from "./DevPrimitives";
+import { motionOn, supportsViewTransitions } from "../motion";
 import { STAGES, stageAt } from "../lib/compounding/config";
 import { gramsAt } from "../lib/compounding/scale";
 import { useI18n } from "../i18n/I18nProvider";
@@ -41,14 +43,38 @@ export default function DevMotion() {
   const [read, setRead] = useState({ p: 0, stage: "afternoon", fps: 0, native: false });
   const [reduce, setReduce] = useState(false);
   const [low, setLow] = useState(false);
+  // ?view=scene is the Compounding; the default is the motion layer's primitives.
+  const [view, setView] = useState(() => (new URLSearchParams(location.search).get("view") === "scene" ? "scene" : "primitives"));
+  const [layer, setLayer] = useState(true);
+  const [page, setPage] = useState({ y: 0, p: 0 });
   const frames = useRef([]);
 
   useEffect(() => {
     window.__cmp = { reduce, low };
+    window.__motion = { reduce, low };
     forceMotion(reduce);
     window.dispatchEvent(new Event("cmp-env"));
+    window.dispatchEvent(new Event("mo-env"));
   }, [reduce, low]);
-  useEffect(() => () => { delete window.__cmp; forceMotion(null); }, []);
+  useEffect(() => () => { delete window.__cmp; delete window.__motion; forceMotion(null); window.dispatchEvent(new Event("mo-env")); }, []);
+
+  // The motion layer on for this page, whatever the flag says; put back on leaving.
+  useEffect(() => {
+    const el = document.documentElement;
+    const was = el.hasAttribute("data-motion");
+    if (layer) el.setAttribute("data-motion", ""); else el.removeAttribute("data-motion");
+    return () => { if (was) el.setAttribute("data-motion", ""); else el.removeAttribute("data-motion"); };
+  }, [layer]);
+
+  useEffect(() => {
+    const read = () => {
+      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      setPage({ y: Math.round(window.scrollY), p: clamp(window.scrollY / max) });
+    };
+    read();
+    window.addEventListener("scroll", read, { passive: true });
+    return () => window.removeEventListener("scroll", read);
+  }, [view]);
 
   useEffect(() => {
     let raf = 0;
@@ -77,6 +103,16 @@ export default function DevMotion() {
   return (
     <div>
       <aside data-dev-motion dir="ltr" className="fixed z-50 bottom-2 right-2 w-[248px] p-3 text-[11px] leading-snug font-mono bg-black/85 text-white" style={{ fontVariantNumeric: "tabular-nums" }}>
+        <div className="flex gap-1 mb-2">
+          {["primitives", "scene"].map((v) => (
+            <button key={v} type="button" onClick={() => setView(v)} aria-pressed={view === v}
+              className={`flex-1 py-1 border border-white/50 ${view === v ? "bg-white/25" : ""}`}>{v}</button>
+          ))}
+        </div>
+        <div className="flex justify-between"><span>page scroll</span><b data-readout="page">{page.p.toFixed(3)} · {page.y}px</b></div>
+        <div className="flex justify-between"><span>layer</span><b data-readout="layer">{layer && motionOn() ? "on" : "off"}</b></div>
+        <div className="flex justify-between"><span>transitions</span><b>{supportsViewTransitions() ? "view transitions" : "fade fallback"}</b></div>
+        {view === "scene" && <>
         <div className="flex justify-between"><span>progress</span><b data-readout="progress">{read.p.toFixed(3)}</b></div>
         <div className="flex justify-between"><span>stage</span><b data-readout="stage">{read.stage}</b></div>
         <div className="flex justify-between"><span>scale</span><b data-readout="grams">{gramsAt(read.p).toFixed(2)} g</b></div>
@@ -90,13 +126,15 @@ export default function DevMotion() {
           <span className="absolute top-[-2px] bottom-[-2px] w-0.5 bg-amber-400" style={{ left: `${read.p * 100}%` }} />
         </div>
         <div className="flex flex-wrap gap-x-2 text-[10px] opacity-80">{STAGES.map((s) => <span key={s.id}>{s.id} {s.from}</span>)}</div>
+        </>}
         <div className="mt-2 grid gap-1">
+          <Switch on={layer} set={setLayer}>motion layer</Switch>
           <Switch on={reduce} set={setReduce}>reduced motion</Switch>
           <Switch on={locale === "ar"} set={(v) => setLocale(v ? "ar" : "en")}>right to left (ar)</Switch>
           <Switch on={low} set={setLow}>low power</Switch>
         </div>
       </aside>
-      <Compounding />
+      {view === "scene" ? <Compounding /> : <DevPrimitives />}
     </div>
   );
 }

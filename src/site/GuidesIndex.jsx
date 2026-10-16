@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Reveal } from "../motion";
 import { COLORS, SHAPE, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { GUIDES, SECTIONS } from "../content/guides";
@@ -80,7 +80,7 @@ export default function GuidesIndex() {
         if (!items.length) return null;
         const first = items[0].source;
         return (
-          <section key={s} aria-labelledby={`guides-${s}`} className="reveal mb-16 pt-8" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+          <Reveal as="section" key={s} aria-labelledby={`guides-${s}`} className="reveal mb-16 pt-8" style={{ borderTop: `1px solid ${COLORS.line}` }}>
             <div className="flex items-baseline gap-4">
               <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-5xl`} style={{ color: COLORS.amberDeep }}>{["I", "II", "III"][part]}</span>
               <h2 id={`guides-${s}`} className={TYPE.title} style={{ color: COLORS.forestDeep }}>{t(`site.guides.sections.${s}`)}</h2>
@@ -89,7 +89,7 @@ export default function GuidesIndex() {
               {t(`site.guides.intro.${s}`, { source: t("site.guides.fromShort", { volume: first.volume, book: t(`site.guides.books.${first.book}`) }) })}
             </p>
             {s === "blending" ? <MethodSequence guides={items} showCalculator /> : <Contents guides={items} />}
-          </section>
+          </Reveal>
         );
       })}
       <Folio><span>{t("brand")}</span><span>{t("site.guides.by")}</span></Folio>

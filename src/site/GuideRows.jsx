@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../motion";
 import { COLORS, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { GUIDES } from "../content/guides";

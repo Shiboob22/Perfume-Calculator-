@@ -12,6 +12,8 @@ import "@fontsource-variable/inter-tight/wght.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./index.css";
+import "./motion/motion.css";
+import { initMotion } from "./motion";
 
 // A sign-in link that lands on a public page (Supabase falls back to the
 // Site URL when /app isn't an allowed redirect) carries its tokens in the
@@ -22,6 +24,7 @@ if (!isAppPath(location.pathname) && /(^|[#&])(access_token|error_description)=/
 
 // ?flag=wardrobe / ?unflag=wardrobe: try a flagged room on this device.
 applyFlagLink(location.search);
+initMotion();
 
 const tree = (
   <React.StrictMode>

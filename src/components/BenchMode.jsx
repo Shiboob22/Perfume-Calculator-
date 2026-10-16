@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "../motion";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";

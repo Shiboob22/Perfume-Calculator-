@@ -23,6 +23,16 @@ export default [
       "no-unused-vars": ["error", { varsIgnorePattern: "^[A-Z_]", args: "none", caughtErrors: "none" }],
     },
   },
+  // Route changes run as View Transitions through the motion layer's wrappers.
+  {
+    files: ["src/**/*.{js,jsx}"],
+    ignores: ["src/motion/**", "src/main.jsx", "src/entry-server.jsx"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        paths: [{ name: "react-router-dom", importNames: ["Link", "useNavigate"], message: "Import Link and useNavigate from src/motion (route changes run as View Transitions)." }],
+      }],
+    },
+  },
   {
     files: ["*.{js,cjs,mjs}", "scripts/**/*.{js,mjs}", "src/**/*.test.{js,jsx}"],
     languageOptions: { globals: { ...globals.node } },

@@ -1,6 +1,7 @@
 import React from "react";
 import { COLORS } from "../../lib/theme";
 import { IconFlameTriangle } from "../icons";
+import { useExit } from "../../motion";
 
 const TONES = {
   info: { border: COLORS.line, bar: COLORS.resin, text: COLORS.ink },
@@ -14,8 +15,10 @@ const TONES = {
 export default function Notice({ tone = "info", title, children, onDismiss, dismissLabel, className = "" }) {
   const c = TONES[tone];
   const warning = tone === "warning";
+  // Dismissing plays a short exit first, then hands over (motion layer only).
+  const { leaving, leave } = useExit(150);
   return (
-    <div role={warning ? "alert" : "status"} className={`flex gap-3 items-start p-4 rounded-none ${className}`}
+    <div role={warning ? "alert" : "status"} data-tone={tone} data-leaving={leaving ? "" : undefined} className={`mo-notice flex gap-3 items-start p-4 rounded-none ${className}`}
       style={{ background: warning ? COLORS.dangerBg : COLORS.card, border: `1px solid ${c.border}`, borderInlineStart: `4px solid ${c.bar}`, color: c.text }}>
       {warning && <IconFlameTriangle size={20} />}
       <div className="flex-1 text-sm leading-relaxed">
@@ -23,7 +26,7 @@ export default function Notice({ tone = "info", title, children, onDismiss, dism
         <div style={{ color: COLORS.inkSoft }}>{children}</div>
       </div>
       {onDismiss && !warning && (
-        <button type="button" onClick={onDismiss} aria-label={dismissLabel}
+        <button type="button" onClick={() => leave(onDismiss)} aria-label={dismissLabel}
           className="min-w-[44px] min-h-[44px] -m-3 inline-flex items-center justify-center text-lg focus-visible:outline-none focus-visible:ring-2" style={{ color: COLORS.ink }}>
           <span aria-hidden="true">×</span>
         </button>

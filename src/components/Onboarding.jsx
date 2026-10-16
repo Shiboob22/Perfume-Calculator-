@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../motion";
 import { COLORS, SHAPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { useProfile } from "../lib/useProfile";

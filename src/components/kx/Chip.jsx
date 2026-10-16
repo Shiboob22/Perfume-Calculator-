@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../../motion";
 import { COLORS } from "../../lib/theme";
 
 // A note, accord, family or tag. One look everywhere (Atlas, Nose, Wardrobe,
