@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio } from "../contrast.js";
-import { STAGES, STAGE_LIGHT, stageAt } from "./config.js";
+import { readFileSync } from "node:fs";
+import { MOTION_SCENE, STAGES, STAGE_LIGHT, stageAt } from "./config.js";
+import { rangeStyle, sceneVars } from "../../site/compounding/motion.jsx";
 import { SCALE_FULL_G, STAGE_SHOWN_GRAMS, gramsAt } from "./scale.js";
 import { KYPHI_INGREDIENTS, roman } from "../../content/kyphi.js";
 import en from "../../i18n/messages/en.js";
@@ -61,5 +63,45 @@ describe("copy and flag", () => {
     expect(FLAGS).toContain("compounding");
     const text = JSON.stringify(en.site.compounding).toLowerCase();
     for (const w of ["revolutionary", "ultimate", "unlock", "elevate"]) expect(text).not.toContain(w);
+  });
+});
+
+describe("motion", () => {
+  const css = readFileSync(new URL("../../index.css", import.meta.url), "utf8");
+  const { ranges, stagger, distance } = MOTION_SCENE;
+
+  it("keeps every range inside its own timeline, staggers included", () => {
+    for (const [name, [a, b]] of Object.entries(ranges)) {
+      expect(a, name).toBeGreaterThanOrEqual(0);
+      expect(b, name).toBeGreaterThan(a);
+      const last = { plate: 3, grain: 15, merge: 15, smoke: 3, wisp: 5 }[name] ?? 0; // index of the last mark in its group
+      const s = (stagger[name] || 0) * last;
+      expect(b + s, `${name} with stagger`).toBeLessThanOrEqual(1.0001);
+    }
+  });
+  it("gives every range a keyframe set the stylesheet defines, and every distance a use", () => {
+    for (const name of Object.keys(ranges)) {
+      expect(css, `.m-${name}`).toContain(`.m-${name} {`);
+      expect(css, `@keyframes cmp-${name}`).toMatch(new RegExp(`@keyframes cmp-${name}\\b`));
+    }
+    for (const name of Object.keys(distance)) expect(css, `--m-${name}`).toContain(`var(--m-${name})`);
+  });
+  it("animates only transform and opacity (the scale's counter is the one number)", () => {
+    const frames = [...css.matchAll(/@keyframes cmp-([a-z]+) \{([^@]*?)\}\s*(?=@keyframes|\n\n|\/\*)/g)];
+    expect(frames.length).toBeGreaterThan(10);
+    for (const [, name, body] of frames) {
+      const props = [...body.matchAll(/([a-z-]+)\s*:/g)].map((m) => m[1]).filter((p) => !p.startsWith("-"));
+      for (const p of props) expect(["opacity", "transform", "--cg"], `${name}: ${p}`).toContain(p);
+    }
+  });
+  it("sets the range and the constants the CSS reads", () => {
+    expect(rangeStyle("plate", 2)).toEqual({ "--a": 0.07, "--b": 0.37 });
+    expect(sceneVars()["--m-plate"]).toBe("28px");
+    expect(sceneVars()["--m-ease"]).toBe(MOTION_SCENE.ease);
+  });
+  it("leaves the first stage's words alone, so the largest paint never fades or moves", () => {
+    const src = readFileSync(new URL("../../site/compounding/Compounding.jsx", import.meta.url), "utf8");
+    const afternoon = src.slice(src.indexOf('<Stage id="afternoon"'), src.indexOf("{/* II"));
+    expect(afternoon).not.toMatch(/kf="(drift|plate|wisp)"/);
   });
 });

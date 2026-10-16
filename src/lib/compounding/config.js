@@ -3,8 +3,8 @@
 // the tests and the debug page read the same numbers.
 //
 // Scroll is time in the room. Progress runs 0 → 1 over the whole scene and the
-// stages divide it. Checkpoint 1 (static composition) uses the stage list and
-// the scale; the motion constants below are filled in at checkpoint 2.
+// stages divide it. The stage list and the scale
+// set the static composition; the motion constants set how it moves.
 
 /** The six stages, in order. `to` is the progress at which the stage ends. */
 export const STAGES = Object.freeze([
@@ -40,10 +40,33 @@ export const SCALE = Object.freeze({
   decimals: 2,
 });
 
-/** Motion (checkpoint 2). Durations in ms are for UI fills, never for the scene itself. */
+/**
+ * Motion. Every mark moves on its own view timeline: 0 is the moment it
+ * touches the bottom edge of the screen, 1 the moment it leaves the top
+ * (CSS `cover`). `RANGES` are [from, to] on that line; `STAGGER` is added per
+ * index inside a group. Distances are px, and only transform and opacity move.
+ * The gauge follows the whole scene instead: 0 when the scene's top meets the
+ * top of the screen, 1 when its foot meets the foot of the screen.
+ * The CSS reads these as custom properties (see motion.jsx), so the numbers
+ * live here and nowhere else.
+ */
 export const MOTION_SCENE = Object.freeze({
   ease: "cubic-bezier(.2,0,0,1)",
-  settle: 0.35, // share of a plate's own span spent settling into place
+  ranges: Object.freeze({
+    parallax: [0.5, 1], // the afternoon bowl lags the page
+    drift: [0.02, 0.3], // a stage's words settle (movement only, never a fade)
+    plate: [0, 0.3], // a catalogue plate arrives
+    grain: [0.08, 0.32], // a grain drops into the bowl
+    merge: [0.06, 0.42], // grains draw together
+    mass: [0.2, 0.58], // and become one amber mass
+    ember: [0.06, 0.3], // the ember takes
+    smoke: [0.12, 0.6], // smoke rises
+    clear: [0.82, 1], // smoke clears
+    wisp: [0, 0.3], // a room comes out of the smoke
+    veil: [0, 0.4], // the handoff's haze lifts
+  }),
+  stagger: Object.freeze({ plate: 0.035, grain: 0.012, merge: 0.006, smoke: 0.05, wisp: 0.035 }),
+  distance: Object.freeze({ plate: 28, drift: 24, parallax: 40, grain: 34, smoke: 70, wisp: 44 }),
 });
 
 /** Progress (0–1) → the stage it falls in. */

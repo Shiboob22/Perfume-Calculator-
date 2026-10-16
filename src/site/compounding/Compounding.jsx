@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Link } from "react-router-dom";
 import { TYPE, COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
@@ -10,11 +10,12 @@ import { KYPHI_INGREDIENTS, roman } from "../../content/kyphi";
 import { benchFigures, BENCH_DEFAULT } from "../benchFigures";
 import LiveBench from "../LiveBench";
 import { IconArrow } from "../../components/icons";
-import { Bowl, Ember, GRAINS, Gauge, SmokeStrokes } from "./parts";
+import { Bowl, Ember, GRAINS, Gauge, LiveGauge, SmokeStrokes } from "./parts";
+import { M, V, sceneVars, useScrollFallback } from "./motion";
 
 const WRAP = "max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14";
 // Content sits clear of the gauge in the margin (the start side, so it mirrors in Arabic).
-const BODY = `${WRAP} ps-12 sm:ps-16 lg:ps-20 relative`;
+const BODY = `${WRAP} ps-14 sm:ps-16 lg:ps-20 relative`;
 
 // The six rooms, in the order of the brief. `flag` rooms are links only when
 // their flag is on (Atlas and Salon are built but not yet open); `lib` is a
@@ -42,9 +43,11 @@ const lightVars = (id) => {
   return l ? { "--st-bg": l.bg, "--st-ink": l.ink, "--st-dim": l.dim, "--st-accent": l.accent, "--st-resin": l.resin, "--st-line": l.line } : {};
 };
 
-function Stage({ id, label, children, className = "", style }) {
+// `overflow-clip`, not `hidden`: hidden makes the stage a scroll container,
+// and the marks inside it would then be timed against it instead of the page.
+function Stage({ id, children, className = "", style, vt }) {
   return (
-    <section data-stage={id} aria-labelledby={`st-${id}`} className={`relative overflow-hidden ${className}`}
+    <section data-stage={id} data-vt={vt ? "" : undefined} aria-labelledby={`st-${id}`} className={`relative overflow-clip ${className}`}
       style={{ background: "var(--st-bg)", color: "var(--st-ink)", ...lightVars(id), ...style }}>
       <Gauge stage={id} />
       <div className={BODY}>{children(`st-${id}`)}</div>
@@ -70,9 +73,12 @@ export default function Compounding() {
   const total = fmt2(benchFigures(BENCH_DEFAULT.size, BENCH_DEFAULT.pct).total);
   const to = (p) => localePath(locale, p);
   const roomHref = (room) => (room.lib ? to(room.href) : room.href);
+  const scene = useRef(null);
+  useScrollFallback(scene);
 
   return (
-    <div data-compounding role="group" aria-label={t("site.compounding.sceneLabel")}>
+    <div ref={scene} data-compounding role="group" aria-label={t("site.compounding.sceneLabel")} style={sceneVars()}>
+      <LiveGauge />
       {/* I · Afternoon, empty room */}
       <Stage id="afternoon" className="py-16 lg:py-24 min-h-[78svh] flex items-center">
         {(h) => (
@@ -88,7 +94,9 @@ export default function Compounding() {
               <p className={`mt-7 measure ${TYPE.lead}`}>{t("site.compounding.afternoon.lead")}</p>
               <p className="mt-6 text-sm" style={{ color: "var(--st-dim)" }}>{t("site.compounding.afternoon.hint")}</p>
             </div>
-            <Bowl fill="empty" className="w-full max-w-[420px] justify-self-center lg:justify-self-end" />
+            <V className="w-full max-w-[420px] justify-self-center lg:justify-self-end">
+              <M kf="parallax"><Bowl fill="empty" className="w-full" /></M>
+            </V>
           </div>
         )}
       </Stage>
@@ -97,25 +105,31 @@ export default function Compounding() {
       <Stage id="sixteen" className="py-16 lg:py-24">
         {(h) => (
           <>
-            <Time>{t("site.compounding.sixteen.time")}</Time>
             <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-8 lg:gap-14 items-end mb-10">
-              <div>
-                <h2 id={h} className={TYPE.title}>{t("site.compounding.sixteen.title")}</h2>
-                <p className="mt-4 font-serif text-lg measure" style={{ color: "var(--st-dim)" }}>{t("site.compounding.sixteen.text")}</p>
-              </div>
-              <Bowl fill="grains" grains={GRAINS} className="w-full max-w-[300px] justify-self-center lg:justify-self-end" />
+              <V>
+                <M kf="drift">
+                  <Time>{t("site.compounding.sixteen.time")}</Time>
+                  <h2 id={h} className={TYPE.title}>{t("site.compounding.sixteen.title")}</h2>
+                  <p className="mt-4 font-serif text-lg measure" style={{ color: "var(--st-dim)" }}>{t("site.compounding.sixteen.text")}</p>
+                </M>
+              </V>
+              <V className="w-full max-w-[300px] justify-self-center lg:justify-self-end">
+                <Bowl fill="grains" grains={GRAINS} className="w-full" />
+              </V>
             </div>
             <ol className="grid grid-cols-2 sm:grid-cols-4 gap-px" style={{ background: "var(--st-line)", border: "1px solid var(--st-line)" }}>
               {KYPHI_INGREDIENTS.map((ing, i) => {
                 const [main, mainLang, other, otherLang] = ar ? [ing.ar, "ar", ing.en, "en"] : [ing.en, "en", ing.ar, "ar"];
                 return (
-                  <li key={ing.id} data-plate className="p-3 sm:p-4 min-h-[112px] flex flex-col justify-between gap-3" style={{ background: "var(--st-bg)" }}>
-                    <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-2xl`} style={{ color: "var(--st-accent)" }}>{roman(i + 1)}</span>
-                    <span className="block">
-                      <span lang={mainLang} className={`block font-serif ${ar ? "text-2xl leading-[1.5]" : "text-xl leading-tight"}`}>{main}</span>
-                      <span lang={otherLang} dir={otherLang === "ar" ? "rtl" : "ltr"} className={`block mt-1 ${otherLang === "ar" ? "font-serif text-base leading-[1.6]" : "text-xs"}`} style={{ color: "var(--st-dim)" }}>{other}</span>
-                    </span>
-                  </li>
+                  <V as="li" key={ing.id} data-plate style={{ background: "var(--st-bg)" }}>
+                    <M kf="plate" i={i % 4} className="p-3 sm:p-4 min-h-[112px] h-full flex flex-col justify-between gap-3">
+                      <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-2xl`} style={{ color: "var(--st-accent)" }}>{roman(i + 1)}</span>
+                      <span className="block">
+                        <span lang={mainLang} className={`block font-serif ${ar ? "text-2xl leading-[1.5]" : "text-xl leading-tight"}`}>{main}</span>
+                        <span lang={otherLang} dir={otherLang === "ar" ? "rtl" : "ltr"} className={`block mt-1 ${otherLang === "ar" ? "font-serif text-base leading-[1.6]" : "text-xs"}`} style={{ color: "var(--st-dim)" }}>{other}</span>
+                      </span>
+                    </M>
+                  </V>
                 );
               })}
             </ol>
@@ -128,12 +142,16 @@ export default function Compounding() {
       <Stage id="pour" className="py-16 lg:py-24">
         {(h) => (
           <div className="grid lg:grid-cols-2 gap-10 items-center">
-            <div>
-              <Time>{t("site.compounding.pour.time")}</Time>
-              <h2 id={h} className={TYPE.title}>{t("site.compounding.pour.title")}</h2>
-              <p className="mt-4 font-serif text-lg measure">{t("site.compounding.pour.text")}</p>
-            </div>
-            <Bowl fill="mass" className="w-full max-w-[460px] justify-self-center" />
+            <V>
+              <M kf="drift">
+                <Time>{t("site.compounding.pour.time")}</Time>
+                <h2 id={h} className={TYPE.title}>{t("site.compounding.pour.title")}</h2>
+                <p className="mt-4 font-serif text-lg measure">{t("site.compounding.pour.text")}</p>
+              </M>
+            </V>
+            <V className="w-full max-w-[460px] justify-self-center">
+              <Bowl fill="pour" grains={GRAINS} className="w-full" />
+            </V>
           </div>
         )}
       </Stage>
@@ -141,23 +159,29 @@ export default function Compounding() {
       {/* IV · Dusk */}
       <Stage id="dusk" className="py-20 lg:py-28 min-h-[56svh] flex items-end">
         {(h) => (
-          <div>
-            <Time>{t("site.compounding.dusk.time")}</Time>
-            <h2 id={h} className={TYPE.title}>{t("site.compounding.dusk.title")}</h2>
-            <p className="mt-4 font-serif text-lg measure" style={{ color: "var(--st-dim)" }}>{t("site.compounding.dusk.text")}</p>
-          </div>
+          <V>
+            <M kf="drift">
+              <Time>{t("site.compounding.dusk.time")}</Time>
+              <h2 id={h} className={TYPE.title}>{t("site.compounding.dusk.title")}</h2>
+              <p className="mt-4 font-serif text-lg measure" style={{ color: "var(--st-dim)" }}>{t("site.compounding.dusk.text")}</p>
+            </M>
+          </V>
         )}
       </Stage>
 
       {/* V · The burn: six rooms inside the smoke */}
-      <Stage id="burn" className="py-16 lg:py-24">
+      <Stage id="burn" vt className="py-16 lg:py-24">
         {(h) => (
           <>
             <SmokeStrokes />
             <div className="relative">
-              <Time>{t("site.compounding.burn.time")}</Time>
-              <h2 id={h} className={TYPE.title}>{t("site.compounding.burn.title")}</h2>
-              <p className="mt-4 font-serif text-lg measure" style={{ color: "var(--st-dim)" }}>{t("site.compounding.burn.text")}</p>
+              <V>
+                <M kf="drift">
+                  <Time>{t("site.compounding.burn.time")}</Time>
+                  <h2 id={h} className={TYPE.title}>{t("site.compounding.burn.title")}</h2>
+                  <p className="mt-4 font-serif text-lg measure" style={{ color: "var(--st-dim)" }}>{t("site.compounding.burn.text")}</p>
+                </M>
+              </V>
               <nav aria-labelledby={h} className="mt-12">
                 <ul className="grid grid-cols-2 lg:grid-cols-6 gap-x-3 gap-y-6 lg:items-start">
                   {ROOMS.map((room, i) => {
@@ -171,14 +195,16 @@ export default function Compounding() {
                     );
                     const shape = { borderRadius: w.r, background: "color-mix(in srgb, var(--st-accent) 14%, transparent)", border: "1px solid color-mix(in srgb, var(--st-accent) 55%, transparent)" };
                     return (
-                      <li key={room.id} data-room={room.id} style={{ "--rise": `${64 - w.rise}px` }} className="lg:[margin-top:var(--rise)]">
+                      <V as="li" key={room.id} data-room={room.id} style={{ "--rise": `${64 - w.rise}px` }} className="lg:[margin-top:var(--rise)]">
+                        <M kf="wisp" i={i}>
                         {open ? (
                           <RoomLink room={room} href={roomHref(room)}
                             className="block px-5 py-7 min-h-[112px] hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2" style={{ ...shape, outlineColor: "var(--st-accent)" }}>{body}</RoomLink>
                         ) : (
                           <div className="block px-5 py-7 min-h-[112px] opacity-80" style={{ ...shape, borderStyle: "dashed" }}>{body}</div>
                         )}
-                      </li>
+                        </M>
+                      </V>
                     );
                   })}
                 </ul>
@@ -190,8 +216,9 @@ export default function Compounding() {
       </Stage>
 
       {/* VI · Handoff: the smoke clears into the live bench */}
-      <section data-stage="handoff" aria-labelledby="st-handoff" className="relative overflow-hidden" style={{ background: COLORS.paper, color: COLORS.ink, ...{ "--st-dim": "var(--c-dim)", "--st-accent": "var(--c-action-text)", "--st-resin": "var(--c-oil)", "--st-line": "var(--c-line)" } }}>
+      <section data-stage="handoff" data-vt="" aria-labelledby="st-handoff" className="relative overflow-clip" style={{ background: COLORS.paper, color: COLORS.ink, ...{ "--st-dim": "var(--c-dim)", "--st-accent": "var(--c-action-text)", "--st-resin": "var(--c-oil)", "--st-line": "var(--c-line)" } }}>
         <Gauge stage="handoff" />
+        <M kf="veil" aria-hidden="true" className="cmp-veil absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(${STAGE_LIGHT.burn.bg}, transparent)` }} />
         <div className={`${BODY} py-16 lg:py-24 grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-center`}>
           <div>
             <Time>{t("site.compounding.handoff.time")}</Time>
