@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { COLORS, SHAPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { tabPath } from "../routes";
@@ -55,12 +55,11 @@ function DueBadge({ count, t }) {
 
 /**
  * @param {{ active: string | null, tabs: string[], dueCount: number, flags: Record<string, boolean>,
- *   onTab: (id: string) => void, onSignOut: () => void }} p
+ *   onSignOut: () => void }} p
  */
-export default function AppNav({ active, tabs, dueCount, flags, onTab, onSignOut }) {
+export default function AppNav({ active, tabs, dueCount, flags, onSignOut }) {
   const { t, locale } = useI18n();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const [open, setOpen] = useState(false);
   const moreRef = useRef(null);
   const all = destinations({ t, locale, flags });
@@ -72,12 +71,8 @@ export default function AppNav({ active, tabs, dueCount, flags, onTab, onSignOut
   // Leaving the page closes the sheet.
   useEffect(() => { setOpen(false); }, [pathname]);
 
-  const go = (d) => {
-    setOpen(false);
-    if (d.href) { window.location.assign(d.href); return; }
-    if (tabs.includes(d.id)) onTab(d.id);
-    else navigate(d.path ?? tabPath(d.id));
-  };
+  // The calculator keeps the address's query (a guide's ?size=…&conc=…).
+  const to = (d) => d.path ?? `${tabPath(d.id)}${d.id === "calculator" ? search : ""}`;
 
   return (
     <>
@@ -91,13 +86,13 @@ export default function AppNav({ active, tabs, dueCount, flags, onTab, onSignOut
               const I = d.icon;
               return (
                 <li key={id} className="flex-1 min-w-[7.5rem]" style={{ borderInlineEnd: `1px solid ${COLORS.line}` }}>
-                  <button type="button" onClick={() => go(d)} aria-current={on ? "page" : undefined}
+                  <Dest d={d} to={to(d)} current={on}
                     className={`w-full min-h-[48px] px-3 inline-flex items-center justify-center gap-2 text-sm whitespace-nowrap transition-colors ${SHAPE.control}`}
                     style={{ background: on ? COLORS.ink : "transparent", color: on ? COLORS.paper : COLORS.inkSoft }}>
                     <I size={18} accent={on ? COLORS.oil : undefined} />
                     <span>{d.label}</span>
                     {id === "batches" && <DueBadge count={dueCount} t={t} />}
-                  </button>
+                  </Dest>
                 </li>
               );
             })}
@@ -111,7 +106,7 @@ export default function AppNav({ active, tabs, dueCount, flags, onTab, onSignOut
         <ul className="grid grid-cols-5">
           {primary.map((d) => (
             <li key={d.id}>
-              <BarButton d={d} on={active === d.id} onClick={() => go(d)}
+              <BarButton d={d} to={to(d)} on={active === d.id}
                 badge={d.id === "batches" ? <DueBadge count={dueCount} t={t} /> : null} />
             </li>
           ))}
@@ -123,20 +118,28 @@ export default function AppNav({ active, tabs, dueCount, flags, onTab, onSignOut
       </nav>
 
       {open && (
-        <MoreSheet items={rest} active={active} onGo={go} onSignOut={onSignOut}
+        <MoreSheet items={rest} active={active} to={to} onGo={() => setOpen(false)} onSignOut={onSignOut}
           onClose={() => { setOpen(false); moreRef.current?.focus(); }} />
       )}
     </>
   );
 }
 
-const BarButton = React.forwardRef(function BarButton({ d, on, current, expanded, onClick, badge }, ref) {
+/** A destination: an in-app Link, or a plain link to the public site. */
+function Dest({ d, to, current, onClick, className, style, children }) {
+  const props = { className, style, onClick, "aria-current": current ? "page" : undefined };
+  return d.href ? <a href={d.href} {...props}>{children}</a> : <Link to={to} {...props}>{children}</Link>;
+}
+
+const BarButton = React.forwardRef(function BarButton({ d, to, on, current, expanded, onClick, badge }, ref) {
   const I = d.icon;
   const isMore = expanded !== undefined;
+  const Tag = isMore ? "button" : Dest;
+  const own = isMore
+    ? { ref, type: "button", onClick, "aria-current": current ? "page" : undefined, "aria-haspopup": "dialog", "aria-expanded": expanded }
+    : { d, to, current: on };
   return (
-    <button ref={ref} type="button" onClick={onClick}
-      aria-current={!isMore && on ? "page" : current ? "page" : undefined}
-      aria-haspopup={isMore ? "dialog" : undefined} aria-expanded={isMore ? expanded : undefined}
+    <Tag {...own}
       className="relative w-full min-h-[60px] pt-2 pb-1.5 flex flex-col items-center justify-center gap-1 text-[11px] leading-none"
       style={{ color: on ? COLORS.ink : COLORS.inkSoft, fontWeight: on ? 600 : 400 }}>
       {/* The room you are in: an ink rule on the bar's top edge and a tinted plate under the icon. */}
@@ -148,11 +151,11 @@ const BarButton = React.forwardRef(function BarButton({ d, on, current, expanded
         {badge && <span className="absolute -top-1 -end-1">{badge}</span>}
       </span>
       <span className="max-w-full truncate px-0.5">{d.label}</span>
-    </button>
+    </Tag>
   );
 });
 
-function MoreSheet({ items, active, onGo, onSignOut, onClose }) {
+function MoreSheet({ items, active, to, onGo, onSignOut, onClose }) {
   const { t } = useI18n();
   const titleId = useId();
   const closeRef = useRef(null);
@@ -185,12 +188,12 @@ function MoreSheet({ items, active, onGo, onSignOut, onClose }) {
             const on = active === d.id;
             return (
               <li key={d.id}>
-                <button type="button" onClick={() => onGo(d)} aria-current={on ? "page" : undefined}
+                <Dest d={d} to={to(d)} current={on} onClick={onGo}
                   className="w-full aspect-[1/0.9] flex flex-col items-center justify-center gap-2 px-1 text-sm text-center"
                   style={{ background: on ? COLORS.mist : COLORS.card, color: COLORS.ink, fontWeight: on ? 600 : 400 }}>
                   <I size={28} />
                   <span className="leading-tight">{d.label}</span>
-                </button>
+                </Dest>
               </li>
             );
           })}

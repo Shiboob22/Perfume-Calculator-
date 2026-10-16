@@ -152,7 +152,7 @@ export default function App() {
         </>} />
       <AppNav active={activeTab ?? tab ?? null} tabs={TABS} dueCount={dueCount}
         flags={{ wardrobe: wardrobeOn, atlas: atlasOn, salon: salonOn, nose: noseOn }}
-        onTab={setActiveTab} onSignOut={() => signOut()} />
+        onSignOut={() => signOut()} />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-4 empty:hidden"><RenameNotice /></div>
       <main className="pb-16">
