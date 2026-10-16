@@ -499,7 +499,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         {MODES.map((m) => (
           <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}
             className="px-3 py-1.5 text-sm border rounded-none min-h-[32px]"
-            style={{ borderColor: mode === m ? COLORS.amber : COLORS.field, color: mode === m ? COLORS.amber : COLORS.inkSoft }}>
+            style={{ borderColor: mode === m ? COLORS.actionText : COLORS.field, color: mode === m ? COLORS.actionText : COLORS.inkSoft }}>
             {t(`calc.modes.tabs.${m}`)}
           </button>
         ))}
@@ -631,7 +631,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                   onClick={() => { setBatchSize(amt); }}
                   className="px-2 py-1 text-[11px] font-mono border transition-opacity"
                   style={{ 
-                    borderColor: Number(batchSize) === amt ? COLORS.amber : COLORS.line,
+                    borderColor: Number(batchSize) === amt ? COLORS.actionText : COLORS.line,
                     color: Number(batchSize) === amt ? COLORS.onAmber : COLORS.ink,
                     backgroundColor: Number(batchSize) === amt ? COLORS.amber : COLORS.cardHi
                   }}
@@ -652,7 +652,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                   aria-pressed={Number(concPct) === c}
                   className="px-3 py-1 text-[11px] font-mono border transition-opacity"
                   style={{ 
-                    borderColor: Number(concPct) === c ? COLORS.amber : COLORS.line,
+                    borderColor: Number(concPct) === c ? COLORS.actionText : COLORS.line,
                     color: Number(concPct) === c ? COLORS.onAmber : COLORS.ink,
                     backgroundColor: Number(concPct) === c ? COLORS.amber : COLORS.cardHi
                   }}
@@ -746,7 +746,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 ? t(result.basis === "volume" ? "calc.actualRatioVolume" : "calc.actualRatioWeight", { oil: fmt2(result.actual.actualPct), ethanol: fmt2(100 - result.actual.actualPct), target: Number(concPct) })
                 : t("calc.actualHint")}
               {result.actual?.fix.material && Math.abs(result.actual.deviation) >= 0.005 && (
-                <span className="block mt-1" style={{ color: COLORS.amber }}>
+                <span className="block mt-1" style={{ color: COLORS.actionText }}>
                   {t(result.actual.fix.material === "oil" ? "calc.fixAddOil" : "calc.fixAddEthanol", { grams: fmt2(result.actual.fix.grams), target: Number(concPct) })}
                 </span>
               )}
@@ -829,7 +829,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             onClick={handleAdvise}
             disabled={!fragName.trim() || tipsLoading}
             className="mt-4 px-4 py-2 text-sm border rounded-none disabled:opacity-50"
-            style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
+            style={{ borderColor: COLORS.amberDeep, color: COLORS.actionText }}
           >
             {tipsLoading ? t("calc.asking") : t("calc.advise")}
           </button>}
@@ -869,7 +869,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             } } })}
             disabled={!(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
             className="w-full mt-5 px-4 py-3 text-sm font-semibold border disabled:opacity-50"
-            style={{ borderColor: COLORS.amber, color: COLORS.amber }}
+            style={{ borderColor: COLORS.actionText, color: COLORS.actionText }}
           >
             {t("bench.start")}
           </button>

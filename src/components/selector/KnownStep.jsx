@@ -42,9 +42,9 @@ export default function KnownStep({ known, onChange }) {
   const remove = (id) => onChange(known.filter((k) => k.profile.id !== id));
 
   const btn = (active) => ({
-    border: `1px solid ${active ? COLORS.amber : COLORS.field}`,
+    border: `1px solid ${active ? COLORS.actionText : COLORS.field}`,
     background: active ? COLORS.sand : "transparent",
-    color: active ? COLORS.amber : COLORS.ink,
+    color: active ? COLORS.actionText : COLORS.ink,
   });
 
   return (

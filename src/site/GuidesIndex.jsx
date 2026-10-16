@@ -66,7 +66,7 @@ export default function GuidesIndex() {
         <div role="group" aria-label={t("site.guides.filter")} className="flex gap-5">
           {["all", ...SECTIONS].map((s) => (
             <button key={s} type="button" aria-pressed={section === s} onClick={() => setSection(s)}
-              className="py-1 min-h-[24px] text-sm border-b-2" style={{ borderColor: section === s ? COLORS.amber : "transparent", color: section === s ? COLORS.forestDeep : COLORS.inkSoft }}>
+              className="py-1 min-h-[24px] text-sm border-b-2" style={{ borderColor: section === s ? COLORS.actionText : "transparent", color: section === s ? COLORS.forestDeep : COLORS.inkSoft }}>
               {t(`site.guides.sections.${s}`)}
             </button>
           ))}

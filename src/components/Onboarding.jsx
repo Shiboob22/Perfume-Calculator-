@@ -55,7 +55,7 @@ export default function Onboarding() {
   const choice = (selected) => ({
     background: selected ? COLORS.amber : COLORS.cardHi,
     color: selected ? COLORS.onAmber : COLORS.ink,
-    border: `1px solid ${selected ? COLORS.amber : COLORS.field}`,
+    border: `1px solid ${selected ? COLORS.actionText : COLORS.field}`,
   });
 
   return (

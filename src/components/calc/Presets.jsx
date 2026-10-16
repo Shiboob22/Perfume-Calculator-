@@ -71,7 +71,7 @@ export default function Presets({ current, onApply }) {
               style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("calc.presets.save")}</button>
           </span>
         ) : (
-          <button type="button" onClick={() => setNaming(true)} className="px-2 py-1 text-[11px] font-mono underline" style={{ color: COLORS.amber }}>
+          <button type="button" onClick={() => setNaming(true)} className="px-2 py-1 text-[11px] font-mono underline" style={{ color: COLORS.actionText }}>
             {t("calc.presets.add")}
           </button>
         )}

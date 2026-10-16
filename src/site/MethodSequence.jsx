@@ -34,7 +34,7 @@ export default function MethodSequence({ guides = METHOD, showCalculator = false
                 <span className="block mt-2 leading-relaxed" style={{ color: COLORS.inkSoft }}>{g[locale].summary}</span>
               </Link>
               {calc && (
-                <a href={calc} className="inline-block mt-3 text-sm underline underline-offset-4 min-h-[24px]" style={{ color: COLORS.amber }}>
+                <a href={calc} className="inline-block mt-3 text-sm underline underline-offset-4 min-h-[24px]" style={{ color: COLORS.actionText }}>
                   {t("site.guides.openCalc")} <span aria-hidden="true" className="inline-block rtl:-scale-x-100">→</span>
                 </a>
               )}

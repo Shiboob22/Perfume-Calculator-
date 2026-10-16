@@ -18,7 +18,7 @@ export default function MeasuredDensity({ value, onChange, referenceDensity }) {
     <div className="mt-4 p-3 rounded-none" style={{ border: `1px solid ${COLORS.line}` }}>
       <p className="text-xs font-semibold mb-1" style={{ color: COLORS.forestDeep }}>{t("calc.measured.title")}</p>
       {value != null ? (
-        <p className="text-xs font-mono mb-2" style={{ color: COLORS.amber }}>
+        <p className="text-xs font-mono mb-2" style={{ color: COLORS.actionText }}>
           {t("calc.measured.using", { density: value })}{" "}
           <button type="button" onClick={() => onChange(null)} className="underline" style={{ color: COLORS.inkSoft }}>
             {t("calc.measured.clear")}

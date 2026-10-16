@@ -58,7 +58,7 @@ export default function Labels() {
               {[...Object.keys(LABEL_SIZES), "custom"].map((k) => (
                 <button key={k} type="button" aria-pressed={sizeKey === k} onClick={() => setSizeKey(k)}
                   className="px-3 py-1.5 text-xs rounded-none border min-h-[28px]"
-                  style={{ borderColor: sizeKey === k ? COLORS.amber : COLORS.field, color: sizeKey === k ? COLORS.amber : COLORS.ink }}>
+                  style={{ borderColor: sizeKey === k ? COLORS.actionText : COLORS.field, color: sizeKey === k ? COLORS.actionText : COLORS.ink }}>
                   {k === "custom" ? t("labels.custom") : t("labels.mm", { w: LABEL_SIZES[k].w, h: LABEL_SIZES[k].h })}
                 </button>
               ))}

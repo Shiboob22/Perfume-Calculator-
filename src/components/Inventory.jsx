@@ -118,7 +118,7 @@ export default function Inventory() {
                   type="button"
                   onClick={() => handleRestock(r.fragrance_id)}
                   className="px-3 py-1.5 text-xs font-semibold rounded-none"
-                  style={{ backgroundColor: COLORS.forest, color: COLORS.onAmber }}
+                  style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}
                 >
                   {t("inventory.addStock")}
                 </button>

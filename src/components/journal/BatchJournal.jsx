@@ -36,7 +36,7 @@ export default function BatchJournal({ batch, canAdd = true, onDone, onRemoved }
               <li key={c.id} className="grid grid-cols-[6.5rem_minmax(0,1fr)_auto] gap-3 py-1.5 border-t first:border-t-0" style={{ borderColor: COLORS.line }}>
                 <span className="font-mono text-xs pt-0.5" style={{ color: COLORS.inkSoft }}>{t("journal.restDay", { day: c.day })}</span>
                 <span>
-                  <span className="block" style={{ color: COLORS.amber }} aria-label={c.rating ? t("journal.ratingValue", { n: c.rating }) : t("journal.noRating")}>
+                  <span className="block" style={{ color: COLORS.actionText }} aria-label={c.rating ? t("journal.ratingValue", { n: c.rating }) : t("journal.noRating")}>
                     {c.rating ? "★".repeat(c.rating) : "–"}
                   </span>
                   {c.note && <bdi dir="auto" className="block" style={{ color: COLORS.ink }}>{c.note}</bdi>}

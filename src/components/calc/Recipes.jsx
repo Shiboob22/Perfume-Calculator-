@@ -102,7 +102,7 @@ export default function Recipes({ current, family, onApply, onLink, initialVersi
           const latest = latestVersion(r);
           const isActive = r.id === active?.recipeId;
           return (
-            <span key={r.id} className="inline-flex items-center border text-[11px] font-mono" style={{ borderColor: isActive ? COLORS.amber : COLORS.line }}>
+            <span key={r.id} className="inline-flex items-center border text-[11px] font-mono" style={{ borderColor: isActive ? COLORS.actionText : COLORS.line }}>
               <button type="button" onClick={() => open(r, latest)} aria-pressed={isActive}
                 aria-label={t("calc.recipes.open", { label: recipeLabel({ name: r.name, version: latest.version }) })}
                 className="px-2 py-1 min-h-[28px]" style={{ color: COLORS.ink }}>
@@ -123,11 +123,11 @@ export default function Recipes({ current, family, onApply, onLink, initialVersi
         })}
         {!mode && (
           <>
-            <button type="button" onClick={() => { setMode("new"); setSaved(""); setError(""); }} className="px-2 py-1 text-[11px] font-mono underline" style={{ color: COLORS.amber }}>
+            <button type="button" onClick={() => { setMode("new"); setSaved(""); setError(""); }} className="px-2 py-1 text-[11px] font-mono underline" style={{ color: COLORS.actionText }}>
               {t("calc.recipes.add")}
             </button>
             {activeRecipe && (
-              <button type="button" onClick={() => { setMode("version"); setSaved(""); setError(""); }} className="px-2 py-1 text-[11px] font-mono underline" style={{ color: COLORS.amber }}>
+              <button type="button" onClick={() => { setMode("version"); setSaved(""); setError(""); }} className="px-2 py-1 text-[11px] font-mono underline" style={{ color: COLORS.actionText }}>
                 {t("calc.recipes.addVersion", { name: activeRecipe.name })}
               </button>
             )}

@@ -127,7 +127,7 @@ export default function AuthGate({ children }) {
                 <button
                   onClick={() => setSentMagicLink(false)}
                   className="text-sm underline"
-                  style={{ color: COLORS.amber }}
+                  style={{ color: COLORS.actionText }}
                 >
                   {t('auth.useDifferent')}
                 </button>
@@ -174,7 +174,7 @@ export default function AuthGate({ children }) {
                     type="submit"
                     disabled={submitting}
                     className={`w-full py-2.5 px-4 text-sm font-semibold transition-colors disabled:opacity-50 ${SHAPE.control}`}
-                    style={{ background: `linear-gradient(180deg,${COLORS.amber},${COLORS.amberDeep})`, color: COLORS.onAmber }}
+                    style={{ background: COLORS.amber, color: COLORS.onAmber }}
                   >
                     {submitting ? t('auth.sendingLink') : t('auth.sendLink')}
                   </button>

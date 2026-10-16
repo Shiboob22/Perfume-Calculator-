@@ -28,7 +28,7 @@ function Strength({ id, label, value, onChange }) {
         {STRENGTHS.map(({ pct, name }) => (
           <button key={pct} type="button" onClick={() => onChange(pct)} aria-pressed={Number(value) === pct}
             className="px-2 py-1 text-[11px] font-mono border"
-            style={{ borderColor: Number(value) === pct ? COLORS.amber : COLORS.line, background: Number(value) === pct ? COLORS.amber : COLORS.cardHi, color: Number(value) === pct ? COLORS.onAmber : COLORS.ink }}>
+            style={{ borderColor: Number(value) === pct ? COLORS.actionText : COLORS.line, background: Number(value) === pct ? COLORS.amber : COLORS.cardHi, color: Number(value) === pct ? COLORS.onAmber : COLORS.ink }}>
             {pct}% {name}
           </button>
         ))}
@@ -46,7 +46,7 @@ function BasisToggle({ value, onChange }) {
       {["volume", "weight"].map((b) => (
         <button key={b} type="button" aria-pressed={value === b} onClick={() => onChange(b)}
           className="px-2 py-1 text-[11px] font-mono border"
-          style={{ borderColor: value === b ? COLORS.amber : COLORS.line, color: value === b ? COLORS.amber : COLORS.ink }}>
+          style={{ borderColor: value === b ? COLORS.actionText : COLORS.line, color: value === b ? COLORS.actionText : COLORS.ink }}>
           {t(`calc.modes.by.${b}`)}
         </button>
       ))}
@@ -86,7 +86,7 @@ export function FromOil({ densities, defaultPct }) {
           <Row label={t("calc.modes.alcohol")} value={`${fmt2(r.shown.ethanolG)} g / ${fmt2(r.shown.ethanolMl)} mL`} />
           <Row label={t("calc.total")} value={`${fmt2(r.shown.totalG)} g / ${fmt2(r.shown.totalMl)} mL`} strong />
           {r.bottles !== null && (
-            <p className="mt-3 text-sm" style={{ color: COLORS.amber }}>
+            <p className="mt-3 text-sm" style={{ color: COLORS.actionText }}>
               {t("calc.modes.fromOil.fills", { count: r.bottles, size: Number(bottleMl), left: fmt2(r.leftoverMl) })}
             </p>
           )}
@@ -172,7 +172,7 @@ export function Run({ densities, defaultPct, defaultBasis = "volume" }) {
         </div>
       ))}
       <button type="button" onClick={() => setLines((ls) => [...ls, { sizeMl: "", count: "1" }])}
-        className="text-[11px] font-mono underline" style={{ color: COLORS.amber }}>{t("calc.modes.run.addLine")}</button>
+        className="text-[11px] font-mono underline" style={{ color: COLORS.actionText }}>{t("calc.modes.run.addLine")}</button>
       <BasisToggle value={basis} onChange={setBasis} />
       <Strength id="d-pct" label={t("calc.modes.strength")} value={pct} onChange={setPct} />
       <Num id="d-over" label={t("calc.modes.run.overfill")} value={overfill} onChange={setOverfill} step="1" />

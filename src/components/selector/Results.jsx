@@ -162,7 +162,7 @@ export default function Results({ answers, known, onEdit, onRestart, onSelectPer
               )}
               {onSelectPerfume && (
                 <button type="button" onClick={() => onSelectPerfume(m.profile.row)} className="mt-4 px-4 min-h-[44px] rounded-none text-sm"
-                  style={{ border: `1px solid ${COLORS.amber}`, color: COLORS.amber }}>{t("selector.results.openCalculator")}</button>
+                  style={{ border: `1px solid ${COLORS.actionText}`, color: COLORS.actionText }}>{t("selector.results.openCalculator")}</button>
               )}
             </li>
           ))}

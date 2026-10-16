@@ -90,7 +90,7 @@ function Stars({ value, size = 16 }) {
   return (
     <span className="relative inline-block leading-none" style={{ fontSize: size, letterSpacing: 2 }} role="img" aria-label={t('search.outOf5', { value })}>
       <span style={{ color: 'rgba(233,200,138,0.22)' }}>★★★★★</span>
-      <span className="absolute inset-0 overflow-hidden whitespace-nowrap" style={{ width: `${pct}%`, color: COLORS.amber }}>★★★★★</span>
+      <span className="absolute inset-0 overflow-hidden whitespace-nowrap" style={{ width: `${pct}%`, color: COLORS.actionText }}>★★★★★</span>
     </span>
   );
 }
@@ -152,7 +152,7 @@ function ClassificationRadar({ radar }) {
         const [x, y] = pt(i, 10);
         return <line key={i} x1={CX} y1={CY} x2={x} y2={y} stroke="rgba(233,200,138,0.10)" />;
       })}
-      <polygon points={fill} fill="rgba(233,200,138,0.18)" stroke={COLORS.amber} strokeWidth="2" />
+      <polygon points={fill} fill="rgba(233,200,138,0.18)" stroke={COLORS.actionText} strokeWidth="2" />
       {verts.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3" fill={COLORS.amber} />)}
       {radar.map((_, i) => {
         const { x, y, anchor } = labelPos(i);
@@ -256,7 +256,7 @@ function SeasonBar({ label, value }) {
   const { t } = useI18n();
   return (
     <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
-      <span aria-hidden="true" style={{ fontSize: 16, color: value >= 70 ? COLORS.amber : COLORS.dim }}>{SEASON_ICON[label]}</span>
+      <span aria-hidden="true" style={{ fontSize: 16, color: value >= 70 ? COLORS.actionText : COLORS.dim }}>{SEASON_ICON[label]}</span>
       <span aria-hidden="true" className="w-full relative overflow-hidden" style={{ maxWidth: 70, height: 90, borderRadius: 9, background: 'rgba(255,255,255,0.04)' }}>
         <span className="absolute bottom-0 left-0 right-0" style={{ height: `${value}%`, background: 'linear-gradient(180deg,#E9C88A,#A5673A)', opacity: 0.35 + value / 160 }} />
       </span>
@@ -606,7 +606,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
               <span className="block font-serif text-[17px] truncate" style={{ color: COLORS.forestDeep }}>{browseTitle}</span>
             </span>
             <button type="button" onClick={() => setBrowse(null)} className="shrink-0 text-sm px-2 py-1 rounded-none min-h-[24px]"
-              style={{ color: COLORS.amber, border: `1px solid ${COLORS.field}` }} aria-label={t('search.clearBrowse')}>
+              style={{ color: COLORS.actionText, border: `1px solid ${COLORS.field}` }} aria-label={t('search.clearBrowse')}>
               {t('search.clear')}
             </button>
           </div>
@@ -625,7 +625,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
               onClick={handleAskGemini}
               disabled={aiLoading}
               className="w-full px-4 py-3 rounded-none text-sm disabled:opacity-50"
-              style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber, background: 'rgba(233,200,138,0.06)' }}
+              style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.actionText, background: 'rgba(233,200,138,0.06)' }}
             >
               {aiLoading ? t('search.askingGemini') : t('search.askGemini', { query: query.trim() })}
             </button>}
@@ -645,7 +645,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
               {hasMore && (
                 <button type="button" onClick={loadMore} disabled={loadingMore}
                   className="w-full px-4 py-3 text-sm disabled:opacity-50"
-                  style={{ color: COLORS.amber, background: 'rgba(233,200,138,0.04)' }}>
+                  style={{ color: COLORS.actionText, background: 'rgba(233,200,138,0.04)' }}>
                   {loadingMore ? t('app.loading') : t('search.showMore')}
                 </button>
               )}
@@ -725,7 +725,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                     <span className="inline-flex items-center gap-2 px-3 py-1 rounded-none" title={t('search.familyTitle')}
                       style={{ border: `1px solid ${COLORS.amberDeep}`, background: 'rgba(233,200,138,0.08)' }}>
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: fam.color }} />
-                      <span className="font-mono text-[11px] tracking-wider uppercase" style={{ color: COLORS.amber }}>{fam.label}</span>
+                      <span className="font-mono text-[11px] tracking-wider uppercase" style={{ color: COLORS.actionText }}>{fam.label}</span>
                     </span>
                   </div>
                   {p.perfumers && p.perfumers.length > 0 && (
@@ -742,7 +742,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   type="button"
                   onClick={() => onSelectPerfume && onSelectPerfume(p)}
                   className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-none font-semibold text-[15px]"
-                  style={{ background: 'linear-gradient(180deg,#E9C88A,#C9A15A)', color: COLORS.onAmber }}
+                  style={{ background: COLORS.amber, color: COLORS.onAmber }}
                 >
                   {t('search.blend')} <span aria-hidden="true" className="rtl:-scale-x-100 inline-block">→</span>
                 </button>
@@ -752,7 +752,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                     onClick={handleAddToInventory}
                     disabled={addingToInventory}
                     className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-none font-semibold text-[15px] disabled:opacity-50"
-                    style={{ background: 'transparent', border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}
+                    style={{ background: 'transparent', border: `1px solid ${COLORS.amberDeep}`, color: COLORS.actionText }}
                   >
                     {addingToInventory ? t('search.adding') : t('search.addToInventory')}
                   </button>
@@ -762,7 +762,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                     onClick={handleSaveEstimate}
                     disabled={savingAi}
                     className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-none font-semibold text-[15px] disabled:opacity-50"
-                    style={{ background: 'transparent', border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}
+                    style={{ background: 'transparent', border: `1px solid ${COLORS.amberDeep}`, color: COLORS.actionText }}
                   >
                     {savingAi ? t('search.saving') : t('search.saveToCatalog')}
                   </button>
@@ -774,12 +774,12 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 </p>
               )}
               {saveMsg && (
-                <p role={saveMsg.ok ? "status" : "alert"} className="text-xs font-mono mt-2" style={{ color: saveMsg.ok ? COLORS.amber : COLORS.danger }}>
+                <p role={saveMsg.ok ? "status" : "alert"} className="text-xs font-mono mt-2" style={{ color: saveMsg.ok ? COLORS.actionText : COLORS.danger }}>
                   {saveMsg.text}
                 </p>
               )}
               {inventoryMsg && (
-                <p role={inventoryMsg.ok ? "status" : "alert"} className="text-xs font-mono mt-2" style={{ color: inventoryMsg.ok ? COLORS.amber : COLORS.danger }}>
+                <p role={inventoryMsg.ok ? "status" : "alert"} className="text-xs font-mono mt-2" style={{ color: inventoryMsg.ok ? COLORS.actionText : COLORS.danger }}>
                   {inventoryMsg.text}
                 </p>
               )}
@@ -871,7 +871,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                         {p.brand && (
                           <button type="button" onClick={() => browseBy('brand', p.brand)}
                             className="shrink-0 text-sm underline underline-offset-4 min-h-[24px]"
-                            style={{ color: COLORS.amber }}>
+                            style={{ color: COLORS.actionText }}>
                             {t('search.seeAll')}
                           </button>
                         )}

@@ -62,7 +62,7 @@ export default function CheckInForm({ batch, scheduledDay = null, onDone, onCanc
               className="peer sr-only" aria-label={t("journal.ratingValue", { n })} />
             <span aria-hidden="true"
               className="flex items-center justify-center w-8 h-8 rounded-none text-lg peer-focus-visible:ring-2"
-              style={{ color: rating != null && n <= rating ? COLORS.amber : COLORS.field }}>★</span>
+              style={{ color: rating != null && n <= rating ? COLORS.actionText : COLORS.field }}>★</span>
           </label>
         ))}
       </fieldset>

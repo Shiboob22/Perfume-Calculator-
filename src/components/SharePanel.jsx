@@ -85,7 +85,7 @@ export default function SharePanel({ batch, onShared, onStatus }) {
 
       {live && (
         <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-mono">
-          <a href={url} target="_blank" rel="noopener" dir="ltr" className="underline break-all" style={{ color: COLORS.amber }}>{url}</a>
+          <a href={url} target="_blank" rel="noopener" dir="ltr" className="underline break-all" style={{ color: COLORS.actionText }}>{url}</a>
           <button type="button" onClick={copy} className="underline min-h-[24px]" style={{ color: COLORS.forest }}>
             {typeof navigator !== "undefined" && navigator.share ? t("share.native") : t("share.copy")}
           </button>

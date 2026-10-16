@@ -5,10 +5,12 @@
 // holds var() references and every component re-colours with the theme.
 // Canvas code can't read CSS variables: use PALETTES.light / .dark directly.
 //
-// Roles: `amber` is the primary action (forest on paper, amber on the dark
-// ground) and `onAmber` the text on it; `oil` is the one decorative accent
-// (fills only — `brass` is its text-safe shade). The legacy keys (forest /
-// forestDeep / brass) stay as aliases so older references still resolve.
+// Roles: one accent, resin amber (design brief 2026-10-16). `amber` is the
+// primary action's fill and `onAmber` the text on it; `actionText` is the
+// accent wherever it is type, a border or a focus ring (the fill itself is too
+// light for text on paper). `oil` is the liquid in drawings; verdigris marks
+// "rested / ready", ember warnings. The legacy keys (forest / forestDeep /
+// brass) stay as aliases so older references still resolve.
 const light = {
   paper: "#F6F2EA",      // page
   ink1: "#EEE8DC",       // alternate band (sand)
@@ -20,11 +22,12 @@ const light = {
   inkSoft: "#3A352D",    // body
   dim: "#5A544A",        // labels (≥4.5:1 on paper, card and sand)
 
-  amber: "#1F4A36",      // primary action (forest)
+  amber: "#C8893A",      // primary action fill (resin)
+  actionText: "#7A581B", // the accent as type, borders, focus (≥4.5:1 on paper)
   amberDeep: "#7A581B",  // oil, text-safe (≥4.5:1 on paper)
   ember: "#B3361A",        // warnings, incl. the ethanol notice
-  onAmber: "#F6F2EA",    // text on the action fill
-  actionHover: "#163828",
+  onAmber: "#100E0A",    // text on the action fill (ink on resin, 6.5:1)
+  actionHover: "#B47A2F",
 
   oil: "#C99A45",        // the single accent (fills: liquid, bars)
   mist: "#E4EBE5",       // ethanol
@@ -33,7 +36,7 @@ const light = {
 
   line: "#D9D1C2",       // hairlines (decorative)
   field: "#8C8475",      // form-control borders (≥3:1, WCAG 1.4.11)
-  focus: "#1F4A36",
+  focus: "#7A581B",
   hair: "rgba(16,14,10,0.10)",
 
   danger: "#9B2C1F",
@@ -49,7 +52,7 @@ const light = {
   verdigris: "#5E8C7A",    // rested / ready (copper patina)
   verdigrisText: "#2F5E4D",
 
-  forest: "#1F4A36",
+  forest: "#7A581B",     // legacy alias: the accent as type
   forestDeep: "#100E0A",
   brass: "#7A581B",
 };
@@ -66,6 +69,7 @@ const dark = {
   dim: "#918568",
 
   amber: "#C8893A",      // resin: primary action
+  actionText: "#C8893A",
   amberDeep: "#C9A15A",
   ember: "#E26A4F",      // warnings, incl. the ethanol notice
   onAmber: "#100E0A",

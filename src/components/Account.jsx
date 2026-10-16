@@ -66,7 +66,7 @@ export default function Account({ user }) {
             ? t("account.plan.unlimited", { used: entitlements.batchesUsed })
             : t("account.plan.usage", { used: entitlements.batchesUsed, cap: entitlements.batchCap })}
         </p>
-        <a href={locale === "ar" ? "/ar/pricing" : "/pricing"} className="inline-block text-sm underline mt-3" style={{ color: COLORS.amber }}>{t("account.plan.seePricing")}</a>
+        <a href={locale === "ar" ? "/ar/pricing" : "/pricing"} className="inline-block text-sm underline mt-3" style={{ color: COLORS.actionText }}>{t("account.plan.seePricing")}</a>
       </Section>
 
       {entitlements.plan !== "pro" && <Waitlist />}
@@ -110,7 +110,7 @@ function Waitlist() {
     <Section id="pro" title={t("account.waitlist.title")}>
       <p className="text-sm mb-4" style={{ color: COLORS.inkSoft }}>{t("account.waitlist.lead")}</p>
       {joined
-        ? <p role="status" className="text-sm font-semibold" style={{ color: COLORS.amber }}>✓ {t("account.waitlist.joined")}</p>
+        ? <p role="status" className="text-sm font-semibold" style={{ color: COLORS.actionText }}>✓ {t("account.waitlist.joined")}</p>
         : <button type="button" disabled={busy || joined === null} onClick={join}
             className="px-5 py-2 rounded-none text-sm font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
             {t("account.waitlist.join")}
@@ -238,7 +238,7 @@ function DeleteAccount({ email }) {
           className="mt-1 w-full px-3 py-2 rounded-none font-mono" style={inputStyle} />
       </label>
       <button type="submit" disabled={!matches || busy}
-        className="px-5 py-2 rounded-none text-sm font-semibold disabled:opacity-40" style={{ background: COLORS.danger, color: COLORS.onAmber }}>
+        className="px-5 py-2 rounded-none text-sm font-semibold disabled:opacity-40" style={{ background: COLORS.danger, color: COLORS.paper }}>
         {busy ? t("account.delete.working") : t("account.delete.button")}
       </button>
       {error && <p role="alert" className="text-sm mt-3" style={{ color: COLORS.danger }}>{error}</p>}

@@ -13,11 +13,11 @@ const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi"
 // Badge colours for the handbook's evidence labels. The label text is always
 // the handbook's own; the tone grouping is a proposal pending the author.
 const TONE = {
-  scientific: "#8FB08C",
-  plausible: COLORS.amber,
+  scientific: COLORS.verdigrisText,
+  plausible: COLORS.actionText,
   anecdotal: COLORS.inkSoft,
   myth: COLORS.danger,
-  practice: "#C9B79A",
+  practice: COLORS.dim,
 };
 
 const CALLOUT = {
@@ -55,7 +55,7 @@ function Block({ block, rule }) {
         {block.steps.map((s, i) => (
           <li key={s.title} id={s.id} className="flex gap-4 scroll-mt-6">
             <span className="shrink-0 w-8 h-8 rounded-none grid place-items-center font-mono text-sm"
-              style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}>{i + 1}</span>
+              style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.actionText }}>{i + 1}</span>
             <span>
               <span className="block font-semibold" style={{ color: COLORS.forestDeep }}>{s.title}</span>
               <span className="block mt-1 leading-relaxed" style={{ color: COLORS.ink }}>{s.text}</span>
@@ -182,7 +182,7 @@ export default function GuidePage() {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-10">
         <p style={{ color: COLORS.inkSoft }}>{t("site.guides.notFound")}</p>
-        <Link to={to("/library")} className="underline" style={{ color: COLORS.amber }}>{t("site.guides.all")}</Link>
+        <Link to={to("/library")} className="underline" style={{ color: COLORS.actionText }}>{t("site.guides.all")}</Link>
       </div>
     );
   }

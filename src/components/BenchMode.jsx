@@ -68,7 +68,7 @@ function Rules({ step }) {
           <span className="font-semibold me-2" style={{ color: COLORS.amberDeep }}>{t("bench.rule", { n })}</span>
           {t(`bench.rules.${n}`)}{" "}
           {/* A new tab: leaving would end the bench run on this screen. */}
-          <a href={`${guide}#rule-${n}`} target="_blank" rel="noopener noreferrer" className="underline text-xs" style={{ color: COLORS.amber }}>
+          <a href={`${guide}#rule-${n}`} target="_blank" rel="noopener noreferrer" className="underline text-xs" style={{ color: COLORS.actionText }}>
             {t("bench.readRule")}<span className="sr-only"> {t("bench.newTab")}</span>
           </a>
         </li>
@@ -161,7 +161,7 @@ export default function BenchMode() {
     return (
       <div className="max-w-xl mx-auto p-6">
         <p style={{ color: COLORS.inkSoft }}>{t("bench.noPlan")}</p>
-        <button type="button" onClick={() => navigate("/bench")} className="mt-4 underline" style={{ color: COLORS.amber }}>{t("app.tabs.calculator")}</button>
+        <button type="button" onClick={() => navigate("/bench")} className="mt-4 underline" style={{ color: COLORS.actionText }}>{t("app.tabs.calculator")}</button>
       </div>
     );
   }
@@ -262,7 +262,7 @@ export default function BenchMode() {
           <>
             <Big label={t("bench.alcohol.target")} grams={fmt2(alcoholTarget)} />
             {actualOil && Math.abs(actualOil - target.exact.oilG) >= 0.005 && (
-              <p className="text-sm mb-3" style={{ color: COLORS.amber }}>{t("bench.alcohol.adjusted", { oil: fmt2(actualOil), pct })}</p>
+              <p className="text-sm mb-3" style={{ color: COLORS.actionText }}>{t("bench.alcohol.adjusted", { oil: fmt2(actualOil), pct })}</p>
             )}
             <p className="leading-relaxed">{t("bench.alcohol.text")}</p>
             <Scale label={t("bench.scale.alcohol")} value={alcoholG} target={alcoholTarget} />
@@ -272,7 +272,7 @@ export default function BenchMode() {
               <p className="mt-3 text-sm">
                 {t("bench.alcohol.made", { pct: fmt2(pour.actualPct), basis: t(`calc.modes.by.${pour.basis}`).toLowerCase() })}
                 {pour.fix.material && Math.abs(pour.deviation) >= 0.005 && (
-                  <span className="block mt-1" style={{ color: COLORS.amber }}>
+                  <span className="block mt-1" style={{ color: COLORS.actionText }}>
                     {t("bench.alcohol.fix", { target: pct, grams: fmt2(pour.fix.grams), material: t(`bench.alcohol.material.${pour.fix.material}`) })}
                   </span>
                 )}
@@ -286,7 +286,7 @@ export default function BenchMode() {
           <>
             <p className="mt-6 text-lg leading-relaxed">{t("bench.mix.text")}</p>
             <button type="button" onClick={() => setTimer(60)} className="mt-6 w-full py-4 rounded-none font-mono text-2xl"
-              style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.amber }}>
+              style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.actionText }}>
               {timer === null ? t("bench.mix.timer") : timer > 0 ? t("bench.mix.running", { s: timer }) : t("bench.mix.done")}
             </button>
             {/* Announce the start and the end, not every second. */}
@@ -334,7 +334,7 @@ export default function BenchMode() {
               className="mt-6 w-full py-4 rounded-none text-lg font-semibold disabled:opacity-60" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
               {status === "saving" ? t("bench.label.saving") : t("bench.label.log")}
             </button>
-            <p className="mt-3 text-sm" role="status" style={{ color: status === "error" ? COLORS.danger : COLORS.amber }}>
+            <p className="mt-3 text-sm" role="status" style={{ color: status === "error" ? COLORS.danger : COLORS.actionText }}>
               {status === "saved" && t("bench.label.saved")}
               {status === "queued" && t("bench.label.queued")}
               {status === "error" && t("bench.label.failed", { error })}
@@ -353,7 +353,7 @@ export default function BenchMode() {
                     {t("bench.after.label")}
                   </button>
                 )}
-                <button type="button" onClick={startAnother} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.amber, color: COLORS.amber }}>
+                <button type="button" onClick={startAnother} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.actionText, color: COLORS.actionText }}>
                   {t("bench.label.again")}
                 </button>
                 <button type="button" onClick={() => navigate("/bench")} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>

@@ -37,7 +37,7 @@ export default function Source({ id }) {
         <span id={noteId} role="note" className="fixed z-50 inset-x-4 bottom-24 p-3 rounded-none text-xs leading-relaxed block not-italic font-sans shadow-2xl sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-5 sm:start-0 sm:w-72"
           style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}`, color: COLORS.ink }}>
           {note.text}
-          {href && <a href={href} className="block mt-2 underline" style={{ color: COLORS.amber }}>{t("calc.sources.read")}</a>}
+          {href && <a href={href} className="block mt-2 underline" style={{ color: COLORS.actionText }}>{t("calc.sources.read")}</a>}
         </span>
       )}
     </span>

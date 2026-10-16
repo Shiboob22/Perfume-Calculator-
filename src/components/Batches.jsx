@@ -48,7 +48,7 @@ function BatchTiming({ batch }) {
           <span style={{ color: COLORS.inkSoft }}>{t("batches.bestFrom")} </span>
           <span style={{ color: COLORS.ink }}>{formatExact(ready, locale)}</span>
           {countdown && (
-            <span className="ms-2" style={{ color: isReady ? COLORS.forest : COLORS.amberDeep }}>({t(`batches.countdown.${countdown.key}`, { count: countdown.count })})</span>
+            <span className="ms-2" style={{ color: isReady ? COLORS.verdigrisText : COLORS.amberDeep }}>({t(`batches.countdown.${countdown.key}`, { count: countdown.count })})</span>
           )}
         </div>
       )}
@@ -77,7 +77,7 @@ function BatchList({ batches, selectedId, onSelect }) {
                 className="w-full grid grid-cols-[36px_minmax(0,1fr)_auto] gap-3 items-center px-4 py-3 text-start min-h-[60px]"
                 style={{ background: on ? COLORS.sand : "transparent", borderInlineStart: `3px solid ${on ? COLORS.forest : "transparent"}` }}>
                 <span className="inline-flex items-center justify-center w-9 h-9" style={{ border: `1px solid ${COLORS.ink}`, background: COLORS.card }}>
-                  {tl?.ready ? <IconSeal size={22} accent={COLORS.forest} /> : <IconHourglass size={22} />}
+                  {tl?.ready ? <IconSeal size={22} accent={COLORS.verdigris} /> : <IconHourglass size={22} />}
                 </span>
                 <span className="min-w-0">
                   <span className="block truncate font-medium">{b.fragrance_name}</span>
@@ -87,7 +87,7 @@ function BatchList({ batches, selectedId, onSelect }) {
                 </span>
                 <span className="text-end">
                   {tl && <span dir="ltr" className="block font-mono text-xs">{tl.target ? t("journal.dayOf", { day: tl.day, target: tl.target }) : t("journal.dayOnly", { day: tl.day })}</span>}
-                  <span className="block text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: tl?.ready ? COLORS.forest : COLORS.dim }}>
+                  <span className="block text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: tl?.ready ? COLORS.verdigrisText : COLORS.dim }}>
                     {t(tl?.ready ? "journal.ready" : "journal.resting")}
                   </span>
                 </span>
@@ -372,7 +372,7 @@ export default function Batches() {
               onClick={handleInsights}
               disabled={insightsLoading}
               className="px-3 py-1.5 text-sm border rounded-none disabled:opacity-50"
-              style={{ borderColor: COLORS.amberDeep, color: COLORS.amber }}
+              style={{ borderColor: COLORS.amberDeep, color: COLORS.actionText }}
             >
               {insightsLoading ? t("batches.thinking") : t("batches.insights")}
             </button>}
