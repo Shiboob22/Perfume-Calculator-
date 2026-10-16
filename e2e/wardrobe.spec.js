@@ -73,6 +73,10 @@ test("?flag=wardrobe turns the room on for this device, and ?unflag turns it off
   await signIn(page);
   await fakeApi(page);
   await page.goto("/bench?flag=wardrobe");
+  // On phones the Wardrobe sits behind More on the bottom bar.
+  await expect(page.getByRole("link", { name: en.site.nav.calculator }).first()).toBeVisible();
+  const more = page.getByRole("button", { name: en.app.more });
+  if (await more.isVisible()) await more.click();
   await expect(page.getByRole("link", { name: en.site.nav.wardrobe })).toBeVisible();
   await page.getByRole("link", { name: en.site.nav.wardrobe }).click();
   await expect(page.getByRole("heading", { level: 1, name: en.wardrobe.title })).toBeVisible();

@@ -232,7 +232,8 @@ test("a profile page follows and reports, and a missing profile says so", async 
   await expect(page.getByText("Blender.")).toBeVisible();
   await page.getByRole("button", { name: en.salon.profile.follow, exact: true }).click();
   await expect(page.getByRole("button", { name: en.salon.profile.unfollow })).toHaveAttribute("aria-pressed", "true");
-  expect(seen.follows.at(-1)).toMatchObject({ followee_id: OTHER });
+  // The button turns before the request lands; wait for it rather than race it.
+  await expect.poll(() => seen.follows.at(-1)).toMatchObject({ followee_id: OTHER });
   expect(seen.feed.at(-1)).toMatchObject({ p_handle: "ada_p" });
   await page.getByRole("button", { name: en.salon.profile.report }).click();
   await page.getByRole("button", { name: en.salon.post.reportSend }).click();

@@ -51,6 +51,7 @@ test("with every flag on, each room opens from the nav", async ({ page }) => {
   await signIn(page);
   await fakeApi(page);
   await page.goto("/bench");
+  await expect(page.getByRole("link", { name: en.site.nav.calculator }).first()).toBeVisible();
   for (const room of ROOMS) {
     // Phones show four rooms on the bottom bar; the rest are behind More.
     const link = page.getByRole("link", { name: en.site.nav[room.nav], exact: true }).first();
