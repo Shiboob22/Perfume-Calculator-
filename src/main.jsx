@@ -5,12 +5,10 @@ import { inject } from "@vercel/analytics";
 import Root from "./Root";
 import { isAppPath } from "./routes";
 import { applyFlagLink } from "./lib/flags";
-// Newsreader (display and voice; optical-size axis), Hanken Grotesk (interface), IBM Plex Mono (numbers).
+// Newsreader (display and voice; optical-size axis), Hanken Grotesk (interface), figures are Hanken with tabular numerals.
 import "@fontsource-variable/newsreader/opsz.css";
 import "@fontsource-variable/newsreader/opsz-italic.css";
 import "@fontsource-variable/hanken-grotesk/wght.css";
-import "@fontsource/ibm-plex-mono/latin-400.css";
-import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./index.css";
 
 // A sign-in link that lands on a public page (Supabase falls back to the

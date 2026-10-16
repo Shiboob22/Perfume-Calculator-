@@ -23,7 +23,9 @@ export default {
       fontFamily: {
         serif: ["'Newsreader Variable'", "'Noto Naskh Arabic Variable'", "Georgia", ...ARABIC_SYSTEM, "serif"],
         sans: ["'Hanken Grotesk Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
-        mono: ["'IBM Plex Mono'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "ui-monospace", "monospace"],
+        // The board has no monospace: figures are Hanken Grotesk with tabular numerals
+        // (`.font-mono` in index.css switches them on), so columns of grams still line up.
+        mono: ["'Hanken Grotesk Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
       },
     },
   },
