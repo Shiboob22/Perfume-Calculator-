@@ -21,6 +21,7 @@ async function shoot(page, room, name) {
 }
 
 test.describe("Homepage (Compounding)", () => {
+  // eslint-disable-next-line no-unused-vars -- Playwright needs a destructured first argument
   test.beforeEach(({ page }, testInfo) => { test.skip(testInfo.project.name !== "desktop", "viewport set per test"); });
   for (const [vname, size] of VIEWS) {
     for (const [lang, path, m] of [["en", "/", en], ["ar", "/ar", ar]]) {
