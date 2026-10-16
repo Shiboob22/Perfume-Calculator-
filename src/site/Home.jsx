@@ -7,6 +7,8 @@ import LiveBench from "./LiveBench";
 import SmokeField from "../components/kx/SmokeField";
 import { GuideRows } from "./GuideRows";
 import { Folio } from "./editorial";
+import Compounding from "./compounding/Compounding";
+import { useCompounding } from "./compounding/useCompounding";
 import { IconArrow, IconBook, IconFlacon, IconPlus, IconScaleDrop, IconSeal, IconSteps, IconTile } from "../components/icons";
 
 const PRINCIPLE_ICONS = [IconScaleDrop, IconSteps, IconFlacon];
@@ -22,10 +24,12 @@ export default function Home() {
   const hero = t.raw("site.home.hero") || [];
   const benefits = t.raw("site.home.benefits") || [];
   const faq = t.raw("site.home.faq") || [];
+  const compounding = useCompounding();
 
   return (
     <div>
-      {/* Hero */}
+      {/* Hero: the scroll scene when its flag is on, else the bench hero */}
+      {compounding ? <Compounding /> : (
       <div className="relative overflow-hidden">
       <SmokeField className="absolute inset-0 w-full h-full" />
       <section className={`${WRAP} relative grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-center pt-12 pb-20`}>
@@ -51,6 +55,7 @@ export default function Home() {
         <LiveBench />
       </section>
       </div>
+      )}
 
       {/* Three principles */}
       <section className="reveal" style={{ borderBlock: `1px solid ${COLORS.line}`, background: COLORS.card }}>
