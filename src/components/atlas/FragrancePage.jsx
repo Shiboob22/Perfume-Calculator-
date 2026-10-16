@@ -9,7 +9,7 @@ import { localDay } from "../../lib/wardrobe/day";
 import { bottleRow } from "../../lib/wardrobe/validate";
 import { entityHref, termName } from "../../lib/atlas/entities";
 import Button from "../kx/Button";
-import { Chip } from "../wardrobe/ui";
+import Chip from "../kx/Chip";
 import Pyramid from "./Pyramid";
 import { ResultRow } from "./ResultList";
 
@@ -81,7 +81,7 @@ export default function FragrancePage({ id, terms }) {
           <p className="text-xs mb-2" style={{ color: COLORS.dim }}>{t("atlas.fragrance.accordsLead")}</p>
           <ol className="flex flex-wrap gap-2 list-none p-0 m-0">
             {f.accords.map((a) => (
-              <li key={a}><Link to={entityHref("accord", a)} className="inline-flex items-center min-h-[44px] px-3 border text-sm" style={{ borderColor: COLORS.line, color: COLORS.ink }}>{termName(terms, "accord", a.toLowerCase(), locale, a)}</Link></li>
+              <li key={a}><Chip to={entityHref("accord", a)}>{termName(terms, "accord", a.toLowerCase(), locale, a)}</Chip></li>
             ))}
           </ol>
         </section>

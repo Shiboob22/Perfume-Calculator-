@@ -1,24 +1,18 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { fragranceHref } from "../../lib/atlas/entities";
 import { pageCount } from "../../lib/atlas/filters";
 import Button from "../kx/Button";
-import { Chip } from "../wardrobe/ui";
+import FragranceCard from "../kx/FragranceCard";
 
 // Search results (also used for an entity's fragrances): a link, a line of
 // facts, the first accords, and previous/next.
 export function ResultRow({ f }) {
   const { t } = useI18n();
   return (
-    <li className="p-4" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
-      <Link to={fragranceHref(f.id)} className="font-serif text-lg underline-offset-4 hover:underline" style={{ color: COLORS.ink }}>{f.name}</Link>
-      <p className="text-sm mt-1" style={{ color: COLORS.inkSoft }}>
-        {[f.brand, f.year ? String(f.year) : null, f.tier ? t(`families.${f.tier}.label`) : null].filter(Boolean).join(" · ")}
-      </p>
-      {f.accords?.length > 0 && <div className="flex flex-wrap gap-2 mt-2">{f.accords.slice(0, 3).map((a) => <Chip key={a}>{a}</Chip>)}</div>}
-    </li>
+    <FragranceCard name={f.name} href={fragranceHref(f.id)} accords={(f.accords ?? []).slice(0, 3)}
+      facts={[f.brand, f.year ? String(f.year) : null, f.tier ? t(`families.${f.tier}.label`) : null]} />
   );
 }
 

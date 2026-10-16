@@ -24,6 +24,5 @@ export function Heading({ children, as: Tag = "h2" }) {
   return <Tag className="font-serif italic text-2xl mb-3" style={{ color: COLORS.ink }}>{children}</Tag>;
 }
 
-export function Chip({ children }) {
-  return <span className="inline-block px-2 py-0.5 text-xs border" style={{ borderColor: COLORS.line, color: COLORS.inkSoft }}>{children}</span>;
-}
+// The shared chip lives in kx; re-exported for the rooms that import it here.
+export { default as Chip } from "../kx/Chip";
