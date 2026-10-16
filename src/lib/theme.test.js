@@ -29,3 +29,13 @@ describe("theme", () => {
     });
   }
 });
+
+describe("motion tokens (Kyphira board)", async () => {
+  const { MOTION } = await import("./theme.js");
+  it("uses the board's durations and two eases", () => {
+    expect([MOTION.fast, MOTION.base, MOTION.slow]).toEqual([150, 250, 600]);
+    expect(MOTION.ambient).toBeGreaterThanOrEqual(2000);
+    expect(MOTION.easeOut).toBe("cubic-bezier(.22,1,.36,1)");
+    expect(MOTION.easeInOut).toBe("cubic-bezier(.65,0,.35,1)");
+  });
+});

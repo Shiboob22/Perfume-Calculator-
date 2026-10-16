@@ -52,7 +52,7 @@ export default function KnownStep({ known, onChange }) {
       <p className="mb-4 text-[15px]" style={{ color: COLORS.inkSoft }}>{t("selector.known.lede")}</p>
       <label htmlFor="selector-known-search" className="block text-sm mb-1" style={{ color: COLORS.ink }}>{t("selector.known.search")}</label>
       <input id="selector-known-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off"
-        aria-describedby="selector-known-hint" className="w-full px-3 py-3 rounded-none text-base min-h-[48px]"
+        aria-describedby="selector-known-hint" className="w-full px-3 py-3 rounded text-base min-h-[48px]"
         style={{ background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` }} />
       <p id="selector-known-hint" className="mt-1 text-xs" style={{ color: COLORS.dim }}>{t("selector.known.searchHint")}</p>
 
@@ -77,7 +77,7 @@ export default function KnownStep({ known, onChange }) {
                   <div className="flex gap-2" role="group" aria-label={row.name}>
                     {STATUSES.map((s) => (
                       <button key={s} type="button" aria-pressed={current === s} onClick={() => pick(row, s)}
-                        className="px-3 text-sm min-h-[44px] rounded-none" style={btn(current === s)}>{t(`selector.known.${s}`)}</button>
+                        className="px-3 text-sm min-h-[44px] rounded" style={btn(current === s)}>{t(`selector.known.${s}`)}</button>
                     ))}
                   </div>
                 )}

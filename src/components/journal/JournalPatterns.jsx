@@ -23,7 +23,7 @@ export default function JournalPatterns({ version }) {
   if (!patterns.length && !ready.length) return null;
 
   return (
-    <section aria-labelledby="journal-patterns-title" className="mb-6 p-4 border rounded-none" style={{ borderColor: COLORS.line, backgroundColor: COLORS.card }}>
+    <section aria-labelledby="journal-patterns-title" className="mb-6 p-4 border rounded" style={{ borderColor: COLORS.line, backgroundColor: COLORS.card }}>
       <h3 id="journal-patterns-title" className="text-sm font-semibold" style={{ color: COLORS.forestDeep }}>{t("journal.pattern.title")}</h3>
       {patterns.length > 0 && (
         <>

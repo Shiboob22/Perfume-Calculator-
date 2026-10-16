@@ -18,6 +18,8 @@ export default {
       // Focus rings in the palette's focus colour, fully opaque (WCAG 1.4.11).
       ringColor: { DEFAULT: COLORS.focus },
       ringOpacity: { DEFAULT: "1" },
+      // Kyphira board: 2 px corners everywhere (circles only for the ember and avatars).
+      borderRadius: { DEFAULT: "2px" },
       fontFamily: {
         serif: ["'Newsreader Variable'", "'Noto Naskh Arabic Variable'", "Georgia", ...ARABIC_SYSTEM, "serif"],
         sans: ["'Hanken Grotesk Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],

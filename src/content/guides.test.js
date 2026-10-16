@@ -20,7 +20,7 @@ describe("guides", () => {
 
   it("reproduce the handbook's Quick Reference from the formula", () => {
     // Half-up to 0.01 on the decimal value (4.275 -> 4.28, never 4.27), and
-    // the total is the sum of the two rounded-none pours, as the handbook prints it.
+    // the total is the sum of the two rounded pours, as the handbook prints it.
     const r2 = (x) => Math.round(Number(x.toPrecision(12)) * 100 + 1e-9) / 100;
     const rows = GUIDES.find((g) => g.slug === "the-calculation").en.body
       .find((b) => b.table?.head?.[0] === "Bottle").table.rows;

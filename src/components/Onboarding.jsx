@@ -104,7 +104,7 @@ export default function Onboarding() {
               <label className="block mt-4 text-sm" style={{ color: COLORS.inkSoft }}>
                 {t("onboarding.bottle.custom")}
                 <input type="number" inputMode="decimal" min="0" step="any" value={custom} onChange={(e) => setCustom(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 rounded-none font-mono" style={{ background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` }} />
+                  className="mt-1 w-full px-3 py-2 rounded font-mono" style={{ background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` }} />
               </label>
               <p className="text-xs mt-3" style={{ color: COLORS.inkSoft }}>{t("onboarding.bottle.hint")}</p>
             </>
@@ -124,7 +124,7 @@ export default function Onboarding() {
                 <label className="block mt-4 text-sm" style={{ color: COLORS.inkSoft }}>
                   {t("onboarding.sells.currency")}
                   <select value={currency} onChange={(e) => setCurrency(e.target.value)}
-                    className="mt-1 w-full sm:w-40 px-3 py-2 min-h-[44px] rounded-none font-mono" style={{ background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` }}>
+                    className="mt-1 w-full sm:w-40 px-3 py-2 min-h-[44px] rounded font-mono" style={{ background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` }}>
                     {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </label>
@@ -136,8 +136,8 @@ export default function Onboarding() {
             <>
               <legend className="text-lg mb-3" style={{ color: COLORS.ink }}>{t("onboarding.language.question")}</legend>
               <div className="grid grid-cols-2 gap-2">
-                <button type="button" lang="en" aria-pressed={locale === "en"} onClick={() => setLocale("en")} className="px-3 py-3 rounded-none" style={choice(locale === "en")}>English</button>
-                <button type="button" lang="ar" aria-pressed={locale === "ar"} onClick={() => setLocale("ar")} className="px-3 py-3 rounded-none" style={choice(locale === "ar")}>العربية</button>
+                <button type="button" lang="en" aria-pressed={locale === "en"} onClick={() => setLocale("en")} className="px-3 py-3 rounded" style={choice(locale === "en")}>English</button>
+                <button type="button" lang="ar" aria-pressed={locale === "ar"} onClick={() => setLocale("ar")} className="px-3 py-3 rounded" style={choice(locale === "ar")}>العربية</button>
               </div>
             </>
           )}
@@ -151,9 +151,9 @@ export default function Onboarding() {
             : <button type="button" disabled={saving} onClick={() => finish(true)} className="text-sm underline" style={{ color: COLORS.inkSoft }}>{t("onboarding.skip")}</button>}
           {step < 4
             ? <button type="button" disabled={step === 2 && !sizeValid} onClick={() => setStep(step + 1)}
-                className="px-5 py-2 rounded-none text-sm font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("onboarding.next")}</button>
+                className="px-5 py-2 rounded text-sm font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("onboarding.next")}</button>
             : <button type="button" disabled={saving} onClick={() => finish(false)}
-                className="px-5 py-2 rounded-none text-sm font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("onboarding.finish")}</button>}
+                className="px-5 py-2 rounded text-sm font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("onboarding.finish")}</button>}
         </div>
       </div>
       </div>

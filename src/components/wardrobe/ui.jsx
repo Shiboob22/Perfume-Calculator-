@@ -2,7 +2,7 @@ import React, { useId } from "react";
 import { COLORS } from "../../lib/theme";
 
 export const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` };
-export const inputClass = "w-full min-h-[44px] px-3 rounded-none focus-visible:outline-none focus-visible:ring-2";
+export const inputClass = "w-full min-h-[44px] px-3 rounded focus-visible:outline-none focus-visible:ring-2";
 
 // A labelled <select> in the product's form style.
 export function SelectField({ label, value, onChange, options, className = "" }) {

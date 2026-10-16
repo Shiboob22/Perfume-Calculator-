@@ -15,7 +15,7 @@ export default function Notice({ tone = "info", title, children, onDismiss, dism
   const c = TONES[tone];
   const warning = tone === "warning";
   return (
-    <div role={warning ? "alert" : "status"} className={`flex gap-3 items-start p-4 rounded-none ${className}`}
+    <div role={warning ? "alert" : "status"} className={`flex gap-3 items-start p-4 rounded ${className}`}
       style={{ background: warning ? COLORS.dangerBg : COLORS.card, border: `1px solid ${c.border}`, borderInlineStart: `4px solid ${c.bar}`, color: c.text }}>
       {warning && <IconFlameTriangle size={20} />}
       <div className="flex-1 text-sm leading-relaxed">

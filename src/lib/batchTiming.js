@@ -25,7 +25,7 @@ export function batchStartedAt(batch) {
 }
 
 // Best moment to start using the batch: the end of the family's rest range,
-// when the blend has fully rounded-none out rather than merely become wearable.
+// when the blend has fully rounded out rather than merely become wearable.
 export function batchReadyAt(batch) {
   const start = batchStartedAt(batch);
   const rest = TIERS[batch.tier]?.restDays;
