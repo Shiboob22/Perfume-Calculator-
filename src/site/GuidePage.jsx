@@ -32,7 +32,7 @@ const CALLOUT = {
 // without script).
 function Marked({ parts }) {
   return parts.map((x, i) => (typeof x === "string" ? x : (
-    <a key={i} href={`#term-${x.term}`} className="underline decoration-dotted decoration-1 underline-offset-4" style={{ color: "inherit" }}>{x.match}</a>
+    <a key={i} href={`#term-${x.term}`} className="underline decoration-1 underline-offset-4" style={{ color: "inherit", textDecorationColor: COLORS.actionText }}>{x.match}</a>
   )));
 }
 
