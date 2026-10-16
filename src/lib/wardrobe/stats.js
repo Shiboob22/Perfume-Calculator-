@@ -68,3 +68,30 @@ export function daysSinceWorn(bottleId, wear, today) {
   for (const w of wear || []) if (w.bottle_id === bottleId && (last === null || w.worn_on > last)) last = w.worn_on;
   return last === null ? null : dayNumber(today) - dayNumber(last);
 }
+
+/** The most recent wearing's date for a bottle (ISO), or null. */
+export function lastWornOn(wear, bottleId) {
+  let last = null;
+  for (const w of wear || []) if (w.bottle_id === bottleId && (!last || w.worn_on > last)) last = w.worn_on;
+  return last;
+}
+
+/** Whole days from an ISO date to `today` (never negative). */
+export function daysSince(iso, today) {
+  if (!iso) return null;
+  return Math.max(0, dayNumber(today) - dayNumber(iso));
+}
+
+/** A length of time as { unit: "d" | "mo" | "yr", value }: days under 60, months under 2 years, else years (one decimal). */
+export function ageParts(days) {
+  if (days == null) return null;
+  if (days < 60) return { unit: "d", value: days };
+  if (days < 730) return { unit: "mo", value: Math.round(days / 30.4) };
+  return { unit: "yr", value: Math.round((days / 365.25) * 10) / 10 };
+}
+
+/** Millilitres left in a bottle: fill level × size, or null when either is unknown. */
+export function remainingMl(bottle) {
+  if (bottle.size_ml == null || bottle.fill_pct == null) return null;
+  return Math.round(Number(bottle.size_ml) * Number(bottle.fill_pct)) / 100;
+}

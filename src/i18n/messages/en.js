@@ -90,6 +90,7 @@ export default {
     gourmand: { label: "Gourmand", sub: "Vanilla · Praline · Tobacco-Honey — practical addition, not part of the classic wheel", note: "Rest 3–4 weeks — sweet resinous bases round out and lose the raw alcohol edge." },
   },
   wardrobe: {
+    headline: { one: "{count} bottle.", other: "{count} bottles." },
     title: "The Wardrobe",
     lead: "Your bottles, what you wore, and what to reach for. Only you can see it.",
     tabsLabel: "Wardrobe sections",
@@ -173,6 +174,9 @@ export default {
       statement: "Can announce itself.",
     },
     collection: {
+      detail: "Selected bottle", remaining: "Remaining", wearsLabel: "Wears", lastWorn: "Last worn", opened: "Opened",
+      filter: "Filter by family", all: "All", logWear: "Log a wear", spraysDec: "One spray fewer", spraysInc: "One spray more",
+      age: { d: "{n} d", mo: "{n} mo", yr: "{n} yr" },
       title: "Your bottles",
       empty: "No bottles yet. Add the first one: a name is enough.",
       add: "Add a bottle",
@@ -693,6 +697,15 @@ export default {
     byline: "By Hisham Shiboob",
   },
   bench: {
+    room: { kicker: "The Bench", title: "Weigh a formula." },
+    inputs: "Inputs", results: "Results", details: "Details",
+    stepDec: "Subtract {step} {unit}", stepInc: "Add {step} {unit}", concDec: "Subtract 1%", concInc: "Add 1%", concField: "Concentration, percent",
+    approx: "≈ {total} mL · {oil} mL oil + {ethanol} mL ethanol",
+    concentrate: "Concentrate", ethanol: "Ethanol 96%", total: "Total batch",
+    formula: "Formula", weighHint: "Tick each line as you weigh it.", weighed: "Weighed",
+    nextLine: "Next: {name}, {g} g", left: "{g} g left", allDone: "All lines weighed",
+    resting: "Resting", daysLeft: { one: "day left", other: "days left" }, started: "Started", opens: "Opens",
+    batches: "Batches", allBatches: "All batches", ready: "Ready", dayOf: "Day {day} of {total}",
     scale: { oil: "Oil on the scale", alcohol: "Alcohol on the scale", under: "below target", ok: "on target", over: "over target" },
     newTab: "(Opens in a new tab)",
     after: { title: "Next", batches: "See it in your batches, where you can also share it", label: "Print a label", calculator: "Back to the calculator" },

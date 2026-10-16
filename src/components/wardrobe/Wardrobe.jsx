@@ -9,6 +9,8 @@ import Collection from "./Collection";
 import Stats from "./Stats";
 import Lists from "./Lists";
 import Privacy from "./Privacy";
+import { RoomHeader, RoomPage, Tabs } from "../kx";
+import { cat } from "../../lib/catalogue";
 
 const SECTIONS = ["today", "collection", "stats", "lists"];
 
@@ -32,33 +34,28 @@ export default function Wardrobe() {
   }, []);
 
   const go = (s) => setParams(s === "today" ? {} : { section: s }, { replace: true });
+  const owned = bottles.filter((b) => b.status === "owned").length;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-6">
-      <h1 className="font-serif text-4xl" style={{ color: COLORS.ink }}>{t("wardrobe.title")}</h1>
-      <p className="mt-2 text-sm max-w-prose" style={{ color: COLORS.inkSoft }}>{t("wardrobe.lead")}</p>
-      <nav aria-label={t("wardrobe.tabsLabel")} className="flex gap-2 border-b overflow-x-auto mt-5 mb-6" style={{ borderColor: COLORS.line }}>
-        {SECTIONS.map((s) => (
-          <button key={s} type="button" onClick={() => go(s)} aria-current={section === s ? "page" : undefined}
-            className="px-3 py-2 text-sm -mb-px border-b-2 whitespace-nowrap min-h-[44px]"
-            style={{ borderColor: section === s ? COLORS.forest : "transparent", color: section === s ? COLORS.forestDeep : COLORS.inkSoft }}>
-            {t(`wardrobe.tabs.${s}`)}
-          </button>
-        ))}
-      </nav>
+    <RoomPage>
+      <RoomHeader num="II" kicker={t("wardrobe.title")} title={!state.loading && !state.failed && owned > 0 ? t("wardrobe.headline", { count: owned }) : t("wardrobe.title")} cat={owned > 0 ? cat("W", owned) : null} />
+      <p className="text-sm max-w-prose -mt-4" style={{ color: COLORS.inkSoft }}>{t("wardrobe.lead")}</p>
+      <Tabs label={t("wardrobe.tabsLabel")} idPrefix="wardrobe" value={section} onChange={go} tabs={SECTIONS.map((s) => ({ id: s, label: t(`wardrobe.tabs.${s}`) }))} />
+      <div role="tabpanel" id={`wardrobe-${section}-panel`} aria-labelledby={`wardrobe-${section}`}>
       {state.loading ? (
-        <p className="text-xs font-mono" role="status" style={{ color: COLORS.inkSoft }}>{t("wardrobe.loading")}</p>
+        <p className="text-xs" role="status" style={{ color: COLORS.inkSoft }}>{t("wardrobe.loading")}</p>
       ) : state.failed ? (
         <p role="alert" className="text-sm" style={{ color: COLORS.danger }}>{t("wardrobe.loadFailed")}</p>
       ) : (
         <>
           {section === "today" && <Today bottles={bottles} wear={wear} today={today} onLogged={(w) => setWear((l) => [w, ...l])} onGoCollection={() => go("collection")} />}
-          {section === "collection" && <Collection bottles={bottles} wear={wear} today={today} setBottles={setBottles} onGone={(id) => setWear((l) => l.filter((w) => w.bottle_id !== id))} />}
+          {section === "collection" && <Collection bottles={bottles} wear={wear} today={today} setBottles={setBottles} onLogged={(w) => setWear((l) => [w, ...l])} onGone={(id) => setWear((l) => l.filter((w) => w.bottle_id !== id))} />}
           {section === "stats" && <Stats bottles={bottles} wear={wear} />}
           {section === "lists" && <Lists bottles={bottles} today={today} setBottles={setBottles} />}
           <Privacy />
         </>
       )}
-    </div>
+      </div>
+    </RoomPage>
   );
 }

@@ -15,8 +15,9 @@ export function stepValue(value, delta, { step = 1, min = -Infinity, max = Infin
   return next.toFixed(decimals(step));
 }
 
-export default function Stepper({ label, hint, value, onChange, step = 1, min, max, unit, decLabel, incLabel, size = "lg", hideLabel = false, className = "", inputProps }) {
-  const id = useId();
+export default function Stepper({ id: idProp, label, hint, value, onChange, step = 1, min, max, unit, decLabel, incLabel, size = "lg", hideLabel = false, className = "", inputProps }) {
+  const auto = useId();
+  const id = idProp || auto;
   const h = size === "lg" ? 64 : 48;
   const bump = (dir) => onChange(stepValue(value, dir * step, { step, min, max }));
   const btn = "flex items-center justify-center shrink-0 hover:bg-[color:var(--c-card-hi)] focus-visible:outline-offset-[-2px]";
@@ -28,8 +29,8 @@ export default function Stepper({ label, hint, value, onChange, step = 1, min, m
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" aria-hidden="true"><path d="M4 10h12" /></svg>
         </button>
         <div className="flex-1 min-w-0 flex items-baseline justify-center gap-1.5 self-center" dir="ltr">
-          <input id={id} inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)} aria-describedby={hint ? `${id}-hint` : undefined} {...inputProps}
-            className="min-w-0 w-full bg-transparent text-center font-medium focus-visible:outline-offset-[-2px]"
+          <input id={id} type="number" inputMode="decimal" step={step} min={min} max={max} value={value} onChange={(e) => onChange(e.target.value)} aria-describedby={hint ? `${id}-hint` : undefined} {...inputProps}
+            className="min-w-0 w-full bg-transparent text-center font-medium focus-visible:outline-offset-[-2px] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             style={{ fontSize: size === "lg" ? 32 : 24, color: COLORS.ink, fontVariantNumeric: "tabular-nums" }} />
           {unit && <span className="text-sm shrink-0 pe-3" style={{ color: COLORS.dim }}>{unit}</span>}
         </div>

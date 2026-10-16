@@ -36,6 +36,7 @@ html[dir="rtl"] body * {
 html[dir="rtl"] .font-mono {
   font-family: "IBM Plex Sans Arabic", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
 }
+.font-mono { font-variant-numeric: tabular-nums; }
 
 /* Guide tables become one card per row on a phone: no sideways scrolling.
    Each cell shows its column name from data-label. */

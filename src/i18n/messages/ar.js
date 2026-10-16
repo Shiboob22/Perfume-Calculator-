@@ -91,6 +91,7 @@ export default {
     gourmand: { label: "غورماند", sub: "فانيليا · برالين · تبغ وعسل — إضافة عملية، ليست جزءًا من العجلة الكلاسيكية", note: "اتركه يرتاح ثلاثة إلى أربعة أسابيع — القواعد الحلوة الراتنجية تنضج وتفقد حدّة الكحول." },
   },
   wardrobe: {
+    headline: { zero: "لا زجاجات.", one: "زجاجة واحدة.", two: "زجاجتان.", few: "{count} زجاجات.", many: "{count} زجاجة.", other: "{count} زجاجة." },
     title: "الخزانة",
     lead: "زجاجاتك، وما ارتديته، وما تمدّ يدك إليه. لا يراها غيرك.",
     tabsLabel: "أقسام الخزانة",
@@ -174,6 +175,9 @@ export default {
       statement: "يعلن عن نفسه.",
     },
     collection: {
+      detail: "الزجاجة المحددة", remaining: "المتبقي", wearsLabel: "مرات الارتداء", lastWorn: "آخر ارتداء", opened: "منذ الفتح",
+      filter: "تصفية حسب العائلة", all: "الكل", logWear: "سجّل ارتداءً", spraysDec: "رشّة أقل", spraysInc: "رشّة أكثر",
+      age: { d: "{n} يوم", mo: "{n} شهر", yr: "{n} سنة" },
       title: "زجاجاتك",
       empty: "لا زجاجات بعد. أضف الأولى: يكفي الاسم.",
       add: "أضف زجاجة",
@@ -694,6 +698,15 @@ export default {
     byline: "بقلم Hisham Shiboob",
   },
   bench: {
+    room: { kicker: "المِنضدة", title: "زِن تركيبة." },
+    inputs: "المدخلات", results: "النتائج", details: "التفاصيل",
+    stepDec: "اطرح {step} {unit}", stepInc: "أضف {step} {unit}", concDec: "اطرح 1%", concInc: "أضف 1%", concField: "التركيز بالنسبة المئوية",
+    approx: "≈ {total} mL · {oil} mL زيت + {ethanol} mL إيثانول",
+    concentrate: "المركّز", ethanol: "إيثانول 96%", total: "الدفعة كاملة",
+    formula: "التركيبة", weighHint: "علِّم كل سطر بعد أن تزنه.", weighed: "الموزون",
+    nextLine: "التالي: {name}، {g} g", left: "متبقٍ {g} g", allDone: "وُزنت كل الأسطر",
+    resting: "الراحة", daysLeft: { zero: "أيام متبقية", one: "يوم متبقٍ", two: "يومان متبقيان", few: "أيام متبقية", many: "يوماً متبقياً", other: "يوم متبقٍ" }, started: "بدأت", opens: "تُفتح",
+    batches: "الدفعات", allBatches: "كل الدفعات", ready: "جاهزة", dayOf: "اليوم {day} من {total}",
     scale: { oil: "الزيت على الميزان", alcohol: "الكحول على الميزان", under: "أقل من المطلوب", ok: "على المطلوب", over: "أكثر من المطلوب" },
     newTab: "(تُفتح في علامة تبويب جديدة)",
     after: { title: "التالي", batches: "اعرضها في دفعاتك، ويمكنك مشاركتها من هناك", label: "اطبع ملصقًا", calculator: "العودة إلى الحاسبة" },

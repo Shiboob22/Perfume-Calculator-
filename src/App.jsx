@@ -153,7 +153,7 @@ export default function App() {
         flags={{ wardrobe: wardrobeOn, atlas: atlasOn, salon: salonOn, nose: noseOn }}
         onSignOut={() => signOut()} />
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-4 empty:hidden"><RenameNotice /></div>
+      <div className="px-4 sm:px-6 lg:px-12 pt-4 empty:hidden"><RenameNotice /></div>
       <main className="pb-16">
         {/* One h1 per page for screen readers; Selector and Account title themselves. */}
         {pageHeading && <h1 className="sr-only">{pageHeading}</h1>}

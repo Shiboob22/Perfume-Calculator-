@@ -21,7 +21,9 @@ export default {
       fontFamily: {
         serif: ["'Newsreader Variable'", "'Newsreader Fallback'", "'Noto Naskh Arabic Variable'", "Georgia", ...ARABIC_SYSTEM, "serif"],
         sans: ["'Hanken Grotesk Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
-        mono: ["'IBM Plex Mono'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "ui-monospace", "monospace"],
+        // Kyphira System 1.0 has no monospace: figures are Hanken Grotesk with tabular numerals.
+        // `font-mono` stays as a class name for older components and resolves to the UI face.
+        mono: ["'Hanken Grotesk Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
       },
     },
   },

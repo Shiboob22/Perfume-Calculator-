@@ -78,7 +78,7 @@ export default function SiteHeader({ zone, active, language, extra, wardrobe = f
         </nav>
 
         <div className="flex items-center gap-2">
-          {inApp && <span className="hidden lg:flex items-center gap-1">{extra}<ThemeToggle /></span>}
+          {inApp && <span className="hidden lg:flex items-center gap-2">{extra}<ThemeToggle /></span>}
           {language}
           {!inApp && (
             <span className="hidden lg:flex items-center gap-2">
