@@ -85,7 +85,7 @@ export default function Selector({ onSelectPerfume }) {
         </div>
         <div role="progressbar" aria-valuemin={1} aria-valuemax={QUESTION_COUNT} aria-valuenow={step}
           aria-label={t("selector.stepOf", { current: step, total: QUESTION_COUNT })} className="mt-2 h-1.5" style={{ background: COLORS.sand }}>
-          <div className="h-1.5 motion-safe:transition-[width] duration-300" style={{ width: `${(step / QUESTION_COUNT) * 100}%`, background: COLORS.amber }} />
+          <div className="h-1.5 motion-safe:transition-[width] duration-200" style={{ width: `${(step / QUESTION_COUNT) * 100}%`, background: COLORS.amber }} />
         </div>
       </div>
 

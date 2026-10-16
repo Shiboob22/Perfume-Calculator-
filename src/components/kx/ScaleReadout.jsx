@@ -28,7 +28,7 @@ export default function ScaleReadout({ label, grams, target = null, digits = 2, 
         <div className="mt-4" dir="ltr">
           <div role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={Number(target)} aria-valuenow={Math.max(0, Math.min(Number(grams), Number(target)))}
             className="h-2 w-full relative" style={{ background: COLORS.line }}>
-            <div className="h-full" style={{ width: `${p.fraction * 100}%`, background: barColor, transition: "width 320ms cubic-bezier(.2,0,0,1)" }} />
+            <div className="h-full fill-anim" style={{ width: `${p.fraction * 100}%`, background: barColor }} />
             <span aria-hidden="true" className="absolute top-[-3px] bottom-[-3px] w-px" style={{ insetInlineEnd: 0, background: COLORS.onInk }} />
           </div>
         </div>

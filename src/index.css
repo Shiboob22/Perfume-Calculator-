@@ -100,9 +100,9 @@ html[dir="rtl"] .read-progress { transform-origin: right; }
 @supports not (animation-timeline: scroll()) { .read-progress { display: none; } }
 
 /* The live bench: pour columns and the scale's readout. */
-.pour { transform-origin: bottom; transition: transform 480ms cubic-bezier(.2,0,0,1); }
-.readout { font-variant-numeric: tabular-nums; animation: tick 160ms ease-out; }
-@keyframes tick { from { opacity: 0.25; transform: translateY(-0.12em); } }
+/* Figures change at once: nothing animates the digits, so they never read late. */
+.pour { transform-origin: bottom; transition: transform 240ms cubic-bezier(.2,0,0,1); }
+.readout { font-variant-numeric: tabular-nums; }
 
 /* Turning a page between guides (View Transitions, where supported). */
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 320ms; animation-timing-function: cubic-bezier(.2,0,0,1); }
@@ -111,9 +111,9 @@ html[dir="rtl"] .read-progress { transform-origin: right; }
 html[dir="rtl"] h1, html[dir="rtl"] h2 { line-height: 1.3; }
 html[dir="rtl"] .uppercase { text-transform: none; }
 
-/* Hover and colour changes ease at 180ms; fills and bars at 480ms. */
+/* Hover and colour changes ease at 180ms; fills and bars at 240ms (UI motion stays within 150–250ms). */
 a, button, summary { transition: color 180ms cubic-bezier(.2,0,0,1), background-color 180ms cubic-bezier(.2,0,0,1), border-color 180ms cubic-bezier(.2,0,0,1); }
-.fill-anim { transition: height 480ms cubic-bezier(.2,0,0,1), width 480ms cubic-bezier(.2,0,0,1), transform 480ms cubic-bezier(.2,0,0,1), y 480ms cubic-bezier(.2,0,0,1); }
+.fill-anim { transition: height 240ms cubic-bezier(.2,0,0,1), width 240ms cubic-bezier(.2,0,0,1), transform 240ms cubic-bezier(.2,0,0,1), y 240ms cubic-bezier(.2,0,0,1); }
 *:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 3px; }
 summary::-webkit-details-marker { display: none; }
 
@@ -125,7 +125,7 @@ summary::-webkit-details-marker { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .kx-smoke--loading path { animation: none !important; stroke-dasharray: none; }
   a, button, summary, .fill-anim { transition: none !important; }
-  .reveal, .read-progress, .pour, .readout { animation: none !important; transition: none !important; }
+  .reveal, .read-progress, .pour { animation: none !important; transition: none !important; }
   .read-progress { display: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
 }
