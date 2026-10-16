@@ -19,7 +19,7 @@ export default {
       ringColor: { DEFAULT: COLORS.focus },
       ringOpacity: { DEFAULT: "1" },
       fontFamily: {
-        serif: ["'Newsreader Variable'", "'Noto Naskh Arabic Variable'", "Georgia", ...ARABIC_SYSTEM, "serif"],
+        serif: ["'Newsreader Variable'", "'Newsreader Fallback'", "'Noto Naskh Arabic Variable'", "Georgia", ...ARABIC_SYSTEM, "serif"],
         sans: ["'Hanken Grotesk Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
         mono: ["'IBM Plex Mono'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "ui-monospace", "monospace"],
       },

@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Georgia resized to Newsreader's width and vertical metrics (measured), so the swap
+   when the webfont arrives does not move lines. */
+@font-face { font-family: "Newsreader Fallback"; src: local("Georgia"); size-adjust: 96.8%; ascent-override: 76.4%; descent-override: 26.9%; line-gap-override: 0%; }
+@font-face { font-family: "Newsreader Fallback"; font-style: italic; src: local("Georgia Italic"), local("Georgia-Italic"); size-adjust: 89.5%; ascent-override: 82.7%; descent-override: 29%; line-gap-override: 0%; }
+
 body {
   margin: 0;
   background: var(--c-paper);
@@ -43,7 +48,7 @@ html[dir="rtl"] .font-mono {
 
 /* Printable bench cards (/app/cards): readable on screen, clean on paper. */
 .print-card { background: #FBF8F2; color: #100E0A; padding: 2rem; border: 1px solid #100E0A; }
-.print-card h2 { font-family: "Newsreader Variable", Georgia, serif; font-weight: 400; letter-spacing: -0.02em; font-size: 1.9rem; font-style: italic; margin-bottom: 1rem; }
+.print-card h2 { font-family: "Newsreader Variable", "Newsreader Fallback", Georgia, serif; font-weight: 400; letter-spacing: -0.02em; font-size: 1.9rem; font-style: italic; margin-bottom: 1rem; }
 .print-brand { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: #6E5A35; margin-bottom: 0.5rem; }
 .print-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 .print-table th, .print-table td { text-align: start; padding: 0.35rem 0.5rem; border-bottom: 1px solid #CDBF9E; }
@@ -77,7 +82,7 @@ html[dir="rtl"] .print-label-name { font-style: normal; }
 
 /* Drop caps are a Latin book convention; Arabic gets an ornament instead. */
 html[lang="en"] .dropcap::first-letter, html[lang="en"] .guide-body > p:first-of-type::first-letter {
-  float: left; font-family: "Newsreader Variable", Georgia, serif;
+  float: left; font-family: "Newsreader Variable", "Newsreader Fallback", Georgia, serif;
   font-size: 4.2em; line-height: 0.8; padding: 0.06em 0.12em 0 0; color: var(--c-amber);
 }
 html[dir="rtl"] .dropcap::before, html[dir="rtl"] .guide-body > p:first-of-type::before { content: "۞ "; color: var(--c-brass); }

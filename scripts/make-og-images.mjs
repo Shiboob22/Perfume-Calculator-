@@ -21,8 +21,8 @@ import ar from "../src/i18n/messages/ar.js";
 const vfont = (pkg, file) => pathToFileURL(resolve("node_modules/@fontsource-variable", pkg, "files", file)).href;
 const font = (pkg, file) => pathToFileURL(resolve("node_modules/@fontsource", pkg, "files", file)).href;
 const FACES = `
-  @font-face { font-family: Newsreader; font-weight: 100 900; src: url(${vfont("newsreader", "newsreader-latin-opsz-normal.woff2")}); }
-  @font-face { font-family: Newsreader; font-style: italic; font-weight: 100 900; src: url(${vfont("newsreader", "newsreader-latin-opsz-italic.woff2")}); }
+  @font-face { font-family: Newsreader; font-weight: 100 900; src: url(${vfont("newsreader", "newsreader-latin-wght-normal.woff2")}); }
+  @font-face { font-family: Newsreader; font-style: italic; font-weight: 100 900; src: url(${vfont("newsreader", "newsreader-latin-wght-italic.woff2")}); }
   @font-face { font-family: "Hanken Grotesk"; font-weight: 100 900; src: url(${vfont("hanken-grotesk", "hanken-grotesk-latin-wght-normal.woff2")}); }
   @font-face { font-family: "IBM Plex Sans Arabic"; font-weight: 500; src: url(${font("ibm-plex-sans-arabic", "ibm-plex-sans-arabic-arabic-500-normal.woff2")}); }
   @font-face { font-family: "Noto Naskh Arabic"; font-weight: 400 700; src: url(${vfont("noto-naskh-arabic", "noto-naskh-arabic-arabic-wght-normal.woff2")}); }

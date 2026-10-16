@@ -5,9 +5,9 @@ import { inject } from "@vercel/analytics";
 import Root from "./Root";
 import { isAppPath } from "./routes";
 import { applyFlagLink } from "./lib/flags";
-// Newsreader (display and voice; optical-size axis), Hanken Grotesk (interface), IBM Plex Mono (numbers).
-import "@fontsource-variable/newsreader/opsz.css";
-import "@fontsource-variable/newsreader/opsz-italic.css";
+// Newsreader (display and voice; weight axis only: the optical-size files are twice the size), Hanken Grotesk (interface), IBM Plex Mono (numbers).
+import "@fontsource-variable/newsreader/wght.css";
+import "@fontsource-variable/newsreader/wght-italic.css";
 import "@fontsource-variable/hanken-grotesk/wght.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
