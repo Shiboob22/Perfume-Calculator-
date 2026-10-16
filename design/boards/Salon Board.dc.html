@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#0E0C0A}a{color:#D4924A}a:hover{color:#EDE4D6}</style>
+</helmet>
+
+<section data-screen-label="Salon motion" style="padding:96px;display:flex;flex-direction:column;gap:48px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 6 · V · The Salon</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">Key moment: the profile header</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A;max-width:760px">The third and last cinematic place: homepage hero, Library opener, Salon profile header. Plays once, 2.6 s. Live: <a href="Salon.dc.html">Salon</a>.</p>
+  </div>
+  <div id="6e" style="display:flex;flex-direction:column;gap:24px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">6e · Header storyboard, desktop EN</span>
+    <div style="display:grid;grid-template-columns:repeat(4, 576px);gap:32px 24px">
+      <sc-for list="{{ frames }}" as="f" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="width:576px;height:300px;overflow:hidden;border:1px solid #3B332B"><div style="width:1440px;zoom:0.4"><dc-import name="Salon" lang="en" freeze-at="{{ f.at }}" hint-size="1440px,750px"></dc-import></div></div>
+          <div style="display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px">
+            <span style="font-family:'Newsreader',serif;font-size:22px;color:#D4924A">{{ f.n }}</span>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline"><span style="font-size:17px;font-weight:500">{{ f.title }}</span><span style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums">{{ f.time }}</span></div>
+              <span style="font-size:15px;line-height:1.5;color:#A3968A">{{ f.body }}</span>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div id="6f" style="display:flex;flex-direction:column;gap:16px;width:1100px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">6f · Motion spec</span>
+    <div role="table" style="display:flex;flex-direction:column;font-size:15px;font-variant-numeric:tabular-nums;border-top:1px solid #A3968A">
+      <div role="row" style="display:grid;grid-template-columns:300px 100px 190px 120px minmax(0,1fr);gap:16px;padding:12px 0;color:#A3968A;font-size:12px;letter-spacing:0.12em;text-transform:uppercase"><span>Element</span><span>Start</span><span>Duration</span><span>Easing</span><span>Trigger</span></div>
+      <sc-for list="{{ spec }}" as="r" hint-placeholder-count="7">
+        <div role="row" style="display:grid;grid-template-columns:300px 100px 190px 120px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid #3B332B"><span>{{ r.el }}</span><span>{{ r.start }}</span><span>{{ r.dur }}</span><span style="color:#D4924A">{{ r.ease }}</span><span style="color:#A3968A">{{ r.trig }}</span></div>
+      </sc-for>
+    </div>
+    <p style="margin:0;font-size:14px;color:#A3968A;line-height:1.6">Reduced motion: header opens at its final frame, no glow drift. Tokens in <a href="Design System.dc.html">Design System</a>.</p>
+  </div>
+</section>
+
+<section data-screen-label="Salon screens" style="padding:96px;display:flex;flex-direction:column;gap:64px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A;border-top:1px solid #3B332B">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 6 · Screens</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">The Salon: 1440 and 375, EN and AR</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A">Profile with public recipe cards, reviews, and follows. Frames are live: follow, save a recipe, switch tabs.</p>
+  </div>
+  <sc-for list="{{ rows }}" as="row" hint-placeholder-count="3">
+    <div style="display:flex;flex-wrap:wrap;gap:80px;align-items:flex-start">
+      <sc-for list="{{ row.items }}" as="it" hint-placeholder-count="4">
+        <div id="{{ it.id }}" style="display:flex;flex-direction:column;gap:16px">
+          <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">{{ it.label }}</span>
+          <div style="width:{{ it.w }}px;height:{{ it.h }}px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Salon" lang="{{ it.lang }}" init-view="{{ it.view }}" freeze-at="2.6" hint-size="{{ it.hint }}"></dc-import></div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-for>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const mk = (id, label, view, lang, mobile, h) => ({ id, label, view, lang, w: mobile ? 375 : 1440, h, hint: (mobile ? 375 : 1440) + 'px,' + h + 'px' });
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      frames: [
+        { n:'1', at:0.3, time:'0.0–0.9 s', title:'Light', body:'Amber glow fades in from the top edge, 900 ms ease-out. Kicker, catalogue number and monogram ring appear.' },
+        { n:'2', at:0.85, time:'0.5–1.1 s', title:'Name', body:'Name and handle rise 16 px and fade in, 600 ms ease-out.' },
+        { n:'3', at:1.5, time:'1.0–1.6 s', title:'Bio', body:'Bio rises 10 px and fades in, 600 ms ease-out.' },
+        { n:'4', at:2.6, time:'1.5–2.6 s', title:'Stats and Follow', body:'Counts and the Follow action arrive last. Then still. The glow drifts under 2 s ambient only on the profile header.' },
+      ],
+      spec: [
+        { el:'Amber glow', start:'0.0 s', dur:'900 ms, drift 2 s+', ease:'ease-out', trig:'Profile opens' },
+        { el:'Kicker, catalogue no., monogram', start:'0.2 s', dur:'600 ms (slow)', ease:'ease-out', trig:'Profile opens' },
+        { el:'Name and handle', start:'0.5 s', dur:'600 ms (slow)', ease:'ease-out', trig:'Glow at 50%' },
+        { el:'Bio', start:'1.0 s', dur:'600 ms (slow)', ease:'ease-out', trig:'Name at 80%' },
+        { el:'Stats and actions', start:'1.5 s', dur:'600 ms (slow)', ease:'ease-out', trig:'Bio at 80%' },
+        { el:'Follow, save, tab', start:'tap', dur:'150 ms (fast)', ease:'ease-out', trig:'Press' },
+        { el:'Follower count', start:'tap', dur:'Instant', ease:'none', trig:'Follow toggled: +1 or −1' },
+      ],
+      rows: [
+        { items: [mk('6a','6a · Profile · Desktop 1440 · EN','recipes','en',false,1500), mk('6b','6b · Profile · Desktop 1440 · AR','recipes','ar',false,1600), mk('6c','6c · Profile · Mobile 375 · EN','recipes','en',true,3150), mk('6d','6d · Profile · Mobile 375 · AR','recipes','ar',true,3320)] },
+        { items: [mk('6g','6g · Reviews · Desktop 1440 · EN','reviews','en',false,1260), mk('6h','6h · Reviews · Desktop 1440 · AR','reviews','ar',false,1330), mk('6i','6i · Reviews · Mobile 375 · EN','reviews','en',true,1790), mk('6j','6j · Reviews · Mobile 375 · AR','reviews','ar',true,1830)] },
+        { items: [mk('6k','6k · Following · Desktop 1440 · EN','following','en',false,1170), mk('6l','6l · Following · Desktop 1440 · AR','following','ar',false,1220), mk('6m','6m · Following · Mobile 375 · EN','following','en',true,1210), mk('6n','6n · Following · Mobile 375 · AR','following','ar',true,1215)] },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

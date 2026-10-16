@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#15120F}a{color:#D4924A}a:hover{color:#EDE4D6}</style>
+</helmet>
+<div ref="{{ rootRef }}" dir="{{ dir }}" lang="{{ lang }}" style="position:relative;width:100%;height:{{ h }}px;overflow:hidden;background:{{ bg }};color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;container-type:inline-size">
+  <div style="position:absolute;inset:0;pointer-events:none;opacity:{{ lightOp }};background:radial-gradient(90% 70% at {{ lightX }} -15%, rgba(232,170,104,0.30), rgba(232,170,104,0) 62%)"></div>
+
+  <div style="position:absolute;inset-inline:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:{{ pad }};opacity:{{ barOp }}">
+    <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+      <span style="font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A">{{ t.kicker }}</span>
+      <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-style:italic;font-size:18px;color:#EDE4D6;line-height:1.5">{{ t.caption }}</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
+      <div style="display:flex;gap:16px;font-variant-numeric:tabular-nums;font-size:14px">
+        <span style="color:#A3968A">{{ countLabel }}</span>
+        <span style="color:#EDE4D6;font-weight:500" dir="ltr">{{ gramsLabel }}</span>
+      </div>
+      <div style="width:{{ barW }}px;height:2px;background:#3B332B">
+        <div style="height:2px;background:#D4924A;width:{{ gramsPct }}%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:50%;top:{{ stageY }}px;width:{{ gridW }}px;height:{{ gridH }}px;transform:translate(-50%,-50%) scale({{ scale }})">
+    <div dir="{{ dir }}" style="display:grid;grid-template-columns:repeat({{ cols }}, {{ pw }}px);grid-auto-rows:{{ ph }}px;gap:{{ gap }}px">
+      <sc-for list="{{ plates }}" as="p" hint-placeholder-count="16">
+        <div style="position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:{{ platePad }};border:1px solid {{ p.bd }};border-radius:2px;background:{{ p.bg }};opacity:{{ p.op }};transform:{{ p.tf }};box-sizing:border-box">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:4px">
+            <span style="font-family:'Newsreader',serif;font-size:{{ numSize }}px;color:#D4924A;letter-spacing:0.04em">{{ p.num }}</span>
+            <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><span dir="ltr" style="font-size:11px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">{{ p.cat }}</span></sc-if>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:{{ nameSize }}px;line-height:1.25;color:#EDE4D6">{{ p.primary }}</span>
+            <span style="font-family:'Noto Naskh Arabic','Newsreader',serif;font-size:{{ altSize }}px;line-height:1.5;color:#A3968A">{{ p.secondary }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:4px;border-top:1px solid #3B332B;padding-top:6px">
+            <span dir="ltr" style="font-size:{{ gSize }}px;font-variant-numeric:tabular-nums;color:#EDE4D6">{{ p.g }}</span>
+            <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;color:#A3968A">{{ p.form }}</span></sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="position:absolute;left:50%;top:50%;width:{{ disc }}px;height:{{ disc }}px;transform:translate(-50%,-50%);border-radius:50%;opacity:{{ discOp }};background:radial-gradient(circle at 50% 45%, #F2C489 0%, #D4924A 38%, #8A5424 72%, rgba(138,84,36,0) 100%);box-shadow:0 0 {{ glow }}px {{ glowSpread }}px rgba(212,146,74,0.35);pointer-events:none"></div>
+    <sc-for list="{{ smoke }}" as="s" hint-placeholder-count="0">
+      <div style="position:absolute;left:50%;top:50%;width:{{ s.w }}px;height:{{ s.hh }}px;border-radius:50%;background:rgba(214,200,182,0.16);filter:blur({{ s.blur }}px);opacity:{{ s.op }};transform:{{ s.tf }};pointer-events:none"></div>
+    </sc-for>
+  </div>
+
+  <div style="position:absolute;inset-inline:0;top:{{ headY }}px;display:flex;flex-direction:column;align-items:center;gap:16px;padding:0 24px;text-align:center;opacity:{{ headOp }};transform:translateY({{ headDy }}px)">
+    <h1 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:clamp(34px, 5.4cqw, 76px);line-height:{{ lhHead }};letter-spacing:-0.01em;font-variant-numeric:lining-nums;display:flex;flex-wrap:wrap;justify-content:center;column-gap:0.28em"><sc-for list="{{ headParts }}" as="hp" hint-placeholder-count="3"><span style="white-space:nowrap">{{ hp }}</span></sc-for></h1>
+    <p style="margin:0;max-width:520px;font-size:clamp(16px, 1.3cqw, 19px);line-height:{{ lhBody }};color:#A3968A;text-wrap:pretty">{{ t.sub }}</p>
+  </div>
+
+  <nav aria-label="{{ t.roomsLabel }}" style="position:absolute;inset-inline:0;bottom:{{ roomsBottom }}px;display:grid;grid-template-columns:repeat({{ roomCols }}, minmax(0,1fr));gap:0;padding:{{ roomsPad }}">
+    <sc-for list="{{ rooms }}" as="r" hint-placeholder-count="6">
+      <a href="{{ r.href }}" style="display:flex;flex-direction:column;gap:4px;min-height:44px;padding:14px 12px 4px;border-top:1px solid #3B332B;text-decoration:none;color:#EDE4D6;opacity:{{ r.op }};transform:translateY({{ r.dy }}px);outline-offset:2px" style-hover="border-top-color:#D4924A" style-focus="outline:2px solid #D4924A">
+        <span style="font-family:'Newsreader',serif;font-size:14px;color:#D4924A;letter-spacing:0.06em">{{ r.num }}</span>
+        <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:{{ roomSize }}px;line-height:1.3">{{ r.name }}</span>
+      </a>
+    </sc-for>
+  </nav>
+
+  <sc-if value="{{ showControls }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ onControl }}" style="position:absolute;inset-inline-end:{{ ctlInset }}px;bottom:{{ ctlBottom }}px;min-height:44px;min-width:44px;padding:0 16px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#A3968A;font:inherit;font-size:13px;letter-spacing:0.08em;cursor:pointer" style-hover="color:#EDE4D6;border-color:#A3968A" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ controlLabel }}</button>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:860},&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;'en'|'ar'&quot;},&quot;freezeAt&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;min&quot;:0,&quot;max&quot;:9.2,&quot;step&quot;:0.1,&quot;default&quot;:null,&quot;tsType&quot;:&quot;number|null&quot;},&quot;reduced&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;height&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;number&quot;}}">
+const ING = [
+  ['I','Frankincense','لبان','K·014',14.00,'resinoid','راتنجي'],
+  ['II','Myrrh','مُرّ','K·022',10.00,'resinoid','راتنجي'],
+  ['III','Labdanum','لادن','K·031',8.00,'absolute','مطلق'],
+  ['IV','Cassia','سليخة','K·047',3.00,'oil','زيت'],
+  ['V','Juniper','عرعر','K·052',4.00,'berry oil','زيت ثمار'],
+  ['VI','Mastic','مستكة','K·058',2.50,'oil','زيت'],
+  ['VII','Honey','عسل','K·063',6.00,'abs. 10%','مطلق 10%'],
+  ['VIII','Raisin','زبيب','K·071',5.00,'tincture','صبغة'],
+  ['IX','Ambroxan','أمبروكسان','K·105',6.50,'10% DPG','10% DPG'],
+  ['X','Iso E Super','إيزو إي سوبر','K·112',12.00,'neat','صافٍ'],
+  ['XI','Hedione','هيديون','K·118',9.00,'neat','صافٍ'],
+  ['XII','Vanillin','فانيلين','K·124',2.00,'10% DPG','10% DPG'],
+  ['XIII','Oud','عود','K·131',3.00,'10% EtOH','10% كحول'],
+  ['XIV','Rose','ورد','K·140',4.00,'absolute','مطلق'],
+  ['XV','Cardamom','هيل','K·146',2.00,'CO₂','CO₂'],
+  ['XVI','Sandalwood','صندل','K·153',9.00,'oil','زيت'],
+];
+const ROOMS = [
+  ['I','The Bench','المِنضدة'],['II','The Wardrobe','الخزانة'],['III','The Library','المكتبة'],
+  ['IV','The Atlas','الأطلس'],['V','The Salon','الصالون'],['VI','The Nose','الأنف'],
+];
+const COPY = {
+  en: { kicker:'The Compounding', caption:'After the kyphi recipe, Temple of Edfu', head:['16 materials.','1 ember.','6 rooms.'], sub:'A working room for people who make, wear and study perfume. Built in Cairo.', roomsLabel:'Rooms', skip:'Skip', replay:'Replay', of:'of' },
+  ar: { kicker:'التركيب', caption:'على وصفة الكيفي، معبد إدفو', head:['16 مادة.','جمرة واحدة.','6 غرف.'], sub:'غرفة عمل لمن يصنع العطر ويرتديه ويدرسه. صُنعت في القاهرة.', roomsLabel:'الغرف', skip:'تخطَّ', replay:'أعِد', of:'من' },
+};
+const END = 9.2;
+const clamp = x => Math.max(0, Math.min(1, x));
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eio = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
+const lerp = (a, b, p) => a + (b - a) * p;
+const mix = (c1, c2, p) => `rgb(${c1.map((v, i) => Math.round(lerp(v, c2[i], p))).join(',')})`;
+
+class Component extends DCLogic {
+  state = { t: 0, w: 1440 };
+  rootRef = React.createRef();
+  componentDidMount() {
+    const el = this.rootRef.current;
+    if (el) {
+      this.ro = new ResizeObserver(e => this.setState({ w: e[0].contentRect.width }));
+      this.ro.observe(el);
+    }
+    if (this.props.freezeAt != null) return;
+    const reduce = this.props.reduced || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    this.start = performance.now() - (reduce ? END * 1000 : 0);
+    this.reduce = reduce;
+    const tick = now => {
+      this.setState({ t: (now - this.start) / 1000 });
+      if (!this.reduce) this.raf = requestAnimationFrame(tick);
+    };
+    this.raf = requestAnimationFrame(tick);
+  }
+  componentWillUnmount() { cancelAnimationFrame(this.raf); this.ro && this.ro.disconnect(); }
+  control = () => {
+    const now = performance.now();
+    const t = (now - this.start) / 1000;
+    this.start = t < END ? now - END * 1000 : now;
+  };
+  renderVals() {
+    const lang = this.props.lang === 'ar' ? 'ar' : 'en';
+    const ar = lang === 'ar';
+    const t = COPY[lang];
+    const T = this.props.freezeAt ?? this.state.t;
+    const w = this.state.w;
+    const mobile = w < 760;
+    const cols = mobile ? 4 : 8, pw = mobile ? 76 : 140, ph = mobile ? 96 : 184, gap = mobile ? 8 : 12;
+    const rows = 16 / cols;
+    const gridW = cols * pw + (cols - 1) * gap, gridH = rows * ph + (rows - 1) * gap;
+    const scale = Math.min(1, (w - (mobile ? 24 : 96)) / gridW);
+    const h = this.props.height ?? (mobile ? 760 : 860);
+    const stageY = mobile ? 280 : 360;
+
+    const dusk = eio(clamp((T - 4.6) / 2.4));
+    const plates = ING.map((d, i) => {
+      const c = i % cols, r = Math.floor(i / cols);
+      const vx = ((c - (cols - 1) / 2) * (pw + gap)) * (ar ? 1 : -1) * -1;
+      const vy = (r - (rows - 1) / 2) * (ph + gap);
+      const pa = eo(clamp((T - (0.4 + i * 0.24)) / 0.6));
+      const pb = eio(clamp((T - 4.6 - i * 0.04) / 1.6));
+      return {
+        num: d[0], cat: d[3], primary: ar ? d[2] : d[1], secondary: ar ? d[1] : d[2],
+        g: d[4].toFixed(2) + ' g', form: ar ? d[6] : d[5],
+        op: (pa * (1 - pb)).toFixed(3),
+        tf: `translate(${(-vx * pb).toFixed(1)}px, ${(-vy * pb + 14 * (1 - pa)).toFixed(1)}px) scale(${(1 - 0.65 * pb).toFixed(3)})`,
+        bg: mix([30, 26, 22], [212, 146, 74], pb * 0.9),
+        bd: mix([59, 51, 43], [212, 146, 74], Math.max(pb, i === Math.floor((T - 0.4) / 0.24) && T < 4.4 ? 0.6 : 0)),
+        arrived: T >= 0.4 + i * 0.24 + 0.3,
+      };
+    });
+    const arrived = plates.filter(p => p.arrived).length;
+    const grams = T >= 4.6 ? 100 : ING.slice(0, arrived).reduce((s, d) => s + d[4], 0);
+
+    const grow = eio(clamp((T - 5.0) / 1.4)), shrink = eio(clamp((T - 6.4) / 1.0));
+    const breath = T > 7.4 && !this.props.reduced ? 1 + 0.07 * Math.sin((T - 7.4) * Math.PI * 2 / 3.2) : 1;
+    const maxD = mobile ? 150 : 240, emberD = mobile ? 22 : 30;
+    const disc = (lerp(0, maxD, grow) * (1 - shrink) + emberD * shrink) * breath;
+    const smokeOn = this.props.reduced ? 0 : clamp((T - 6.6) / 1.2);
+    const smoke = [0, 1, 2].map(k => {
+      const per = 5.4, ph2 = ((T - 6.6 + k * per / 3) % per + per) % per / per;
+      const rise = mobile ? 220 : 300;
+      return {
+        w: (mobile ? 34 : 50) + ph2 * 40, hh: (mobile ? 80 : 120) + ph2 * 60, blur: 14 + ph2 * 18,
+        op: (smokeOn * Math.sin(ph2 * Math.PI) * 0.9).toFixed(3),
+        tf: `translate(calc(-50% + ${(Math.sin(ph2 * 5 + k) * 18).toFixed(1)}px), calc(-100% - ${(ph2 * rise).toFixed(1)}px))`,
+      };
+    });
+    const headP = eo(clamp((T - 7.5) / 0.6));
+    const rooms = ROOMS.map((r, j) => {
+      const p = eo(clamp((T - 8.0 - j * 0.12) / 0.6));
+      return { num: r[0], name: ar ? r[2] : r[1], href: '#room-' + (j + 1), op: p.toFixed(3), dy: (8 * (1 - p)).toFixed(1) };
+    });
+    const frozen = this.props.freezeAt != null;
+    return {
+      rootRef: this.rootRef, dir: ar ? 'rtl' : 'ltr', lang, t, h, kls: ar ? '0' : '0.14em',
+      bg: mix([58, 43, 30], [21, 18, 15], dusk),
+      lightOp: (1 - dusk * 0.85).toFixed(3), lightX: ar ? '85%' : '15%',
+      pad: mobile ? '20px 20px' : '32px 48px',
+      barOp: (1 - clamp((T - 6.4) / 0.6)).toFixed(3), barW: mobile ? 110 : 180,
+      countLabel: `${String(arrived).padStart(2, '0')} / 16`, gramsLabel: grams.toFixed(2) + ' g', gramsPct: grams.toFixed(1),
+      stageY, gridW, gridH, scale: scale.toFixed(4), cols, pw, ph, gap, plates, wide: !mobile,
+      platePad: mobile ? '8px' : '14px', numSize: mobile ? 12 : 15, nameSize: mobile ? 13 : 20, altSize: mobile ? 12 : 16, gSize: mobile ? 11 : 13,
+      disc: disc.toFixed(1), discOp: Math.min(1, grow * 1.4).toFixed(3),
+      glow: (lerp(20, 90, shrink) * breath).toFixed(1), glowSpread: (lerp(4, 18, shrink)).toFixed(1),
+      smoke,
+      headY: stageY + (mobile ? 40 : 64), headParts: t.head, headOp: headP.toFixed(3), headDy: (12 * (1 - headP)).toFixed(1),
+      lhHead: ar ? 1.5 : 1.08, lhBody: ar ? 1.9 : 1.55,
+      rooms, roomCols: mobile ? 3 : 6, roomsBottom: mobile ? 72 : 56, roomsPad: mobile ? '0 16px' : '0 48px', roomSize: mobile ? 15 : 21,
+      showControls: !frozen, controlLabel: T < END ? t.skip : t.replay, onControl: this.control,
+      ctlInset: mobile ? 16 : 48, ctlBottom: mobile ? 16 : 0,
+    };
+  }
+}
+</script>
+</body>
+</html>
