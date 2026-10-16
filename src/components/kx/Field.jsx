@@ -13,7 +13,7 @@ export default function Field({ label, hint, error, mono = false, className = ""
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className={`w-full min-h-[44px] px-3 rounded-none focus-visible:outline-none focus-visible:ring-2 ${mono ? "font-mono tabular-nums" : ""}`}
+        className={`w-full min-h-[44px] px-3 rounded-sm focus-visible:outline-none focus-visible:ring-2 ${mono ? "font-mono tabular-nums" : ""}`}
         style={{ background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${error ? COLORS.danger : COLORS.field}` }}
         {...rest}
       />

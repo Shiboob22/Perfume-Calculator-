@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#0E0C0A}a{color:#D4924A}a:hover{color:#EDE4D6}</style>
+</helmet>
+
+<section data-screen-label="Library motion" style="padding:96px;display:flex;flex-direction:column;gap:48px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 4 · III · The Library</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">Key moment: the essay opener</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A;max-width:760px">One of three cinematic places in the system. Plays once when an essay opens, 3.2 s, then the page is still. Live: <a href="Library.dc.html">Library</a>.</p>
+  </div>
+  <div id="4e" style="display:flex;flex-direction:column;gap:24px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">4e · Opener storyboard, desktop EN</span>
+    <div style="display:grid;grid-template-columns:repeat(4, 576px);gap:32px 24px">
+      <sc-for list="{{ frames }}" as="f" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="width:576px;height:360px;overflow:hidden;border:1px solid #3B332B"><div style="width:1440px;zoom:0.4"><dc-import name="Library" lang="en" init-view="article" freeze-at="{{ f.at }}" static-progress="{{ f.prog }}" hint-size="1440px,900px"></dc-import></div></div>
+          <div style="display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px">
+            <span style="font-family:'Newsreader',serif;font-size:22px;color:#D4924A">{{ f.n }}</span>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline"><span style="font-size:17px;font-weight:500">{{ f.title }}</span><span style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums">{{ f.time }}</span></div>
+              <span style="font-size:15px;line-height:1.5;color:#A3968A">{{ f.body }}</span>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div id="4f" style="display:flex;flex-direction:column;gap:16px;width:1100px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">4f · Motion spec</span>
+    <div role="table" style="display:flex;flex-direction:column;font-size:15px;font-variant-numeric:tabular-nums;border-top:1px solid #A3968A">
+      <div role="row" style="display:grid;grid-template-columns:300px 100px 190px 120px minmax(0,1fr);gap:16px;padding:12px 0;color:#A3968A;font-size:12px;letter-spacing:0.12em;text-transform:uppercase"><span>Element</span><span>Start</span><span>Duration</span><span>Easing</span><span>Trigger</span></div>
+      <sc-for list="{{ spec }}" as="r" hint-placeholder-count="8">
+        <div role="row" style="display:grid;grid-template-columns:300px 100px 190px 120px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid #3B332B"><span>{{ r.el }}</span><span>{{ r.start }}</span><span>{{ r.dur }}</span><span style="color:#D4924A">{{ r.ease }}</span><span style="color:#A3968A">{{ r.trig }}</span></div>
+      </sc-for>
+    </div>
+    <p style="margin:0;font-size:14px;color:#A3968A;line-height:1.6">Reduced motion: opener opens at its final frame, no glow drift. Tokens in <a href="Design System.dc.html">Design System</a>.</p>
+  </div>
+</section>
+
+<section data-screen-label="Library screens" style="padding:96px;display:flex;flex-direction:column;gap:64px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A;border-top:1px solid #3B332B">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 4 · Screens</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">The Library: 1440 and 375, EN and AR</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A">Essay index, long-form reading page with the glossary margin, and the glossary. Frames are live: click the featured essay, tap a dotted term.</p>
+  </div>
+  <sc-for list="{{ rows }}" as="row" hint-placeholder-count="3">
+    <div style="display:flex;flex-wrap:wrap;gap:80px;align-items:flex-start">
+      <sc-for list="{{ row.items }}" as="it" hint-placeholder-count="4">
+        <div id="{{ it.id }}" style="display:flex;flex-direction:column;gap:16px">
+          <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">{{ it.label }}</span>
+          <div style="width:{{ it.w }}px;height:{{ it.h }}px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Library" lang="{{ it.lang }}" init-view="{{ it.view }}" init-gloss="{{ it.gloss }}" freeze-at="{{ it.at }}" static-progress="{{ it.prog }}" hint-size="{{ it.hint }}"></dc-import></div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-for>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const mk = (id, label, view, lang, mobile, h, extra) => ({ id, label, view, lang, w: mobile ? 375 : 1440, h, hint: (mobile ? 375 : 1440) + 'px,' + h + 'px', gloss: null, at: view === 'article' ? 3.2 : null, prog: view === 'article' ? 0.18 : null, ...extra });
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      frames: [
+        { n:'1', at:0.2, prog:0, time:'0.0–0.9 s', title:'Light arrives', body:'Ground is empty. Amber glow fades in from the top edge over 900 ms, ease-out. Back link and catalogue number appear.' },
+        { n:'2', at:0.95, prog:0, time:'0.5–1.7 s', title:'Title in three lines', body:'Each line rises 18 px and fades in, 600 ms ease-out, 300 ms apart.' },
+        { n:'3', at:1.9, prog:0, time:'1.5–2.4 s', title:'Rule, standfirst', body:'A resin hairline draws left to right, 600 ms ease-in-out. Standfirst follows, 600 ms ease-out.' },
+        { n:'4', at:3.2, prog:0, time:'3.2 s', title:'Rest', body:'Everything still. Reading begins; the scale at the top edge tracks scroll.' },
+      ],
+      spec: [
+        { el:'Amber glow', start:'0.0 s', dur:'900 ms, drifts 2 s+', ease:'ease-out', trig:'Essay opens' },
+        { el:'Back link, category, date', start:'0.2 s', dur:'600 ms (slow)', ease:'ease-out', trig:'Essay opens' },
+        { el:'Title lines I–III', start:'0.5 s', dur:'600 ms, 300 ms stagger', ease:'ease-out', trig:'Glow at 50%' },
+        { el:'Resin hairline', start:'1.5 s', dur:'600 ms (slow)', ease:'ease-in-out', trig:'Last title line lands' },
+        { el:'Standfirst', start:'1.8 s', dur:'600 ms (slow)', ease:'ease-out', trig:'Hairline at 50%' },
+        { el:'Reading scale', start:'scroll', dur:'Linear to scroll', ease:'none', trig:'Scroll. No smoothing' },
+        { el:'Glossary card', start:'tap', dur:'150 ms (fast)', ease:'ease-out', trig:'Term tapped. Replaces the previous term' },
+      ],
+      rows: [
+        { items: [mk('4a','4a · Index · Desktop 1440 · EN','index','en',false,1500), mk('4b','4b · Index · Desktop 1440 · AR','index','ar',false,1500), mk('4c','4c · Index · Mobile 375 · EN','index','en',true,1900), mk('4d','4d · Index · Mobile 375 · AR','index','ar',true,1900)] },
+        { items: [mk('4g','4g · Essay · Desktop 1440 · EN','article','en',false,2450,{ gloss:'resinoid' }), mk('4h','4h · Essay · Desktop 1440 · AR','article','ar',false,2450,{ gloss:'resinoid' }), mk('4i','4i · Essay · Mobile 375 · EN','article','en',true,2700,{ gloss:'fixative' }), mk('4j','4j · Essay · Mobile 375 · AR','article','ar',true,2800,{ gloss:'fixative' })] },
+        { items: [mk('4k','4k · Glossary · Desktop 1440 · EN','glossary','en',false,1100), mk('4l','4l · Glossary · Desktop 1440 · AR','glossary','ar',false,1100), mk('4m','4m · Glossary · Mobile 375 · EN','glossary','en',true,1550), mk('4n','4n · Glossary · Mobile 375 · AR','glossary','ar',true,1650)] },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

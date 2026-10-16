@@ -3,12 +3,11 @@ import { Link } from 'react-router-dom'
 import { isAuthRetryableFetchError } from '@supabase/auth-js'
 import { supabase, signInWithEmail, signInWithProvider } from '../lib/auth'
 import { AUTH_STORAGE_KEY } from '../lib/supabaseClient'
-import { COLORS, SHAPE } from '../lib/theme'
+import { COLORS } from '../lib/theme'
 import { useI18n } from '../i18n/I18nProvider'
 import { errorText } from '../i18n/errorText';
 import LanguageToggle from './LanguageToggle'
-import FlaconMark from './FlaconMark'
-import WorkedExample from './WorkedExample'
+import KyphiraLogo from './kx/KyphiraLogo'
 import { localePath } from '../site/meta'
 
 // The session saved by the last visit, read synchronously so a returning user
@@ -98,96 +97,86 @@ export default function AuthGate({ children }) {
 
   if (!session) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: COLORS.paper }}>
-        <header className="flex items-center justify-between px-4 sm:px-8 py-5">
-          <Link to={localePath(locale, '/')} className="inline-flex items-center gap-2">
-            <FlaconMark size={24} />
-            <span className="font-serif italic text-lg" style={{ color: COLORS.forestDeep }}>{t('brand')}</span>
+      <div className="min-h-screen flex flex-col" style={{ background: COLORS.paper, color: COLORS.ink }}>
+        <header className="h-[72px] flex items-center justify-between px-4 sm:px-6 lg:px-12" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+          <Link to={localePath(locale, '/')} aria-label={t('site.nav.home')} className="inline-flex items-center min-h-[44px]">
+            <KyphiraLogo form="wordmark" height={16} title={t('brand')} />
           </Link>
           <LanguageToggle />
         </header>
 
-        <div className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] gap-10 items-start py-6 md:py-10">
-          <div className="w-full max-w-sm">
-            <h1 className="font-serif italic text-3xl sm:text-4xl leading-tight" style={{ color: COLORS.forestDeep }}>{t('auth.heading')}</h1>
-            <p className="mt-3 text-sm leading-relaxed" style={{ color: COLORS.inkSoft }}>{t('auth.lead')}</p>
+        <div className="flex-1 grid md:grid-cols-2">
+          <div className="px-4 sm:px-8 md:px-[clamp(32px,10vw,148px)] py-10 md:py-16 flex flex-col justify-center">
+            <div className="w-full max-w-[424px]">
+              <p dir="ltr" className="text-xs tracking-[0.06em]" style={{ color: COLORS.dim }}>K·0000</p>
+              <h1 className="mt-4 font-serif font-light text-[clamp(40px,5vw,64px)] leading-[1.1] rtl:leading-[1.4] tracking-[-0.01em] rtl:tracking-normal">{t('auth.heading')}</h1>
+              <p className="mt-4 text-[17px] leading-relaxed" style={{ color: COLORS.dim }}>{t('auth.lead')}</p>
 
-            {errorMsg && (
-              <div role="alert" className={`mt-6 p-3 text-xs font-mono ${SHAPE.control}`} style={{ border: `1px solid ${COLORS.danger}`, color: COLORS.danger, background: COLORS.dangerBg }}>
-                {errorMsg}
-              </div>
-            )}
+              {errorMsg && (
+                <div role="alert" className="mt-6 p-3 text-sm rounded-sm" style={{ border: `1px solid ${COLORS.danger}`, color: COLORS.danger, background: COLORS.dangerBg }}>
+                  {errorMsg}
+                </div>
+              )}
 
-            {sentMagicLink ? (
-              <div className="mt-8">
-                <h2 ref={inboxRef} tabIndex={-1} className="font-serif italic rtl:not-italic text-xl mb-2" style={{ color: COLORS.forestDeep }}>{t('auth.checkInbox')}</h2>
-                <p className="text-sm mb-4" style={{ color: COLORS.inkSoft }}>
-                  {t('auth.sentLinkTo')} <span dir="ltr" style={{ color: COLORS.ink }}>{email}</span>.
-                </p>
-                <button
-                  onClick={() => setSentMagicLink(false)}
-                  className="text-sm underline"
-                  style={{ color: COLORS.actionText }}
-                >
-                  {t('auth.useDifferent')}
-                </button>
-              </div>
-            ) : (
-              <>
-                {/* OAuth Providers */}
-                <div className="mt-8">
-                  <button
-                    onClick={() => handleOAuth('google')}
-                    className={`w-full py-2.5 px-4 border text-sm transition-colors ${SHAPE.control}`}
-                    style={oauthBtn}
-                  >
-                    {t('auth.continueGoogle')}
+              {sentMagicLink ? (
+                <div className="mt-10">
+                  <h2 ref={inboxRef} tabIndex={-1} className="font-serif text-2xl mb-2 rtl:leading-[1.5]">{t('auth.checkInbox')}</h2>
+                  <p className="text-sm mb-4" style={{ color: COLORS.inkSoft }}>
+                    {t('auth.sentLinkTo')} <span dir="ltr" style={{ color: COLORS.ink }}>{email}</span>.
+                  </p>
+                  <button onClick={() => setSentMagicLink(false)} className="text-sm underline min-h-[44px]" style={{ color: COLORS.actionText }}>
+                    {t('auth.useDifferent')}
                   </button>
                 </div>
-
-                <div className="flex items-center my-6">
-                  <div className="flex-grow border-t" style={{ borderColor: COLORS.line }}></div>
-                  <span className="px-3 text-xs" style={{ color: COLORS.dim }}>{t('auth.orMagicLink')}</span>
-                  <div className="flex-grow border-t" style={{ borderColor: COLORS.line }}></div>
-                </div>
-
-                {/* Magic Link Form */}
-                <form onSubmit={handleEmailSubmit} className="space-y-4">
-                  <div>
-                    <label htmlFor="auth-email" className="block text-xs mb-1.5" style={{ color: COLORS.inkSoft }}>
-                      {t('auth.emailLabel')}
-                    </label>
-                    <input
-                      id="auth-email"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={t('auth.emailPlaceholder')}
-                      dir="ltr"
-                      autoComplete="email"
-                      className={`w-full px-3 py-2 text-sm focus:outline-none focus:ring-2 ${SHAPE.control}`}
-                      style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }}
-                    />
+              ) : (
+                <>
+                  <div className="mt-10">
+                    <button onClick={() => handleOAuth('google')}
+                      className="w-full min-h-[52px] px-4 border text-[15px] rounded-sm hover:border-[color:var(--c-dim)]" style={oauthBtn}>
+                      {t('auth.continueGoogle')}
+                    </button>
                   </div>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className={`w-full py-2.5 px-4 text-sm font-semibold transition-colors disabled:opacity-50 ${SHAPE.control}`}
-                    style={{ background: COLORS.amber, color: COLORS.onAmber }}
-                  >
-                    {submitting ? t('auth.sendingLink') : t('auth.sendLink')}
-                  </button>
-                </form>
-              </>
-            )}
 
-            <Link to={localePath(locale, '/library')} className="inline-block mt-8 text-sm hover:underline" style={{ color: COLORS.amberDeep }}>
-              {t('auth.backToGuides')}
-            </Link>
+                  <div className="flex items-center gap-4 my-6">
+                    <div className="flex-grow border-t" style={{ borderColor: COLORS.line }}></div>
+                    <span className="text-xs" style={{ color: COLORS.dim }}>{t('auth.orMagicLink')}</span>
+                    <div className="flex-grow border-t" style={{ borderColor: COLORS.line }}></div>
+                  </div>
+
+                  <form onSubmit={handleEmailSubmit} className="space-y-4">
+                    <div>
+                      <label htmlFor="auth-email" className="block text-sm mb-2" style={{ color: COLORS.ink }}>
+                        {t('auth.emailLabel')}
+                      </label>
+                      <input id="auth-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                        placeholder={t('auth.emailPlaceholder')} dir="ltr" autoComplete="email"
+                        className="w-full px-4 min-h-[52px] text-[15px] rounded-sm focus:outline-none focus:ring-2 text-start"
+                        style={{ background: COLORS.card, border: `1px solid ${COLORS.field}`, color: COLORS.ink }} />
+                    </div>
+                    <button type="submit" disabled={submitting}
+                      className="on-resin w-full min-h-[52px] px-4 text-[15px] font-semibold rounded-sm disabled:opacity-50 hover:bg-[color:var(--c-action-hover)]"
+                      style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+                      {submitting ? t('auth.sendingLink') : t('auth.sendLink')}
+                    </button>
+                  </form>
+                </>
+              )}
+
+              <Link to={localePath(locale, '/library')} className="inline-flex items-center min-h-[44px] mt-8 text-sm hover:underline" style={{ color: COLORS.actionText }}>
+                {t('auth.backToGuides')}
+              </Link>
+            </div>
           </div>
 
-          <WorkedExample />
+          {/* The room at dusk: the mark, a glow from the top, the method in three words. */}
+          <div aria-hidden="true" className="relative hidden md:flex flex-col justify-between p-12 overflow-hidden" style={{ background: COLORS.card, borderInlineStart: `1px solid ${COLORS.line}`, color: COLORS.ink }}>
+            <span className="absolute inset-x-0 top-0 h-[360px]" style={{ background: 'radial-gradient(70% 100% at 50% 0%, color-mix(in srgb, var(--c-amber) 24%, transparent), transparent 72%)' }} />
+            <span className="relative"><KyphiraLogo form="symbol" height={120} /></span>
+            <div className="relative">
+              <p className="font-serif font-light text-[clamp(36px,3.6vw,52px)] leading-[1.1] rtl:leading-[1.4]">{t('site.landing.methodTitle')}</p>
+              <p className="mt-3 text-sm" style={{ color: COLORS.dim }}>{t('auth.panelSub')}</p>
+            </div>
+          </div>
         </div>
       </div>
     )

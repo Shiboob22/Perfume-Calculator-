@@ -64,7 +64,7 @@ function Rules({ step }) {
   return (
     <ul className="mt-6 space-y-2">
       {rules.map((n) => (
-        <li key={n} className="p-3 rounded-none text-sm" style={{ border: `1px solid ${COLORS.line}`, color: COLORS.ink }}>
+        <li key={n} className="p-3 rounded-sm text-sm" style={{ border: `1px solid ${COLORS.line}`, color: COLORS.ink }}>
           <span className="font-semibold me-2" style={{ color: COLORS.amberDeep }}>{t("bench.rule", { n })}</span>
           {t(`bench.rules.${n}`)}{" "}
           {/* A new tab: leaving would end the bench run on this screen. */}
@@ -94,7 +94,7 @@ function Grams({ id, label, value, onChange }) {
     <div className="mt-4">
       <label htmlFor={id} className="block text-sm mb-2" style={{ color: COLORS.ink }}>{label}</label>
       <input id={id} type="number" inputMode="decimal" step="0.01" min="0" value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-4 font-mono text-3xl text-center border rounded-none focus:outline-none focus:ring-2"
+        className="w-full px-4 py-4 font-mono text-3xl text-center border rounded-sm focus:outline-none focus:ring-2"
         style={{ borderColor: COLORS.field, background: COLORS.cardHi, color: COLORS.ink }} />
     </div>
   );
@@ -233,7 +233,7 @@ export default function BenchMode() {
             <h2 className="mt-6 font-serif italic text-xl" style={{ color: COLORS.amberDeep }}>{t("bench.prepare.equipment")}</h2>
             <ul className="mt-2 space-y-1 ps-5 list-disc">{(t.raw("bench.prepare.equipmentList") || []).map((x) => <li key={x}>{x}</li>)}</ul>
             <p className="mt-4">{t("bench.prepare.area")}</p>
-            <div role="alert" className="mt-5 p-4 rounded-none" style={{ border: `1px solid ${COLORS.danger}`, background: COLORS.dangerBg }}>
+            <div role="alert" className="mt-5 p-4 rounded-sm" style={{ border: `1px solid ${COLORS.danger}`, background: COLORS.dangerBg }}>
               <p className="font-semibold" style={{ color: COLORS.danger }}>{t("bench.prepare.caution")}</p>
               <p className="mt-1">{t("bench.prepare.cautionText")}</p>
               <label className="mt-3 flex items-start gap-3 cursor-pointer">
@@ -285,7 +285,7 @@ export default function BenchMode() {
         {step === "mix" && (
           <>
             <p className="mt-6 text-lg leading-relaxed">{t("bench.mix.text")}</p>
-            <button type="button" onClick={() => setTimer(60)} className="mt-6 w-full py-4 rounded-none font-mono text-2xl"
+            <button type="button" onClick={() => setTimer(60)} className="mt-6 w-full py-4 rounded-sm font-mono text-2xl"
               style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.actionText }}>
               {timer === null ? t("bench.mix.timer") : timer > 0 ? t("bench.mix.running", { s: timer }) : t("bench.mix.done")}
             </button>
@@ -302,7 +302,7 @@ export default function BenchMode() {
             <ul className="mt-3 space-y-2">
               {(t.raw("bench.qc.items") || []).map((item, n) => (
                 <li key={item}>
-                  <label className="flex items-start gap-3 p-3 rounded-none cursor-pointer" style={{ border: `1px solid ${COLORS.line}` }}>
+                  <label className="flex items-start gap-3 p-3 rounded-sm cursor-pointer" style={{ border: `1px solid ${COLORS.line}` }}>
                     <input type="checkbox" className="mt-1 w-5 h-5" checked={qc.has(n)}
                       onChange={() => setQc((s) => { const x = new Set(s); x.has(n) ? x.delete(n) : x.add(n); return x; })} />
                     <span>{item}</span>
@@ -317,7 +317,7 @@ export default function BenchMode() {
         {step === "label" && (
           <>
             <p className="mt-6">{t("bench.label.text")}</p>
-            <dl className="mt-3 p-4 rounded-none grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm" style={{ border: `1px dashed ${COLORS.amberDeep}` }}>
+            <dl className="mt-3 p-4 rounded-sm grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm" style={{ border: `1px dashed ${COLORS.amberDeep}` }}>
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.fragrance")}</dt><dd>{plan.name || t("bench.untitled")}</dd>
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.concentration")}</dt><dd>{pct}%</dd>
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.bottle")}</dt><dd dir="ltr" className="text-start">{plan.amount} {unit}</dd>
@@ -331,7 +331,7 @@ export default function BenchMode() {
               <dd dir="ltr" className="text-start font-mono">{fmt2(labelled.total)} g</dd>
             </dl>
             <button type="button" onClick={handleLog} disabled={status === "saving" || status === "saved" || status === "queued"}
-              className="mt-6 w-full py-4 rounded-none text-lg font-semibold disabled:opacity-60" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+              className="mt-6 w-full py-4 rounded-sm text-lg font-semibold disabled:opacity-60" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
               {status === "saving" ? t("bench.label.saving") : t("bench.label.log")}
             </button>
             <p className="mt-3 text-sm" role="status" style={{ color: status === "error" ? COLORS.danger : COLORS.actionText }}>
@@ -344,19 +344,19 @@ export default function BenchMode() {
               <nav aria-label={t("bench.after.title")} className="mt-6 grid gap-2">
                 <h2 className="font-serif italic text-xl" style={{ color: COLORS.amberDeep }}>{t("bench.after.title")}</h2>
                 {status === "saved" && (
-                  <button type="button" onClick={() => navigate("/bench/journal")} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+                  <button type="button" onClick={() => navigate("/bench/journal")} className="py-3 rounded-sm border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
                     {t("bench.after.batches")}
                   </button>
                 )}
                 {status === "saved" && can(entitlements, "export.labels") && (
-                  <button type="button" onClick={() => navigate(`/app/labels?batch=${logId.current}`)} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+                  <button type="button" onClick={() => navigate(`/app/labels?batch=${logId.current}`)} className="py-3 rounded-sm border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
                     {t("bench.after.label")}
                   </button>
                 )}
-                <button type="button" onClick={startAnother} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.actionText, color: COLORS.actionText }}>
+                <button type="button" onClick={startAnother} className="py-3 rounded-sm border text-start px-4" style={{ borderColor: COLORS.actionText, color: COLORS.actionText }}>
                   {t("bench.label.again")}
                 </button>
-                <button type="button" onClick={() => navigate("/bench")} className="py-3 rounded-none border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+                <button type="button" onClick={() => navigate("/bench")} className="py-3 rounded-sm border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
                   {t("bench.after.calculator")}
                 </button>
               </nav>
@@ -370,12 +370,12 @@ export default function BenchMode() {
 
       <footer className="sticky bottom-0 px-4 py-3 flex gap-3" style={{ background: COLORS.paper, borderTop: `1px solid ${COLORS.line}` }}>
         <button type="button" onClick={() => setI((n) => Math.max(n - 1, 0))} disabled={i === 0}
-          className="px-5 py-4 rounded-none border disabled:opacity-30" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+          className="px-5 py-4 rounded-sm border disabled:opacity-30" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
           {t("bench.back")}
         </button>
         {/* Kept on the last step (disabled) so focus has somewhere to stay. */}
         <button type="button" onClick={() => setI((n) => Math.min(n + 1, STEPS.length - 1))} disabled={!canNext || i === STEPS.length - 1}
-          className="flex-1 py-4 rounded-none text-lg font-semibold disabled:opacity-40" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+          className="flex-1 py-4 rounded-sm text-lg font-semibold disabled:opacity-40" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
           {t("bench.next")}
         </button>
       </footer>

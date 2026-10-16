@@ -181,3 +181,26 @@ describe("reasonText", () => {
     expect(reasonText(t, { key: "tooStrong", projection: "statement", ceiling: "personal", points: -8 }, { occasion: "professional" })).toContain("tooStrong");
   });
 });
+
+import { ageParts, daysSince, lastWornOn, remainingMl } from "./stats.js";
+
+describe("collection detail helpers", () => {
+  it("finds the last wearing and the days since", () => {
+    const wear = [{ bottle_id: "a", worn_on: "2026-10-01" }, { bottle_id: "a", worn_on: "2026-10-14" }, { bottle_id: "b", worn_on: "2026-10-15" }];
+    expect(lastWornOn(wear, "a")).toBe("2026-10-14");
+    expect(lastWornOn(wear, "z")).toBeNull();
+    expect(daysSince("2026-10-14", "2026-10-16")).toBe(2);
+    expect(daysSince(null, "2026-10-16")).toBeNull();
+    expect(daysSince("2026-10-20", "2026-10-16")).toBe(0);
+  });
+  it("words an age in days, months or years", () => {
+    expect(ageParts(3)).toEqual({ unit: "d", value: 3 });
+    expect(ageParts(120)).toEqual({ unit: "mo", value: 4 });
+    expect(ageParts(450)).toEqual({ unit: "mo", value: 15 });
+    expect(ageParts(2 * 365 + 90)).toEqual({ unit: "yr", value: 2.2 });
+  });
+  it("works out the millilitres left", () => {
+    expect(remainingMl({ size_ml: 50, fill_pct: 62 })).toBe(31);
+    expect(remainingMl({ size_ml: null, fill_pct: 62 })).toBeNull();
+  });
+});

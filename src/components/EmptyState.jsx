@@ -6,9 +6,9 @@ import { COLORS } from "../lib/theme";
 export default function EmptyState({ text, action, to }) {
   const navigate = useNavigate();
   return (
-    <div className="p-6 rounded-none text-center" style={{ background: COLORS.card, border: `1px dashed ${COLORS.line}` }}>
+    <div className="p-6 rounded-sm text-center" style={{ background: COLORS.card, border: `1px dashed ${COLORS.line}` }}>
       <p className="text-sm mb-4 max-w-md mx-auto" style={{ color: COLORS.inkSoft }}>{text}</p>
-      <button type="button" onClick={() => navigate(to)} className="px-4 py-2 rounded-none text-sm font-semibold"
+      <button type="button" onClick={() => navigate(to)} className="px-4 py-2 rounded-sm text-sm font-semibold"
         style={{ background: COLORS.amber, color: COLORS.onAmber }}>
         {action}
       </button>

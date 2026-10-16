@@ -5,13 +5,12 @@ import { useI18n } from "../i18n/I18nProvider";
 import { localePath } from "./meta";
 import LiveBench from "./LiveBench";
 import SmokeField from "../components/kx/SmokeField";
-import { GuideRows } from "./GuideRows";
 import { Folio } from "./editorial";
+import { Rooms, Method, ProSection } from "./HomeSections";
 import Compounding from "@compounding-scene";
 import { useCompounding } from "./compounding/useCompounding";
-import { IconArrow, IconBook, IconFlacon, IconPlus, IconScaleDrop, IconSeal, IconSteps, IconTile } from "../components/icons";
+import { IconArrow, IconBook, IconPlus } from "../components/icons";
 
-const PRINCIPLE_ICONS = [IconScaleDrop, IconSteps, IconFlacon];
 const WRAP = "max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14";
 
 function SectionTitle({ children }) {
@@ -22,7 +21,6 @@ export default function Home() {
   const { t, locale } = useI18n();
   const to = (p) => localePath(locale, p);
   const hero = t.raw("site.home.hero") || [];
-  const benefits = t.raw("site.home.benefits") || [];
   const faq = t.raw("site.home.faq") || [];
   const compounding = useCompounding();
 
@@ -57,63 +55,14 @@ export default function Home() {
       </div>
       )}
 
-      {/* Three principles */}
-      <section className="reveal" style={{ borderBlock: `1px solid ${COLORS.line}`, background: COLORS.card }}>
-        <div className={`${WRAP} py-14`}>
-          <h2 className={`${TYPE.label} mb-8`} style={{ color: COLORS.dim }}>{t("site.home.principlesLabel")}</h2>
-          <ol className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {benefits.map((b, i) => {
-              const I = PRINCIPLE_ICONS[i] ?? IconFlacon;
-              return (
-                <li key={b.title} className="grid gap-4 content-start">
-                  <div className="flex items-center gap-4">
-                    <IconTile icon={I} size={60} />
-                    <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-4xl`} style={{ color: COLORS.brass }}>{["I", "II", "III"][i] ?? i + 1}</span>
-                  </div>
-                  <h3 className="text-xl font-medium tracking-[-0.02em] rtl:tracking-normal">{b.title}</h3>
-                  <p className="font-serif leading-relaxed" style={{ color: COLORS.inkSoft }}>{b.text}</p>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      </section>
-
-      {/* Quote */}
-      <blockquote className={`${WRAP} reveal py-16 text-center`}>
-        <p className="font-serif italic text-[clamp(1.6rem,3.6vw,2.5rem)] max-w-3xl mx-auto leading-snug">“{t("site.home.quote")}”</p>
-        <footer className={`mt-5 ${TYPE.label}`} style={{ color: COLORS.dim }}>{t("site.home.quoteSource")}</footer>
-      </blockquote>
-
-      {/* Guide library */}
-      <section className={`${WRAP} reveal py-14`} style={{ borderTop: `1px solid ${COLORS.line}` }}>
-        <p className={`${TYPE.label} mb-3`} style={{ color: COLORS.dim }}>{t("site.home.contents")}</p>
-        <SectionTitle>{t("site.home.guidesTitle")}</SectionTitle>
-        <p className="font-serif mb-8" style={{ color: COLORS.inkSoft }}>{t("site.home.guidesLead")}</p>
-        <GuideRows />
-        <Link to={to("/library")} className="inline-flex items-center gap-2 mt-8 text-sm font-medium min-h-[44px]" style={{ color: COLORS.forest }}>
-          {t("site.home.allGuides")} <IconArrow size={18} />
-        </Link>
-      </section>
-
-      {/* Pricing teaser band */}
-      <section className="reveal" style={{ background: COLORS.sand, borderBlock: `1px solid ${COLORS.line}` }}>
-        <div className={`${WRAP} py-10 flex flex-wrap items-center gap-6`}>
-          <IconTile icon={IconSeal} size={56} />
-          <div className="flex-1 min-w-[14rem]">
-            <h2 className="text-2xl font-medium tracking-[-0.02em] rtl:tracking-normal">{t("site.home.pricingBand")}</h2>
-            <p className="font-serif mt-1" style={{ color: COLORS.inkSoft }}>{t("site.home.pricingLead")}</p>
-          </div>
-          <Link to={to("/pricing")} className="inline-flex items-center gap-2 px-5 min-h-[48px] font-medium" style={{ border: `1px solid ${COLORS.ink}` }}>
-            {t("site.home.comparePlans")} <IconArrow size={18} />
-          </Link>
-        </div>
-      </section>
+      <Rooms />
+      <Method />
+      <ProSection />
 
       {/* FAQ */}
-      <section className={`${WRAP} py-14`}>
+      <section className="px-4 sm:px-6 lg:px-12 pt-[clamp(72px,8vw,128px)]">
         <SectionTitle>{t("site.home.faqTitle")}</SectionTitle>
-        <div style={{ borderTop: `1px solid ${COLORS.ink}` }}>
+        <div style={{ borderTop: `1px solid ${COLORS.line}` }}>
           {faq.map((item) => (
             <details key={item.q} className="group" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
               <summary className="cursor-pointer list-none flex items-center justify-between gap-4 py-4 min-h-[56px] text-lg font-medium">

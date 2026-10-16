@@ -9,3 +9,7 @@ export { default as SmokeField } from "./SmokeField";
 export { default as SmokeLine } from "./SmokeLine";
 export { default as Chip } from "./Chip";
 export { default as FragranceCard } from "./FragranceCard";
+export { default as RoomHeader, RoomPage } from "./RoomHeader";
+export { default as Tabs, TabLinks } from "./Tabs";
+export { default as Stepper, stepValue } from "./Stepper";
+export { default as WeightScale } from "./WeightScale";

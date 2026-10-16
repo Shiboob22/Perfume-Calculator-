@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#15120F}a{color:#D4924A}a:hover{color:#EDE4D6}input::placeholder{color:#A3968A}</style>
+</helmet>
+<div ref="{{ rootRef }}" dir="{{ dir }}" lang="{{ lang }}" style="width:100%;min-height:100%;background:#15120F;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:16px;line-height:{{ lhBody }};container-type:inline-size">
+
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;height:72px;padding:0 {{ pad }}px;border-bottom:1px solid #3B332B">
+    <img src="assets/kyphira-wordmark.svg" alt="Kyphira" style="height:15px;display:block">
+    <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+      <nav style="display:flex;gap:4px">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+          <a href="#" style="display:flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;text-decoration:none;color:{{ n.fg }};box-shadow:inset 0 -1px 0 {{ n.line }}" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ n.label }}</a>
+        </sc-for>
+      </nav>
+    </sc-if>
+    <div style="display:flex;gap:8px">
+      <button onClick="{{ toggleLang }}" aria-label="{{ t.langAria }}" style="min-height:44px;min-width:44px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:14px;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.langSwitch }}</button>
+      <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+        <button aria-label="{{ t.menu }}" style="width:44px;height:44px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;display:flex;align-items:center;justify-content:center;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h9"></path></svg></button>
+      </sc-if>
+    </div>
+  </header>
+
+  <main style="padding:{{ padY }}px {{ pad }}px 96px;display:flex;flex-direction:column;gap:{{ gapY }}px">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="display:flex;gap:12px;align-items:baseline;font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A"><span style="font-family:'Newsreader',serif;font-size:16px;color:#D4924A;letter-spacing:0.06em">VI</span>{{ t.kicker }}</span>
+        <h1 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:{{ h1 }}px;line-height:{{ lhHead }};letter-spacing:-0.01em">{{ t.title }}</h1>
+      </div>
+      <span dir="ltr" style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">N·0001</span>
+    </div>
+
+    <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16;font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums"><span>{{ t.shelfLine }}</span><span style="color:#EDE4D6">{{ usedLine }}</span></div>
+    </sc-if>
+
+    <div style="display:grid;grid-template-columns:{{ cols }};gap:{{ gapX }}px;align-items:start">
+      <section aria-label="{{ t.chat }}" style="display:flex;flex-direction:column;gap:{{ msgGap }}px;min-width:0">
+        <div role="log" aria-live="polite" style="display:flex;flex-direction:column;gap:{{ msgGap }}px">
+          <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="2">
+            <div>
+              <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;justify-content:flex-end"><div style="max-width:{{ userMax }};padding:14px 18px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16;font-size:17px;text-wrap:pretty">{{ m.text }}</div></div>
+              </sc-if>
+              <sc-if value="{{ m.isBot }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:14px;max-width:760px">
+                  <span style="display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A"><span aria-hidden="true" style="width:8px;height:8px;border-radius:50%;background:#D4924A"></span>{{ t.nose }}</span>
+                  <p style="margin:0;font-size:18px;line-height:{{ lhRead }};text-wrap:pretty;opacity:{{ m.op0 }};transform:{{ m.tf0 }}">{{ m.text }}</p>
+                  <sc-if value="{{ m.isFormula }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;padding:{{ cardPad }}px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16;opacity:{{ m.opC }}">
+                      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:14px"><span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:24px;line-height:{{ lhHead }}">{{ m.cardTitle }}</span><span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">{{ m.cardCat }}</span></div>
+                      <div style="display:grid;grid-template-columns:minmax(0,1fr) 84px 64px;gap:12px;padding:10px 0;font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A;border-top:1px solid #A3968A"><span>{{ t.material }}</span><span style="text-align:end">g</span><span style="text-align:end">%</span></div>
+                      <sc-for list="{{ m.lines }}" as="ln" hint-placeholder-count="4">
+                        <div style="display:grid;grid-template-columns:minmax(0,1fr) 84px 64px;gap:12px;padding:12px 0;border-top:1px solid #3B332B;font-variant-numeric:tabular-nums;opacity:{{ ln.op }};transform:{{ ln.tf }}"><span style="display:flex;flex-direction:column"><span>{{ ln.name }}</span><span style="font-size:13px;color:#A3968A">{{ ln.why }}</span></span><span dir="ltr" style="text-align:end">{{ ln.g }}</span><span dir="ltr" style="text-align:end;color:#A3968A">{{ ln.pct }}</span></div>
+                      </sc-for>
+                      <div style="display:grid;grid-template-columns:minmax(0,1fr) 84px 64px;gap:12px;padding:12px 0;border-top:1px solid #A3968A;font-variant-numeric:tabular-nums;font-weight:500"><span>{{ m.totalLabel }}</span><span dir="ltr" style="text-align:end">{{ m.total }}</span><span dir="ltr" style="text-align:end;color:#A3968A;font-weight:400">100.0</span></div>
+                      <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:8px 0;font-variant-numeric:tabular-nums;color:#A3968A"><span>{{ m.etohLabel }}</span><span dir="ltr" style="color:#EDE4D6">{{ m.etoh }}</span></div>
+                      <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:12px">
+                        <a href="Bench.dc.html" style="display:flex;align-items:center;min-height:48px;padding:0 20px;background:#D4924A;color:#15120F;border-radius:2px;text-decoration:none;font-weight:600" style-hover="background:#E3A866;color:#15120F" style-focus="outline:2px solid #EDE4D6;outline-offset:2px">{{ t.openBench }}</a>
+                        <span style="display:flex;align-items:center;min-height:48px;font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums">{{ m.rest }}</span>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.isPairs }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;border-top:1px solid #A3968A;opacity:{{ m.opC }}">
+                      <sc-for list="{{ m.pairs }}" as="pr" hint-placeholder-count="3">
+                        <div style="display:grid;grid-template-columns:{{ pairCols }};gap:4px 24px;padding:16px 0;border-bottom:1px solid #3B332B;align-items:baseline;opacity:{{ pr.op }}"><span dir="ltr" style="font-family:'Newsreader',serif;font-size:21px;text-align:start">{{ pr.name }}</span><span style="color:#A3968A">{{ pr.why }}</span></div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.isCalc }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;padding:{{ cardPad }}px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16;font-variant-numeric:tabular-nums;opacity:{{ m.opC }}">
+                      <sc-for list="{{ m.calc }}" as="cr" hint-placeholder-count="3">
+                        <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:12px 0;border-top:1px solid {{ cr.rule }};font-weight:{{ cr.fw }}"><span>{{ cr.name }}</span><span dir="ltr">{{ cr.g }}</span></div>
+                      </sc-for>
+                      <span style="padding-top:10px;font-size:14px;color:#A3968A">{{ m.calcNote }}</span>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+
+          <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}">
+            <div role="status" aria-label="{{ t.thinking }}" style="display:flex;flex-direction:column;gap:14px;max-width:560px">
+              <span style="display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A"><span aria-hidden="true" style="width:8px;height:8px;border-radius:50%;background:#D4924A;opacity:{{ pulse }}"></span>{{ t.nose }}</span>
+              <div style="display:flex;flex-direction:column;gap:0;padding:{{ cardPad }}px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+                <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:22px;line-height:{{ lhHead }};padding-bottom:12px">{{ t.thinking }}</span>
+                <sc-for list="{{ steps }}" as="st" hint-placeholder-count="3">
+                  <div style="display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #3B332B;color:{{ st.fg }};font-variant-numeric:tabular-nums">
+                    <span aria-hidden="true" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px"><span style="display:block;width:{{ st.dot }}px;height:{{ st.dot }}px;border-radius:50%;border:1px solid {{ st.bd }};background:{{ st.bg }};opacity:{{ st.op }}"></span></span>
+                    <span>{{ st.label }}</span><span dir="ltr" style="font-size:13px;color:#A3968A">{{ st.val }}</span>
+                  </div>
+                </sc-for>
+                <div style="margin-top:12px;height:2px;background:#3B332B"><div style="height:2px;width:{{ thinkPct }}%;background:#D4924A"></div></div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ canAsk }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:12px;padding-top:8px">
+          <sc-if value="{{ hasSuggest }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ suggest }}" as="sg" hint-placeholder-count="2">
+                <button onClick="{{ sg.pick }}" style="flex:0 0 auto;max-width:100%;min-height:44px;padding:8px 14px;border-radius:2px;border:1px solid #3B332B;background:transparent;color:#EDE4D6;font:inherit;font-size:14px;line-height:1.4;text-align:start;cursor:pointer" style-hover="border-color:#A3968A" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ sg.text }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+          <form onSubmit="{{ submit }}" style="display:flex;gap:8px">
+            <input value="{{ draft }}" onChange="{{ onDraft }}" aria-label="{{ t.ask }}" placeholder="{{ t.askPh }}" dir="auto" style="flex:1;min-width:0;box-sizing:border-box;min-height:52px;padding:0 16px;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:16px" style-focus="outline:2px solid #D4924A;outline-offset:0;border-color:#D4924A">
+            <button type="submit" aria-label="{{ t.send }}" style="min-height:52px;min-width:52px;padding:0 20px;background:#D4924A;color:#15120F;border:none;border-radius:2px;font:inherit;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#E3A866" style-focus="outline:2px solid #EDE4D6;outline-offset:2px"><sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><span>{{ t.send }}</span></sc-if><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="transform:{{ flip }}"><path d="M3.5 10h13M11.5 5l5 5-5 5"></path></svg></button>
+          </form>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ gated }}" hint-placeholder-val="{{ false }}">
+        <section aria-label="{{ t.gateTitle }}" style="display:grid;grid-template-columns:{{ gateCols }};gap:{{ gateGap }}px;padding:{{ gatePad }}px;border:1px solid #D4924A;border-radius:2px;background:#1E1A16">
+          <div style="display:flex;flex-direction:column;justify-content:space-between;gap:24px">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <span style="font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#D4924A">{{ t.proKicker }}</span>
+              <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:{{ gateH }}px;line-height:{{ lhHead }}">{{ t.gateTitle }}</h2>
+              <p style="margin:0;color:#A3968A;text-wrap:pretty">{{ t.gateSub }}</p>
+              <span dir="ltr" style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums;text-align:start">{{ t.resets }}</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+              <a href="Homepage.dc.html#pro" style="display:flex;align-items:center;min-height:48px;padding:0 24px;background:#D4924A;color:#15120F;border-radius:2px;text-decoration:none;font-weight:600" style-hover="background:#E3A866;color:#15120F" style-focus="outline:2px solid #EDE4D6;outline-offset:2px">{{ t.seePro }}</a>
+              <button style="min-height:48px;padding:0 8px;background:transparent;border:none;color:#A3968A;font:inherit;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.tomorrow }}</button>
+            </div>
+          </div>
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column">
+            <sc-for list="{{ proList }}" as="f" hint-placeholder-count="5">
+              <li style="display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px;padding:12px 0;border-top:1px solid #3B332B"><span style="font-family:'Newsreader',serif;font-size:14px;color:#D4924A;padding-top:2px">{{ f.num }}</span><span style="font-size:16px">{{ f.title }}</span></li>
+            </sc-for>
+          </ul>
+        </section>
+        </sc-if>
+      </section>
+
+      <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+      <aside aria-label="{{ t.context }}" style="display:flex;flex-direction:column;gap:20px;position:sticky;top:24px">
+        <div style="display:flex;flex-direction:column;gap:12px;padding:24px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A">{{ t.shelf }}</span><span style="font-size:13px;color:#A3968A;font-variant-numeric:tabular-nums">{{ t.shelfCount }}</span></div>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ shelf }}" as="sh" hint-placeholder-count="5"><div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #3B332B;font-variant-numeric:tabular-nums"><span dir="ltr" style="font-family:'Newsreader',serif;font-size:18px">{{ sh.name }}</span><span style="font-size:13px;color:#A3968A">{{ sh.last }}</span></div></sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;padding:24px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A">{{ t.free }}</span><span dir="ltr" style="font-size:22px;font-weight:500;font-variant-numeric:tabular-nums">{{ usedShort }}</span></div>
+          <div role="progressbar" aria-valuemin="0" aria-valuemax="3" aria-valuenow="{{ used }}" style="display:flex;gap:4px"><sc-for list="{{ meter }}" as="mt" hint-placeholder-count="3"><span style="display:block;flex:1;height:6px;background:{{ mt.c }}"></span></sc-for></div>
+          <span dir="ltr" style="font-size:13px;color:#A3968A;font-variant-numeric:tabular-nums;text-align:start">{{ t.resets }}</span>
+        </div>
+      </aside>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1300},&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;'en'|'ar'&quot;},&quot;initView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;conversation&quot;,&quot;thinking&quot;,&quot;gate&quot;],&quot;default&quot;:&quot;conversation&quot;,&quot;tsType&quot;:&quot;'conversation'|'thinking'|'gate'&quot;},&quot;reduced&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;freezeAt&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;number|null&quot;}}">
+const SHELF = [['Santal 33',1],['Oud Wood',7],['Tobacco Vanille',4],['Khamrah',10],['Tuscan Leather',17]];
+const COPY = {
+  en: { langSwitch:'ع', langAria:'Language', menu:'Menu', kicker:'The Nose', title:'Ask. It has read your shelf.', chat:'Conversation', nose:'The Nose', thinking:'Reading your shelf', ask:'Ask The Nose', askPh:'Ask about a note, a blend or a dilution', send:'Send', material:'Material',
+    context:'Context', shelf:'Your shelf', shelfCount:'12 bottles · 11 wears', free:'Free questions', resets:'Resets in 6 h 40 min', shelfLine:'12 bottles read', day:'d', openBench:'Open in the Bench',
+    gateTitle:'3 of 3 free questions used today.', gateSub:'Free covers three questions a day. Pro removes the limit and lets The Nose read your whole wear log.', proKicker:'Kyphira Pro', seePro:'See Pro', tomorrow:'Come back tomorrow',
+    langOf:'of', pro:['Unlimited Nose sessions','Batch scaling and export','Private recipes','Full Atlas filters','Wear-log insights'],
+    steps:[['Bottles','12 read'],['Wears','11 read'],['Accords','3 weighed']], nav:['The Bench','The Wardrobe','The Library','The Atlas','The Salon','The Nose'] },
+  ar: { langSwitch:'EN', langAria:'اللغة', menu:'القائمة', kicker:'الأنف', title:'اسأل. لقد قرأ رفّك.', chat:'المحادثة', nose:'الأنف', thinking:'يقرأ رفّك', ask:'اسأل الأنف', askPh:'اسأل عن نوتة أو خلطة أو تخفيف', send:'أرسل', material:'المادة',
+    context:'السياق', shelf:'رفّك', shelfCount:'12 زجاجة · 11 ارتداءً', free:'الأسئلة المجانية', resets:'تتجدد بعد 6 س 40 د', shelfLine:'قُرئت 12 زجاجة', day:'ي', openBench:'افتح في المِنضدة',
+    gateTitle:'استُخدمت 3 من 3 أسئلة مجانية اليوم.', gateSub:'المجاني يشمل ثلاثة أسئلة يومياً. وبرو يرفع الحد ويتيح للأنف قراءة سجل ارتدائك كاملاً.', proKicker:'كيفيرا برو', seePro:'اعرف برو', tomorrow:'عُد غداً',
+    langOf:'من', pro:['جلسات غير محدودة مع الأنف','تكبير الدفعات وتصديرها','وصفات خاصة','كل فلاتر الأطلس','قراءات سجل الارتداء'],
+    steps:[['الزجاجات','قُرئت 12'],['الارتداءات','قُرئت 11'],['الأكوردات','وُزنت 3']], nav:['المِنضدة','الخزانة','المكتبة','الأطلس','الصالون','الأنف'] },
+};
+const NAMES = { en:{ Labdanum:'Labdanum', Frankincense:'Frankincense', Sandalwood:'Sandalwood', Cassia:'Cassia', 'Labdanum absolute':'Labdanum absolute', DPG:'DPG' }, ar:{ Labdanum:'لادن', Frankincense:'لبان', Sandalwood:'صندل', Cassia:'سليخة', 'Labdanum absolute':'لادن مطلق', DPG:'DPG' } };
+const P = [
+  { en:'I wear Santal 33 and Oud Wood. Something for 14 °C evenings.', ar:'أرتدي سانتال 33 وعود وود. أريد شيئاً لأمسيات 14 °C.', short:{ en:'Something for 14 °C evenings', ar:'شيء لأمسيات 14 °C' } },
+  { en:'What pairs with Khamrah?', ar:'ما الذي يتناسب مع خمرة؟', short:{ en:'What pairs with Khamrah?', ar:'ما الذي يتناسب مع خمرة؟' } },
+  { en:'Dilute labdanum to 10%.', ar:'خفّف اللادن إلى 10%.', short:{ en:'Dilute labdanum to 10%', ar:'خفّف اللادن إلى 10%' } },
+];
+const R = [
+  { type:'formula', en:'Your shelf leans woody and oud, and you wear it at 20 °C and above. At 14 °C add warmth, not more wood. Try this: 50 ml, 20% v/v.', ar:'رفّك يميل إلى الخشبي والعود، وترتديه عند 20 °C وأكثر. عند 14 °C أضِف دفئاً لا مزيداً من الخشب. جرّب هذا: 50 ml، تركيز 20% بالحجم.',
+    title:{ en:'Resin Study', ar:'دراسة الراتنج' }, cat:'R·0319', lines:[['Labdanum',3.8,{ en:'Leather and smoke, the new base',ar:'جلد ودخان، القاعدة الجديدة' }],['Frankincense',2.85,{ en:'Lifts and dries',ar:'يرفع ويجفّف' }],['Sandalwood',1.9,{ en:'Keeps the thread of Santal 33',ar:'يحفظ خيط سانتال 33' }],['Cassia',0.95,{ en:'Heat',ar:'حرارة' }]], etoh:'32.28', rest:{ en:'Rest 4 weeks. Opens 13 Nov.', ar:'أرِحه 4 أسابيع. يُفتح في 13 نوفمبر.' } },
+  { type:'pairs', en:'Khamrah is cinnamon, dates and vanilla. Sweet and round. Pair for contrast.', ar:'خمرة قرفة وتمر وفانيليا. حلوة ومستديرة. اقرنها بما يقابلها.',
+    pairs:[['Tuscan Leather',{ en:'1 spray under Khamrah. Adds smoke to the dates.', ar:'رشّة واحدة تحت خمرة. تضيف الدخان إلى التمر.' }],['Oud Wood',{ en:'2 sprays first. Dries the sweetness.', ar:'رشّتان أولاً. تجفّف الحلاوة.' }],['Hawas',{ en:'Skip. The apple fights the cinnamon.', ar:'تجنّبه. التفاح يخاصم القرفة.' }]] },
+  { type:'calc', en:'Dilute by weight. For 10.00 g at 10%:', ar:'خفّف بالوزن. لعشرة جرامات بتركيز 10%:',
+    calc:[['Labdanum absolute',1.0],['DPG',9.0]], note:{ en:'Warm the jar to 40 °C so it pours. Rest 24 h.', ar:'دفّئ الوعاء إلى 40 °C ليسيل. أرِحه 24 ساعة.' } },
+];
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const eo = x => 1 - Math.pow(1 - x, 3);
+const ROMAN = ['I','II','III','IV','V'];
+
+class Component extends DCLogic {
+  state = { lang: null, w: 1440, asked: null, phase: null, draft: '', clock: 0, tStart: 0, rStart: -99 };
+  rootRef = React.createRef();
+  componentDidMount() {
+    const el = this.rootRef.current;
+    const measure = () => { const r = this.rootRef.current; if (r) this.setState({ w: r.getBoundingClientRect().width }); };
+    if (el) { this.ro = new ResizeObserver(e => this.setState({ w: e[0].contentRect.width })); this.ro.observe(el); }
+    measure(); setTimeout(measure, 120); setTimeout(measure, 600);
+    this.t0 = performance.now();
+    if (this.props.freezeAt == null) this.loop();
+  }
+  componentWillUnmount() { this.ro && this.ro.disconnect(); cancelAnimationFrame(this.raf); clearTimeout(this.to); }
+  loop = () => {
+    const reduce = this.props.reduced || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const tick = now => {
+      const c = (now - this.t0) / 1000, s = this.state;
+      this.setState({ clock: c });
+      const live = s.phase === 'thinking' || c - s.rStart < 1.6;
+      this.raf = live && !reduce ? requestAnimationFrame(tick) : null;
+    };
+    cancelAnimationFrame(this.raf); this.raf = requestAnimationFrame(tick);
+  };
+  ask = i => {
+    const s = this.state, asked = this.asked();
+    if (asked.length >= 3 || s.phase === 'thinking') return;
+    const now = (performance.now() - this.t0) / 1000;
+    this.setState({ asked: [...asked, i], phase: 'thinking', tStart: now, draft: '' }, this.loop);
+    clearTimeout(this.to);
+    this.to = setTimeout(() => { const n = (performance.now() - this.t0) / 1000; this.setState({ phase: 'idle', rStart: n }, this.loop); }, 2000);
+  };
+  asked = () => this.state.asked ?? (this.props.initView === 'gate' ? [0, 1, 2] : this.props.initView === 'thinking' ? [0, 1] : [0]);
+  renderVals() {
+    const lang = this.state.lang ?? (this.props.lang === 'ar' ? 'ar' : 'en');
+    const ar = lang === 'ar', t = COPY[lang], A = +ar;
+    const w = this.state.w, mobile = w < 1100, desktop = !mobile;
+    const frozen = this.props.freezeAt != null;
+    const asked = this.asked();
+    const phase = this.state.phase ?? (this.props.initView === 'thinking' ? 'thinking' : 'idle');
+    const thinking = phase === 'thinking';
+    const clock = this.state.clock;
+    const thinkT = frozen ? this.props.freezeAt : clock - this.state.tStart;
+    const replyT = frozen ? (thinking ? 0 : this.props.freezeAt) : clock - this.state.rStart;
+    const answered = thinking ? asked.slice(0, -1) : asked;
+    const used = asked.length, gated = used >= 3 && !thinking;
+    const nm = n => NAMES[lang][n];
+    const msgs = [];
+    answered.forEach((pi, k) => {
+      const isLast = k === answered.length - 1, rt = isLast ? replyT : 9, e = x => eo(clamp(x));
+      msgs.push({ isUser: true, isBot: false, text: P[pi][lang] });
+      const r = R[pi];
+      const total = r.lines ? r.lines.reduce((s, l) => s + l[1], 0) : 0;
+      msgs.push({ isUser: false, isBot: true, text: r[lang], op0: e(rt / 0.35).toFixed(3), tf0: 'translateY(' + (8 * (1 - e(rt / 0.35))).toFixed(1) + 'px)', opC: e((rt - 0.25) / 0.3).toFixed(3),
+        isFormula: r.type === 'formula', isPairs: r.type === 'pairs', isCalc: r.type === 'calc',
+        cardTitle: r.title ? r.title[lang] : '', cardCat: r.cat || '', totalLabel: lang === 'ar' ? 'المركّز' : 'Concentrate', total: total.toFixed(2), etohLabel: lang === 'ar' ? 'إيثانول 96%' : 'Ethanol 96%', etoh: r.etoh ? r.etoh + ' g' : '', rest: r.rest ? r.rest[lang] : '',
+        lines: (r.lines || []).map((l, j) => ({ name: nm(l[0]), why: l[2][lang], g: l[1].toFixed(2), pct: (l[1] / total * 100).toFixed(1), op: e((rt - 0.4 - j * 0.1) / 0.3).toFixed(3), tf: 'translateY(' + (6 * (1 - e((rt - 0.4 - j * 0.1) / 0.3))).toFixed(1) + 'px)' })),
+        pairs: (r.pairs || []).map((p2, j) => ({ name: p2[0], why: p2[1][lang], op: e((rt - 0.4 - j * 0.12) / 0.3).toFixed(3) })),
+        calc: r.calc ? [...r.calc.map(c => ({ name: nm(c[0]), g: c[1].toFixed(2) + ' g', rule: '#3B332B', fw: 400 })), { name: ar ? 'المجموع' : 'Total', g: r.calc.reduce((s, c) => s + c[1], 0).toFixed(2) + ' g', rule: '#A3968A', fw: 500 }] : [], calcNote: r.note ? r.note[lang] : '' });
+    });
+    if (thinking) msgs.splice(msgs.length, 0, { isUser: true, isBot: false, text: P[asked[asked.length - 1]][lang] });
+    const dots = (thinkT % 2) / 2;
+    const steps = t.steps.map((s, i) => { const done = thinkT >= (i + 1) * 0.55, active = !done && thinkT >= i * 0.55; return { label: s[0], val: done ? s[1] : '', fg: done || active ? '#EDE4D6' : '#A3968A', dot: done ? 10 : 12, bd: done ? '#D4924A' : active ? '#D4924A' : '#3B332B', bg: done ? '#D4924A' : 'transparent', op: active ? (0.55 + 0.45 * Math.abs(Math.sin(thinkT * 3.1))).toFixed(2) : '1' }; });
+    const remaining = [0, 1, 2].filter(i => !asked.includes(i));
+    const setLang = l => this.setState({ lang: l });
+    const usedShort = used + ' / 3';
+    return {
+      rootRef: this.rootRef, lang, dir: ar ? 'rtl' : 'ltr', t, desktop, mobile, kls: ar ? '0' : '0.14em', lhBody: ar ? 1.8 : 1.55, lhHead: ar ? 1.45 : 1.1, lhRead: ar ? 1.95 : 1.65, flip: ar ? 'scaleX(-1)' : 'none',
+      pad: mobile ? 16 : 48, padY: mobile ? 32 : 56, gapY: mobile ? 24 : 32, gapX: 48, h1: mobile ? 36 : 64, msgGap: mobile ? 24 : 32, cardPad: mobile ? 16 : 24, userMax: mobile ? '92%' : '70%', pairCols: mobile ? 'minmax(0,1fr)' : '200px minmax(0,1fr)',
+      cols: mobile ? 'minmax(0,1fr)' : 'minmax(0,1fr) 360px',
+      nav: t.nav.map((n, i) => ({ label: n, fg: i === 5 ? '#EDE4D6' : '#A3968A', line: i === 5 ? '#D4924A' : 'transparent' })),
+      toggleLang: () => setLang(ar ? 'en' : 'ar'),
+      msgs, thinking, steps, thinkPct: (clamp(thinkT / 1.9) * 100).toFixed(1), pulse: (0.5 + 0.5 * Math.abs(Math.sin(thinkT * 2.4))).toFixed(2),
+      canAsk: !gated, gated, hasSuggest: remaining.length > 0 && !thinking,
+      suggest: remaining.map(i => ({ text: P[i].short[lang], pick: () => this.ask(i) })),
+      draft: this.state.draft, onDraft: e => this.setState({ draft: e.target.value }),
+      submit: e => { e.preventDefault(); const rem = [0, 1, 2].filter(i => !asked.includes(i)); if (rem.length) this.ask(rem[0]); },
+      gateCols: mobile ? 'minmax(0,1fr)' : 'minmax(0,1fr) 320px', gateGap: mobile ? 24 : 48, gatePad: mobile ? 20 : 32, gateH: mobile ? 28 : 36,
+      proList: t.pro.map((f, i) => ({ num: ROMAN[i], title: f })),
+      shelf: SHELF.map(s => ({ name: s[0], last: (ar ? 'آخر ارتداء ' : 'worn ') + s[1] + ' ' + t.day })),
+      used, usedShort, usedLine: usedShort + (ar ? ' مجانية' : ' free'),
+      meter: [0, 1, 2].map(i => ({ c: i < used ? '#D4924A' : '#29231D' })),
+    };
+  }
+}
+</script>
+</body>
+</html>

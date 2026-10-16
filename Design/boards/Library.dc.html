@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#15120F}a{color:#D4924A}a:hover{color:#EDE4D6}</style>
+</helmet>
+<div ref="{{ rootRef }}" dir="{{ dir }}" lang="{{ lang }}" style="position:relative;width:100%;min-height:100%;background:#15120F;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:16px;line-height:{{ lhBody }};container-type:inline-size">
+
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;height:72px;padding:0 {{ pad }}px;border-bottom:1px solid #3B332B;background:#15120F;position:relative;z-index:2">
+    <img src="assets/kyphira-wordmark.svg" alt="Kyphira" style="height:15px;display:block">
+    <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+      <nav style="display:flex;gap:4px">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+          <a href="#" style="display:flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;text-decoration:none;color:{{ n.fg }};box-shadow:inset 0 -1px 0 {{ n.line }}" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ n.label }}</a>
+        </sc-for>
+      </nav>
+    </sc-if>
+    <div style="display:flex;gap:8px">
+      <button onClick="{{ toggleLang }}" aria-label="{{ t.langAria }}" style="min-height:44px;min-width:44px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:14px;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.langSwitch }}</button>
+      <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+        <button aria-label="{{ t.menu }}" style="width:44px;height:44px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;display:flex;align-items:center;justify-content:center;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h9"></path></svg></button>
+      </sc-if>
+    </div>
+  </header>
+
+  <sc-if value="{{ notArticle }}" hint-placeholder-val="{{ true }}">
+  <main style="padding:{{ padY }}px {{ pad }}px 96px;display:flex;flex-direction:column;gap:{{ gapY }}px">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="display:flex;gap:12px;align-items:baseline;font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A"><span style="font-family:'Newsreader',serif;font-size:16px;color:#D4924A;letter-spacing:0.06em">III</span>{{ t.kicker }}</span>
+        <h1 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:{{ h1 }}px;line-height:{{ lhHead }};letter-spacing:-0.01em">{{ title }}</h1>
+      </div>
+      <span dir="ltr" style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">L·0007</span>
+    </div>
+    <div role="tablist" style="display:flex;border-bottom:1px solid #3B332B;margin-top:-{{ tabPull }}px">
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="2">
+        <button role="tab" aria-selected="{{ tb.sel }}" onClick="{{ tb.pick }}" style="min-height:48px;padding:0 20px;background:transparent;border:none;box-shadow:inset 0 -2px 0 {{ tb.line }};color:{{ tb.fg }};font:inherit;font-size:15px;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ tb.label }}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ isIndex }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:{{ gapY }}px">
+      <button onClick="{{ openFeatured }}" style="display:grid;grid-template-columns:{{ featCols }};gap:0;padding:0;text-align:start;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;cursor:pointer" style-hover="border-color:#A3968A" style-focus="outline:2px solid #D4924A;outline-offset:2px">
+        <span style="position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:{{ featPlateH }}px;padding:24px;background:radial-gradient(90% 80% at 20% 0%, rgba(232,170,104,0.26), rgba(232,170,104,0) 70%), #29231D;border-inline-end:1px solid #3B332B">
+          <span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em;text-align:start">L·0001</span>
+          <span style="font-family:'Newsreader',serif;font-weight:300;font-size:{{ featNum }}px;line-height:0.9;color:#D4924A">I</span>
+        </span>
+        <span style="display:flex;flex-direction:column;justify-content:space-between;gap:28px;padding:{{ featPad }}px">
+          <span style="display:flex;gap:16px;align-items:baseline;font-size:13px;color:#A3968A"><span style="color:#D4924A">{{ a0.cat }}</span><span dir="ltr" style="font-variant-numeric:tabular-nums">{{ a0.min }}</span></span>
+          <span style="display:flex;flex-direction:column;gap:14px"><span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:{{ featH }}px;line-height:{{ lhHead }}">{{ a0.title }}</span><span style="font-size:17px;color:#A3968A;max-width:520px;text-wrap:pretty">{{ a0.stand }}</span></span>
+          <span style="display:flex;align-items:center;gap:10px;color:#D4924A;font-weight:600;font-size:15px">{{ t.read }}<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="transform:{{ flip }}"><path d="M3.5 10h13M11.5 5l5 5-5 5"></path></svg></span>
+        </span>
+      </button>
+
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <sc-for list="{{ catChips }}" as="cc" hint-placeholder-count="5">
+          <button onClick="{{ cc.pick }}" aria-pressed="{{ cc.on }}" style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:2px;border:1px solid {{ cc.bd }};background:{{ cc.bg }};color:{{ cc.fg }};font:inherit;font-size:14px;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ cc.label }}<span style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums">{{ cc.count }}</span></button>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;border-top:1px solid #A3968A">
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+          <a href="#" onClick="{{ r.open }}" style="display:grid;grid-template-columns:{{ rowCols }};gap:8px 20px;padding:{{ rowPad }}px 0;border-bottom:1px solid #3B332B;text-decoration:none;color:#EDE4D6;align-items:baseline" style-hover="background:#1E1A16" style-focus="outline:2px solid #D4924A;outline-offset:-2px">
+            <span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em;text-align:start">{{ r.cat0 }}</span>
+            <span style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:{{ rowTitle }}px;line-height:{{ lhHead }}">{{ r.title }}</span></span>
+            <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><span style="font-size:14px;color:#A3968A">{{ r.cat }}</span><span dir="ltr" style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums;text-align:end">{{ r.min }}</span></sc-if>
+            <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}"><span style="grid-column:2;font-size:13px;color:#A3968A;font-variant-numeric:tabular-nums">{{ r.cat }} · {{ r.min }}</span></sc-if>
+          </a>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isGlossary }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <span dir="ltr" style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums;text-align:start">{{ glossNote }}</span>
+      <div style="display:flex;flex-direction:column;border-top:1px solid #A3968A">
+        <sc-for list="{{ glossRows }}" as="g" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:{{ glossCols }};gap:6px 24px;padding:20px 0;border-bottom:1px solid #3B332B;align-items:baseline">
+            <span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em;text-align:start">{{ g.cat }}</span>
+            <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:26px;line-height:{{ lhHead }}">{{ g.term }}</span>
+            <span style="color:#A3968A;text-wrap:pretty;grid-column:{{ glossDefCol }}">{{ g.def }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ isArticle }}" hint-placeholder-val="{{ false }}">
+  <article>
+    <div role="progressbar" aria-label="{{ t.progress }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progressNow }}" style="position:sticky;top:0;z-index:3;height:2px;background:#3B332B"><div style="height:2px;width:{{ progressPct }}%;background:#D4924A"></div></div>
+    <section style="position:relative;overflow:hidden;min-height:{{ openH }}px;padding:{{ openPad }}px {{ pad }}px;display:flex;flex-direction:column;justify-content:space-between;gap:48px;background:#15120F">
+      <div style="position:absolute;inset:0;pointer-events:none;opacity:{{ glowOp }};background:radial-gradient(70% 80% at {{ glowX }}% -10%, rgba(232,170,104,0.34), rgba(232,170,104,0) 66%)"></div>
+      <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:16px;opacity:{{ kickOp }}">
+        <button onClick="{{ back }}" style="display:flex;align-items:center;gap:10px;min-height:44px;padding:0;background:transparent;border:none;color:#A3968A;font:inherit;font-size:14px;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:2px"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="transform:{{ flip }}"><path d="M16.5 10h-13M8.5 5l-5 5 5 5"></path></svg>{{ t.back }}</button>
+        <span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">L·0001</span>
+      </div>
+      <div style="position:relative;display:flex;flex-direction:column;gap:{{ openGap }}px;max-width:1100px">
+        <span style="display:flex;gap:16px;align-items:baseline;font-size:13px;color:#A3968A;opacity:{{ kickOp }}"><span style="color:#D4924A">{{ a0.cat }}</span><span dir="ltr" style="font-variant-numeric:tabular-nums">{{ a0.min }}</span><span dir="ltr" style="font-variant-numeric:tabular-nums">{{ t.date }}</span></span>
+        <h1 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:{{ openTitle }}px;line-height:{{ openLH }};letter-spacing:-0.015em;display:flex;flex-direction:column">
+          <div style="opacity:{{ l0o }};transform:{{ l0t }}">{{ l0x }}</div>
+          <div style="opacity:{{ l1o }};transform:{{ l1t }}">{{ l1x }}</div>
+          <div style="opacity:{{ l2o }};transform:{{ l2t }}">{{ l2x }}</div>
+        </h1>
+        <div style="height:1px;background:#3B332B;max-width:{{ ruleMax }}px"><div style="height:1px;width:{{ rulePct }}%;background:#D4924A"></div></div>
+        <p style="margin:0;font-size:{{ standSize }}px;line-height:{{ lhStand }};color:#A3968A;max-width:640px;opacity:{{ standOp }};transform:{{ standTf }};text-wrap:pretty">{{ a0.stand }}</p>
+      </div>
+    </section>
+
+    <div style="display:grid;grid-template-columns:{{ bodyCols }};gap:{{ bodyGap }}px;justify-content:center;padding:{{ bodyPadY }}px {{ pad }}px 96px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:{{ blockGap }}px;min-width:0">
+        <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="8">
+          <div>
+            <sc-if value="{{ b.isH }}" hint-placeholder-val="{{ false }}"><h2 style="margin:0;display:flex;gap:16px;align-items:baseline;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:{{ h2Size }}px;line-height:{{ lhHead }};padding-top:16px;border-top:1px solid #3B332B"><span style="font-size:18px;color:#D4924A;min-width:32px">{{ b.n }}</span>{{ b.text }}</h2></sc-if>
+            <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:{{ bodySize }}px;line-height:{{ lhRead }};text-wrap:pretty"><sc-for list="{{ b.segs }}" as="sg" hint-placeholder-count="3"><sc-if value="{{ sg.term }}" hint-placeholder-val="{{ false }}"><button onClick="{{ sg.pick }}" aria-expanded="{{ sg.open }}" style="display:inline;padding:0;margin:0;min-height:0;background:transparent;border:none;border-bottom:1px dotted #D4924A;color:{{ sg.fg }};font:inherit;line-height:inherit;cursor:pointer" style-hover="color:#D4924A" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ sg.text }}</button></sc-if><sc-if value="{{ sg.plain }}" hint-placeholder-val="{{ true }}"><span>{{ sg.text }}</span></sc-if></sc-for></p></sc-if>
+            <sc-if value="{{ b.isT }}" hint-placeholder-val="{{ false }}">
+              <div role="table" style="display:flex;flex-direction:column;font-variant-numeric:tabular-nums;font-size:{{ tblSize }}px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16;padding:{{ tblPad }}px">
+                <div role="row" style="display:grid;grid-template-columns:{{ tblCols }};gap:12px;padding-bottom:10px;font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A;border-bottom:1px solid #A3968A"><sc-for list="{{ b.head }}" as="h" hint-placeholder-count="4"><span role="columnheader">{{ h }}</span></sc-for></div>
+                <sc-for list="{{ b.rows }}" as="tr" hint-placeholder-count="4"><div role="row" style="display:grid;grid-template-columns:{{ tblCols }};gap:12px;padding:12px 0;border-bottom:1px solid #3B332B"><span role="cell">{{ tr.c0 }}</span><span role="cell" dir="ltr" style="text-align:start;color:#A3968A">{{ tr.c1 }}</span><span role="cell" style="color:#A3968A">{{ tr.c2 }}</span><span role="cell" dir="ltr" style="text-align:start">{{ tr.c3 }}</span></div></sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ b.isQ }}" hint-placeholder-val="{{ false }}"><blockquote style="margin:0;padding:8px 0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-style:{{ quoteStyle }};font-weight:300;font-size:{{ quoteSize }}px;line-height:{{ lhHead }};color:#EDE4D6;text-wrap:balance">{{ b.text }}</blockquote></sc-if>
+            <sc-if value="{{ b.isC }}" hint-placeholder-val="{{ false }}"><a href="Bench.dc.html" style="display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:72px;padding:16px 20px;background:#1E1A16;border:1px solid #D4924A;border-radius:2px;color:#EDE4D6;text-decoration:none" style-hover="background:#29231D;color:#EDE4D6" style-focus="outline:2px solid #EDE4D6;outline-offset:2px"><span style="display:flex;flex-direction:column;gap:2px"><span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em;text-align:start">R·0318</span><span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:22px">{{ b.text }}</span></span><svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="#D4924A" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="transform:{{ flip }}"><path d="M3.5 10h13M11.5 5l5 5-5 5"></path></svg></a></sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <aside aria-live="polite" style="position:sticky;top:{{ stickyTop }}px;order:{{ glossOrder }};display:flex;flex-direction:column;gap:10px;padding:20px;background:#1E1A16;border:1px solid {{ glossBd }};border-radius:2px;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A">{{ t.glossary }}</span><span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">{{ gl.cat }}</span></div>
+        <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:26px;line-height:{{ lhHead }};color:{{ gl.termFg }}">{{ gl.term }}</span>
+        <span style="font-size:15px;color:{{ gl.defFg }};text-wrap:pretty">{{ gl.def }}</span>
+        <sc-if value="{{ glOpen }}" hint-placeholder-val="{{ false }}"><button onClick="{{ closeGloss }}" style="align-self:flex-start;min-height:44px;padding:0;background:transparent;border:none;color:#D4924A;font:inherit;font-size:14px;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.close }}</button></sc-if>
+      </aside>
+    </div>
+  </article>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1400},&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;'en'|'ar'&quot;},&quot;initView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;index&quot;,&quot;article&quot;,&quot;glossary&quot;],&quot;default&quot;:&quot;index&quot;,&quot;tsType&quot;:&quot;'index'|'article'|'glossary'&quot;},&quot;initGloss&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;resinoid&quot;,&quot;absolute&quot;,&quot;fixative&quot;,&quot;dilution&quot;,&quot;accord&quot;,&quot;maceration&quot;,&quot;tincture&quot;,&quot;dpg&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;reduced&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;freezeAt&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;number|null&quot;},&quot;staticProgress&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;number|null&quot;}}">
+const CATS = { Materials:['Materials','مواد'], Method:['Method','منهج'], History:['History','تاريخ'], Care:['Care','عناية'] };
+const ART = [
+  ['Labdanum: the resin that smells of leather and smoke','اللادن: الراتنج الذي تفوح منه رائحة الجلد والدخان','Materials',14,'Four forms, one bench rule, and why 14 g carries a whole base.','أربعة أشكال، وقاعدة واحدة للمِنضدة، ولماذا يحمل 14 g قاعدة كاملة.'],
+  ['Dilutions, in grams: how to cut a material to 10%','التخفيف بالجرامات: كيف تقصّ مادة إلى 10%','Method',9],
+  ['Maceration: what four weeks does to a blend','التخمير: ما الذي تفعله أربعة أسابيع بالخلطة','Method',11],
+  ['Kyphi at Edfu: a recipe read as a formula','الكيفي في إدفو: وصفة تُقرأ كتركيبة','History',18],
+  ['Ambroxan and iso E super: two modern bases','الأمبروكسان والإيزو إي سوبر: قاعدتان حديثتان','Materials',12],
+  ['Storing a bottle: light, heat and the half-life of citrus','حفظ الزجاجة: الضوء والحرارة وعمر الحمضيات','Care',7],
+  ['Reading a note pyramid without believing it','قراءة هرم النوتات دون تصديقه','Method',8],
+].map((a, i) => ({ i, en:a[0], ar:a[1], cat:a[2], min:a[3], se:a[4], sa:a[5] }));
+const GL = {
+  resinoid:['Resinoid','الراتنجي','An extract of a resin made with a solvent that is then removed. Thick, sweet, long-lasting.','مستخلص من الراتنج بمذيب يُزال بعد ذلك. كثيف وحلو ويدوم طويلاً.'],
+  absolute:['Absolute','المطلق','Alcohol-washed concrete of a plant material. Fully aromatic and usually pasty.','ناتج غسل الكونكريت بالكحول. عطري تماماً وقوامه عادةً عجيني.'],
+  fixative:['Fixative','المثبّت','A material that slows the evaporation of lighter notes.','مادة تبطئ تبخّر النوتات الأخف.'],
+  dilution:['Dilution','التخفيف','A material cut with solvent. 10% means 1 g of material in 10 g in total.','مادة مقصوصة بمذيب. 10% تعني 1 g من المادة في 10 g إجمالاً.'],
+  accord:['Accord','الأكورد','Two or more materials that read as one new smell.','مادتان أو أكثر تُقرآن كرائحة جديدة واحدة.'],
+  maceration:['Maceration','التخمير','Resting a blend so its parts bind. Usually 4 to 6 weeks.','إراحة الخلطة كي تترابط أجزاؤها. عادةً من 4 إلى 6 أسابيع.'],
+  tincture:['Tincture','الصبغة','A material steeped in ethanol, then filtered.','مادة منقوعة في الإيثانول ثم مصفّاة.'],
+  dpg:['DPG','DPG','Dipropylene glycol. An odourless solvent used for dilutions.','ثنائي بروبيلين غليكول. مذيب عديم الرائحة يُستعمل للتخفيف.'],
+};
+const GK = Object.keys(GL);
+const T = (g, t) => ({ g, t });
+const BODY = {
+  en: [
+    { k:'p', s:['Labdanum comes from the leaves of ', 'Cistus ladanifer', ', a rockrose that grows on dry Mediterranean hillsides. In summer the leaves sweat a sticky gum. Goats once carried it out on their beards. Today it is steam-treated or solvent-washed. What reaches the bench is dark, heavy and slow.'] },
+    { k:'h', n:'I', text:'Four forms' },
+    { k:'t', head:['Form','Yield','Smell','Use rate'], rows:[['Raw gum','100%','Smoky, tar','0.5–1%'],['Resinoid','18–22%','Sweet, amber','2–5%'],['Absolute','12–15%','Leather, dried fruit','1–3%'],['Essential oil','0.2%','Herbal, ambergris','1–2%']] },
+    { k:'p', s:['Pick the ', T('resinoid','resinoid'), ' for warmth and the ', T('absolute','absolute'), ' for leather. In Kyphi No. 3, 14 g of absolute carries the whole base: 14% of a 100 g concentrate, held at a 10% ', T('dilution','dilution'), ' in ', T('dpg','DPG'), ' so it pours.'] },
+    { k:'h', n:'II', text:'Why it holds' },
+    { k:'p', s:['Labdanum is a natural ', T('fixative','fixative'), '. Its heavy molecules slow the loss of lighter notes, so a citrus top lasts an hour longer. Pair it with frankincense and the two read as one amber ', T('accord','accord'), '.'] },
+    { k:'q', text:'Weigh it warm. Cold labdanum does not pour and does not lie.' },
+    { k:'h', n:'III', text:'Resting it' },
+    { k:'p', s:['After blending, rest the mix. ', T('maceration','Maceration'), ' binds the parts. Four weeks is the floor; six is better. Shake once a week, then leave it dark and cool.'] },
+    { k:'c', text:'Open this formula in The Bench' },
+  ],
+  ar: [
+    { k:'p', s:['يأتي اللادن من أوراق ', 'Cistus ladanifer', '، وهي شجيرة تنمو على سفوح المتوسط الجافة. في الصيف تفرز الأوراق صمغاً لزجاً. كانت الماعز تحمله على لحاها، واليوم يُعالج بالبخار أو يُغسل بالمذيب. وما يصل إلى المِنضدة داكن وثقيل وبطيء.'] },
+    { k:'h', n:'I', text:'أربعة أشكال' },
+    { k:'t', head:['الشكل','المردود','الرائحة','نسبة الاستعمال'], rows:[['الصمغ الخام','100%','دخاني، قطراني','0.5–1%'],['راتنجي','18–22%','حلو، عنبري','2–5%'],['مطلق','12–15%','جلد، فاكهة مجففة','1–3%'],['زيت عطري','0.2%','عشبي، عنبر رمادي','1–2%']] },
+    { k:'p', s:['اختر ', T('resinoid','الراتنجي'), ' للدفء و', T('absolute','المطلق'), ' للجلد. في «كيفي رقم 3» يحمل 14 g من المطلق القاعدة كلها: 14% من مركّز وزنه 100 g، على ', T('dilution','تخفيف'), ' 10% في ', T('dpg','DPG'), ' ليسيل.'] },
+    { k:'h', n:'II', text:'لماذا يثبّت' },
+    { k:'p', s:['اللادن ', T('fixative','مثبّت'), ' طبيعي. جزيئاته الثقيلة تبطئ ضياع النوتات الأخف، فتدوم افتتاحية الحمضيات ساعة أطول. اقرنه باللبان فيقرأ الاثنان ', T('accord','أكورداً'), ' عنبرياً واحداً.'] },
+    { k:'q', text:'زِنه دافئاً. اللادن البارد لا يسيل ولا يستقر.' },
+    { k:'h', n:'III', text:'إراحته' },
+    { k:'p', s:['بعد المزج، أرِح الخلطة. ', T('maceration','التخمير'), ' يربط الأجزاء. أربعة أسابيع هي الحد الأدنى، وستة أفضل. رُجّها مرة كل أسبوع، ثم اتركها في الظلام والبرودة.'] },
+    { k:'c', text:'افتح هذه التركيبة في المِنضدة' },
+  ],
+};
+const COPY = {
+  en: { langSwitch:'ع', langAria:'Language', menu:'Menu', kicker:'The Library', tabs:['Essays','Glossary'], read:'Read the essay', all:'All', back:'All essays', progress:'Reading progress', glossary:'Glossary', hint:'Terms underlined in resin open here.', close:'Close', date:'16 Oct 2026', min:'min',
+    titleIdx:'7 essays. 412 terms.', glossNote:'Showing 8 of 412', nav:['The Bench','The Wardrobe','The Library','The Atlas','The Salon','The Nose'],
+    lines:['Labdanum:','the resin that smells','of leather and smoke.'] },
+  ar: { langSwitch:'EN', langAria:'اللغة', menu:'القائمة', kicker:'المكتبة', tabs:['مقالات','المسرد'], read:'اقرأ المقال', all:'الكل', back:'كل المقالات', progress:'تقدّم القراءة', glossary:'المسرد', hint:'المصطلحات المسطّرة بالعنبري تُفتح هنا.', close:'إغلاق', date:'16 أكتوبر 2026', min:'د',
+    titleIdx:'7 مقالات. 412 مصطلحاً.', glossNote:'يُعرض 8 من 412', nav:['المِنضدة','الخزانة','المكتبة','الأطلس','الصالون','الأنف'],
+    lines:['اللادن:','الراتنج الذي تفوح منه','رائحة الجلد والدخان.'] },
+};
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eio = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
+const END = 3.2;
+
+class Component extends DCLogic {
+  state = { lang: null, w: 1440, view: null, cat: null, gloss: null, t: 0, p: 0 };
+  rootRef = React.createRef();
+  componentDidMount() {
+    const el = this.rootRef.current;
+    if (el) { this.ro = new ResizeObserver(e => this.setState({ w: e[0].contentRect.width })); this.ro.observe(el); }
+    const measure = () => { const r = this.rootRef.current; if (r) this.setState({ w: r.getBoundingClientRect().width }); };
+    measure(); setTimeout(measure, 120); setTimeout(measure, 600);
+    this.onScroll = () => { const d = document.documentElement, m = d.scrollHeight - window.innerHeight; this.setState({ p: m > 0 ? clamp(d.scrollTop / m, 0, 1) : 0 }); };
+    if (this.props.staticProgress == null) window.addEventListener('scroll', this.onScroll, { passive: true });
+    this.play();
+  }
+  componentWillUnmount() { this.ro && this.ro.disconnect(); window.removeEventListener('scroll', this.onScroll); cancelAnimationFrame(this.raf); }
+  play = () => {
+    cancelAnimationFrame(this.raf);
+    if (this.props.freezeAt != null) return;
+    const reduce = this.props.reduced || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (reduce) { this.setState({ t: END }); return; }
+    const s0 = performance.now();
+    const tick = now => { const t = (now - s0) / 1000; this.setState({ t }); if (t < END) this.raf = requestAnimationFrame(tick); };
+    this.raf = requestAnimationFrame(tick);
+  };
+  renderVals() {
+    const lang = this.state.lang ?? (this.props.lang === 'ar' ? 'ar' : 'en');
+    const ar = lang === 'ar', t = COPY[lang], A = +ar;
+    const w = this.state.w, mobile = w < 1100, desktop = !mobile;
+    const view = this.state.view ?? this.props.initView ?? 'index';
+    const cat = this.state.cat, gloss = this.state.gloss ?? this.props.initGloss ?? null;
+    const T0 = this.props.freezeAt ?? this.state.t;
+    const p = (s, d) => eo(clamp((T0 - s) / d, 0, 1));
+    const gl = gloss ? GL[gloss] : null;
+    const setView = v => { this.setState({ view: v, gloss: null }); if (v === 'article') this.setState({ t: 0 }, this.play); };
+    const catLabel = k => CATS[k][A];
+    const minLabel = n => n + ' ' + t.min;
+    const catKeys = Object.keys(CATS);
+    const shown = ART.filter(a => !cat || a.cat === cat);
+    const blocks = BODY[lang].map(b => {
+      if (b.k === 'p') return { isP: true, segs: b.s.map(s => typeof s === 'string' ? { plain: true, term: false, text: s } : { plain: false, term: true, text: s.t, fg: gloss === s.g ? '#D4924A' : '#EDE4D6', open: gloss === s.g ? 'true' : 'false', pick: () => this.setState({ gloss: s.g }) }) };
+      if (b.k === 'h') return { isH: true, n: b.n, text: b.text };
+      if (b.k === 't') return { isT: true, head: b.head, rows: b.rows.map(r => ({ c0: r[0], c1: r[1], c2: r[2], c3: r[3] })) };
+      if (b.k === 'q') return { isQ: true, text: b.text };
+      return { isC: true, text: b.text };
+    });
+    const lead = ART[0], a0 = { title: ar ? lead.ar : lead.en, stand: ar ? lead.sa : lead.se, cat: catLabel(lead.cat), min: minLabel(lead.min) };
+    const lineAt = [0.5, 0.8, 1.1];
+    const progress = this.props.staticProgress ?? this.state.p;
+    const setLang = l => this.setState({ lang: l });
+    return {
+      rootRef: this.rootRef, lang, dir: ar ? 'rtl' : 'ltr', t, desktop, mobile, kls: ar ? '0' : '0.14em', lhBody: ar ? 1.8 : 1.55, lhHead: ar ? 1.45 : 1.1,
+      pad: mobile ? 16 : 48, padY: mobile ? 32 : 56, gapY: mobile ? 28 : 40, h1: mobile ? 40 : 64, tabPull: mobile ? 12 : 16, flip: ar ? 'scaleX(-1)' : 'none',
+      title: t.titleIdx,
+      nav: t.nav.map((n, i) => ({ label: n, fg: i === 2 ? '#EDE4D6' : '#A3968A', line: i === 2 ? '#D4924A' : 'transparent' })),
+      toggleLang: () => setLang(ar ? 'en' : 'ar'),
+      notArticle: view !== 'article', isArticle: view === 'article', isIndex: view === 'index', isGlossary: view === 'glossary',
+      tabs: ['index', 'glossary'].map((k, i) => ({ label: t.tabs[i], sel: view === k ? 'true' : 'false', line: view === k ? '#D4924A' : 'transparent', fg: view === k ? '#EDE4D6' : '#A3968A', pick: () => setView(k) })),
+      a0, openFeatured: () => setView('article'),
+      featCols: mobile ? 'minmax(0,1fr)' : '300px minmax(0,1fr)', featPlateH: mobile ? 160 : 320, featNum: mobile ? 72 : 120, featPad: mobile ? 24 : 40, featH: mobile ? 32 : 48,
+      catChips: [[null, t.all, ART.length], ...catKeys.map(k => [k, catLabel(k), ART.filter(a => a.cat === k).length])].map(([k, label, count]) => { const on = cat === k; return { label, count, on: on ? 'true' : 'false', bd: on ? '#D4924A' : '#3B332B', bg: on ? '#29231D' : 'transparent', fg: on ? '#EDE4D6' : '#A3968A', pick: () => this.setState({ cat: k }) }; }),
+      rows: shown.map(a => ({ cat0: 'L·' + String(a.i + 1).padStart(4, '0'), title: ar ? a.ar : a.en, cat: catLabel(a.cat), min: minLabel(a.min), open: e => { e.preventDefault(); if (a.i === 0) setView('article'); } })),
+      rowCols: desktop ? '96px minmax(0,1fr) 140px 90px' : '72px minmax(0,1fr)', rowPad: mobile ? 18 : 22, rowTitle: mobile ? 21 : 26,
+      glossRows: GK.map((k, i) => ({ cat: 'G·' + String(i + 1).padStart(4, '0'), term: GL[k][A ? 1 : 0] === GL[k][0] ? GL[k][0] : (ar ? GL[k][1] : GL[k][0]), def: GL[k][ar ? 3 : 2] })),
+      glossCols: desktop ? '96px 280px minmax(0,1fr)' : '72px minmax(0,1fr)', glossDefCol: desktop ? 'auto' : '2',
+      glossNote: t.glossNote,
+      back: () => setView('index'),
+      progressPct: (progress * 100).toFixed(1), progressNow: Math.round(progress * 100),
+      openH: mobile ? 560 : 700, openPad: mobile ? 24 : 40, openGap: mobile ? 20 : 28, openTitle: mobile ? 40 : 96, openLH: ar ? 1.4 : 1.02, ruleMax: 640,
+      glowOp: p(0, 0.9).toFixed(3), glowX: (28 + 10 * Math.sin(T0 * 0.9)).toFixed(1), kickOp: p(0.2, 0.5).toFixed(3),
+      ...Object.assign({}, ...t.lines.map((text, i) => ({ ['l' + i + 'x']: text, ['l' + i + 'o']: p(lineAt[i], 0.6).toFixed(3), ['l' + i + 't']: 'translateY(' + (18 * (1 - p(lineAt[i], 0.6))).toFixed(1) + 'px)' }))),
+      rulePct: (eio(clamp((T0 - 1.5) / 0.6, 0, 1)) * 100).toFixed(1), standOp: p(1.8, 0.6).toFixed(3), standTf: 'translateY(' + (10 * (1 - p(1.8, 0.6))).toFixed(1) + 'px)', standSize: mobile ? 18 : 22, lhStand: ar ? 1.8 : 1.5,
+      bodyCols: mobile ? 'minmax(0,1fr)' : 'minmax(0,680px) 300px', bodyGap: mobile ? 24 : 72, bodyPadY: mobile ? 40 : 72, blockGap: mobile ? 28 : 36,
+      blocks, h2Size: mobile ? 28 : 34, bodySize: mobile ? 18 : 20, lhRead: ar ? 2 : 1.7, tblSize: mobile ? 14 : 16, tblPad: mobile ? 14 : 20, tblCols: mobile ? 'minmax(0,1.2fr) minmax(0,0.9fr) minmax(0,1.3fr) minmax(0,0.9fr)' : 'minmax(0,1.2fr) minmax(0,1fr) minmax(0,1.6fr) minmax(0,1fr)',
+      quoteSize: mobile ? 28 : 36, quoteStyle: ar ? 'normal' : 'italic',
+      glossOrder: mobile ? -1 : 1, stickyTop: mobile ? 10 : 24, glOpen: !!gl, glossBd: gl ? '#D4924A' : '#3B332B',
+      gl: gl ? { cat: 'G·' + String(GK.indexOf(gloss) + 1).padStart(4, '0'), term: ar ? GL[gloss][1] : GL[gloss][0], def: GL[gloss][ar ? 3 : 2], termFg: '#EDE4D6', defFg: '#EDE4D6' } : { cat: '', term: '—', def: t.hint, termFg: '#A3968A', defFg: '#A3968A' },
+      closeGloss: () => this.setState({ gloss: null }),
+    };
+  }
+}
+</script>
+</body>
+</html>

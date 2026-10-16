@@ -157,7 +157,7 @@ export default function Recipes({ current, family, onApply, onLink, initialVersi
               aria-label={t("calc.recipes.note")} placeholder={t("calc.recipes.note")} className="px-2 py-1 font-mono text-[11px] border" style={inputStyle} />
           )}
           <button type="button" onClick={save} disabled={busy || (mode === "new" && !recipeName(name))}
-            className="px-2 py-1 text-[11px] font-semibold rounded-none disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+            className="px-2 py-1 text-[11px] font-semibold rounded-sm disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
             {t("calc.recipes.save")}
           </button>
         </div>

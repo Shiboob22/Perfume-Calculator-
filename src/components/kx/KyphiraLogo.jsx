@@ -1,5 +1,6 @@
 import React from "react";
 import { SYMBOL, SYMBOL_BOX, LOCKUPS } from "./logoData";
+import { WORDMARK } from "./wordmarkData";
 
 // The Kyphira logo, from the owner's files (design/logo/). The ink follows the
 // text colour (`currentColor`), so the same component serves the light paper
@@ -8,6 +9,7 @@ import { SYMBOL, SYMBOL_BOX, LOCKUPS } from "./logoData";
 //   form "symbol"      the mark alone (flacon, smoke, flame)
 //   form "horizontal"  mark + outlined wordmark, side by side
 //   form "stacked"     mark above the outlined wordmark
+//   form "wordmark"    the spaced capitals alone (the header, Design System IV)
 // `height` is the rendered height in px. The wordmark is outlined Latin
 // letters: where the brand is shown in Arabic use the symbol and live text.
 
@@ -28,6 +30,14 @@ export default function KyphiraLogo({ form = "symbol", height = 40, title }) {
     return (
       <svg viewBox={SYMBOL_BOX} height={height} width={Math.round((height * BOX_W) / BOX_H * 100) / 100} fill="none" {...a11y}>
         <SymbolParts />
+      </svg>
+    );
+  }
+  if (form === "wordmark") {
+    const [, , w, h] = WORDMARK.viewBox.split(" ").map(Number);
+    return (
+      <svg viewBox={WORDMARK.viewBox} height={height} width={Math.round((height * w) / h * 100) / 100} fill="none" {...a11y}>
+        <g transform={WORDMARK.transform}><path d={WORDMARK.d} fill="currentColor" /></g>
       </svg>
     );
   }

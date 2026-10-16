@@ -6,6 +6,8 @@ import { buildBatch } from "../lib/batchPayload";
 import { enqueue, isOffline } from "../lib/outbox";
 import { calculate, fmt2, gToOz, mlToFlOz, weightShare } from "../lib/calc";
 import { BottleFill, RatioBar } from "./Bottle";
+import { Chip, RoomHeader, RoomPage, Stepper, WeightScale } from "./kx";
+import BenchSide from "./journal/BenchSide";
 import { IconBookmark, IconBookmarkCheck, IconCheck, IconCopy, IconDiamondAlert, IconDrop, IconFlameTriangle } from "./icons";
 import { STRENGTHS } from "../lib/formulation";
 
@@ -138,7 +140,7 @@ function QuickResult({ shown, t }) {
   );
 }
 
-// weight / volume are the engine's displayed (already rounded-none) values.
+// weight / volume are the engine's displayed (already rounded-sm) values.
 function ReadoutRow({ label, weight, volume, bold }) {
   const oz = gToOz(weight);
   const flOz = mlToFlOz(volume);
@@ -217,6 +219,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [start] = useState(() => startingBottle(prefill, profile));
   const [tierKey, setTierKey] = useState(TIERS[draft?.tierKey] ? draft.tierKey : prefill.family ?? "fresh");
   const [batchSize, setBatchSize] = useState(draft?.batchSize ?? start.size);
+  // The formula's tick boxes: which pours are weighed (this screen only, never saved).
+  const [weighed, setWeighed] = useState({ oil: false, ethanol: false });
   const [batchUnit, setBatchUnit] = useState(UNIT_LABELS[draft?.batchUnit] ? draft.batchUnit : start.unit); // ml | floz | g | oz
   const [concPct, setConcPct] = useState(draft?.concPct ?? prefill.conc ?? (prefill.family ? TIERS[prefill.family].defaultConc : 20));
   // The recipe version a logged batch will be linked to (null: none, or the settings were changed).
@@ -500,49 +504,64 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     try { await navigator.clipboard.writeText(text); setCopied(true); } catch { setCopied(false); }
   };
 
+  const UNITS = [{ value: "ml", label: "mL" }, { value: "floz", label: "fl oz" }, { value: "g", label: "g" }, { value: "oz", label: "oz" }];
+  const stepBy = batchUnit === "ml" || batchUnit === "g" ? 5 : 0.5;
+  const lines = [
+    { id: "oil", label: t("calc.oil"), g: result.shown.oilG },
+    { id: "ethanol", label: t("calc.ethanol96"), g: result.shown.ethanolG },
+  ];
+  const weighedG = lines.reduce((s, l) => s + (weighed[l.id] ? l.g : 0), 0);
+  const nextLine = lines.find((l) => !weighed[l.id]);
+  const card = "p-5 sm:p-6 border rounded-sm";
+  const cardStyle = { backgroundColor: COLORS.card, borderColor: COLORS.line };
   return (
-    <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
+    <div className="w-full" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
+    <RoomPage>
+      <RoomHeader num="I" kicker={t("bench.room.kicker")} title={t("bench.room.title")}>
+        {fragName.trim() && <span className="font-serif text-2xl" dir="auto" style={{ color: COLORS.ink }}>{fragName.trim()}</span>}
+      </RoomHeader>
       <RestingLine />
       {selectedPerfume && (
-        <div className="mb-6 px-4 py-3 border flex items-center justify-between" style={{ borderColor: COLORS.line, backgroundColor: COLORS.card }}>
+        <div className="px-4 py-3 border rounded-sm flex items-center justify-between" style={{ borderColor: COLORS.line, backgroundColor: COLORS.card }}>
           <div>
             <span className="text-xs font-semibold" style={{ color: COLORS.ink }}>{t("calc.fromSearch")}</span>
             <div className="text-sm font-serif" style={{ color: COLORS.forestDeep }}>
               {selectedPerfume.name}{selectedPerfume.brand ? ` — ${selectedPerfume.brand}` : ""}
             </div>
           </div>
-          <button type="button" onClick={onClearSelection} className="text-xs font-mono underline" style={{ color: COLORS.ink }}>
+          <button type="button" onClick={onClearSelection} className="text-xs underline min-h-[44px]" style={{ color: COLORS.ink }}>
             {t("calc.clear")}
           </button>
         </div>
       )}
 
-      {/* Toggle buttons: a real tablist would need arrow keys and tabpanels. */}
-      <div role="group" aria-label={t("calc.modes.label")} className="flex flex-wrap gap-2 mb-6">
-        {MODES.map((m) => (
-          <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}
-            className="px-3 py-1.5 text-sm border rounded-none min-h-[32px]"
-            style={{ borderColor: mode === m ? COLORS.actionText : COLORS.field, color: mode === m ? COLORS.actionText : COLORS.inkSoft }}>
-            {t(`calc.modes.tabs.${m}`)}
-          </button>
-        ))}
-        <button type="button" onClick={onStartOver} className="ms-auto px-3 py-1.5 text-sm underline min-h-[32px]" style={{ color: COLORS.inkSoft }}>
+      <div className="flex flex-wrap items-end gap-x-4" style={{ borderBottom: `1px solid ${COLORS.line}`, marginTop: "-0.5rem" }}>
+        <div role="group" aria-label={t("calc.modes.label")} className="flex overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+          {MODES.map((m) => (
+            <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}
+              className="min-h-[48px] px-5 whitespace-nowrap text-[15px] hover:text-[color:var(--c-ink)] focus-visible:outline-offset-[-2px]"
+              style={{ color: mode === m ? COLORS.ink : COLORS.inkSoft, boxShadow: `inset 0 -2px 0 ${mode === m ? COLORS.amber : "transparent"}` }}>
+              {t(`calc.modes.tabs.${m}`)}
+            </button>
+          ))}
+        </div>
+        <button type="button" onClick={onStartOver} className="ms-auto min-h-[44px] px-2 text-sm underline underline-offset-4" style={{ color: COLORS.inkSoft }}>
           {t("calculator.draft.startOver")}
         </button>
       </div>
 
       {mode !== "bottle" ? (
-        <div className="p-6 border max-w-xl" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
+        <div className={`${card} max-w-xl`} style={cardStyle}>
           <Field label={t("calc.family")} htmlFor="calc-family-mode">
             <select id="calc-family-mode" value={tierKey} onChange={(e) => { chosen.current.family = true; setTierKey(e.target.value); }}
-              className="w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
+              className="w-full px-3 py-2 text-base border rounded-sm min-h-[48px] focus:outline-none focus:ring-2"
               style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}>
               {Object.keys(TIERS).map((key) => (
                 <option key={key} value={key}>{t(`families.${key}.label`)}</option>
               ))}
             </select>
           </Field>
-          <p className="text-[11px] font-mono mb-5" style={{ color: COLORS.inkSoft }}>
+          <p className="text-xs mb-5" style={{ color: COLORS.inkSoft }}>
             {t(measuredDensityValue != null ? "calc.densitiesUsedMeasured" : "calc.densitiesUsed", { oil: result.densities.oil, ethanol: result.densities.ethanol })}
           </p>
           {mode === "fromOil" && <FromOil densities={result.densities} defaultPct={concPct} />}
@@ -550,10 +569,10 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           {mode === "run" && <Run densities={result.densities} defaultPct={concPct} defaultBasis={result.basis} />}
         </div>
       ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
-          <h2 className="text-base font-serif font-semibold mb-5" style={{ color: COLORS.forestDeep }}>{t("calc.benchSheet")}</h2>
-
+      <div className="grid grid-cols-1 min-[1100px]:grid-cols-[minmax(0,1fr)_400px] gap-8 items-start">
+        <div className="flex flex-col gap-7 md:gap-10 min-w-0">
+          <section aria-labelledby="calc-sheet" className={card} style={cardStyle}>
+            <h2 id="calc-sheet" className="font-serif text-2xl mb-5 rtl:leading-[1.5]" style={{ color: COLORS.ink }}>{t("calc.benchSheet")}</h2>
           <Field label={t("calc.name")} htmlFor="calc-name">
             <div className="relative">
               {/* ARIA 1.2 combobox: focus stays in the input; arrows move
@@ -611,7 +630,6 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             )}
             <OilHistory fragranceId={matched?.id ?? null} name={debouncedName} onUse={applySettings} />
           </Field>
-
           <Field label={t("calc.family")} htmlFor="calc-family">
             <select
               id="calc-family"
@@ -638,60 +656,87 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             onLink={setRecipeVersionId}
             initialVersionId={prefill.recipe}
           />
+          </section>
 
-          <Field label={t("calc.batchSize")} htmlFor="calc-size">
-            <AmountWithUnit
-              id="calc-size" unitLabel={t("calc.unit")}
-              value={batchSize} onChange={setBatchSize} unit={batchUnit} onUnitChange={setBatchUnit}
-              units={[{value:"ml",label:"mL"},{value:"floz",label:"fl oz"},{value:"g",label:"g"},{value:"oz",label:"oz"}]}
-            />
-            <div className="flex flex-wrap gap-2 mt-3">
-              {[3, 5, 10, 20, 30, 50, 100, 125, 200].map((amt) => (
-                <button
-                  key={amt}
-                  type="button"
-                  aria-pressed={Number(batchSize) === amt}
-                  onClick={() => { setBatchSize(amt); }}
-                  className="px-3 min-h-[44px] text-sm font-mono tabular-nums border"
-                  style={{ 
-                    borderColor: Number(batchSize) === amt ? COLORS.actionText : COLORS.line,
-                    color: Number(batchSize) === amt ? COLORS.onAmber : COLORS.ink,
-                    backgroundColor: Number(batchSize) === amt ? COLORS.amber : COLORS.cardHi
-                  }}
-                >
-                  {amt} {UNIT_LABELS[batchUnit]}
-                </button>
-              ))}
+          <section aria-label={t("bench.inputs")} className="grid gap-4 sm:grid-cols-2">
+            <div className={`${card} flex flex-col gap-3`} style={cardStyle}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label htmlFor="calc-size" className="text-[13px]" style={{ color: COLORS.inkSoft }}>{t("calc.batchSize")}</label>
+                <div role="group" aria-label={t("calc.unit")} dir="ltr" className="flex rounded-sm" style={{ border: `1px solid ${COLORS.line}` }}>
+                  {UNITS.map((u) => (
+                    <button key={u.value} type="button" aria-pressed={batchUnit === u.value} onClick={() => setBatchUnit(u.value)}
+                      className="min-h-[44px] min-w-[44px] px-3 text-sm focus-visible:outline-offset-[-2px]"
+                      style={{ background: batchUnit === u.value ? COLORS.cardHi : "transparent", color: batchUnit === u.value ? COLORS.ink : COLORS.inkSoft, fontWeight: batchUnit === u.value ? 600 : 400 }}>{u.label}</button>
+                  ))}
+                </div>
+              </div>
+              <Stepper id="calc-size" value={String(batchSize)} onChange={setBatchSize} step={stepBy} min={0} unit={UNIT_LABELS[batchUnit]}
+                decLabel={t("bench.stepDec", { step: stepBy, unit: UNIT_LABELS[batchUnit] })} incLabel={t("bench.stepInc", { step: stepBy, unit: UNIT_LABELS[batchUnit] })} />
+              <div className="flex flex-wrap gap-2">
+                {[3, 5, 10, 20, 30, 50, 100, 125, 200].map((amt) => (
+                  <Chip key={amt} pressed={Number(batchSize) === amt} onClick={() => setBatchSize(amt)}>{amt} {UNIT_LABELS[batchUnit]}</Chip>
+                ))}
+              </div>
+              <p className="text-[13px]" dir="auto" style={{ color: COLORS.dim }}>{t("bench.approx", { total: fmt2(result.shown.totalMl), oil: fmt2(result.shown.oilMl), ethanol: fmt2(result.shown.ethanolMl) })}</p>
             </div>
-          </Field>
 
-          <Field label={t("calc.concentration", { pct: concPct })} extra={<Source id="strengths" />} hint={t("calc.familyDefault", { pct: tier.defaultConc })} htmlFor="calc-conc">
-            <div className="flex flex-wrap gap-2 mb-3">
-              {CALC_STRENGTHS.map(({ pct: c, name }) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => { chosen.current.conc = true; setConcPct(c); }}
-                  aria-pressed={Number(concPct) === c}
-                  className="px-3 min-h-[44px] text-sm font-mono border"
-                  style={{ 
-                    borderColor: Number(concPct) === c ? COLORS.actionText : COLORS.line,
-                    color: Number(concPct) === c ? COLORS.onAmber : COLORS.ink,
-                    backgroundColor: Number(concPct) === c ? COLORS.amber : COLORS.cardHi
-                  }}
-                >
-                  {c}% {name}
-                </button>
-              ))}
+            <div className={`${card} flex flex-col gap-3`} style={cardStyle}>
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="calc-conc" className="text-[13px]" style={{ color: COLORS.inkSoft }}>{t("calc.concentration", { pct: concPct })}</label>
+                <Source id="strengths" />
+              </div>
+              <Stepper id="calc-conc-num" inputProps={{ "aria-label": t("bench.concField") }} value={String(concPct)} onChange={(v) => { chosen.current.conc = true; setConcPct(v); }} step={1} min={1} max={99} unit="%"
+                decLabel={t("bench.concDec")} incLabel={t("bench.concInc")} />
+              <div className="flex flex-wrap gap-2">
+                {CALC_STRENGTHS.map(({ pct: c, name }) => (
+                  <Chip key={c} pressed={Number(concPct) === c} onClick={() => { chosen.current.conc = true; setConcPct(c); }}>{c}% {name}</Chip>
+                ))}
+              </div>
+              <input id="calc-conc" type="range" min="10" max="40" step="1" value={concPct}
+                aria-label={t("calc.concentration", { pct: concPct })}
+                onChange={(e) => { chosen.current.conc = true; setConcPct(e.target.value); }}
+                className="w-full" style={{ accentColor: COLORS.amber }} />
+              <p className="text-[13px]" style={{ color: COLORS.dim }}>{t("calc.familyDefault", { pct: tier.defaultConc })}</p>
             </div>
-            <input
-              id="calc-conc"
-              type="range" min="10" max="40" step="1" value={concPct}
-              onChange={(e) => { chosen.current.conc = true; setConcPct(e.target.value); }}
-              className="w-full" style={{ accentColor: COLORS.forest }}
-            />
-          </Field>
+          </section>
 
+          <section aria-label={t("bench.results")} className="grid grid-cols-3 rounded-sm" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
+            {[[t("bench.concentrate"), result.shown.oilG, true], [t("bench.ethanol"), result.shown.ethanolG, false], [t("bench.total"), result.shown.totalG, false]].map(([label, g, accent], i) => (
+              <div key={label} className="p-3.5 sm:p-[22px] min-w-0" style={{ borderInlineStart: i ? `1px solid ${COLORS.line}` : "none" }}>
+                <span className="block text-[13px]" style={{ color: COLORS.inkSoft }}>{label}</span>
+                <span dir="ltr" className="readout block mt-2 whitespace-nowrap text-start rtl:text-end font-medium text-[26px] sm:text-[34px] lg:text-5xl leading-[1.15]" style={{ color: accent ? COLORS.actionText : COLORS.ink }}>
+                  {fmt2(g)}<span className="text-sm ms-1.5" style={{ color: COLORS.dim }}>g</span>
+                </span>
+              </div>
+            ))}
+          </section>
+
+          <section aria-labelledby="calc-formula" className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 id="calc-formula" className="font-serif text-[28px] rtl:leading-[1.5]">{t("bench.formula")}</h2>
+              <span className="text-sm" style={{ color: COLORS.inkSoft }}>{t("bench.weighHint")}</span>
+            </div>
+            <WeightScale label={t("bench.weighed")} now={weighedG} target={result.shown.totalG} fraction={result.shown.totalG > 0 ? weighedG / result.shown.totalG : 0}
+              next={nextLine ? t("bench.nextLine", { name: nextLine.label, g: fmt2(nextLine.g) }) : t("bench.allDone")}
+              left={t("bench.left", { g: fmt2(Math.max(0, result.shown.totalG - weighedG)) })} />
+            <ul style={{ borderTop: `1px solid ${COLORS.ink}` }}>
+              {lines.map((l) => (
+                <li key={l.id} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+                  <label className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 min-h-[60px] py-2 cursor-pointer" style={{ background: weighed[l.id] ? COLORS.card : "transparent" }}>
+                    <input type="checkbox" checked={weighed[l.id]} onChange={() => setWeighed((w) => ({ ...w, [l.id]: !w[l.id] }))} className="w-6 h-6 mx-auto" style={{ accentColor: COLORS.amber }} />
+                    <span style={{ color: weighed[l.id] ? COLORS.inkSoft : COLORS.ink }}>{l.label}</span>
+                    <span dir="ltr" className="text-[17px] font-medium pe-1" style={{ color: weighed[l.id] ? COLORS.inkSoft : COLORS.ink }}>{fmt2(l.g)} g</span>
+                  </label>
+                </li>
+              ))}
+              <li className="flex items-center justify-between min-h-[52px] ps-14 pe-1" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+                <span>{t("bench.total")}</span>
+                <span dir="ltr" className="font-medium">{fmt2(result.shown.totalG)} g</span>
+              </li>
+            </ul>
+          </section>
+
+          <section aria-label={t("bench.details")} className={card} style={cardStyle}>
           <details className="mt-2 mb-5">
             <summary className="text-xs font-semibold cursor-pointer" style={{ color: COLORS.forestDeep }}>{t("calc.densities")}</summary>
             <div className="grid grid-cols-2 gap-3 items-end mt-3">
@@ -710,7 +755,6 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             </div>
             <MeasuredDensity value={measuredDensityValue} onChange={setMeasuredDensity} referenceDensity={densities[tierKey]} />
           </details>
-
           <div className="pt-1 border-t" style={{ borderColor: COLORS.line }}>
             <h3 className="text-xs font-semibold mt-4 mb-3" style={{ color: COLORS.forestDeep }}>
               {t("calc.personalLog")} <span className="font-normal" style={{ color: COLORS.ink }}>— {t("calc.savedToAccount")}</span>
@@ -782,25 +826,17 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
             />
           </div>
+          </section>
           <QuickResult shown={result.shown} t={t} />
         </div>
 
-        <div id="calc-readout" className="p-6 border scroll-mt-4" style={{ backgroundColor: COLORS.card, borderColor: COLORS.ink }}>
-          <h2 className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-5" style={{ color: COLORS.dim }}>{t("calc.readout")}</h2>
-          <div className="flex gap-6 items-end mb-5">
-            <BottleFill oilShare={weightShare(result.shown.oilG, result.shown.ethanolG)} height={190} />
-            <div className="grid gap-4 flex-1 min-w-0" style={{ containerType: "inline-size" }}>
-              {[["calc.oil", result.shown.oilG, COLORS.oil], ["calc.ethanol96", result.shown.ethanolG, COLORS.mist]].map(([k, g, sw]) => (
-                <div key={k}>
-                  <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
-                    <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: sw, border: `1px solid ${COLORS.ink}` }} />{t(k)}
-                  </span>
-                  <span dir="ltr" className="readout block font-mono leading-[1.15] tracking-[-0.03em] whitespace-nowrap" key={g} style={{ fontSize: `min(3rem, calc(100cqw / ${(fmt2(g).length * 0.6 + 0.6).toFixed(2)}))` }}>{fmt2(g)}<span className="text-2xl ms-1">g</span></span>
-                </div>
-              ))}
-            </div>
+        <aside className="flex flex-col gap-7 md:gap-10 min-w-0">
+        <div id="calc-readout" className="p-5 sm:p-6 border rounded-sm scroll-mt-4" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
+          <h2 className="font-serif text-2xl mb-5 rtl:leading-[1.5]" style={{ color: COLORS.ink }}>{t("calc.readout")}</h2>
+          <div className="flex gap-5 items-end mb-4">
+            <BottleFill oilShare={weightShare(result.shown.oilG, result.shown.ethanolG)} height={120} />
+            <div className="flex-1 min-w-0"><RatioBar oilG={result.shown.oilG} ethanolG={result.shown.ethanolG} caption={t("calc.byWeight")} /></div>
           </div>
-          <RatioBar oilG={result.shown.oilG} ethanolG={result.shown.ethanolG} caption={t("calc.byWeight")} className="mb-4" />
 
           <p className="text-xs font-mono mb-2" style={{ color: COLORS.inkSoft }}>
             {t(result.basis === "volume" ? "calc.basisVolume" : "calc.basisWeight", { pct: Number(concPct) })}
@@ -852,13 +888,13 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             type="button"
             onClick={handleAdvise}
             disabled={!fragName.trim() || tipsLoading}
-            className="mt-4 px-4 py-2 text-sm border rounded-none disabled:opacity-50"
+            className="mt-4 px-4 py-2 text-sm border rounded-sm disabled:opacity-50"
             style={{ borderColor: COLORS.amberDeep, color: COLORS.actionText }}
           >
             {tipsLoading ? t("calc.asking") : t("calc.advise")}
           </button>}
           {tips && (
-            <div className="mt-3 p-3 text-sm whitespace-pre-wrap border rounded-none" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
+            <div className="mt-3 p-3 text-sm whitespace-pre-wrap border rounded-sm" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
               {tips}
               <div className="text-[10px] font-mono mt-2" style={{ color: COLORS.dim }}>{t("calc.aiCaveat")}</div>
             </div>
@@ -953,8 +989,11 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             <IconFlameTriangle size={24} /> {t("site.footer.safety")}
           </aside>
         </div>
+          <BenchSide />
+        </aside>
       </div>
       )}
+    </RoomPage>
     </div>
   );
 }

@@ -52,7 +52,7 @@ export default function CheckInForm({ batch, scheduledDay = null, onDone, onCanc
       </label>
       <input id={`${uid}-note`} type="text" dir="auto" maxLength={280} value={note} onChange={(e) => setNote(e.target.value)}
         placeholder={t("journal.notePlaceholder")} autoComplete="off" enterKeyHint="done"
-        className="w-full px-3 py-2 text-sm border rounded-none focus:outline-none focus:ring-2" style={inputStyle} />
+        className="w-full px-3 py-2 text-sm border rounded-sm focus:outline-none focus:ring-2" style={inputStyle} />
       <fieldset className="flex flex-wrap items-center gap-1">
         <legend className="text-xs me-2 float-start leading-8" style={{ color: COLORS.inkSoft }}>{t("journal.rating")}</legend>
         {[1, 2, 3, 4, 5].map((n) => (
@@ -61,7 +61,7 @@ export default function CheckInForm({ batch, scheduledDay = null, onDone, onCanc
               onChange={() => setRating(n)} onClick={() => rating === n && setRating(null)}
               className="peer sr-only" aria-label={t("journal.ratingValue", { n })} />
             <span aria-hidden="true"
-              className="flex items-center justify-center w-8 h-8 rounded-none text-lg peer-focus-visible:ring-2"
+              className="flex items-center justify-center w-8 h-8 rounded-sm text-lg peer-focus-visible:ring-2"
               style={{ color: rating != null && n <= rating ? COLORS.actionText : COLORS.field }}>★</span>
           </label>
         ))}
@@ -69,7 +69,7 @@ export default function CheckInForm({ batch, scheduledDay = null, onDone, onCanc
       {error && <p role="alert" className="text-xs font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       <div className="flex items-center gap-3">
         <button type="submit" disabled={busy || empty}
-          className="px-4 py-1.5 rounded-none text-sm font-semibold disabled:opacity-40 focus:outline-none focus:ring-2"
+          className="px-4 py-1.5 rounded-sm text-sm font-semibold disabled:opacity-40 focus:outline-none focus:ring-2"
           style={{ background: COLORS.amber, color: COLORS.onAmber }}>
           {busy ? t("journal.saving") : t("journal.save")}
         </button>

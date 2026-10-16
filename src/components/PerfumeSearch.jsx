@@ -301,7 +301,7 @@ function PerfumeCard({ item, onSelect }) {
   const { brand, title } = splitName(item);
   return (
     <button type="button" onClick={() => onSelect(item)}
-      className="text-start rounded-none p-2.5 flex flex-col gap-2 transition-transform hover:-translate-y-0.5"
+      className="text-start rounded-sm p-2.5 flex flex-col gap-2 transition-transform hover:-translate-y-0.5"
       style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.line}` }}>
       <BottlePhoto perfume={item} size="card" />
       <span className="min-w-0 px-0.5">
@@ -325,7 +325,7 @@ function CardSkeleton({ count = 4 }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="rounded-none animate-pulse" style={{ height: 220, background: COLORS.cardHi, border: `1px solid ${COLORS.line}` }} />
+        <div key={i} className="rounded-sm animate-pulse" style={{ height: 220, background: COLORS.cardHi, border: `1px solid ${COLORS.line}` }} />
       ))}
     </div>
   );
@@ -580,7 +580,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
             value={query}
             onChange={(e) => { setQuery(e.target.value); if (browse) setBrowse(null); }}
             placeholder={t('search.placeholder')}
-            className="w-full px-4 py-3 font-mono text-sm rounded-none focus:outline-none focus:ring-2"
+            className="w-full px-4 py-3 font-mono text-sm rounded-sm focus:outline-none focus:ring-2"
             style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }}
           />
           {loading && (
@@ -597,7 +597,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
             : t('search.resultsCount', { count: results.length })}
         </p>
         {browse && (
-          <div className="flex items-center justify-between gap-3 rounded-none px-3 py-2.5"
+          <div className="flex items-center justify-between gap-3 rounded-sm px-3 py-2.5"
             style={{ border: `1px solid ${COLORS.amberDeep}`, background: 'rgba(233,200,138,0.06)' }}>
             <span className="min-w-0">
               <span className="block text-xs" style={{ color: COLORS.amberDeep }}>
@@ -605,7 +605,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
               </span>
               <span className="block font-serif text-[17px] truncate" style={{ color: COLORS.forestDeep }}>{browseTitle}</span>
             </span>
-            <button type="button" onClick={() => setBrowse(null)} className="shrink-0 text-sm px-2 py-1 rounded-none min-h-[24px]"
+            <button type="button" onClick={() => setBrowse(null)} className="shrink-0 text-sm px-2 py-1 rounded-sm min-h-[24px]"
               style={{ color: COLORS.actionText, border: `1px solid ${COLORS.field}` }} aria-label={t('search.clearBrowse')}>
               {t('search.clear')}
             </button>
@@ -624,7 +624,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
               type="button"
               onClick={handleAskGemini}
               disabled={aiLoading}
-              className="w-full px-4 py-3 rounded-none text-sm disabled:opacity-50"
+              className="w-full px-4 py-3 rounded-sm text-sm disabled:opacity-50"
               style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.actionText, background: 'rgba(233,200,138,0.06)' }}
             >
               {aiLoading ? t('search.askingGemini') : t('search.askGemini', { query: query.trim() })}
@@ -638,7 +638,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
             {matchKind === 'fuzzy' && (
               <p className="text-xs mb-2" style={{ color: COLORS.inkSoft }}>{t('search.closest')}</p>
             )}
-            <div className="rounded-none overflow-hidden md:max-h-[70vh] md:overflow-y-auto" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
+            <div className="rounded-sm overflow-hidden md:max-h-[70vh] md:overflow-y-auto" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
               {results.map((item) => (
                 <ResultRow key={item.id} item={item} active={selectedPerfume?.id === item.id} onSelect={selectPerfume} />
               ))}
@@ -658,7 +658,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
       </div>
 
       {/* ---------------- Detail column ---------------- */}
-      <div ref={detailRef} className="rounded-none overflow-hidden scroll-mt-4" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
+      <div ref={detailRef} className="rounded-sm overflow-hidden scroll-mt-4" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
         {p ? (
           <div>
             {/* Hero */}
@@ -671,14 +671,14 @@ export function PerfumeSearch({ onSelectPerfume }) {
                       <div className="flex flex-col gap-1.5" style={{ width: 200 }}>
                         <input type="url" value={photoDraft} onChange={(e) => setPhotoDraft(e.target.value)}
                           placeholder={t('search.photoPlaceholder')} aria-label={t('search.photoPlaceholder')} autoFocus
-                          className="w-full px-2.5 py-1.5 font-mono text-[11px] rounded-none focus:outline-none focus:ring-2"
+                          className="w-full px-2.5 py-1.5 font-mono text-[11px] rounded-sm focus:outline-none focus:ring-2"
                           style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }} />
                         <div className="flex gap-2">
                           <button type="button" onClick={handleSavePhoto}
-                            className="flex-1 px-2 py-1 rounded-none text-xs min-h-[24px]"
+                            className="flex-1 px-2 py-1 rounded-sm text-xs min-h-[24px]"
                             style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t('search.save')}</button>
                           <button type="button" onClick={() => { setPhotoOpen(false); setPhotoMsg(''); }}
-                            className="px-2 py-1 rounded-none text-xs min-h-[24px]"
+                            className="px-2 py-1 rounded-sm text-xs min-h-[24px]"
                             style={{ border: `1px solid ${COLORS.field}`, color: COLORS.inkSoft }}>{t('search.cancel')}</button>
                         </div>
                         {photoMsg && <p role="alert" className="font-mono text-[10px]" style={{ color: COLORS.danger }}>{photoMsg}</p>}
@@ -717,12 +717,12 @@ export function PerfumeSearch({ onSelectPerfume }) {
                   {p.rating ? <div className="mt-3"><RatingLine perfume={p} size={18} /></div> : null}
                   <div className="mt-4 flex items-center gap-2 flex-wrap">
                     {p.olfactory_family && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-none font-mono text-[11px] tracking-wider uppercase"
+                      <span className="inline-flex items-center px-3 py-1 rounded-sm font-mono text-[11px] tracking-wider uppercase"
                         style={{ border: `1px solid ${COLORS.line}`, color: COLORS.ink, background: 'rgba(255,255,255,0.03)' }}>
                         {p.olfactory_family}
                       </span>
                     )}
-                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-none" title={t('search.familyTitle')}
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-sm" title={t('search.familyTitle')}
                       style={{ border: `1px solid ${COLORS.amberDeep}`, background: 'rgba(233,200,138,0.08)' }}>
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: fam.color }} />
                       <span className="font-mono text-[11px] tracking-wider uppercase" style={{ color: COLORS.actionText }}>{fam.label}</span>
@@ -741,7 +741,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                 <button
                   type="button"
                   onClick={() => onSelectPerfume && onSelectPerfume(p)}
-                  className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-none font-semibold text-[15px]"
+                  className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-sm font-semibold text-[15px]"
                   style={{ background: COLORS.amber, color: COLORS.onAmber }}
                 >
                   {t('search.blend')} <span aria-hidden="true" className="rtl:-scale-x-100 inline-block">→</span>
@@ -751,7 +751,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                     type="button"
                     onClick={handleAddToInventory}
                     disabled={addingToInventory}
-                    className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-none font-semibold text-[15px] disabled:opacity-50"
+                    className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-sm font-semibold text-[15px] disabled:opacity-50"
                     style={{ background: 'transparent', border: `1px solid ${COLORS.amberDeep}`, color: COLORS.actionText }}
                   >
                     {addingToInventory ? t('search.adding') : t('search.addToInventory')}
@@ -761,7 +761,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                     type="button"
                     onClick={handleSaveEstimate}
                     disabled={savingAi}
-                    className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-none font-semibold text-[15px] disabled:opacity-50"
+                    className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-sm font-semibold text-[15px] disabled:opacity-50"
                     style={{ background: 'transparent', border: `1px solid ${COLORS.amberDeep}`, color: COLORS.actionText }}
                   >
                     {savingAi ? t('search.saving') : t('search.saveToCatalog')}
@@ -800,7 +800,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                       : <p className="font-serif italic" style={{ color: COLORS.dim }}>{t('search.noAccords')}</p>}
                   </div>
                 </div>
-                <div className="rounded-none p-4" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.ink1 }}>
+                <div className="rounded-sm p-4" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.ink1 }}>
                   <SectionLabel>{t('search.profile')}</SectionLabel>
                   <ClassificationRadar radar={character.radar} />
                 </div>

@@ -57,10 +57,10 @@ export default function BatchEdit({ batch, onSaved, onStatus }) {
     );
   }
 
-  const field = "w-full px-3 py-2 text-sm border rounded-none";
+  const field = "w-full px-3 py-2 text-sm border rounded-sm";
   const fieldStyle = { borderColor: COLORS.field, background: COLORS.cardHi, color: COLORS.ink };
   return (
-    <form onSubmit={save} className="basis-full mt-3 p-4 border rounded-none grid gap-3 sm:grid-cols-2" style={{ borderColor: COLORS.line, background: COLORS.card }}>
+    <form onSubmit={save} className="basis-full mt-3 p-4 border rounded-sm grid gap-3 sm:grid-cols-2" style={{ borderColor: COLORS.line, background: COLORS.card }}>
       <h3 className="sm:col-span-2 font-serif text-base" style={{ color: COLORS.forestDeep }}>{t("batches.edit.title")}</h3>
       {FIELDS.map(([k, label, type]) => (
         <label key={k} className="text-xs grid gap-1" style={{ color: COLORS.inkSoft }}>
@@ -79,7 +79,7 @@ export default function BatchEdit({ batch, onSaved, onStatus }) {
       <p className="sm:col-span-2 text-xs" style={{ color: COLORS.inkSoft }}>{t("batches.edit.recipeNote")}</p>
       {error && <p role="alert" className="sm:col-span-2 text-xs" style={{ color: COLORS.danger }}>{error}</p>}
       <div className="sm:col-span-2 flex gap-3">
-        <button type="submit" disabled={saving} className="px-4 py-2 text-sm font-semibold rounded-none disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+        <button type="submit" disabled={saving} className="px-4 py-2 text-sm font-semibold rounded-sm disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
           {saving ? t("batches.edit.saving") : t("batches.edit.save")}
         </button>
         <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 text-sm underline" style={{ color: COLORS.inkSoft }}>

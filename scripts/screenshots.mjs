@@ -41,6 +41,44 @@ function batches(now) {
   ];
 }
 
+// The Wardrobe's sample bottles and wearings, for the room screenshots only.
+function wardrobeRows(now) {
+  const day = (n) => localDate(new Date(now - n * DAY));
+  const make = (i, name, family, size, left, extra = {}) => ({
+    id: `b0000000-0000-4000-8000-0000000000${String(i).padStart(2, "0")}`, user_id: USER.id, name, family, kind: "bottle", status: "owned", size_ml: size, fill_pct: Math.round((left / size) * 100),
+    clusters: [], projection: null, price: null, currency: null, purchase_date: day(300 + i * 40), note: null, fragrance_id: null, created_at: new Date(now - (20 - i) * DAY).toISOString(), ...extra,
+  });
+  const bottles = [
+    make(1, "Santal 33", "woody", 50, 31), make(2, "Oud Wood", "woody", 50, 38), make(3, "Neroli Portofino", "fresh", 50, 22), make(4, "Tobacco Vanille", "oriental", 50, 44),
+    make(5, "Terre d'Hermès", "woody", 100, 62), make(6, "Hawas", "fresh", 100, 80), make(7, "Khamrah", "gourmand", 100, 71), make(8, "Tuscan Leather", "woody", 50, 15),
+    make(9, "Bleu de Chanel", "fresh", 100, 47), make(10, "Mitsouko", "floral", 50, 29), make(11, "Rose 31", "floral", 50, 41), make(12, "Amber Oud Gold Edition", "oriental", 60, 55),
+  ];
+  const wear = [[1, 1], [1, 4], [2, 7], [4, 4], [7, 10], [8, 17], [1, 9], [1, 12], [5, 3]].map(([b, d], i) => ({
+    id: `w0000000-0000-4000-8000-0000000000${String(i).padStart(2, "0")}`, user_id: USER.id, bottle_id: bottles[b - 1].id, worn_on: day(d), occasion: null, time_of_day: null, temp_c: null, sprays: 4, note: null, created_at: new Date(now - d * DAY).toISOString(),
+  }));
+  return { bottles, wear };
+}
+
+// A few catalogue rows for the Atlas screens (room screenshots only).
+const ATLAS_ROWS = [
+  ["Acqua di Giò", "Armani", 1996, "fresh", ["Fresh", "Citrus", "Woody"], "Italy"], ["Angel", "Mugler", 1992, "gourmand", ["Sweet", "Vanilla", "Balsamic"], "France"],
+  ["Aromatics Elixir", "Clinique", 1971, "floral", ["Mossy", "Floral", "Woody"], "USA"], ["Black Opium", "Yves Saint Laurent", 2014, "gourmand", ["Sweet", "Vanilla", "Floral"], "France"],
+  ["Bleu de Chanel", "Chanel", 2010, "fresh", ["Aromatic", "Citrus", "Woody"], "France"], ["Hawas", "Rasasi", 2019, "fresh", ["Fresh", "Fruity", "Aromatic"], "UAE"],
+  ["Khamrah", "Lattafa", 2022, "gourmand", ["Sweet", "Spicy", "Vanilla"], "UAE"], ["Santal 33", "Le Labo", 2011, "woody", ["Woody", "Spicy", "Leather"], "USA"],
+].map(([name, brand, year, tier, accords, country], i) => ({
+  id: `a0000000-0000-4000-8000-0000000000${String(i + 1).padStart(2, "0")}`, name, brand, year, tier, accords, country, olfactory_family: accords[0], gender: "unisex", rating: 4.1, status: "approved",
+  top_notes: ["Cardamom", "Iris"], middle_notes: ["Violet", "Papyrus"], base_notes: ["Sandalwood", "Amber"], perfumers: ["Ada Test"], source: "Perfume dataset", total: 8,
+}));
+
+// Salon posts and a profile (room screenshots only).
+const SALON_POSTS = [
+  ["Amber Study 07", "oriental", 50, 18, "Warm and resinous. Rested six weeks."], ["Labdanum Wash", "woody", 250, 15, "Dark, leathery, slow."], ["Cassia Morning", "fresh", 100, 10, "Bright cassia over a clean base."],
+  ["Rose Smoke 02", "floral", 30, 12, "Rose against smoke."], ["Kyphi No. 3", "oriental", 100, 20, "The reference batch."], ["Oud Wood Layer", "woody", 60, 25, "Layered over oud."],
+].map(([title, family, amount, pct, body], i) => ({
+  id: `c0000000-0000-4000-8000-0000000000${String(i + 1).padStart(2, "0")}`, kind: "recipe", title, body, family, handle: "nour_h", display_name: "Nour Hassan", likes: 400 - i * 60, liked: false, mine: false, status: "published",
+  created_at: new Date(Date.now() - i * 5 * DAY).toISOString(), snapshot: { amount, unit: "ml", concentration_pct: pct, oil_density: 0.95 },
+}));
+
 const PROFILE = { locale: "en", default_unit: "ml", default_bottle: 100, digits: "latn", onboarded_at: "2026-10-01T00:00:00Z" };
 
 async function signedIn(page, { onboarded = true } = {}) {
@@ -61,6 +99,15 @@ async function signedIn(page, { onboarded = true } = {}) {
     const url = route.request().url();
     if (url.includes("/auth/v1/user")) return json(route, USER);
     if (url.includes("/rest/v1/profiles")) return json(route, [onboarded ? PROFILE : { ...PROFILE, onboarded_at: null }]);
+    if (url.includes("/rpc/salon_feed")) return json(route, SALON_POSTS);
+    if (url.includes("/rpc/salon_profile")) return json(route, { user_id: USER.id, handle: "nour_h", display_name: "Nour Hassan", bio: "Weighs everything. Resin and amber studies, 20% in ethanol 96%. Notebook open since 2019.", is_public: true, posts: 24, followers: 1284, following: 187, i_follow: false, mine: false });
+    if (url.includes("/rest/v1/salon_profiles")) return json(route, [{ user_id: USER.id, handle: "me_here", display_name: "Preview", is_public: true }]);
+    if (url.includes("/rpc/atlas_search")) return json(route, ATLAS_ROWS);
+    if (url.includes("/rpc/is_admin")) return json(route, false);
+    if (url.includes("/rpc/similar_fragrances")) return json(route, { basis: "accords", similar: ATLAS_ROWS.slice(1, 4), same_brand: [] });
+    if (url.includes("/rest/v1/fragrances")) return json(route, ATLAS_ROWS[7]);
+    if (url.includes("/rest/v1/wardrobe_bottles")) return json(route, wardrobeRows(Date.now()).bottles);
+    if (url.includes("/rest/v1/wear_log")) return json(route, wardrobeRows(Date.now()).wear);
     return json(route, []);
   });
   await page.route("**/api/**", (route) => {
@@ -71,6 +118,7 @@ async function signedIn(page, { onboarded = true } = {}) {
       { fragrance_id: "f1", name: "Oud Nights", tier: "woody", stock_g: 96.25, low_threshold_g: 20 },
       { fragrance_id: "f2", name: "Amber Room", tier: "oriental", stock_g: 8.5, low_threshold_g: 10 },
     ] });
+    if (pathname === "/api/ai") return json(route, { kind: "picks", intro: "Warm woods with a thread of spice.", picks: ATLAS_ROWS.slice(5, 8).map((f) => ({ id: f.id, name: f.name, brand: f.brand, year: f.year, family: f.tier, accords: f.accords, matched: f.accords.slice(0, 2), reason: "Leans warm and resinous, as asked." })), shelf: [] });
     if (pathname === "/api/checkins") return json(route, { patterns: { woody: { day: 26, min: 21, max: 28, batches: 3 } }, locked: false });
     return json(route, {});
   });
@@ -82,9 +130,45 @@ const APP = {
   search: "/app/search", account: "/app/account", labels: "/app/labels?batch=11111111-1111-4111-8111-111111111111", bench: "/app/bench",
 };
 
+// KYPHIRA_ROOMS=1: every room, dark edition, 375 and 1440 wide, English and
+// Arabic, for comparing with the design boards (Design/boards/). Build with
+// VITE_FLAG_WARDROBE/ATLAS/SALON/NOSE=1 so the flagged rooms render.
+const ROOMS = {
+  home: "/", bench: "/bench", journal: "/bench/journal", wardrobe: "/wardrobe", "wardrobe-collection": "/wardrobe?section=collection", library: "/library", "library-guide": "/library/at-the-bench",
+  atlas: "/atlas?q=a", "atlas-fragrance": "/atlas/fragrance/a0000000-0000-4000-8000-000000000008", salon: "/salon", "salon-profile": "/salon/u/nour_h", nose: "/nose", signin: "/app", account: "/app/account",
+};
+
 const browser = await chromium.launch(process.env.CHROMIUM_PATH
   ? { executablePath: process.env.CHROMIUM_PATH }
   : { channel: process.env.CI ? undefined : "chrome" });
+if (process.env.KYPHIRA_ROOMS) {
+  const only = process.env.ROOMS_ONLY?.split(",");
+  for (const [size, width, height] of [["375", 375, 812], ["1440", 1440, 900]]) {
+    for (const lang of ["en", "ar"]) {
+      for (const [name, path] of Object.entries(ROOMS)) {
+        if (only && !only.includes(name)) continue;
+        const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, serviceWorkers: "block", reducedMotion: "reduce" });
+        const page = await context.newPage();
+        await page.addInitScript((l) => { globalThis.localStorage.setItem("theme", "dark"); globalThis.localStorage.setItem("sh-locale", l); }, lang);
+        if (!["home", "library", "library-guide", "signin"].includes(name)) await signedIn(page);
+        await page.goto(base + (lang === "ar" && ["home", "library", "library-guide"].includes(name) ? "/ar" + (path === "/" ? "" : path) : path), { waitUntil: "networkidle" }).catch(() => {});
+        await page.evaluate(() => globalThis.document.fonts.ready);
+        await page.waitForTimeout(400);
+        if (name === "nose") {
+          await page.getByRole("textbox").fill("Something warm for cool evenings").catch(() => {});
+          await page.keyboard.press("Enter").catch(() => {});
+          await page.waitForTimeout(600);
+        }
+        mkdirSync(`${out}/${name}`, { recursive: true });
+        await page.screenshot({ path: `${out}/${name}/${size}-${lang}.png`, fullPage: true });
+        await context.close();
+      }
+    }
+  }
+  await browser.close();
+  console.log(`screenshots: ${out}`);
+  process.exit(0);
+}
 for (const [size, width, height] of [["phone", 390, 844], ["desktop", 1280, 900]]) {
   const shoot = async (name, path, setup) => {
     const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, serviceWorkers: "block", reducedMotion: "reduce" }); // full-page shots never scroll, so scroll-tied reveals would stay hidden

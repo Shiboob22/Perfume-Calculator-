@@ -15,7 +15,7 @@ export default function ScaleReadout({ label, grams, target = null, digits = 2, 
   const barColor = state === "ok" ? COLORS.verdigris : state === "over" ? COLORS.ember : COLORS.resin;
   const spoken = target == null ? `${label}: ${shown} ${unit}` : `${label}: ${shown} ${unit} of ${format ? format(target) : Number(target).toFixed(digits)} ${unit}${labels?.[state] ? `, ${labels[state]}` : ""}`;
   return (
-    <div role="group" aria-label={label} className="p-5 rounded-none" style={{ background: COLORS.inkBand, color: COLORS.onInk, border: `1px solid ${COLORS.line}` }}>
+    <div role="group" aria-label={label} className="p-5 rounded-sm" style={{ background: COLORS.inkBand, color: COLORS.onInk, border: `1px solid ${COLORS.line}` }}>
       <div className="flex items-start justify-between gap-4">
         <span className="text-xs uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.onInk, opacity: 0.8 }}>{label}</span>
         {onTare && <Button variant="secondary" onClick={onTare} style={{ color: COLORS.onInk, borderColor: COLORS.onInk, minHeight: 36 }}>{tareLabel}</Button>}
