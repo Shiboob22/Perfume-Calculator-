@@ -64,3 +64,19 @@ export function restTimeline(batch, now = new Date()) {
   }));
   return { day, target, ready: target != null && day >= target, bars };
 }
+
+/**
+ * The batch that will finish resting soonest, for the quiet line on the
+ * Bench: { batch, day, target, left } with `left` days to go, or null when
+ * nothing is resting (every batch ready, or no family rest to count to).
+ */
+export function nextReady(batches, now = new Date()) {
+  let best = null;
+  for (const batch of batches) {
+    const tl = restTimeline(batch, now);
+    if (!tl || tl.target == null || tl.ready) continue;
+    const left = tl.target - tl.day;
+    if (!best || left < best.left) best = { batch, day: tl.day, target: tl.target, left };
+  }
+  return best;
+}

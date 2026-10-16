@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { dueNow, todayFor, restingBatch, suggestedRestDays, shareOf, restTimeline } from "./journal";
+import { dueNow, todayFor, restingBatch, suggestedRestDays, shareOf, restTimeline, nextReady } from "./journal";
 
 const made = new Date(2026, 8, 1, 10, 0);
 const batch = (extra = {}) => ({ id: "b1", tier: "woody", created_at: made.toISOString(), blend_date: "2026-09-01", ...extra });
@@ -58,5 +58,20 @@ describe("restTimeline", () => {
   });
   it("has nothing to show without a start", () => {
     expect(restTimeline({ tier: "woody" })).toBeNull();
+  });
+});
+
+describe("nextReady", () => {
+  it("names the batch closest to the end of its rest", () => {
+    const fresh = batch({ id: "fresh", tier: "fresh", created_at: day(-1).toISOString() });
+    const woody = batch({ id: "woody" });
+    const r = nextReady([woody, fresh], day(20));
+    expect(r.batch.id).toBe("woody");
+    expect(r).toMatchObject({ day: 20, target: 28, left: 8 });
+  });
+  it("is null when every batch is ready or has no rest to count to", () => {
+    expect(nextReady([batch()], day(28))).toBeNull();
+    expect(nextReady([batch({ tier: "unknown" })], day(3))).toBeNull();
+    expect(nextReady([], day(3))).toBeNull();
   });
 });

@@ -18,6 +18,7 @@ import Recipes from "./calc/Recipes";
 import OilHistory from "./calc/OilHistory";
 import WaitlistButton from "./WaitlistButton";
 import Source from "./calc/Source";
+import RestingLine from "./journal/RestingLine";
 import { FromOil, Adjust, Run } from "./calc/Modes";
 import { COLORS } from "../lib/theme";
 import { TIERS, ETHANOL_DENSITY_DEFAULT } from "../lib/tiers";
@@ -61,14 +62,14 @@ function Field({ label, extra, hint, htmlFor, children }) {
   return (
     <div className="mb-5">
       <div className="mb-2">
-        <label htmlFor={htmlFor} className="text-xs font-semibold tracking-wide rtl:tracking-normal" style={{ color: COLORS.ink }}>
+        <label htmlFor={htmlFor} className="text-sm font-semibold" style={{ color: COLORS.ink }}>
           {label}
         </label>
         {extra}
       </div>
       {children}
       {hint ? (
-        <p className="text-xs mt-1" style={{ color: COLORS.inkSoft }}>
+        <p className="text-sm mt-1" style={{ color: COLORS.inkSoft }}>
           {hint}
         </p>
       ) : null}
@@ -81,7 +82,7 @@ function TextInput(props) {
     <input
       inputMode={props.type === "number" ? "decimal" : undefined}
       {...props}
-      className="w-full px-3 py-2 min-h-[44px] font-mono text-sm border focus:outline-none focus:ring-2"
+      className="w-full px-3 py-2 min-h-[48px] font-mono text-lg tabular-nums border focus:outline-none focus:ring-2"
       style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
     />
   );
@@ -98,14 +99,14 @@ function AmountWithUnit({ id, unitLabel, value, onChange, unit, onUnitChange, un
         min="0.01"
         step="0.1"
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 min-w-0 px-3 py-2 min-h-[44px] font-mono text-sm border focus:outline-none focus:ring-2"
+        className="flex-1 min-w-0 px-3 py-2 min-h-[56px] font-mono text-2xl tabular-nums border focus:outline-none focus:ring-2"
         style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
       />
       <select
         aria-label={unitLabel}
         value={unit}
         onChange={(e) => onUnitChange(e.target.value)}
-        className="px-2 py-2 min-h-[44px] font-mono text-sm border focus:outline-none focus:ring-2"
+        className="px-2 py-2 min-h-[56px] font-mono text-lg border focus:outline-none focus:ring-2"
         style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
       >
         {units.map((u) => (
@@ -113,6 +114,27 @@ function AmountWithUnit({ id, unitLabel, value, onChange, unit, onUnitChange, un
         ))}
       </select>
     </div>
+  );
+}
+
+// On a phone the full readout sits below every input. This strip keeps the
+// three figures in view while the inputs scroll: pinned above the bottom bar,
+// it stops at the end of the bench sheet. Wide screens show the readout beside
+// the inputs, so it is hidden there. A link, not a live region: the readout
+// itself is what screen readers follow.
+function QuickResult({ shown, t }) {
+  return (
+    <a href="#calc-readout"
+      className="md:hidden sticky z-30 -mx-6 -mb-6 mt-6 grid grid-cols-3 gap-2 px-6 py-3 no-underline"
+      style={{ bottom: "calc(60px + env(safe-area-inset-bottom))", background: COLORS.inkBand, color: COLORS.onInk }}>
+      <span className="sr-only">{t("calc.quick.jump")}</span>
+      {[["calc.quick.oil", shown.oilG], ["calc.quick.ethanol", shown.ethanolG], ["calc.total", shown.totalG]].map(([k, g]) => (
+        <span key={k} className="min-w-0">
+          <span className="block text-xs" style={{ color: COLORS.onInk, opacity: 0.85 }}>{t(k)}</span>
+          <span dir="ltr" className="block font-mono tabular-nums text-xl leading-tight whitespace-nowrap text-start rtl:text-end">{fmt2(g)}<span className="text-sm ms-0.5">g</span></span>
+        </span>
+      ))}
+    </a>
   );
 }
 
@@ -480,6 +502,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
+      <RestingLine />
       {selectedPerfume && (
         <div className="mb-6 px-4 py-3 border flex items-center justify-between" style={{ borderColor: COLORS.line, backgroundColor: COLORS.card }}>
           <div>
@@ -629,7 +652,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                   type="button"
                   aria-pressed={Number(batchSize) === amt}
                   onClick={() => { setBatchSize(amt); }}
-                  className="px-2 py-1 text-[11px] font-mono border transition-opacity"
+                  className="px-3 min-h-[44px] text-sm font-mono tabular-nums border"
                   style={{ 
                     borderColor: Number(batchSize) === amt ? COLORS.actionText : COLORS.line,
                     color: Number(batchSize) === amt ? COLORS.onAmber : COLORS.ink,
@@ -650,7 +673,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                   type="button"
                   onClick={() => { chosen.current.conc = true; setConcPct(c); }}
                   aria-pressed={Number(concPct) === c}
-                  className="px-3 py-1 text-[11px] font-mono border transition-opacity"
+                  className="px-3 min-h-[44px] text-sm font-mono border"
                   style={{ 
                     borderColor: Number(concPct) === c ? COLORS.actionText : COLORS.line,
                     color: Number(concPct) === c ? COLORS.onAmber : COLORS.ink,
@@ -674,13 +697,13 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             <div className="grid grid-cols-2 gap-3 items-end mt-3">
               {Object.keys(TIERS).map((key) => (
                 <div key={key}>
-                  <label htmlFor={`calc-density-${key}`} className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: COLORS.ink }}><IconDrop size={18} />{t(`families.${key}.label`)} (g/mL)</label>
+                  <label htmlFor={`calc-density-${key}`} className="flex items-center gap-1.5 text-[13px] mb-1" style={{ color: COLORS.ink }}><IconDrop size={18} />{t(`families.${key}.label`)} (g/mL)</label>
                   <TextInput id={`calc-density-${key}`} type="number" step="0.01" value={densities[key]}
                     onChange={(e) => setDensities({ ...densities, [key]: parseFloat(e.target.value) || 0 })} />
                 </div>
               ))}
               <div>
-                <label htmlFor="calc-density-ethanol" className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: COLORS.ink }}><IconDrop mist size={18} />{t("calc.ethanol96")} (g/mL)</label>
+                <label htmlFor="calc-density-ethanol" className="flex items-center gap-1.5 text-[13px] mb-1" style={{ color: COLORS.ink }}><IconDrop mist size={18} />{t("calc.ethanol96")} (g/mL)</label>
                 <TextInput id="calc-density-ethanol" type="number" step="0.01" value={densities.ethanol}
                   onChange={(e) => setDensities({ ...densities, ethanol: parseFloat(e.target.value) || 0 })} />
               </div>
@@ -694,7 +717,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             </h3>
             <div className="grid grid-cols-2 gap-3 items-end mb-3">
               <div>
-                <label htmlFor="calc-oil-type" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.oilType")}</label>
+                <label htmlFor="calc-oil-type" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.oilType")}</label>
                 <input id="calc-oil-type" list="oilTypeOptions" value={oilType} onChange={(e) => setOilType(e.target.value)}
                   className="w-full px-3 py-2 font-mono text-sm border" style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }} />
                 <datalist id="oilTypeOptions">
@@ -702,14 +725,14 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 </datalist>
               </div>
               <div>
-                <label htmlFor="calc-price" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.pricePerGram")}</label>
+                <label htmlFor="calc-price" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.pricePerGram")}</label>
                 <TextInput id="calc-price" type="number" step="0.01" min="0" value={pricePerGram} onChange={(e) => setPricePerGram(e.target.value)} placeholder="0.00" />
               </div>
             </div>
             {sellerOn && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 items-end mb-3">
                 <div className="col-span-2 sm:col-span-3">
-                  <label htmlFor="calc-currency" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.currency")}</label>
+                  <label htmlFor="calc-currency" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.currency")}</label>
                   <select id="calc-currency" value={currency} onChange={(e) => setCurrency(e.target.value)}
                     className="w-full sm:w-40 px-3 py-2 font-mono text-sm border min-h-[44px]" style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
                     {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -725,7 +748,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                   ["calc-sale-price", "salePrice", salePrice, setSalePrice, "0.01"],
                 ].map(([id, key, value, set, step]) => (
                   <div key={id}>
-                    <label htmlFor={id} className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t(`calc.cost.${key}`)}</label>
+                    <label htmlFor={id} className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t(`calc.cost.${key}`)}</label>
                     <TextInput id={id} type="number" inputMode="decimal" step={step} min="0" value={value} onChange={(e) => set(e.target.value)} placeholder={key === "bottles" ? "1" : "0.00"} />
                   </div>
                 ))}
@@ -733,11 +756,11 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             )}
             <div className="grid grid-cols-2 gap-3 items-end mb-1">
               <div>
-                <label htmlFor="calc-actual-oil" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualOil")}</label>
+                <label htmlFor="calc-actual-oil" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualOil")}</label>
                 <TextInput id="calc-actual-oil" type="number" step="0.01" min="0" value={actualOilG} onChange={(e) => setActualOilG(e.target.value)} placeholder={fmt2(result.shown.oilG)} />
               </div>
               <div>
-                <label htmlFor="calc-actual-ethanol" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualEthanol")}</label>
+                <label htmlFor="calc-actual-ethanol" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualEthanol")}</label>
                 <TextInput id="calc-actual-ethanol" type="number" step="0.01" min="0" value={actualEthG} onChange={(e) => setActualEthG(e.target.value)} placeholder={fmt2(result.shown.ethanolG)} />
               </div>
             </div>
@@ -751,17 +774,18 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 </span>
               )}
             </p>
-            <label htmlFor="calc-notes" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.notes")}</label>
+            <label htmlFor="calc-notes" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.notes")}</label>
             <textarea
               id="calc-notes"
               value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
-              className="w-full px-3 py-2 font-mono text-sm border resize-y"
+              className="w-full px-3 py-2 font-mono text-base border resize-y"
               style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
             />
           </div>
+          <QuickResult shown={result.shown} t={t} />
         </div>
 
-        <div className="p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.ink }}>
+        <div id="calc-readout" className="p-6 border scroll-mt-4" style={{ backgroundColor: COLORS.card, borderColor: COLORS.ink }}>
           <h2 className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-5" style={{ color: COLORS.dim }}>{t("calc.readout")}</h2>
           <div className="flex gap-6 items-end mb-5">
             <BottleFill oilShare={weightShare(result.shown.oilG, result.shown.ethanolG)} height={190} />
@@ -843,11 +867,11 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
           <div className="mt-6 grid grid-cols-2 gap-3 items-end">
             <div>
-              <label htmlFor="calc-blended-by" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.blendedBy")}</label>
+              <label htmlFor="calc-blended-by" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.blendedBy")}</label>
               <TextInput id="calc-blended-by" value={blendedBy} onChange={(e) => setBlendedBy(e.target.value)} />
             </div>
             <div>
-              <label htmlFor="calc-date" className="block text-[11px] mb-1" style={{ color: COLORS.ink }}>{t("calc.date")}</label>
+              <label htmlFor="calc-date" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.date")}</label>
               <TextInput id="calc-date" type="date" value={blendDate} onChange={(e) => setBlendDate(e.target.value)} />
             </div>
           </div>
