@@ -22,6 +22,9 @@ html[dir="rtl"] body * {
   letter-spacing: normal !important;
 }
 
+/* Figures (board): Hanken Grotesk with tabular numerals, never a monospace. */
+.font-mono { font-variant-numeric: tabular-nums; }
+
 /* The mono labels are a Latin design device. In Arabic they would take their
    word spaces from IBM Plex Mono (fixed-width, so gaps look wide); use the
    proportional UI fonts instead. */
@@ -220,12 +223,22 @@ summary::-webkit-details-marker { display: none; }
 .cmp-fill { position: absolute; inset-block: 0; inset-inline-start: calc(50% - 1px); width: 3px; background: #E3A857; transform-origin: bottom; }
 .cmp-tickbox { position: absolute; inset: 0; }
 .cmp-tick { height: 1px; width: 10px; background: #F6F2EA; }
-.cmp-read { margin-top: 6px; padding: 2px 3px; background: rgb(16 14 10 / .88); color: #F6F2EA; font: 10px/1 "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; white-space: nowrap;
+.cmp-read { margin-top: 6px; padding: 2px 3px; background: rgb(16 14 10 / .88); color: #F6F2EA; font: 10px/1 "Hanken Grotesk Variable", system-ui, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap;
   --gw: calc(var(--cg) / 100 - 0.5); --gf: calc(var(--cg) - var(--gw) * 100); counter-reset: cmpw var(--gw) cmpf var(--gf); }
 .cmp-read::before { content: counter(cmpw) "." counter(cmpf, decimal-leading-zero) "\2009g"; }
 
 /* The ember breathes at rest: ambient, 3.2 s, ease-in-out, off under reduced motion. */
 @media (prefers-reduced-motion: no-preference) { .cmp-breath { animation: cmp-breath var(--dur-ambient) var(--ease-in-out) infinite alternate; } }
+/* Cinematic rise (Salon profile header only): 600 ms ease-out. Static under reduced motion. */
+@media (prefers-reduced-motion: no-preference) { .kx-rise { animation: kx-rise var(--dur-slow) var(--ease-out) both; } }
+@keyframes kx-rise { from { opacity: 0; transform: translateY(14px); } }
+/* The Nose's thinking state: three dots, ambient (2 s), still under reduced motion. */
+.kx-think i { width: 6px; height: 6px; border-radius: 50%; background: var(--c-action-text); display: block; opacity: .6; }
+@media (prefers-reduced-motion: no-preference) {
+  .kx-think i { animation: kx-think var(--dur-ambient) var(--ease-in-out) infinite alternate; }
+  .kx-think i:nth-child(2) { animation-delay: 250ms; } .kx-think i:nth-child(3) { animation-delay: 500ms; }
+}
+@keyframes kx-think { from { opacity: .25; } to { opacity: 1; } }
 @keyframes cmp-breath { from { opacity: .7; transform: scale(.94); } to { opacity: 1; transform: scale(1.08); } }
 
 @media (prefers-reduced-motion: no-preference) {

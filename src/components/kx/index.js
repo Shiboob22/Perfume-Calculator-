@@ -10,3 +10,4 @@ export { default as SmokeLine } from "./SmokeLine";
 export { default as Chip } from "./Chip";
 export { default as FragranceCard } from "./FragranceCard";
 export { default as Stepper } from "./Stepper";
+export { default as RoomHeader } from "./RoomHeader";
