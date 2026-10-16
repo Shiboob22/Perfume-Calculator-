@@ -113,7 +113,8 @@ test("calculator: a new size or strength updates the readout, and a size of zero
   await expect(readout).toContainText(/50\.00\s*mL/);
 
   await page.getByRole("button", { name: "30% Extrait" }).click();
-  await expect(page.getByRole("slider", { name: en.calc.concentration.replace("{pct}", "30") })).toHaveValue("30");
+  // The board's stepper replaced the slider: a group named for the strength, its figure in it.
+  await expect(page.getByRole("group", { name: en.calc.concentration.replace("{pct}", "30") })).toContainText("30");
   await expect(readout).toContainText(/15\.00\s*mL/);
   await expect(readout).toContainText(/35\.00\s*mL/);
 

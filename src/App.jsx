@@ -77,7 +77,7 @@ export default function App() {
 
   // Each tab is its own page to screen readers and the tab switcher.
   const page = activeTab ?? tab;
-  const pageHeading = page === "selector" || page === "account" || page === "wardrobe" || page === "atlas" || page === "salon" || page === "nose" ? null
+  const pageHeading = page === "calculator" || page === "selector" || page === "account" || page === "wardrobe" || page === "atlas" || page === "salon" || page === "nose" ? null
     : TABS.includes(page) ? t(`app.tabs.${page}`) : page === "labels" ? t("labels.title") : page === "cards" ? t("cards.open") : null;
   useEffect(() => {
     const name = TABS.includes(page) ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : page === "labels" ? t("labels.title") : page === "wardrobe" ? t("wardrobe.title") : page === "atlas" ? t("atlas.title") : page === "salon" ? t("salon.title") : page === "nose" ? t("nose.title") : null;
