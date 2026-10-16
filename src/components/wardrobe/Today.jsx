@@ -85,7 +85,7 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
       {/* One question up front; weather and time refine it when given. */}
       <SelectField className="max-w-sm" label={t("wardrobe.today.question")} value={occasion} onChange={setOccasion}
         options={[{ value: "", label: t("wardrobe.today.any") }, ...OCCASIONS.map((o) => ({ value: o.id, label: t(`wardrobe.occasions.${o.id}`) }))]} />
-      <details className="mt-3 mb-6" open={temp !== "" || time !== "" || undefined}>
+      <details className="mt-3 mb-6">
         <summary className="inline-flex items-center min-h-[44px] text-sm cursor-pointer underline underline-offset-4" style={{ color: COLORS.inkSoft }}>{t("wardrobe.today.more")}</summary>
         <div className="grid gap-4 sm:grid-cols-2 mt-2 max-w-xl">
           <Field label={t("wardrobe.today.temp")} hint={t("wardrobe.today.tempHint")} mono inputMode="decimal" value={temp} onChange={(e) => setTemp(e.target.value)} dir="ltr" />
