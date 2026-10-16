@@ -145,7 +145,7 @@ const BarButton = React.forwardRef(function BarButton({ d, to, on, current, expa
       <span aria-hidden="true" className="absolute top-0 inset-x-4 h-[2px] transition-opacity duration-200"
         style={{ background: COLORS.ink, opacity: on ? 1 : 0 }} />
       <span className="relative inline-flex items-center justify-center w-12 h-7 transition-colors duration-200"
-        style={{ background: on ? COLORS.mist : "transparent" }}>
+        style={{ background: on ? COLORS.sand : "transparent" }}>
         <I size={22} />
         {badge && <span className="absolute -top-1 -end-1">{badge}</span>}
       </span>
@@ -189,7 +189,7 @@ function MoreSheet({ items, active, to, onGo, onSignOut, onClose }) {
               <li key={d.id}>
                 <Dest d={d} to={to(d)} current={on} onClick={onGo}
                   className="w-full aspect-[1/0.9] flex flex-col items-center justify-center gap-2 px-1 text-sm text-center"
-                  style={{ background: on ? COLORS.mist : COLORS.card, color: COLORS.ink, fontWeight: on ? 600 : 400 }}>
+                  style={{ background: on ? COLORS.sand : COLORS.card, color: COLORS.ink, fontWeight: on ? 600 : 400 }}>
                   <I size={28} />
                   <span className="leading-tight">{d.label}</span>
                 </Dest>

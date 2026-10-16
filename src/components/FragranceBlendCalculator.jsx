@@ -120,21 +120,21 @@ function AmountWithUnit({ id, unitLabel, value, onChange, unit, onUnitChange, un
 // On a phone the full readout sits below every input. This strip keeps the
 // three figures in view while the inputs scroll: pinned above the bottom bar,
 // it stops at the end of the bench sheet. Wide screens show the readout beside
-// the inputs, so it is hidden there. A link, not a live region: the readout
-// itself is what screen readers follow.
+// the inputs, so it is hidden there. A display only, not a control (nothing
+// to tap over the fields it passes), and hidden from screen readers, who have
+// the full readout and its live region.
 function QuickResult({ shown, t }) {
   return (
-    <a href="#calc-readout"
-      className="md:hidden sticky z-30 -mx-6 -mb-6 mt-6 grid grid-cols-3 gap-2 px-6 py-3 no-underline"
+    <div aria-hidden="true"
+      className="md:hidden sticky z-30 -mx-6 -mb-6 mt-6 grid grid-cols-3 gap-2 px-6 py-3"
       style={{ bottom: "calc(60px + env(safe-area-inset-bottom))", background: COLORS.inkBand, color: COLORS.onInk }}>
-      <span className="sr-only">{t("calc.quick.jump")}</span>
       {[["calc.quick.oil", shown.oilG], ["calc.quick.ethanol", shown.ethanolG], ["calc.total", shown.totalG]].map(([k, g]) => (
         <span key={k} className="min-w-0">
           <span className="block text-xs" style={{ color: COLORS.onInk, opacity: 0.85 }}>{t(k)}</span>
           <span dir="ltr" className="block font-mono tabular-nums text-xl leading-tight whitespace-nowrap text-start rtl:text-end">{fmt2(g)}<span className="text-sm ms-0.5">g</span></span>
         </span>
       ))}
-    </a>
+    </div>
   );
 }
 

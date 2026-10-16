@@ -49,6 +49,24 @@ The glossary quotes the guides and nothing else (`src/content/glossary.js`, test
 
 The Arabic glossary follows the Arabic guide drafts, so it waits on the same review.
 
-## Quality gates
+## Quality gates (run 2026-10-16 on the production build, fake data)
 
-Screenshots (EN/AR, phone first) in `docs/redesign/phase-brief/`, Lighthouse accessibility per room, and the Krug walkthrough are recorded at the end of the pass.
+**Screenshots:** `docs/redesign/phase-brief/<room>-en-ar.png`, English left, Arabic right, 375 px, light: Bench, Journal, Library (a guide and its glossary), Wardrobe (Today, Collection), Atlas, Salon, Nose.
+
+**Accessibility:** Lighthouse mobile, public pages: Home, `/ar`, Library index, a guide, Pricing: Accessibility 100, Best Practices 100, SEO 100 (the Arabic guide scores SEO 66 because Arabic drafts are `noindex` on purpose). Signed-in rooms can't be loaded by Lighthouse without a session, so they were checked with axe-core (the engine behind Lighthouse's accessibility score), WCAG 2.2 AA tags, in English and Arabic: all 18 room views report no violations. One found and fixed on the way: the Bench's pinned result was a link overlapping the size buttons (target size); it is now a display only, and phones scroll a focused field clear of it.
+
+**Tests:** Vitest 671 (coverage thresholds met), ESLint 0 errors, typecheck clean, bundle secret check passed, Playwright (phone + desktop, fake API) 320 passed and 12 skipped (the staging journeys that need `E2E_SERVICE_ROLE_KEY`), not counting the macOS-only visual snapshots, which CI skips; they need new baselines from your Mac (`VISUAL=1 npx playwright test e2e/visual.spec.js --update-snapshots`) because the light edition's accent changed.
+
+**Krug walkthrough** (can a first-time user finish the room's core task unaided?):
+
+| Room | Core task | Result |
+|---|---|---|
+| Bench | Get the two weights for a bottle | Yes. The figures are on screen from the first view on a phone and follow every change. Note: the family list's long mono labels truncate at 375 px. |
+| Journal | See when a batch is ready | Yes. "Day *n* / *m*" per batch; the Bench now says it too. |
+| Library | Read a guide, look up a term | Yes. Dotted terms jump to "Terms on this page" with the source guide. |
+| Wardrobe | Decide what to wear and log it | Yes. One question, one answer, Wore this, Save. |
+| Atlas | Find a fragrance and its accords | Yes. |
+| Salon | Read recipes; post one | Reading yes. Posting needs a profile first; the feed says so and links to it. |
+| Nose | Describe a scent, get real picks | Yes. Starters answer in one tap; owned bottles that fit show under the picks. |
+
+**Arabic found during the pass (not new; strings already in `ar.js` as English copies):** the guide eyebrow ("Guide IX of XII · 1 min"), "Try it on the bench", and the Journal list labels (Batches, Ready, Resting, day *n* / *m*). They need Arabic before the Arabic edition is complete.

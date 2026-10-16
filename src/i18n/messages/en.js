@@ -940,7 +940,7 @@ export default {
     actualHint: "Enter both to see the ratio you really made.",
     notes: "Notes",
     readout: "Batch readout",
-    quick: { oil: "Oil", ethanol: "Ethanol", jump: "Go to the full readout" },
+    quick: { oil: "Oil", ethanol: "Ethanol" },
     oil: "Fragrance oil",
     total: "Total",
     oilCost: "Oil cost",

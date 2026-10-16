@@ -66,7 +66,7 @@ export default function PostCard({ post, onRemoved }) {
           ].filter(Boolean).map(([k, v]) => (
             <div key={k} className="py-2 pe-3" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
               <dt className="text-xs" style={{ color: COLORS.dim }}>{t(`salon.post.grid.${k}`)}</dt>
-              <dd className={k === "family" ? "text-sm" : "font-mono tabular-nums text-lg"} dir={k === "family" ? undefined : "ltr"} style={{ color: COLORS.ink, textAlign: "start" }}>{v}</dd>
+              <dd className={k === "family" ? "text-sm" : "font-mono tabular-nums text-lg"} style={{ color: COLORS.ink }}>{k === "family" ? v : <span dir="ltr">{v}</span>}</dd>
             </div>
           ))}
         </dl>
