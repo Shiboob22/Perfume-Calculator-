@@ -139,6 +139,56 @@ export const IconBell = make("IconBell", () => <>
   <path d="M10 20.5a2 2 0 0 0 4 0" />
 </>);
 
+/** A loupe over a drop: search the catalog. */
+export const IconSearch = make("IconSearch", (a) => <>
+  <circle cx="10.5" cy="10.5" r="6.5" />
+  <path d="m15.3 15.3 5.2 5.2" />
+  <path d="M10.5 6.8c-1.3 1.7-2 2.7-2 3.6a2 2 0 0 0 4 0c0-.9-.7-1.9-2-3.6Z" fill={a} stroke="none" />
+</>, { flip: true });
+
+/** Three bottles on a shelf: inventory. */
+export const IconShelf = make("IconShelf", (a) => <>
+  <path d="M3 20.5h18" />
+  <rect x="4.5" y="11" width="4" height="9.5" rx=".6" />
+  <rect x="10" y="7" width="4" height="13.5" rx=".6" />
+  <rect x="15.5" y="12.5" width="4" height="8" rx=".6" />
+  <path d="M10 14h4v6.5h-4Z" fill={a} stroke="none" />
+</>);
+
+/** A speech mark: ask a question. */
+export const IconChat = make("IconChat", (a) => <>
+  <path d="M4 5.5h16v10H11l-4.5 4v-4H4Z" />
+  <circle cx="12" cy="10.5" r="1.6" fill={a} stroke="none" />
+</>, { flip: true });
+
+/** A compass needle: the Selector finds a direction. */
+export const IconCompass = make("IconCompass", (a) => <>
+  <circle cx="12" cy="12" r="8.5" />
+  <path d="m14.8 9.2-1.7 3.9-3.9 1.7 1.7-3.9Z" fill={a} />
+</>);
+
+/** Three dots: more of the app. */
+export const IconMore = make("IconMore", () => <>
+  <circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+  <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+  <circle cx="18.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+</>);
+
+/** A head and shoulders: the account. */
+export const IconPerson = make("IconPerson", () => <>
+  <circle cx="12" cy="8" r="3.8" />
+  <path d="M4.5 20.5c.8-3.8 3.7-5.8 7.5-5.8s6.7 2 7.5 5.8" />
+</>);
+
+/** A door with an arrow out: sign out. Mirrored in Arabic. */
+export const IconExit = make("IconExit", () => <>
+  <path d="M13.5 4h-8v16h8" />
+  <path d="M10 12h10.5M17 8.5l3.5 3.5-3.5 3.5" />
+</>, { flip: true });
+
+/** A crossing: close. */
+export const IconClose = make("IconClose", () => <path d="m6 6 12 12M18 6 6 18" />);
+
 /** A featured icon in its square tile: 1px frame, card fill, never a circle. */
 export function IconTile({ icon: I, size = 56, iconSize, border = COLORS.ink, background = COLORS.card, className = "", ...p }) {
   return (
