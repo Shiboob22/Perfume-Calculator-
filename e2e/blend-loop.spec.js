@@ -101,8 +101,8 @@ test("the calculator keeps its inputs across a tab switch, and Start over clears
   await fakeApi(page);
   await page.goto("/bench");
   await page.getByRole("combobox", { name: en.calc.name }).fill("Amber Draft");
-  await page.getByRole("button", { name: new RegExp(en.app.tabs.batches) }).click();
-  await page.getByRole("button", { name: new RegExp(en.app.tabs.calculator) }).click();
+  await page.getByRole("navigation", { name: new RegExp(`^(${en.app.tabsLabel}|${en.app.barLabel})$`) }).getByRole("link", { name: new RegExp(en.app.tabs.batches) }).click();
+  await page.getByRole("navigation", { name: new RegExp(`^(${en.app.tabsLabel}|${en.app.barLabel})$`) }).getByRole("link", { name: new RegExp(en.app.tabs.calculator) }).click();
   await expect(page.getByRole("combobox", { name: en.calc.name })).toHaveValue("Amber Draft");
   await page.getByRole("button", { name: en.calculator.draft.startOver }).click();
   await expect(page.getByRole("combobox", { name: en.calc.name })).toHaveValue("");

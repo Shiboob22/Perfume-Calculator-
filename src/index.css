@@ -129,3 +129,8 @@ summary::-webkit-details-marker { display: none; }
   .read-progress { display: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
 }
+
+/* The app's More sheet (AppNav): rises from the bottom bar. Used through
+   motion-safe: only, so it is still under reduced motion. */
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sheetFade { from { opacity: 0; } to { opacity: 1; } }

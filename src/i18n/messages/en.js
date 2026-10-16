@@ -10,6 +10,10 @@ export default {
   },
   app: {
     tabsLabel: "Sections",
+    barLabel: "App menu",
+    more: "More",
+    moreTitle: "More rooms",
+    moreClose: "Close the menu",
     loading: "Loading…",
     signOut: "Sign out",
     crash: { title: "Something went wrong.", text: "This screen hit an error and it has been reported. Your saved batches are safe.", retry: "Try again", reload: "Reload" },

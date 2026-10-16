@@ -4,6 +4,7 @@ import { flagOn } from "./lib/flags";
 import { tabFromPath, tabPath } from "./routes";
 import RenameNotice from "./components/kx/RenameNotice";
 import { SiteFooter, SiteHeader } from "./components/SiteChrome";
+import AppNav from "./components/AppNav";
 import PerfumeSearch from "./components/PerfumeSearch";
 import { COLORS } from "./lib/theme";
 import AuthGate from "./components/AuthGate";
@@ -134,7 +135,7 @@ export default function App() {
           // Bench mode is full screen: no header or tabs at the scale.
           <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
         ) : (
-        <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }}>
+        <div className="min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0" style={{ backgroundColor: COLORS.paper }}>
       <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "batches" ? "journal" : tab === "wardrobe" ? "wardrobe" : tab === "atlas" ? "atlas" : tab === "salon" ? "salon" : tab === "nose" ? "nose" : undefined}
         wardrobe={wardrobeOn} atlas={atlasOn} salon={salonOn} nose={noseOn}
         language={<><LanguageToggle /><DigitToggle /></>}
@@ -149,32 +150,9 @@ export default function App() {
             {t("app.signOut")}
           </button>
         </>} />
-      <header className="max-w-3xl mx-auto px-4 sm:px-8 pt-6">
-        <nav aria-label={t("app.tabsLabel")} className="relative flex gap-2 border-b overflow-x-auto" style={{ borderColor: COLORS.line }}>
-          {TABS.map((id) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setActiveTab(id)}
-              aria-current={activeTab === id ? "page" : undefined}
-              className="px-3 py-2 text-sm -mb-px border-b-2 transition-colors whitespace-nowrap"
-              style={{
-                borderColor: activeTab === id ? COLORS.forest : "transparent",
-                color: activeTab === id ? COLORS.forestDeep : COLORS.inkSoft,
-              }}
-            >
-              {t(`app.tabs.${id}`)}
-              {id === "batches" && dueCount > 0 && (
-                <span className="ms-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-none text-[11px] font-semibold align-middle"
-                  style={{ background: COLORS.amber, color: COLORS.onAmber }}>
-                  <span aria-hidden="true">{dueCount}</span>
-                  <span className="sr-only">{t("journal.tabBadge", { count: dueCount })}</span>
-                </span>
-              )}
-            </button>
-          ))}
-        </nav>
-      </header>
+      <AppNav active={activeTab ?? tab ?? null} tabs={TABS} dueCount={dueCount}
+        flags={{ wardrobe: wardrobeOn, atlas: atlasOn, salon: salonOn, nose: noseOn }}
+        onSignOut={() => signOut()} />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-4 empty:hidden"><RenameNotice /></div>
       <main className="pb-16">
