@@ -264,6 +264,11 @@ export default {
     },
   },
   nose: {
+    headline: "Describe a scent.",
+    placeholder: "Ask about a note, a scent or a mood",
+    thinking: "Reading your question and the catalog…",
+    shelfCount: "{bottles} bottles · {wears} wears",
+    shelfWorn: "worn {n} d ago",
     title: "The Nose",
     lead: "Describe the scent you are after, in your own words. The Nose turns it into filters, finds real fragrances in the Atlas catalog, and shows why each one fits.",
     safety: "The Nose is AI-assisted. Every fragrance it shows comes from the catalog, and the notes and accords are the catalog's, not the AI's. It judges how a scent smells, never what it does to the body: it gives no health or allergy advice.",

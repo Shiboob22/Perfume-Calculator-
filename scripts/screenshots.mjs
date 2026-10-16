@@ -118,6 +118,7 @@ async function signedIn(page, { onboarded = true } = {}) {
       { fragrance_id: "f1", name: "Oud Nights", tier: "woody", stock_g: 96.25, low_threshold_g: 20 },
       { fragrance_id: "f2", name: "Amber Room", tier: "oriental", stock_g: 8.5, low_threshold_g: 10 },
     ] });
+    if (pathname === "/api/ai") return json(route, { kind: "picks", intro: "Warm woods with a thread of spice.", picks: ATLAS_ROWS.slice(5, 8).map((f) => ({ id: f.id, name: f.name, brand: f.brand, year: f.year, family: f.tier, accords: f.accords, matched: f.accords.slice(0, 2), reason: "Leans warm and resinous, as asked." })), shelf: [] });
     if (pathname === "/api/checkins") return json(route, { patterns: { woody: { day: 26, min: 21, max: 28, batches: 3 } }, locked: false });
     return json(route, {});
   });
@@ -153,6 +154,11 @@ if (process.env.KYPHIRA_ROOMS) {
         await page.goto(base + (lang === "ar" && ["home", "library", "library-guide"].includes(name) ? "/ar" + (path === "/" ? "" : path) : path), { waitUntil: "networkidle" }).catch(() => {});
         await page.evaluate(() => globalThis.document.fonts.ready);
         await page.waitForTimeout(400);
+        if (name === "nose") {
+          await page.getByRole("textbox").fill("Something warm for cool evenings").catch(() => {});
+          await page.keyboard.press("Enter").catch(() => {});
+          await page.waitForTimeout(600);
+        }
         mkdirSync(`${out}/${name}`, { recursive: true });
         await page.screenshot({ path: `${out}/${name}/${size}-${lang}.png`, fullPage: true });
         await context.close();

@@ -189,3 +189,15 @@ summary::-webkit-details-marker { display: none; }
   .sal-bio { animation: sal-rise10 var(--m-slow) var(--ease-out) 1000ms both; }
   .sal-last { animation: sal-rise10 var(--m-slow) var(--ease-out) 1500ms both; }
 }
+
+/* The Nose: the thinking marker (a 2 s ambient loop) and the hairline that
+   fills while a question is open; an answer rises 8 px in 350 ms. Still under
+   reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes nose-marker { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+  @keyframes nose-fill { from { transform: scaleX(0); } to { transform: none; } }
+  @keyframes nose-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .nose-marker { animation: nose-marker 2s ease-in-out infinite; }
+  .nose-fill { animation: nose-fill 1.9s linear infinite; }
+  .nose-answer { animation: nose-in 350ms var(--ease-out) both; }
+}

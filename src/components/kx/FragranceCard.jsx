@@ -13,8 +13,8 @@ export default function FragranceCard({ name, href, facts = [], accords = [], ma
   const hit = new Set(matched.map((a) => a.toLowerCase()));
   const [house, ...rest] = facts.filter(Boolean);
   return (
-    <Tag className="grid gap-x-6 gap-y-1.5 py-5 sm:grid-cols-[88px_minmax(0,1.3fr)_minmax(0,1fr)]" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
-      <span dir="ltr" className="hidden sm:block text-xs tracking-[0.06em] pt-2" style={{ color: COLORS.dim }}>{no != null ? cat("A", no, 5) : ""}</span>
+    <Tag className={`grid gap-x-6 gap-y-1.5 py-5 ${no != null ? "sm:grid-cols-[88px_minmax(0,1.3fr)_minmax(0,1fr)]" : "sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]"}`} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+      {no != null && <span dir="ltr" className="hidden sm:block text-xs tracking-[0.06em] pt-2" style={{ color: COLORS.dim }}>{cat("A", no, 5)}</span>}
       <div className="min-w-0">
         {href
           ? <Link to={href} className="font-serif text-[26px] leading-tight rtl:leading-[1.5] underline-offset-4 hover:underline" style={{ color: COLORS.ink }}>{name}</Link>
