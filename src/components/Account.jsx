@@ -33,7 +33,7 @@ function Section({ title, children, danger = false, id }) {
   }
   return (
     <section id={id} className="py-7 border-t" style={{ borderColor: COLORS.line }}>
-      <h2 className="font-serif text-2xl mb-3" style={{ color: COLORS.forestDeep }}>{title}</h2>
+      <h2 className="font-serif font-light text-3xl mb-3 rtl:leading-[1.5]" style={{ color: COLORS.ink }}>{title}</h2>
       {children}
     </section>
   );
@@ -56,7 +56,7 @@ export default function Account({ user }) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 sm:px-8 py-6">
-      <h1 className="font-serif italic text-3xl sm:text-4xl mb-1" style={{ color: COLORS.forestDeep }}>{t("account.title")}</h1>
+      <h1 className="font-serif font-light text-4xl sm:text-5xl mb-1 rtl:leading-[1.5]" style={{ color: COLORS.ink }}>{t("account.title")}</h1>
       <p className="text-sm mb-6 font-mono" style={{ color: COLORS.inkSoft }}>{t("account.signedInAs", { email: user.email })}</p>
 
       <Section title={t("account.plan.title")}>
@@ -66,6 +66,13 @@ export default function Account({ user }) {
             ? t("account.plan.unlimited", { used: entitlements.batchesUsed })
             : t("account.plan.usage", { used: entitlements.batchesUsed, cap: entitlements.batchCap })}
         </p>
+        {entitlements.batchCap != null && (
+          <div dir="ltr" role="meter" aria-label={t("account.plan.title")} aria-valuemin={0} aria-valuemax={entitlements.batchCap} aria-valuenow={Math.min(entitlements.batchesUsed, entitlements.batchCap)}
+            className="relative mt-3 h-4 max-w-sm">
+            <span className="absolute inset-x-0 top-[7px] h-[2px]" style={{ background: COLORS.line }} />
+            <span className="absolute start-0 top-[7px] h-[2px] fill-anim" style={{ width: `${Math.min(100, (entitlements.batchesUsed / entitlements.batchCap) * 100)}%`, background: COLORS.oil }} />
+          </div>
+        )}
         <a href={locale === "ar" ? "/ar/pricing" : "/pricing"} className="inline-block text-sm underline mt-3" style={{ color: COLORS.actionText }}>{t("account.plan.seePricing")}</a>
       </Section>
 

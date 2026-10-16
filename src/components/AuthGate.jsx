@@ -109,7 +109,7 @@ export default function AuthGate({ children }) {
 
         <div className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] gap-10 items-start py-6 md:py-10">
           <div className="w-full max-w-sm">
-            <h1 className="font-serif italic text-3xl sm:text-4xl leading-tight" style={{ color: COLORS.forestDeep }}>{t('auth.heading')}</h1>
+            <h1 className="font-serif font-light text-4xl sm:text-5xl leading-[1.1] rtl:leading-[1.5]" style={{ color: COLORS.ink }}>{t('auth.heading')}</h1>
             <p className="mt-3 text-sm leading-relaxed" style={{ color: COLORS.inkSoft }}>{t('auth.lead')}</p>
 
             {errorMsg && (
