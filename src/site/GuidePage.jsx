@@ -5,6 +5,7 @@ import { ChapterMark, Folio } from "./editorial";
 import { useI18n } from "../i18n/I18nProvider";
 import { guideBySlug, GUIDES } from "../content/guides";
 import { readingMinutes } from "../content/search";
+import { GLOSSARY_ENTRIES, glossaryTerm, markTerms } from "../content/glossary";
 import { localePath } from "./meta";
 import { IconArrow, IconBalance, IconBook, IconCrosshair, IconDiamondAlert, IconFlameTriangle, IconTile } from "../components/icons";
 
@@ -26,7 +27,16 @@ const CALLOUT = {
   rule: { border: COLORS.ink, label: COLORS.forest },
 };
 
-function Block({ block, rule }) {
+// A paragraph with its glossary terms marked: each links to the definition
+// at the foot of the page (plain anchors, so the prerendered page works
+// without script).
+function Marked({ parts }) {
+  return parts.map((x, i) => (typeof x === "string" ? x : (
+    <a key={i} href={`#term-${x.term}`} className="underline decoration-dotted decoration-1 underline-offset-4" style={{ color: "inherit" }}>{x.match}</a>
+  )));
+}
+
+function Block({ block, rule, marked }) {
   if (block.h2) {
     return (
       <h2 id={block.id} className="text-3xl font-medium tracking-[-0.03em] rtl:tracking-normal mt-14 mb-4 scroll-mt-24">
@@ -34,7 +44,7 @@ function Block({ block, rule }) {
       </h2>
     );
   }
-  if (block.p) return <p className="font-serif text-[19px] leading-[1.7] my-5" style={{ color: COLORS.inkSoft }}>{block.p}</p>;
+  if (block.p) return <p className="font-serif text-[19px] leading-[1.7] my-5" style={{ color: COLORS.inkSoft }}>{marked ? <Marked parts={marked} /> : block.p}</p>;
   if (block.quote) {
     return (
       <blockquote className="my-8 ps-5 font-serif italic text-2xl leading-snug" style={{ borderInlineStart: `2px solid ${COLORS.amberDeep}`, color: COLORS.forestDeep }}>
@@ -200,6 +210,15 @@ export default function GuidePage() {
   const ruleOf = (b) => (b.callout?.kind === "rule" ? { n: rules.indexOf(b) + 1, total: rules.length } : null);
   const bench = calcHref ?? "/bench?ref=guide";
 
+  // Glossary terms: the first use of each in a paragraph, outside its own section.
+  const seen = new Set();
+  let here = null;
+  const marks = g.body.map((b) => {
+    if (b.h2) here = b.id;
+    return b.p ? markTerms(b.p, locale, { seen, slug: guide.slug, section: here }) : null;
+  });
+  const terms = GLOSSARY_ENTRIES.filter((e) => seen.has(e.id)).map((e) => glossaryTerm(e, locale)).filter(Boolean);
+
   return (
     <article className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 pt-10">
       <div aria-hidden="true" className="read-progress" />
@@ -227,8 +246,30 @@ export default function GuidePage() {
           <IconBalance size={18} /> {t("site.guides.tryBench")}
         </a>
       </aside>
-      <div className="max-w-[44rem]">
-      <div className="guide-body">{g.body.map((b, i) => <Block key={i} block={b} rule={ruleOf(b)} />)}</div>
+      <div className="max-w-[37rem]">
+      <div className="guide-body">{g.body.map((b, i) => <Block key={i} block={b} rule={ruleOf(b)} marked={marks[i]?.length > 1 ? marks[i] : null} />)}</div>
+
+      {terms.length > 0 && (
+        <section aria-labelledby="terms-h" className="mt-12 pt-6" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+          <h2 id="terms-h" className="text-xl font-medium">{t("site.guides.terms")}</h2>
+          <dl className="mt-4 grid gap-5">
+            {terms.map((x) => {
+              const source = GUIDES.find((s) => s.slug === x.slug);
+              return (
+                <div key={x.id} id={`term-${x.id}`} className="scroll-mt-24">
+                  <dt className="font-serif italic text-lg" style={{ color: COLORS.ink }}>{x.term}</dt>
+                  <dd className="mt-1 font-serif leading-relaxed" style={{ color: COLORS.inkSoft }}>
+                    {x.text}{" "}
+                    <Link to={to(`/library/${x.slug}`) + `#${x.section}`} className="text-sm underline underline-offset-4 whitespace-nowrap font-sans" style={{ color: COLORS.actionText }}>
+                      {t("site.guides.termFrom", { title: source?.[locale]?.title ?? x.slug })}
+                    </Link>
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+        </section>
+      )}
 
       {/* The app's own safety notice, not handbook text: shown on every
           blending guide, styled apart from the author's callouts. */}
