@@ -58,45 +58,45 @@ const light = {
 };
 
 const dark = {
-  paper: "#100E0A",      // ink-0
-  ink1: "#17140F",       // ink-1: raised surfaces
-  card: "#17140F",
-  cardHi: "#221D16",     // ink-2: cards, inputs
-  sand: "#221D16",
+  paper: "#15120F",      // ground
+  ink1: "#1E1A16",       // surface 1: raised
+  card: "#1E1A16",
+  cardHi: "#29231D",     // surface 2: cards, inputs
+  sand: "#29231D",
 
-  ink: "#EDE4D3",        // papyrus
-  inkSoft: "#A89C86",    // papyrus-dim
-  dim: "#918568",
+  ink: "#EDE4D6",        // text
+  inkSoft: "#A3968A",    // muted
+  dim: "#A3968A",
 
-  amber: "#C8893A",      // resin: primary action
-  actionText: "#C8893A",
+  amber: "#D4924A",      // resin: primary action
+  actionText: "#D4924A",
   amberDeep: "#C9A15A",
   ember: "#E26A4F",      // warnings, incl. the ethanol notice
   onAmber: "#100E0A",
-  actionHover: "#DDA04F",
+  actionHover: "#E3A866",
 
-  oil: "#C8893A",
+  oil: "#D4924A",
   mist: "#3A4A42",
-  inkBand: "#070605",
-  onInk: "#EDE4D3",
+  inkBand: "#0E0C0A",
+  onInk: "#EDE4D6",
 
-  line: "#3A3226",
+  line: "#3B332B",
   field: "#857A60",
-  focus: "#E9C88A",
-  hair: "rgba(233,200,138,0.14)",
+  focus: "#D4924A",
+  hair: "rgba(237,228,214,0.12)",
 
-  danger: "#D98A6A",
+  danger: "#E07A62",
   dangerBg: "#2A140E",
   dangerLine: "#5A2A1C",
 
-  resin: "#C8893A",
-  resinText: "#C8893A",
+  resin: "#D4924A",
+  resinText: "#D4924A",
   myrrh: "#8C3B2A",
   myrrhText: "#D98A6A",
   verdigris: "#5E8C7A",
-  verdigrisText: "#7FB5A0",
+  verdigrisText: "#9DB38A",
 
-  forest: "#C8893A",
+  forest: "#D4924A",
   forestDeep: "#F5EEDD",
   brass: "#C9A15A",
 };
