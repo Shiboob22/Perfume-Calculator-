@@ -10,6 +10,7 @@ import EntityPage from "./EntityPage";
 import FragrancePage from "./FragrancePage";
 import Contribute from "./Contribute";
 import Review from "./Review";
+import RoomHeader from "../kx/RoomHeader";
 
 // The Atlas room (behind the "atlas" flag): search the catalog, browse its
 // houses, notes, accords and perfumers, read a fragrance, suggest a missing
@@ -31,13 +32,13 @@ export default function Atlas() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-6">
-      <h1 className="font-serif text-4xl" style={{ color: COLORS.ink }}>{t("atlas.title")}</h1>
-      <p className="mt-2 text-sm max-w-prose" style={{ color: COLORS.inkSoft }}>{t("atlas.lead")}</p>
+      <RoomHeader numeral="IV" name={t("atlas.title")} />
+      <p className="text-sm max-w-prose" style={{ color: COLORS.inkSoft }}>{t("atlas.lead")}</p>
       <nav aria-label={t("atlas.navLabel")} className="flex gap-2 border-b overflow-x-auto mt-5 mb-6" style={{ borderColor: COLORS.line }}>
         {tabs.map(([id, to]) => (
           <Link key={id} to={to} aria-current={active === id ? "page" : undefined}
-            className="px-3 py-2 text-sm -mb-px border-b-2 whitespace-nowrap min-h-[44px] inline-flex items-center"
-            style={{ borderColor: active === id ? COLORS.forest : "transparent", color: active === id ? COLORS.forestDeep : COLORS.inkSoft }}>
+            className="px-4 text-[15px] -mb-px border-b-2 whitespace-nowrap min-h-[48px] inline-flex items-center"
+            style={{ borderColor: active === id ? COLORS.actionText : "transparent", color: active === id ? COLORS.ink : COLORS.inkSoft }}>
             {t(`atlas.nav.${id}`)}
           </Link>
         ))}
