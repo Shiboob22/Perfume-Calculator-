@@ -1279,6 +1279,13 @@ export default {
     theme: { label: "التبديل بين الفاتح والداكن", light: "فاتح", dark: "داكن" },
   },
   site: {
+    library: {
+      kicker: "المكتبة", headline: "{guides} دليلاً. {terms} مصطلحات.",
+      tabsLabel: "المكتبة", tabs: { guides: "الأدلة", glossary: "المسرد" },
+      read: "اقرأ الدليل", minutes: "{n} د", back: "كل الأدلة", all: "الكل",
+      glossary: { showing: "{n} مصطلحات. كل مصطلح قسم من دليل، بكلمات الدليل نفسه.", from: "من {title}" },
+      progress: "تقدّم القراءة", glossaryCard: "المسرد", glossaryHint: "المصطلحات المسطّرة بالعنبري تُفتح هنا.",
+    },
     rooms: {
       label: "الغرف", menu: "القائمة", signIn: "تسجيل الدخول", pro: "Pro", langShort: "EN", builtIn: "صُنعت في القاهرة.", langAria: "تبديل اللغة",
       bench: { desc: "زِن تركيبة. كبِّر دفعة. احسب مدة الراحة.", fig: "دقة 0.01 g", name: "المِنضدة", alt: "The Bench" }, wardrobe: { desc: "زجاجاتك، وما ارتديته، وما ترتديه الليلة.", fig: "خاصة بك", name: "الخزانة", alt: "The Wardrobe" },

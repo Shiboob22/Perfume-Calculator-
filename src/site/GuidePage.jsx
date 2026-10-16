@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { COLORS, TYPE } from "../lib/theme";
-import { ChapterMark, Folio } from "./editorial";
+import { COLORS } from "../lib/theme";
+import { cat, roman } from "../lib/catalogue";
+import { Folio } from "./editorial";
 import { useI18n } from "../i18n/I18nProvider";
 import { guideBySlug, GUIDES } from "../content/guides";
 import { readingMinutes } from "../content/search";
@@ -32,19 +33,20 @@ const CALLOUT = {
 // without script).
 function Marked({ parts }) {
   return parts.map((x, i) => (typeof x === "string" ? x : (
-    <a key={i} href={`#term-${x.term}`} className="underline decoration-dotted decoration-1 underline-offset-4" style={{ color: "inherit" }}>{x.match}</a>
+    <a key={i} href={`#term-${x.term}`} className="underline decoration-1 underline-offset-[5px]" style={{ color: "inherit", textDecorationColor: COLORS.amber }}>{x.match}</a>
   )));
 }
 
-function Block({ block, rule, marked }) {
+function Block({ block, rule, marked, n }) {
   if (block.h2) {
     return (
-      <h2 id={block.id} className="text-3xl font-medium tracking-[-0.03em] rtl:tracking-normal mt-14 mb-4 scroll-mt-24">
+      <h2 id={block.id} className="flex items-baseline gap-4 font-serif font-normal text-[28px] sm:text-[34px] leading-[1.15] rtl:leading-[1.5] mt-14 pt-8 mb-4 scroll-mt-24" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+        <span aria-hidden="true" dir="ltr" className="text-base shrink-0 w-8" style={{ color: COLORS.actionText }}>{roman(n)}</span>
         <a href={`#${block.id}`} className="hover:underline underline-offset-4">{block.h2}</a>
       </h2>
     );
   }
-  if (block.p) return <p className="font-serif text-[19px] leading-[1.7] my-5" style={{ color: COLORS.inkSoft }}>{marked ? <Marked parts={marked} /> : block.p}</p>;
+  if (block.p) return <p className="text-[17px] leading-[1.75] my-5" style={{ color: COLORS.ink }}>{marked ? <Marked parts={marked} /> : block.p}</p>;
   if (block.quote) {
     return (
       <blockquote className="my-8 ps-5 font-serif italic text-2xl leading-snug" style={{ borderInlineStart: `2px solid ${COLORS.amberDeep}`, color: COLORS.forestDeep }}>
@@ -182,6 +184,19 @@ function Contents({ sections, label }) {
   );
 }
 
+// The title in up to three lines, split on word boundaries at about a third of its length each.
+function titleLines(title) {
+  const words = title.split(/\s+/);
+  const target = Math.ceil(title.length / 3);
+  const lines = [];
+  for (const w of words) {
+    const last = lines[lines.length - 1];
+    if (last !== undefined && (last + " " + w).length <= target + 3 || lines.length >= 3) lines[lines.length - 1] = last + " " + w;
+    else lines.push(w);
+  }
+  return lines;
+}
+
 export default function GuidePage() {
   const { slug } = useParams();
   const { t, locale } = useI18n();
@@ -190,7 +205,7 @@ export default function GuidePage() {
 
   if (!guide) {
     return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-10">
+      <div className="px-4 sm:px-6 lg:px-12 pt-10">
         <p style={{ color: COLORS.inkSoft }}>{t("site.guides.notFound")}</p>
         <Link to={to("/library")} className="underline" style={{ color: COLORS.actionText }}>{t("site.guides.all")}</Link>
       </div>
@@ -220,26 +235,41 @@ export default function GuidePage() {
   const terms = GLOSSARY_ENTRIES.filter((e) => seen.has(e.id)).map((e) => glossaryTerm(e, locale)).filter(Boolean);
 
   return (
-    <article className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 pt-10">
+    <article>
       <div aria-hidden="true" className="read-progress" />
-      <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
-        <IconBook size={18} />
-        {t("site.guides.eyebrow", { n: ROMAN[at]?.toUpperCase() ?? at + 1, total: ROMAN[inSection.length - 1]?.toUpperCase() ?? inSection.length, minutes: readingMinutes(g) })}
-      </p>
-      <h1 className={`${TYPE.display} mt-5 max-w-[14ch]`} style={{ viewTransitionName: "guide-title" }}>{g.title}</h1>
-      <p className={`mt-6 measure italic ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{g.summary}</p>
-      <p className="mt-4 text-sm" style={{ color: COLORS.dim }}>
-        {t("site.guides.from", {
-          volume: guide.source.volume,
-          book: t(`site.guides.books.${guide.source.book}`),
-          sections: new Intl.ListFormat(locale === "en" ? "en-GB" : locale, { type: "unit", style: "short" }).format(guide.source.sections),
-        })}. {t("site.guides.by")}.
-      </p>
-      {g.needsReview && (
-        <p className="mt-4 p-3 text-sm" style={{ border: `1px dashed ${COLORS.field}`, color: COLORS.inkSoft }}>{t("site.guides.reviewNote")}</p>
-      )}
+      <header className="relative overflow-hidden">
+        <div aria-hidden="true" className="lib-glow absolute inset-x-0 top-0 h-[380px] pointer-events-none"
+          style={{ background: "radial-gradient(70% 100% at 50% 0%, color-mix(in srgb, var(--c-amber) 30%, transparent), transparent 72%)" }} />
+        <div className="relative px-4 sm:px-6 lg:px-12 pt-6 pb-12">
+          <div className="lib-fade flex items-center justify-between gap-4">
+            <Link to={to("/library")} className="inline-flex items-center gap-2 min-h-[44px] text-sm" style={{ color: COLORS.inkSoft }}>
+              <IconArrow size={18} className="-scale-x-100 rtl:scale-x-100" />{t("site.library.back")}
+            </Link>
+            <span dir="ltr" className="text-xs tracking-[0.06em]" style={{ color: COLORS.dim }}>{cat("L", GUIDES.indexOf(guide) + 1)}</span>
+          </div>
+          <p className="lib-fade mt-[clamp(72px,10vw,150px)] flex flex-wrap gap-x-4 text-sm" style={{ color: COLORS.dim }}>
+            <span style={{ color: COLORS.actionText }}>{t(`site.guides.sections.${guide.section}`)}</span>
+            <span>{t("site.library.minutes", { n: readingMinutes(g) })}</span>
+          </p>
+          <h1 className="mt-5 font-serif font-light text-[clamp(38px,6vw,84px)] leading-[1.08] rtl:leading-[1.45] tracking-[-0.01em] rtl:tracking-normal max-w-[16ch]" style={{ viewTransitionName: "guide-title" }}>
+            {titleLines(g.title).map((line, i) => <span key={i} className="lib-line block" style={{ "--i": i }}>{line}</span>)}
+          </h1>
+          <div aria-hidden="true" className="lib-rule h-px mt-10 max-w-[480px]" style={{ background: COLORS.amber }} />
+          <p className="lib-lead mt-8 max-w-[56ch] font-serif italic text-xl sm:text-2xl leading-relaxed" style={{ color: COLORS.inkSoft }}>{g.summary}</p>
+          <p className="lib-lead mt-4 text-sm" style={{ color: COLORS.dim }}>
+            {t("site.guides.from", {
+              volume: guide.source.volume,
+              book: t(`site.guides.books.${guide.source.book}`),
+              sections: new Intl.ListFormat(locale === "en" ? "en-GB" : locale, { type: "unit", style: "short" }).format(guide.source.sections),
+            })}. {t("site.guides.by")}.
+          </p>
+          {g.needsReview && (
+            <p className="mt-4 p-3 text-sm max-w-[56ch]" style={{ border: `1px dashed ${COLORS.field}`, color: COLORS.inkSoft }}>{t("site.guides.reviewNote")}</p>
+          )}
+        </div>
+      </header>
 
-      <div className="mt-10 pt-8 grid grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] gap-10 lg:gap-16" style={{ borderTop: `1px solid ${COLORS.ink}` }}>
+      <div className="px-4 sm:px-6 lg:px-12 mt-6 grid grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] gap-10 lg:gap-16">
       <aside className="lg:sticky lg:top-6 self-start grid gap-6">
         {sections.length > 1 && <Contents sections={sections} label={t("site.guides.toc")} />}
         <a href={bench} className="inline-flex items-center gap-2 px-4 min-h-[48px] text-sm font-medium" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
@@ -247,7 +277,7 @@ export default function GuidePage() {
         </a>
       </aside>
       <div className="max-w-[37rem]">
-      <div className="guide-body">{g.body.map((b, i) => <Block key={i} block={b} rule={ruleOf(b)} marked={marks[i]?.length > 1 ? marks[i] : null} />)}</div>
+      <div className="guide-body">{g.body.map((b, i) => <Block key={i} block={b} n={g.body.slice(0, i + 1).filter((x) => x.h2).length} rule={ruleOf(b)} marked={marks[i]?.length > 1 ? marks[i] : null} />)}</div>
 
       {terms.length > 0 && (
         <section aria-labelledby="terms-h" className="mt-12 pt-6" style={{ borderTop: `1px solid ${COLORS.line}` }}>
@@ -315,10 +345,12 @@ export default function GuidePage() {
       </nav>
       </div>
       </div>
-      <Folio>
-        <span><span dir="ltr">{guide.source.volume}</span> · {t(`site.guides.books.${guide.source.book}`)}</span>
-        <span dir="ltr">{String(at + 1).padStart(2, "0")}</span>
-      </Folio>
+      <div className="px-4 sm:px-6 lg:px-12">
+        <Folio>
+          <span><span dir="ltr">{guide.source.volume}</span> · {t(`site.guides.books.${guide.source.book}`)}</span>
+          <span dir="ltr">{String(at + 1).padStart(2, "0")}</span>
+        </Folio>
+      </div>
     </article>
   );
 }

@@ -1,98 +1,131 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { COLORS, SHAPE, TYPE } from "../lib/theme";
+import { COLORS } from "../lib/theme";
+import { cat, roman } from "../lib/catalogue";
 import { useI18n } from "../i18n/I18nProvider";
 import { GUIDES, SECTIONS } from "../content/guides";
-import { searchGuides } from "../content/search";
+import { GLOSSARY_ENTRIES, glossaryTerm } from "../content/glossary";
+import { searchGuides, readingMinutes } from "../content/search";
+import { RoomHeader, RoomPage, Tabs, Chip } from "../components/kx";
 import { localePath } from "./meta";
-import MethodSequence from "./MethodSequence";
-import { Folio } from "./editorial";
 
-// The two sections are different kinds of reading, so they look different:
-// Blending is one method in order (numbered steps); Wearing is a set of
-// stand-alone parts of Vol. I, laid out like a book's contents with the
-// handbook's own part numbers as the citation.
+// The Library (Design/boards/Library.dc.html): the guides as a featured one
+// and a ruled list with their catalogue numbers, a glossary of the terms the
+// handbooks define, search and a section filter. Public and prerendered: the
+// guides list is whole without script.
+const number = (g) => cat("L", GUIDES.indexOf(g) + 1);
 
-// "Part I" → "I"; several parts → "XIII–XV".
-function partNumbers(sections) {
-  const n = sections.map((s) => s.replace(/^Part\s+/, ""));
-  return n.length > 1 ? `${n[0]}–${n[n.length - 1]}` : n[0];
+function Featured({ guide }) {
+  const { t, locale } = useI18n();
+  const g = guide[locale];
+  return (
+    <Link to={localePath(locale, `/library/${guide.slug}`)} className="group grid md:grid-cols-[300px_minmax(0,1fr)] rounded-sm overflow-hidden"
+      style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
+      <div className="relative min-h-[160px] md:min-h-[370px] p-6 flex flex-col justify-between" style={{ background: COLORS.cardHi, borderInlineEnd: `1px solid ${COLORS.line}` }}>
+        <span aria-hidden="true" className="absolute inset-0" style={{ background: "radial-gradient(90% 60% at 20% 0%, color-mix(in srgb, var(--c-amber) 28%, transparent), transparent 70%)" }} />
+        <span dir="ltr" className="relative text-xs tracking-[0.06em]" style={{ color: COLORS.dim }}>{number(guide)}</span>
+        <span aria-hidden="true" dir="ltr" className="relative font-serif text-[96px] leading-none" style={{ color: COLORS.actionText }}>{roman(1)}</span>
+      </div>
+      <div className="p-6 sm:p-10 flex flex-col justify-between gap-8">
+        <p className="flex gap-4 text-sm" style={{ color: COLORS.dim }}>
+          <span style={{ color: COLORS.actionText }}>{t(`site.guides.sections.${guide.section}`)}</span>
+          <span>{t("site.library.minutes", { n: readingMinutes(g) })}</span>
+        </p>
+        <div className="flex flex-col gap-4">
+          <h2 className="font-serif font-light text-[clamp(30px,3.4vw,48px)] leading-[1.15] rtl:leading-[1.5] max-w-[22ch]">{g.title}</h2>
+          <p className="text-lg max-w-[48ch]" style={{ color: COLORS.dim }}>{g.summary}</p>
+        </div>
+        <span className="inline-flex items-center gap-2 font-semibold group-hover:underline underline-offset-4" style={{ color: COLORS.actionText }}>
+          {t("site.library.read")}
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" className="rtl:-scale-x-100" aria-hidden="true"><path d="M3.5 10h13M11.5 5l5 5-5 5" /></svg>
+        </span>
+      </div>
+    </Link>
+  );
 }
 
-function Contents({ guides }) {
+function Rows({ guides }) {
   const { t, locale } = useI18n();
   return (
-    <ul className="grid grid-cols-1 md:grid-cols-2 md:gap-x-10">
-      {guides.map((g) => {
-        const parts = g.source.sections;
-        return (
-          <li key={g.slug} className={`border-t ${SHAPE.row}`} style={{ borderColor: COLORS.line }}>
-            <Link to={localePath(locale, `/library/${g.slug}`)} className="group grid sm:grid-cols-[6.5rem_minmax(0,1fr)] gap-1 sm:gap-3 py-5">
-              <span className="font-mono text-xs sm:pt-1.5 whitespace-nowrap" style={{ color: COLORS.dim }}>
-                {t(parts.length > 1 ? "site.guides.parts" : "site.guides.part", { n: partNumbers(parts) })}
-              </span>
-              <span>
-                <span className="block font-serif text-xl leading-snug group-hover:underline underline-offset-4" style={{ color: COLORS.forestDeep }}>{g[locale].title}</span>
-                <span className="block mt-1 text-sm leading-relaxed" style={{ color: COLORS.inkSoft }}>{g[locale].summary}</span>
-              </span>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
+    <ol style={{ borderTop: `1px solid ${COLORS.ink}` }}>
+      {guides.map((g) => (
+        <li key={g.slug} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+          <Link to={localePath(locale, `/library/${g.slug}`)} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[96px_minmax(0,1fr)_140px_72px] items-baseline gap-x-6 gap-y-1 py-5 min-h-[56px] hover:bg-[color:var(--c-card)]">
+            <span dir="ltr" className="hidden sm:block text-xs tracking-[0.06em]" style={{ color: COLORS.dim }}>{number(g)}</span>
+            <span className="font-serif text-[22px] sm:text-2xl leading-snug rtl:leading-[1.6] hover:underline underline-offset-4">{g[locale].title}</span>
+            <span className="hidden sm:block text-sm" style={{ color: COLORS.inkSoft }}>{t(`site.guides.sections.${g.section}`)}</span>
+            <span dir="auto" className="text-sm text-end" style={{ color: COLORS.inkSoft }}>{t("site.library.minutes", { n: readingMinutes(g[locale]) })}</span>
+          </Link>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function Glossary() {
+  const { t, locale } = useI18n();
+  const terms = GLOSSARY_ENTRIES.map((e) => glossaryTerm(e, locale)).filter(Boolean);
+  return (
+    <section aria-label={t("site.library.tabs.glossary")} className="flex flex-col gap-5">
+      <p className="text-sm" style={{ color: COLORS.dim }}>{t("site.library.glossary.showing", { n: terms.length })}</p>
+      <dl style={{ borderTop: `1px solid ${COLORS.ink}` }}>
+        {terms.map((x, i) => {
+          const source = GUIDES.find((s) => s.slug === x.slug);
+          return (
+            <div key={x.id} id={`term-${x.id}`} className="grid sm:grid-cols-[96px_220px_minmax(0,1fr)] gap-x-6 gap-y-1 py-5 scroll-mt-24" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+              <span dir="ltr" className="text-xs tracking-[0.06em] sm:pt-2" style={{ color: COLORS.dim }}>{cat("G", i + 1)}</span>
+              <dt className="font-serif text-[26px] leading-tight rtl:leading-[1.5]">{x.term}</dt>
+              <dd style={{ color: COLORS.inkSoft }}>
+                {x.text}{" "}
+                <Link to={`${localePath(locale, `/library/${x.slug}`)}#${x.section}`} className="text-sm underline underline-offset-4 whitespace-nowrap" style={{ color: COLORS.actionText }}>
+                  {t("site.library.glossary.from", { title: source?.[locale]?.title ?? x.slug })}
+                </Link>
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+    </section>
   );
 }
 
 export default function GuidesIndex() {
   const { t, locale } = useI18n();
+  const [view, setView] = useState("guides");
   const [query, setQuery] = useState("");
   const [section, setSection] = useState("all");
   const found = useMemo(() => searchGuides(GUIDES, locale, query), [locale, query]);
   const shown = section === "all" ? found : found.filter((g) => g.section === section);
+  const counts = (s) => (s === "all" ? GUIDES.length : GUIDES.filter((g) => g.section === s).length);
+  const terms = GLOSSARY_ENTRIES.filter((e) => glossaryTerm(e, locale)).length;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-10">
-      <p className={`${TYPE.runningHead} mb-4`} style={{ color: COLORS.amberDeep }}>{t("site.home.contents")}</p>
-      <h1 className={`${TYPE.display} mb-5`} style={{ color: COLORS.forestDeep }}>{t("site.guides.title")}</h1>
-      <p className={`measure ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{t("site.guides.lead")} {t("site.guides.by")}.</p>
+    <RoomPage>
+      <RoomHeader num="III" kicker={t("site.library.kicker")} title={t("site.library.headline", { guides: GUIDES.length, terms })} cat={cat("L", GUIDES.length)} />
+      <p className="max-w-[56ch] -mt-4" style={{ color: COLORS.inkSoft }}>{t("site.guides.lead")} {t("site.guides.by")}.</p>
+      <Tabs label={t("site.library.tabsLabel")} idPrefix="library" value={view} onChange={setView}
+        tabs={[{ id: "guides", label: t("site.library.tabs.guides") }, { id: "glossary", label: t("site.library.tabs.glossary") }]} />
 
-      <div className="mt-8 mb-12 flex flex-col md:flex-row md:items-center gap-4">
-        <label htmlFor="guide-search" className="sr-only">{t("site.guides.search")}</label>
-        <input id="guide-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("site.guides.search")}
-          className={`w-full md:max-w-sm px-4 py-3 text-sm focus:outline-none focus:ring-2 ${SHAPE.control}`}
-          style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }} />
-        {/* Toggle buttons (aria-pressed), not radios: radios promise an
-            arrow-key model these buttons don't have. */}
-        <div role="group" aria-label={t("site.guides.filter")} className="flex gap-5">
-          {["all", ...SECTIONS].map((s) => (
-            <button key={s} type="button" aria-pressed={section === s} onClick={() => setSection(s)}
-              className="py-1 min-h-[24px] text-sm border-b-2" style={{ borderColor: section === s ? COLORS.actionText : "transparent", color: section === s ? COLORS.forestDeep : COLORS.inkSoft }}>
-              {t(`site.guides.sections.${s}`)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <p role="status" style={{ color: COLORS.inkSoft }}>{shown.length === 0 ? t("site.guides.noResults") : ""}</p>
-
-      {SECTIONS.map((s, part) => {
-        const items = shown.filter((g) => g.section === s);
-        if (!items.length) return null;
-        const first = items[0].source;
-        return (
-          <section key={s} aria-labelledby={`guides-${s}`} className="reveal mb-16 pt-8" style={{ borderTop: `1px solid ${COLORS.line}` }}>
-            <div className="flex items-baseline gap-4">
-              <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-5xl`} style={{ color: COLORS.amberDeep }}>{["I", "II", "III"][part]}</span>
-              <h2 id={`guides-${s}`} className={TYPE.title} style={{ color: COLORS.forestDeep }}>{t(`site.guides.sections.${s}`)}</h2>
+      <div role="tabpanel" id={`library-${view}-panel`} aria-labelledby={`library-${view}`} className="flex flex-col gap-7 md:gap-10">
+        {view === "glossary" ? <Glossary /> : (
+          <>
+            {!query && section === "all" && <Featured guide={GUIDES[0]} />}
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <div role="group" aria-label={t("site.guides.filter")} className="flex flex-wrap gap-2">
+                {["all", ...SECTIONS].map((s) => (
+                  <Chip key={s} pressed={section === s} count={counts(s)} onClick={() => setSection(s)}>{t(`site.guides.sections.${s}`)}</Chip>
+                ))}
+              </div>
+              <label htmlFor="guide-search" className="sr-only">{t("site.guides.search")}</label>
+              <input id="guide-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("site.guides.search")}
+                className="w-full md:ms-auto md:max-w-xs px-4 min-h-[44px] text-sm rounded-sm focus:outline-none focus:ring-2"
+                style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }} />
             </div>
-            <p className="mt-2 mb-8 max-w-2xl" style={{ color: COLORS.inkSoft }}>
-              {t(`site.guides.intro.${s}`, { source: t("site.guides.fromShort", { volume: first.volume, book: t(`site.guides.books.${first.book}`) }) })}
-            </p>
-            {s === "blending" ? <MethodSequence guides={items} showCalculator /> : <Contents guides={items} />}
-          </section>
-        );
-      })}
-      <Folio><span>{t("brand")}</span><span>{t("site.guides.by")}</span></Folio>
-    </div>
+            <p role="status" className="text-sm -my-3" style={{ color: COLORS.inkSoft }}>{shown.length === 0 ? t("site.guides.noResults") : ""}</p>
+            <Rows guides={shown} />
+          </>
+        )}
+      </div>
+    </RoomPage>
   );
 }

@@ -1278,6 +1278,13 @@ export default {
     theme: { label: "Switch between light and dark", light: "Light", dark: "Dark" },
   },
   site: {
+    library: {
+      kicker: "The Library", headline: "{guides} guides. {terms} terms.",
+      tabsLabel: "Library", tabs: { guides: "Guides", glossary: "Glossary" },
+      read: "Read the guide", minutes: "{n} min", back: "All guides", all: "All",
+      glossary: { showing: "{n} terms. Each is a section of a guide, in the guide's own words.", from: "From {title}" },
+      progress: "Reading progress", glossaryCard: "Glossary", glossaryHint: "Terms underlined in resin open here.",
+    },
     rooms: {
       label: "Rooms", menu: "Menu", signIn: "Sign in", pro: "Pro", langShort: "ع", builtIn: "Built in Cairo.", langAria: "Switch language",
       bench: { desc: "Weigh a formula. Scale a batch. Time the rest.", fig: "0.01 g resolution", name: "The Bench", alt: "المِنضدة" }, wardrobe: { desc: "Your bottles, what you wore, what to wear tonight.", fig: "Private to you", name: "The Wardrobe", alt: "الخزانة" },

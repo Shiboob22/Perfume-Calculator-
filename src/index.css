@@ -85,11 +85,11 @@ html[dir="rtl"] .print-label-name { font-style: normal; }
 .folio { font-variant-numeric: oldstyle-nums; }
 
 /* Drop caps are a Latin book convention; Arabic gets an ornament instead. */
-html[lang="en"] .dropcap::first-letter, html[lang="en"] .guide-body > p:first-of-type::first-letter {
+html[lang="en"] .dropcap::first-letter {
   float: left; font-family: "Newsreader Variable", "Newsreader Fallback", Georgia, serif;
   font-size: 4.2em; line-height: 0.8; padding: 0.06em 0.12em 0 0; color: var(--c-amber);
 }
-html[dir="rtl"] .dropcap::before, html[dir="rtl"] .guide-body > p:first-of-type::before { content: "۞ "; color: var(--c-brass); }
+html[dir="rtl"] .dropcap::before { content: "۞ "; color: var(--c-brass); }
 
 /* Sections ease in as they reach the reader, where the browser can tie the
    animation to scrolling; elsewhere they are simply there. Movement only, no
@@ -156,3 +156,21 @@ summary::-webkit-details-marker { display: none; }
 /* The Compounding hero's room links: a hairline that turns resin on hover and focus. */
 .hero-room:hover { border-top-color: #D4924A !important; }
 .hero-room:focus-visible { outline: 2px solid #D4924A; outline-offset: 2px; }
+
+/* The Library's essay opener (Design/boards "Library Board", 4e–4f): one 3.2 s
+   arrival, then still. Glow 900 ms; back link and meta from 200 ms; the three
+   title lines from 500 ms, 300 ms apart; the resin hairline draws from 1.5 s;
+   the standfirst from 1.8 s. Reduced motion: the final frame, no drift. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes lib-glow { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes lib-drift { from { transform: translateX(-3%); } to { transform: none; } }
+  @keyframes lib-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @keyframes lib-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes lib-draw { from { transform: scaleX(0); } to { transform: none; } }
+  .lib-glow { animation: lib-glow 900ms var(--ease-out) both, lib-drift 3200ms var(--ease-in-out) both; }
+  .lib-fade { animation: lib-fade var(--m-slow) var(--ease-out) 200ms both; }
+  .lib-line { animation: lib-rise var(--m-slow) var(--ease-out) both; animation-delay: calc(500ms + var(--i, 0) * 300ms); }
+  .lib-rule { transform-origin: left; animation: lib-draw var(--m-slow) var(--ease-in-out) 1500ms both; }
+  html[dir="rtl"] .lib-rule { transform-origin: right; }
+  .lib-lead { animation: lib-fade var(--m-slow) var(--ease-out) 1800ms both; }
+}
