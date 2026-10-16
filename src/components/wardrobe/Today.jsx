@@ -82,44 +82,72 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
       <h2 id="today-h" className="font-serif italic text-2xl mb-1" style={{ color: COLORS.ink }}>{t("wardrobe.today.title")}</h2>
       <p className="text-sm mb-5 max-w-prose" style={{ color: COLORS.inkSoft }}>{t("wardrobe.today.lead")}</p>
 
-      <div className="grid gap-4 sm:grid-cols-3 mb-6">
-        <Field label={t("wardrobe.today.temp")} hint={t("wardrobe.today.tempHint")} mono inputMode="decimal" value={temp} onChange={(e) => setTemp(e.target.value)} dir="ltr" />
-        <SelectField label={t("wardrobe.today.time")} value={time} onChange={setTime} options={[{ value: "", label: t("wardrobe.today.any") }, ...TIMES.map((x) => ({ value: x, label: t(`wardrobe.times.${x}`) }))]} />
-        <SelectField label={t("wardrobe.today.occasion")} value={occasion} onChange={setOccasion} options={[{ value: "", label: t("wardrobe.today.any") }, ...OCCASIONS.map((o) => ({ value: o.id, label: t(`wardrobe.occasions.${o.id}`) }))]} />
-      </div>
-
-      <Notice tone="info" className="mb-6">
-        {t(`wardrobe.spray.${advice}`)}
-      </Notice>
+      {/* One question up front; weather and time refine it when given. */}
+      <SelectField className="max-w-sm" label={t("wardrobe.today.question")} value={occasion} onChange={setOccasion}
+        options={[{ value: "", label: t("wardrobe.today.any") }, ...OCCASIONS.map((o) => ({ value: o.id, label: t(`wardrobe.occasions.${o.id}`) }))]} />
+      <details className="mt-3 mb-6" open={temp !== "" || time !== "" || undefined}>
+        <summary className="inline-flex items-center min-h-[44px] text-sm cursor-pointer underline underline-offset-4" style={{ color: COLORS.inkSoft }}>{t("wardrobe.today.more")}</summary>
+        <div className="grid gap-4 sm:grid-cols-2 mt-2 max-w-xl">
+          <Field label={t("wardrobe.today.temp")} hint={t("wardrobe.today.tempHint")} mono inputMode="decimal" value={temp} onChange={(e) => setTemp(e.target.value)} dir="ltr" />
+          <SelectField label={t("wardrobe.today.time")} value={time} onChange={setTime} options={[{ value: "", label: t("wardrobe.today.any") }, ...TIMES.map((x) => ({ value: x, label: t(`wardrobe.times.${x}`) }))]} />
+        </div>
+      </details>
 
       {top.length === 0 ? (
         <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("wardrobe.today.none")}</p>
       ) : (
         <>
-          <h3 className="text-sm uppercase tracking-[0.15em] rtl:tracking-normal mb-3" style={{ color: COLORS.dim }}>{t("wardrobe.today.picks")}</h3>
-          <ol className="grid gap-4">
-            {top.map((r, i) => (
-              <li key={r.bottle.id} className="p-5" style={{ background: COLORS.card, border: `1px solid ${i === 0 ? COLORS.resin : COLORS.line}` }}>
-                <div className="flex items-baseline justify-between gap-3">
-                  <h4 className="font-serif text-xl" style={{ color: COLORS.ink }}>{r.bottle.name}</h4>
-                  <span className="font-mono tabular-nums text-xs" dir="ltr" style={{ color: COLORS.dim }}>{t("wardrobe.today.score", { score: r.score.toFixed(1) })}</span>
+          {/* One answer, large; the next two quieter beneath it. */}
+          {top.slice(0, 1).map((r) => (
+            <article key={r.bottle.id} aria-labelledby="today-answer" className="p-6" style={{ background: COLORS.card, border: `1px solid ${COLORS.actionText}` }}>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-sm" style={{ color: COLORS.dim }}>{t("wardrobe.today.picks")}</p>
+                <span className="font-mono tabular-nums text-xs" dir="ltr" style={{ color: COLORS.dim }}>{t("wardrobe.today.score", { score: r.score.toFixed(1) })}</span>
+              </div>
+              <h3 id="today-answer" className="font-serif text-3xl sm:text-4xl mt-1" style={{ color: COLORS.ink }}>{r.bottle.name}</h3>
+              <ul className="mt-3 grid gap-1 text-sm list-disc ps-5" style={{ color: COLORS.inkSoft }}>
+                {r.reasons.map((x) => <li key={x.key + (x.cluster ?? x.band ?? x.time ?? "")}>{reasonText(t, x, { occasion })}</li>)}
+              </ul>
+              {logging === r.bottle.id ? logForm(r.bottle) : (
+                <div className="mt-4">
+                  <Button size="lg" onClick={() => { setLogging(r.bottle.id); setStatus(""); setError(""); }}
+                    aria-label={t("wardrobe.today.wearOf", { name: r.bottle.name })}>
+                    {wornToday.has(r.bottle.id) ? t("wardrobe.today.wornToday") : t("wardrobe.today.wore")}
+                  </Button>
                 </div>
-                <ul className="mt-2 grid gap-1 text-sm list-disc ps-5" style={{ color: COLORS.inkSoft }}>
-                  {r.reasons.map((x) => <li key={x.key + (x.cluster ?? x.band ?? x.time ?? "")}>{reasonText(t, x, { occasion })}</li>)}
-                </ul>
-                {logging === r.bottle.id ? logForm(r.bottle) : (
-                  <div className="mt-3">
-                    <Button variant={i === 0 ? "primary" : "secondary"} onClick={() => { setLogging(r.bottle.id); setStatus(""); setError(""); }}
-                      aria-label={t("wardrobe.today.wearOf", { name: r.bottle.name })}>
-                      {wornToday.has(r.bottle.id) ? t("wardrobe.today.wornToday") : t("wardrobe.today.wore")}
-                    </Button>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ol>
+              )}
+            </article>
+          ))}
+          {top.length > 1 && (
+            <>
+              <h3 className="text-sm mt-6 mb-1" style={{ color: COLORS.dim }}>{t("wardrobe.today.alternatives")}</h3>
+              <ol className="list-none p-0 m-0">
+                {top.slice(1).map((r) => (
+                  <li key={r.bottle.id} className="py-3" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <h4 className="font-serif text-xl" style={{ color: COLORS.ink }}>{r.bottle.name}</h4>
+                        {r.reasons[0] && <p className="text-sm" style={{ color: COLORS.inkSoft }}>{reasonText(t, r.reasons[0], { occasion })}</p>}
+                      </div>
+                      {logging !== r.bottle.id && (
+                        <Button variant="secondary" onClick={() => { setLogging(r.bottle.id); setStatus(""); setError(""); }}
+                          aria-label={t("wardrobe.today.wearOf", { name: r.bottle.name })}>
+                          {wornToday.has(r.bottle.id) ? t("wardrobe.today.wornToday") : t("wardrobe.today.wore")}
+                        </Button>
+                      )}
+                    </div>
+                    {logging === r.bottle.id && logForm(r.bottle)}
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
         </>
       )}
+
+      <Notice tone="info" className="mt-6">
+        {t(`wardrobe.spray.${advice}`)}
+      </Notice>
 
       {pickable.length > top.length && (
         <div className="mt-6">

@@ -102,14 +102,17 @@ test("add bottles, get a ranked pick with reasons, log a wearing", async ({ page
   expect(db.posts.bottles.map((b) => [b.name, b.family, b.status])).toEqual([["Citrus Day", "fresh", "owned"], ["Amber Night", "oriental", "owned"]]);
 
   await page.getByRole("button", { name: en.wardrobe.tabs.today }).click();
+  // One question up front; weather and time are folded away until asked for.
+  await expect(page.getByLabel(en.wardrobe.today.question)).toBeVisible();
+  await page.getByText(en.wardrobe.today.more).click();
   await page.getByLabel(en.wardrobe.today.temp).fill("35");
-  const first = page.getByRole("listitem").filter({ has: page.getByRole("heading", { level: 4 }) }).first();
-  await expect(first.getByRole("heading", { level: 4 })).toHaveText("Citrus Day");
+  const first = page.getByRole("article");
+  await expect(first.getByRole("heading", { level: 3 })).toHaveText("Citrus Day");
   await expect(first).toContainText("hot (30°C and above)");
   await expect(page.getByText(en.wardrobe.spray.fewerInHeat)).toBeVisible();
 
   await page.getByLabel(en.wardrobe.today.time).selectOption("day");
-  await page.getByLabel(en.wardrobe.today.occasion).selectOption("professional");
+  await page.getByLabel(en.wardrobe.today.question).selectOption("professional");
   await page.getByRole("button", { name: en.wardrobe.today.wearOf.replace("{name}", "Citrus Day") }).click();
   await page.getByLabel(en.wardrobe.today.sprays).fill("2");
   await page.getByRole("button", { name: en.wardrobe.today.save }).click();
@@ -133,8 +136,8 @@ test("the wish list keeps what you want, and a wish-list bottle is never suggest
   await expect(page.getByText("Someday Bottle", { exact: true })).toBeVisible();
   expect(db.posts.bottles[0]).toMatchObject({ name: "Someday Bottle", status: "wishlist" });
   await page.getByRole("button", { name: en.wardrobe.tabs.today }).click();
-  await expect(page.getByRole("heading", { level: 4, name: "Owned One" })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 4, name: "Someday Bottle" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 3, name: "Owned One" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Someday Bottle" })).toHaveCount(0);
 });
 
 test("a bad value is named in the form, not sent", async ({ page }) => {

@@ -5,6 +5,7 @@ import { addBottle, deleteBottle, updateBottle } from "../../lib/wardrobeApi";
 import { costPerWear, wearCounts } from "../../lib/wardrobe/stats";
 import Button from "../kx/Button";
 import BottleForm from "./BottleForm";
+import { catalogueNumber } from "../kx/Card";
 import { Chip, money } from "./ui";
 
 // A fill-level slider that commits when you let go (pointer, key or blur),
@@ -23,8 +24,9 @@ function Fill({ bottle, onCommit }) {
   );
 }
 
-// The owned bottles and decants: fill level, wear count, cost per wear;
-// add, edit, delete (with a second tap).
+// The owned bottles and decants as a catalogue: one numbered card each, in
+// the order they were added, two to a row on wider screens. Fill level, wear
+// count, cost per wear; add, edit, delete (with a second tap).
 export default function Collection({ bottles, wear, today, setBottles, onGone }) {
   const { t } = useI18n();
   const [mode, setMode] = useState(null); // null | "add" | bottle id being edited
@@ -70,31 +72,32 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
       {owned.length === 0 && mode !== "add" && (
         <p className="mt-6 p-6 text-sm text-center" style={{ background: COLORS.card, border: `1px dashed ${COLORS.line}`, color: COLORS.inkSoft }}>{t("wardrobe.collection.empty")}</p>
       )}
-      <ul className="mt-6 grid gap-4">
-        {owned.map((b) => {
+      <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+        {owned.map((b, i) => {
           const wears = counts.get(b.id) ?? 0;
           const per = costPerWear(b, wears);
           return (
-            <li key={b.id} className="p-5" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
+            <li key={b.id} className={`p-5 flex flex-col ${mode === b.id ? "sm:col-span-2" : ""}`} style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
               {mode === b.id ? (
                 <BottleForm initial={b} today={today} onSave={(row) => save(row, b.id)} onCancel={() => setMode(null)} />
               ) : (
                 <>
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <div className="flex items-baseline justify-between gap-3">
                     <h3 className="font-serif text-xl" style={{ color: COLORS.ink }}>{b.name}</h3>
-                    <div className="flex flex-wrap gap-2">
-                      <Chip>{t(`wardrobe.collection.kinds.${b.kind}`)}</Chip>
-                      {b.family && <Chip>{t(`families.${b.family}.label`)}</Chip>}
-                      {b.size_ml != null && <Chip><span className="font-mono tabular-nums" dir="ltr">{Number(b.size_ml)} mL</span></Chip>}
-                    </div>
+                    <span className="font-mono tabular-nums text-xs shrink-0" dir="ltr" style={{ color: COLORS.dim }}>{catalogueNumber(i + 1)}</span>
                   </div>
-                  <p className="text-sm mt-1 font-mono tabular-nums" style={{ color: COLORS.inkSoft }}>
-                    {wears === 0 ? t("wardrobe.collection.neverWorn") : wears === 1 ? t("wardrobe.collection.wearsOne") : t("wardrobe.collection.wears", { n: wears })}
-                    {per != null && ` · ${t("wardrobe.collection.perWear", { amount: money(per, b.currency) })}`}
-                  </p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Chip>{t(`wardrobe.collection.kinds.${b.kind}`)}</Chip>
+                    {b.family && <Chip>{t(`families.${b.family}.label`)}</Chip>}
+                    {b.size_ml != null && <Chip><span className="font-mono tabular-nums" dir="ltr">{Number(b.size_ml)} mL</span></Chip>}
+                  </div>
+                  <ul className="text-sm mt-3 font-mono tabular-nums list-none p-0" style={{ color: COLORS.inkSoft }}>
+                    <li>{wears === 0 ? t("wardrobe.collection.neverWorn") : wears === 1 ? t("wardrobe.collection.wearsOne") : t("wardrobe.collection.wears", { n: wears })}</li>
+                    {per != null && <li>{t("wardrobe.collection.perWear", { amount: money(per, b.currency) })}</li>}
+                  </ul>
                   <div className="mt-2"><Fill bottle={b} onCommit={(pct) => setFill(b, pct)} /></div>
                   {b.note && <p className="text-sm mt-1" style={{ color: COLORS.inkSoft }}>{b.note}</p>}
-                  <div className="flex flex-wrap gap-3 mt-3">
+                  <div className="flex flex-wrap gap-3 mt-auto pt-3">
                     <Button variant="secondary" onClick={() => { setMode(b.id); setStatus(""); }} aria-label={t("wardrobe.collection.edit", { name: b.name })}>{t("wardrobe.collection.editShort")}</Button>
                     {confirming === b.id ? (
                       <Button variant="danger" autoFocus onClick={() => { setConfirming(null); remove(b); }} onBlur={() => setConfirming(null)}>{t("wardrobe.collection.confirmRemove")}</Button>
