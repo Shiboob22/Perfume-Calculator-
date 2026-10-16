@@ -6,6 +6,7 @@ import { costPerWear, wearCounts } from "../../lib/wardrobe/stats";
 import Button from "../kx/Button";
 import BottleForm from "./BottleForm";
 import { catalogueNumber } from "../kx/Card";
+import { roman } from "../../content/kyphi";
 import { Chip, money } from "./ui";
 
 // A fill-level slider that commits when you let go (pointer, key or blur),
@@ -83,7 +84,8 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
               ) : (
                 <>
                   <div className="flex items-baseline justify-between gap-3">
-                    <h3 className="font-serif text-xl" style={{ color: COLORS.ink }}>{b.name}</h3>
+                    <span aria-hidden="true" dir="ltr" className="font-serif text-base shrink-0" style={{ color: COLORS.actionText }}>{roman(i + 1)}</span>
+                    <h3 className="font-serif text-xl flex-1 min-w-0" style={{ color: COLORS.ink }}>{b.name}</h3>
                     <span className="font-mono tabular-nums text-xs shrink-0" dir="ltr" style={{ color: COLORS.dim }}>{catalogueNumber(i + 1)}</span>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -93,6 +95,7 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
                   </div>
                   <ul className="text-sm mt-3 font-mono tabular-nums list-none p-0" style={{ color: COLORS.inkSoft }}>
                     <li>{wears === 0 ? t("wardrobe.collection.neverWorn") : wears === 1 ? t("wardrobe.collection.wearsOne") : t("wardrobe.collection.wears", { n: wears })}</li>
+                    {b.size_ml != null && <li dir="ltr">{t("wardrobe.leftOf", { left: (Number(b.size_ml) * Number(b.fill_pct ?? 100) / 100).toFixed(0), size: Number(b.size_ml) })}</li>}
                     {per != null && <li>{t("wardrobe.collection.perWear", { amount: money(per, b.currency) })}</li>}
                   </ul>
                   <div className="mt-2"><Fill bottle={b} onCommit={(pct) => setFill(b, pct)} /></div>

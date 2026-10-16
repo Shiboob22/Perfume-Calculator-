@@ -102,17 +102,17 @@ test("add bottles, get a ranked pick with reasons, log a wearing", async ({ page
   expect(db.posts.bottles.map((b) => [b.name, b.family, b.status])).toEqual([["Citrus Day", "fresh", "owned"], ["Amber Night", "oriental", "owned"]]);
 
   await page.getByRole("button", { name: en.wardrobe.tabs.today }).click();
-  // One question up front; weather and time are folded away until asked for.
-  await expect(page.getByLabel(en.wardrobe.today.question)).toBeVisible();
-  await page.getByText(en.wardrobe.today.more).click();
+  // The board's two controls up front (a temperature stepper, the occasion as chips); time of day is folded away until asked for.
+  await expect(page.getByRole("group", { name: en.wardrobe.today.question })).toBeVisible();
   await page.getByLabel(en.wardrobe.today.temp).fill("35");
   const first = page.getByRole("article");
   await expect(first.getByRole("heading", { level: 3 })).toHaveText("Citrus Day");
   await expect(first).toContainText("hot (30°C and above)");
   await expect(page.getByText(en.wardrobe.spray.fewerInHeat)).toBeVisible();
 
+  await page.getByText(en.wardrobe.today.more).click();
   await page.getByLabel(en.wardrobe.today.time).selectOption("day");
-  await page.getByLabel(en.wardrobe.today.question).selectOption("professional");
+  await page.getByRole("button", { name: en.wardrobe.occasions.professional }).click();
   await page.getByRole("button", { name: en.wardrobe.today.wearOf.replace("{name}", "Citrus Day") }).click();
   await page.getByLabel(en.wardrobe.today.sprays).fill("2");
   await page.getByRole("button", { name: en.wardrobe.today.save }).click();
