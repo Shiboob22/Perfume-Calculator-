@@ -1,6 +1,6 @@
 # Board sync: gap list
 
-Date 2026-10-16. Branch `redesign/board-sync` (cut from `claude/kyphira-board-sync-04ae5d` @ `b51b25f`, which holds the board dark palette and typefaces). Nothing in `src/` has been edited. This file is the plan; source work starts after the owner's go-ahead.
+Date 2026-10-16. Branch `redesign/board-sync` (cut from `claude/kyphira-board-sync-04ae5d` @ `b51b25f`, which holds the board dark palette and typefaces). Status: **built** (owner approved every recommendation in Q1–Q10 on 2026-10-16). The tables below are the original gap list; the section *Result by row* at the end gives the final status of every row.
 
 Sources: `Design/boards/*.dc.html` (from "Scent handbook app project.zip"), `Design/Kyphira_Brief_v5.md`, `docs/redesign/DESIGN-BRIEF-AUDIT.md`.
 
@@ -162,6 +162,68 @@ See Q4. Rows once answered:
 
 Design System (tokens that Q5/Q6 approve, Stepper, Chip, Button, focus, empty states) → Homepage → Bench → Wardrobe → Library → Atlas → Salon → Nose → Account. One commit per room, checks per room as listed in the brief, screenshots to `docs/redesign/phase-board-sync/<room>/`, CLAUDE.md "Current phase" entry at the end. Snapshot baselines regenerate only for changed screens.
 
+## Result by row
+
+Status key: **done**, **matches**, **skipped** (reason). Q1–Q10 were answered "your recommendations": Q1 scroll kept, Q2/Q3/Q4/Q8/Q9 skipped as recommended, Q5 2 px radius, Q6 board motion tokens, Q7 bottom bar kept, Q10 light default. Icons: flat 1.25 px stroke (done). Commits: one per room (`git log redesign/board-sync`).
+
+### 1. Design System
+| Row | Status |
+|---|---|
+| Colour, Ok/Alert, contrast table, type families | matches |
+| Type scale: Caption AR 13 px no tracking, tabular figures on `.font-mono` | done (AR body 1.95 kept, audit) |
+| Roman numerals, catalogue tags | done as `kx/RoomHeader` numerals I–VI; catalogue tags (R·0318, A·12480, …) skipped: they are mock identifiers with no data behind them |
+| Space, grid | matches |
+| Radius 2 px; offset shadow dropped in dark | done (token change, Q5) |
+| Focus 2 px offset, text-colour ring on resin fills | done |
+| 44 / 48 px targets | done (Button md, Field 48) |
+| Nav, active underline | matches |
+| Buttons incl. disabled fill | done |
+| Inputs | done |
+| Numeric stepper | done (`kx/Stepper`, hold-repeat 120 ms after 400 ms; step is 5 mL / 1 %, not the board's 0.25 g: that step belongs to a weight input, which the Bench does not have) |
+| Weight-scale progress | matches (`ScaleReadout`) |
+| Material plate card | matches |
+| Chips with count, `aria-pressed` | done |
+| Tabs 48 px, 2 px resin underline | done in Wardrobe, Atlas, Salon |
+| Table hover | skipped: no table in a changed room |
+| Modal, toasts | skipped: no room needs one |
+| Empty / loading | done (EmptyState dashed, title) |
+| Icons 1.25 px | done |
+| Motion tokens | done (Q6; `MOTION`, CSS variables) |
+| Afternoon ground #3A2B1E | skipped: the scene's light ground is tied to the light default (Q10) |
+| Voice | matches |
+| Monospace | removed: the board has none (Hanken tabular figures); owner to confirm |
+
+### 2. Homepage
+Headline, sub, skip-to-rooms link, room numerals, ember breath 3.2 s: **done**. Counter, plates, method, Pro teaser: matches or unchanged (plate list left to the owner's review). Rooms figures: omitted (mock). Nose Pro badge, newsletter: skipped (Q4, Q9). Smoke loop 5.4 s: skipped, the smoke is canvas-driven by scroll, not a loop.
+
+### 3. Bench
+Header "Weigh a formula." + numeral, steppers for amount and strength, resting card (days left, dial, dates): **done**. Results labels: matches. Mode toggle, raw materials, water line, ethanol 0.807, Remind me, Log a shake: skipped (Q2, Q3, calc core, no SMTP, new data). Weigh-and-tick scale on Bench mode: matches (already coupled). Batch list ratio chip and catalogue number: skipped (no data behind them).
+
+### 4. Wardrobe
+Count headline, tabs (Tonight / Collection / Wear log / Lists), temperature stepper + occasion chips, numbered plates with ml left: **done**. Bottle detail spray "≈ ml" and Undo, 28-day strip: skipped (derived constant needs owner approval; strip needs new rendering of existing data, not in this pass).
+
+### 5. Library
+"III" kicker, Essays/Glossary tabs, filter chips with counts, glossary built from the guides' own terms, solid resin term underline: **done**. Featured card, 412-term count: skipped (mock). Opener motion: matches.
+
+### 6. Atlas
+Room header, family chips, era chips mapped to from/to: **done**. Family counts, real result count in title: skipped (no field in the existing answer; no new API). Accord bars with %: skipped (the catalog stores accord names, not percentages). Use in a blend: skipped (Q3).
+
+### 7. Salon
+Profile header (initials, large name, stat tiles, Share, 600 ms rise): **done**. People tab, Save recipe, Open in the Bench: skipped (no endpoint, Q3).
+
+### 8. Nose
+Headline, thinking dots, two-column picks and shelf: **done**. Chat with recipe cards, Pro gate, "1 / 3" quota meter: skipped (Q4; real limits are 8/h, 25/day and stay unshown).
+
+### 9. Account and Auth
+Real plan-usage meter, serif headings, board sign-in copy: **done**. Password fields: skipped (Q8). Profile editing stays in the Salon.
+
 ## Mismatch log
 
-(Filled in during implementation.)
+Visible differences left against the boards (screens in `docs/redesign/phase-board-sync/<room>/`):
+
+- Bench stays `max-w-3xl`; the board's Bench is a wider two-column layout. Unit shows in the figure and again in the select.
+- Wardrobe, Nose, Salon and Atlas keep the app shell above the room (site header, tab row, the Kyphira rename notice); the boards show the room alone.
+- Phone: the fixed bottom bar replaces the board's header menu (Q7).
+- Catalogue tags (R·0318 etc.) are not shown anywhere.
+- Light edition is not redrawn from the boards (Q10); the dark edition carries every board value.
+- Full-page screenshots draw the fixed bottom bar mid-page: a capture artefact.
