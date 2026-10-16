@@ -7,7 +7,6 @@ import { COLORS } from "../lib/theme";
 import { EntitlementsProvider, StaticEntitlements } from "../lib/useEntitlements";
 import { FEATURES } from "../lib/entitlements";
 import LanguageToggle from "../components/LanguageToggle";
-import DigitToggle from "../components/DigitToggle";
 
 const SCREENS = {
   calculator: lazy(() => import("../components/FragranceBlendCalculator")),
@@ -37,7 +36,7 @@ export default function DevScreens() {
     <Plan>
       <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }}>
         <div className="flex gap-4 justify-end p-3 text-xs font-mono" style={{ color: COLORS.dim }}>
-          dev preview · not signed in <DigitToggle /> <LanguageToggle />
+          dev preview · not signed in <LanguageToggle />
         </div>
         <Suspense fallback={null}><Screen user={DEV_USER} /></Suspense>
       </div>

@@ -11,7 +11,6 @@ import AuthGate from "./components/AuthGate";
 import { signOut } from "./lib/auth";
 import { useI18n, hasLocalChoice } from "./i18n/I18nProvider";
 import LanguageToggle from "./components/LanguageToggle";
-import DigitToggle from "./components/DigitToggle";
 import ProLocked from "./components/ProLocked";
 import { EntitlementsProvider, useEntitlements } from "./lib/useEntitlements";
 import { ProfileProvider, useProfile, needsOnboarding } from "./lib/useProfile";
@@ -138,7 +137,7 @@ export default function App() {
         <div className="min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0" style={{ backgroundColor: COLORS.paper }}>
       <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "batches" ? "journal" : tab === "wardrobe" ? "wardrobe" : tab === "atlas" ? "atlas" : tab === "salon" ? "salon" : tab === "nose" ? "nose" : undefined}
         wardrobe={wardrobeOn} atlas={atlasOn} salon={salonOn} nose={noseOn}
-        language={<><LanguageToggle /><DigitToggle /></>}
+        language={<LanguageToggle />}
         extra={<>
           <button type="button" onClick={() => navigate("/app/account")}
             className="text-sm hover:underline underline-offset-4 min-h-[44px]"
@@ -201,14 +200,13 @@ export default function App() {
 // up before the questions.
 function OnboardingGate({ children }) {
   const profile = useProfile();
-  const { setLocale, setDigits } = useI18n();
-  // Language and digits saved to the account follow the user to a new
-  // device (one with no choice of its own yet).
+  const { setLocale } = useI18n();
+  // The language saved to the account follows the user to a new device (one
+  // with no choice of its own yet).
   const saved = profile.profile;
   useEffect(() => {
-    if (saved?.locale && !hasLocalChoice("locale")) setLocale(saved.locale);
-    if (saved?.digits && !hasLocalChoice("digits")) setDigits(saved.digits);
-  }, [saved?.locale, saved?.digits, setLocale, setDigits]);
+    if (saved?.locale && !hasLocalChoice()) setLocale(saved.locale);
+  }, [saved?.locale, setLocale]);
   if (!profile.loaded) return <TabLoading />;
   if (needsOnboarding(profile)) return <Suspense fallback={<TabLoading />}><Onboarding /></Suspense>;
   return children;

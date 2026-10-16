@@ -45,7 +45,7 @@ const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px 
 // /app/account: plan and usage, the Pro waitlist, preferences, data export
 // and account deletion.
 export default function Account({ user }) {
-  const { t, locale, setLocale, digits, setDigits } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const entitlements = useEntitlements();
   const { profile, save } = useProfile();
 
@@ -72,7 +72,7 @@ export default function Account({ user }) {
       {entitlements.plan !== "pro" && <Waitlist />}
 
       <Section title={t("account.prefs.title")}>
-        <Preferences profile={profile} save={save} locale={locale} setLocale={setLocale} digits={digits} setDigits={setDigits} />
+        <Preferences profile={profile} save={save} locale={locale} setLocale={setLocale} />
       </Section>
 
       <Section title={t("account.data.title")}>
@@ -120,7 +120,7 @@ function Waitlist() {
   );
 }
 
-function Preferences({ profile, save, locale, setLocale, digits, setDigits }) {
+function Preferences({ profile, save, locale, setLocale }) {
   const { t } = useI18n();
   const [bottle, setBottle] = useState(profile?.default_bottle ?? "");
   const [status, setStatus] = useState(null);
@@ -160,13 +160,6 @@ function Preferences({ profile, save, locale, setLocale, digits, setDigits }) {
             className="w-28 px-3 py-2 rounded-none font-mono" style={inputStyle} />
           <span className="font-mono text-sm" style={{ color: COLORS.inkSoft }}>{UNIT_LABELS[unit]}</span>
         </span>
-      </label>
-      <label className={row} style={{ borderColor: COLORS.line }}>
-        <span style={{ color: COLORS.ink }}>{t("account.prefs.digits")}</span>
-        <select value={digits} onChange={(e) => { setDigits(e.target.value); update({ digits: e.target.value }); }} className="px-3 py-2 rounded-none" style={inputStyle}>
-          <option value="latn">123</option>
-          <option value="arab">١٢٣</option>
-        </select>
       </label>
       <p role="status" className="text-xs mt-2 min-h-[1rem]" style={{ color: status === "failed" ? COLORS.danger : COLORS.inkSoft }}>
         {status === "saved" && t("account.prefs.saved")}

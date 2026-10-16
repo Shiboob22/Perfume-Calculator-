@@ -1,20 +1,11 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { createTranslator, dirOf, matchLocale, LOCALES, NUMBERING_SYSTEM, NUMBERING_SYSTEMS } from "./core";
+import { createTranslator, dirOf, matchLocale, LOCALES, NUMBERING_SYSTEM } from "./core";
 import { loadArabicFonts } from "./arabicFonts";
 import en from "./messages/en";
 import ar from "./messages/ar";
 
 const CATALOGS = { en, ar };
 const STORAGE_KEY = "sh-locale";
-const DIGITS_KEY = "sh-digits";
-
-function initialDigits() {
-  try {
-    const saved = localStorage.getItem(DIGITS_KEY);
-    if (NUMBERING_SYSTEMS.includes(saved)) return saved;
-  } catch {}
-  return NUMBERING_SYSTEM;
-}
 
 // A saved choice wins; otherwise the browser's language list decides.
 function initialLocale() {
@@ -25,11 +16,11 @@ function initialLocale() {
   return matchLocale(typeof navigator === "undefined" ? [] : navigator.languages);
 }
 
-// Whether this browser already has its own language / digit choice. A
-// choice saved to the account applies only where there is none, so a
-// device someone switched by hand keeps what they picked there.
-export function hasLocalChoice(kind) {
-  try { return localStorage.getItem(kind === "digits" ? DIGITS_KEY : STORAGE_KEY) != null; } catch { return false; }
+// Whether this browser already has its own language choice. A choice saved
+// to the account applies only where there is none, so a device someone
+// switched by hand keeps what they picked there.
+export function hasLocalChoice() {
+  try { return localStorage.getItem(STORAGE_KEY) != null; } catch { return false; }
 }
 
 const I18nContext = createContext(null);
@@ -40,8 +31,10 @@ const I18nContext = createContext(null);
 export function I18nProvider({ children, locale: forced }) {
   const [chosen, setLocaleState] = useState(() => forced || initialLocale());
   const locale = forced || chosen;
-  // Public pages always prerender with Western digits; the setting applies in the app.
-  const [digits, setDigitsState] = useState(() => (forced ? NUMBERING_SYSTEM : initialDigits()));
+  // One digit style everywhere, in both languages: Western, as the scale
+  // shows them (design brief, 2026-10-16). A digit style saved earlier, on the
+  // device or the account, is kept but no longer read.
+  const digits = NUMBERING_SYSTEM;
   const dir = dirOf(locale);
 
   // <html lang dir> drives the browser's bidi layout and Tailwind's rtl: variant.
@@ -59,13 +52,8 @@ export function I18nProvider({ children, locale: forced }) {
       try { localStorage.setItem(STORAGE_KEY, next); } catch {}
       setLocaleState(next);
     }
-    function setDigits(next) {
-      if (!NUMBERING_SYSTEMS.includes(next)) return;
-      try { localStorage.setItem(DIGITS_KEY, next); } catch {}
-      setDigitsState(next);
-    }
     return {
-      locale, dir, setLocale, digits, setDigits,
+      locale, dir, setLocale, digits,
       t: createTranslator(locale, CATALOGS, undefined, { numberingSystem: digits }),
     };
   }, [locale, dir, digits]);

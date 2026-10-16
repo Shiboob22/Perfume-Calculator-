@@ -4,7 +4,6 @@ import { COLORS, SHAPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { tabPath } from "../routes";
 import LanguageToggle from "./LanguageToggle";
-import DigitToggle from "./DigitToggle";
 import ThemeToggle from "./ThemeToggle";
 import {
   IconBalance, IconBook, IconBookmark, IconChat, IconClose, IconCompass, IconCrosshair, IconDrop,
@@ -204,7 +203,6 @@ function MoreSheet({ items, active, to, onGo, onSignOut, onClose }) {
         </ul>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-4">
           <LanguageToggle className="min-h-[44px] text-sm" />
-          <DigitToggle className="min-h-[44px] text-sm" />
           <ThemeToggle />
           <button type="button" onClick={onSignOut}
             className="ms-auto inline-flex items-center gap-2 min-h-[44px] text-sm" style={{ color: COLORS.inkSoft }}>

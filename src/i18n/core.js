@@ -6,9 +6,9 @@ export const LOCALES = ["en", "ar"];
 export const DEFAULT_LOCALE = "en";
 const RTL = new Set(["ar"]);
 
-// Western digits by default, so figures match what a scale shows. Arabic-
-// Indic digits ("arab") are a per-user setting for text; calculator figures
-// stay Western either way.
+// Western digits in both languages, so figures match what a scale shows (one
+// style, decided 2026-10-16). The translator still accepts "arab" for the
+// batch card's tests and older callers.
 export const NUMBERING_SYSTEM = "latn";
 export const NUMBERING_SYSTEMS = ["latn", "arab"];
 
