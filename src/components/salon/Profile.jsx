@@ -42,18 +42,34 @@ export default function Profile({ handle }) {
     catch { setError(t("salon.post.failed")); } finally { setBusy(false); }
   }
 
+  async function share() {
+    try { await navigator.clipboard.writeText(`${location.origin}/salon/u/${info.handle}`); setStatus(t("salon.profile.shared")); }
+    catch { setError(t("salon.post.failed")); }
+  }
+
   if (info === undefined) return <p role="status" className="text-sm" style={{ color: COLORS.inkSoft }}>{t("salon.loading")}</p>;
   if (info === null) return <p role="status" className="text-sm" style={{ color: COLORS.inkSoft }}>{t("salon.profile.notFound")}</p>;
 
   return (
     <section aria-labelledby="salon-profile-h">
-      <h2 id="salon-profile-h" className="font-serif text-3xl" style={{ color: COLORS.ink }}>{authorName(info)}</h2>
-      {info.display_name && <p className="font-mono text-sm" dir="ltr" style={{ color: COLORS.dim }}>@{info.handle}</p>}
-      {info.bio && <p className="mt-2 max-w-prose" style={{ color: COLORS.inkSoft }}>{info.bio}</p>}
+      {/* The profile header: one of the three places the board allows cinematic motion (a 600 ms rise, off under reduced motion). */}
+      <div className="flex items-center gap-4 kx-rise">
+        <span aria-hidden="true" className="shrink-0 flex items-center justify-center w-16 h-16 rounded-full font-serif text-2xl" style={{ background: COLORS.sand, border: `1px solid ${COLORS.line}`, color: COLORS.actionText }}>
+          {Array.from(authorName(info).replace(/^@/, "").trim()).slice(0, 2).join("").toUpperCase()}
+        </span>
+        <div className="min-w-0">
+          <h2 id="salon-profile-h" className="font-serif font-light text-4xl rtl:leading-[1.5]" style={{ color: COLORS.ink }}>{authorName(info)}</h2>
+          {info.display_name && <p className="font-mono text-sm" dir="ltr" style={{ color: COLORS.dim }}>@{info.handle}</p>}
+        </div>
+      </div>
+      {info.bio && <p className="mt-4 max-w-prose kx-rise" style={{ color: COLORS.inkSoft, animationDelay: "120ms" }}>{info.bio}</p>}
       {!info.is_public && info.mine && <p role="status" className="mt-2 text-sm" style={{ color: COLORS.dim }}>{t("salon.profile.private")}</p>}
-      <dl className="flex flex-wrap gap-6 mt-4 text-sm" style={{ color: COLORS.inkSoft }}>
+      <dl className="grid grid-cols-3 gap-3 mt-5 max-w-md kx-rise" style={{ animationDelay: "240ms" }}>
         {[["posts", info.posts], ["followers", followers], ["following", info.following]].map(([k, n]) => (
-          <div key={k}><dt className="inline">{t(`salon.profile.${k}`)}: </dt><dd className="inline font-mono" dir="ltr" style={{ color: COLORS.ink }}>{Number(n)}</dd></div>
+          <div key={k} className="p-3 rounded" style={{ border: `1px solid ${COLORS.line}` }}>
+            <dd className="m-0 font-serif text-3xl tabular-nums" dir="ltr" style={{ color: COLORS.ink }}>{Number(n)}</dd>
+            <dt className="text-xs" style={{ color: COLORS.dim }}>{t(`salon.profile.${k}`)}</dt>
+          </div>
         ))}
       </dl>
       <div className="flex flex-wrap items-center gap-3 mt-4">
@@ -62,6 +78,7 @@ export default function Profile({ handle }) {
           : (
             <>
               <Button variant={following ? "secondary" : "primary"} aria-pressed={following} onClick={toggleFollow}>{following ? t("salon.profile.unfollow") : t("salon.profile.follow")}</Button>
+              <Button variant="secondary" onClick={share}>{t("salon.profile.share")}</Button>
               <button type="button" onClick={() => setMode((m) => !m)} className="text-sm underline underline-offset-2 min-h-[44px]" style={{ color: COLORS.inkSoft }}>{t("salon.profile.report")}</button>
             </>
           )}
