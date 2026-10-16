@@ -1,5 +1,6 @@
-import React, { useEffect, useId, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { Link, useExit } from "../motion";
 import { COLORS, SHAPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { tabPath } from "../routes";
@@ -86,11 +87,13 @@ export default function AppNav({ active, tabs, dueCount, flags, onSignOut }) {
               return (
                 <li key={id} className="flex-1 min-w-[7.5rem]" style={{ borderInlineEnd: `1px solid ${COLORS.line}` }}>
                   <Dest d={d} to={to(d)} current={on}
-                    className={`w-full min-h-[48px] px-3 inline-flex items-center justify-center gap-2 text-sm whitespace-nowrap transition-colors ${SHAPE.control}`}
-                    style={{ background: on ? COLORS.ink : "transparent", color: on ? COLORS.paper : COLORS.inkSoft }}>
-                    <I size={18} accent={on ? COLORS.oil : undefined} />
-                    <span>{d.label}</span>
-                    {id === "batches" && <DueBadge count={dueCount} t={t} />}
+                    className={`relative w-full min-h-[48px] px-3 inline-flex items-center justify-center gap-2 text-sm whitespace-nowrap transition-colors ${SHAPE.control}`}
+                    style={{ color: on ? COLORS.paper : COLORS.inkSoft }}>
+                    {/* The active tab's plate is its own element so a route change can slide it (src/motion). */}
+                    <span aria-hidden="true" data-mo-ind="tab" data-on={on ? "" : undefined} className="absolute inset-0" style={{ background: on ? COLORS.ink : "transparent" }} />
+                    <I size={18} accent={on ? COLORS.oil : undefined} className="relative" />
+                    <span className="relative">{d.label}</span>
+                    {id === "batches" && <span className="relative"><DueBadge count={dueCount} t={t} /></span>}
                   </Dest>
                 </li>
               );
@@ -100,7 +103,7 @@ export default function AppNav({ active, tabs, dueCount, flags, onSignOut }) {
       </div>
 
       {/* Phones: one bar at the bottom. */}
-      <nav aria-label={t("app.barLabel")} className="md:hidden fixed bottom-0 inset-x-0 z-40"
+      <nav aria-label={t("app.barLabel")} data-mo-chrome="bar" className="md:hidden fixed bottom-0 inset-x-0 z-40"
         style={{ background: COLORS.card, borderTop: `1px solid ${COLORS.line}`, paddingBottom: "env(safe-area-inset-bottom)" }}>
         <ul className="grid grid-cols-5">
           {primary.map((d) => (
@@ -142,7 +145,7 @@ const BarButton = React.forwardRef(function BarButton({ d, to, on, current, expa
       className="relative w-full min-h-[60px] pt-2 pb-1.5 flex flex-col items-center justify-center gap-1 text-[11px] leading-none"
       style={{ color: on ? COLORS.ink : COLORS.inkSoft, fontWeight: on ? 600 : 400 }}>
       {/* The room you are in: an ink rule on the bar's top edge and a tinted plate under the icon. */}
-      <span aria-hidden="true" className="absolute top-0 inset-x-4 h-[2px] transition-opacity duration-200"
+      <span aria-hidden="true" data-mo-ind="bar" data-on={on && !isMore ? "" : undefined} className="absolute top-0 inset-x-4 h-[2px] transition-opacity duration-200"
         style={{ background: COLORS.ink, opacity: on ? 1 : 0 }} />
       <span className="relative inline-flex items-center justify-center w-12 h-7 transition-colors duration-200"
         style={{ background: on ? COLORS.sand : "transparent" }}>
@@ -154,10 +157,13 @@ const BarButton = React.forwardRef(function BarButton({ d, to, on, current, expa
   );
 });
 
-function MoreSheet({ items, active, to, onGo, onSignOut, onClose }) {
+function MoreSheet({ items, active, to, onGo, onSignOut, onClose: close }) {
   const { t } = useI18n();
   const titleId = useId();
   const closeRef = useRef(null);
+  // Closing plays the sheet's exit first (with the motion layer on; at once without it).
+  const { leaving, leave } = useExit();
+  const onClose = useCallback(() => leave(close), [leave, close]);
   useEffect(() => {
     closeRef.current?.focus();
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -168,11 +174,11 @@ function MoreSheet({ items, active, to, onGo, onSignOut, onClose }) {
   }, [onClose]);
 
   return (
-    <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
-      <div aria-hidden="true" className="absolute inset-0 motion-safe:animate-[sheetFade_.2s_ease-out]"
+    <div data-leaving={leaving ? "" : undefined} className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
+      <div aria-hidden="true" className="mo-sheet-scrim absolute inset-0 motion-safe:animate-[sheetFade_.2s_ease-out]"
         style={{ background: "rgba(0,0,0,.45)" }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-labelledby={titleId}
-        className="relative max-h-[85vh] overflow-y-auto motion-safe:animate-[sheetUp_.24s_cubic-bezier(.2,.8,.2,1)]"
+        className="mo-sheet-panel relative max-h-[85vh] overflow-y-auto motion-safe:animate-[sheetUp_.24s_cubic-bezier(.2,.8,.2,1)]"
         style={{ background: COLORS.paper, borderTop: `1px solid ${COLORS.line}`, paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <h2 id={titleId} className="font-serif italic text-2xl" style={{ color: COLORS.ink }}>{t("app.moreTitle")}</h2>

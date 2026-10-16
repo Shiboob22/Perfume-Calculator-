@@ -12,7 +12,7 @@ import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import EmptyState from "./EmptyState";
 import { refusedBatches, dismissRefused } from "../lib/outbox";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../motion";
 import { can } from "../lib/entitlements";
 import { dueNow, JOURNAL_CHANGED, restTimeline } from "../lib/journal";
 import { IconHourglass, IconSeal, IconDrop, IconToday, IconPlus } from "./icons";

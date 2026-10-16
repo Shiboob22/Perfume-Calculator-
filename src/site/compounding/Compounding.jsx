@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../../motion";
 import { TYPE, COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { localePath } from "../meta";

@@ -6,6 +6,7 @@ const ARABIC_SYSTEM = ["'Geeza Pro'", "'Noto Sans Arabic'", "'Segoe UI'", "Tahom
 
 import plugin from "tailwindcss/plugin";
 import { COLORS, PALETTES, paletteVars } from "./src/lib/theme.js";
+import { motionVars } from "./src/motion/config.js";
 
 const light = paletteVars(PALETTES.light);
 const dark = paletteVars(PALETTES.dark);
@@ -33,7 +34,8 @@ export default {
     // The palettes as CSS custom properties. Light by default; dark when the
     // system asks and the reader hasn't chosen light, or when they chose dark.
     plugin(({ addBase }) => addBase({
-      ":root": { ...light, colorScheme: "light" },
+      // The motion tokens (src/motion/config.js) ride along; inert until the motion flag is on.
+      ":root": { ...light, colorScheme: "light", ...motionVars() },
       "@media (prefers-color-scheme: dark)": { ':root:not([data-theme="light"])': { ...dark, colorScheme: "dark" } },
       ':root[data-theme="dark"]': { ...dark, colorScheme: "dark" },
     })),

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../motion'
 import { isAuthRetryableFetchError } from '@supabase/auth-js'
 import { supabase, signInWithEmail, signInWithProvider } from '../lib/auth'
 import { AUTH_STORAGE_KEY } from '../lib/supabaseClient'
