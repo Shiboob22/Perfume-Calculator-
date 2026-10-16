@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { COLORS } from "../../lib/theme";
+import { RoomHeader, RoomPage, TabLinks } from "../kx";
 import { useI18n } from "../../i18n/I18nProvider";
 import { isAdmin, listTerms } from "../../lib/atlasApi";
 import { parseAtlasPath } from "../../lib/atlas/entities";
@@ -30,24 +31,23 @@ export default function Atlas() {
   const tabs = [["search", "/atlas"], ["browse", "/atlas/browse"], ["contribute", "/atlas/contribute"], ...(admin ? [["review", "/atlas/review"]] : [])];
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-6">
-      <h1 className="font-serif text-4xl" style={{ color: COLORS.ink }}>{t("atlas.title")}</h1>
-      <p className="mt-2 text-sm max-w-prose" style={{ color: COLORS.inkSoft }}>{t("atlas.lead")}</p>
-      <nav aria-label={t("atlas.navLabel")} className="flex gap-2 border-b overflow-x-auto mt-5 mb-6" style={{ borderColor: COLORS.line }}>
-        {tabs.map(([id, to]) => (
-          <Link key={id} to={to} aria-current={active === id ? "page" : undefined}
-            className="px-3 py-2 text-sm -mb-px border-b-2 whitespace-nowrap min-h-[44px] inline-flex items-center"
-            style={{ borderColor: active === id ? COLORS.forest : "transparent", color: active === id ? COLORS.forestDeep : COLORS.inkSoft }}>
-            {t(`atlas.nav.${id}`)}
-          </Link>
-        ))}
-      </nav>
+    <RoomPage>
+      {/* A fragrance's own page opens without the room's header, as the board's detail does. */}
+      {route.view !== "fragrance" && (
+        <>
+          <RoomHeader num="IV" kicker={t("atlas.title")} title={t("atlas.headline")} />
+          <p className="text-sm max-w-prose -mt-4" style={{ color: COLORS.inkSoft }}>{t("atlas.lead")}</p>
+          <TabLinks label={t("atlas.navLabel")} value={active} tabs={tabs.map(([id, to]) => ({ id, to, label: t(`atlas.nav.${id}`) }))} />
+        </>
+      )}
+      <div>
       {route.view === "search" && <Search />}
       {route.view === "browse" && <Browse terms={terms} />}
       {route.view === "entity" && <EntityPage kind={route.kind} entityKey={route.key} terms={terms} />}
       {route.view === "fragrance" && <FragrancePage id={route.id} terms={terms} />}
       {route.view === "contribute" && <Contribute />}
       {route.view === "review" && <Review admin={admin} />}
-    </div>
+      </div>
+    </RoomPage>
   );
 }

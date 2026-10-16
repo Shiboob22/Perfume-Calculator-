@@ -430,6 +430,7 @@ export default {
     },
   },
   atlas: {
+    headline: "Find a fragrance.",
     title: "The Atlas",
     lead: "Fragrances, notes, accords, houses and perfumers. Search the catalog, follow a note, or suggest a fragrance that is missing.",
     navLabel: "Atlas sections",
@@ -438,6 +439,7 @@ export default {
     fields: { name: "name", brand: "house", tier: "family", year: "year", gender: "gender", country: "country" },
     genders: { women: "Women", men: "Men", unisex: "Unisex" },
     search: {
+      era: "Era", eras: { all: "All", pre1980: "Before 1980", "1980s": "1980–99", "2000s": "2000–09", "2010s": "2010+" },
       label: "Search the Atlas",
       placeholder: "A fragrance, a house or a note",
       submit: "Search",
@@ -477,6 +479,7 @@ export default {
       notFound: "Nothing by that name in the Atlas.",
     },
     fragrance: {
+      all: "All fragrances", houseCard: "House", country: "Country", useBlend: "Use in a blend",
       by: "by {house}",
       released: "Released {year}",
       family: "Family",

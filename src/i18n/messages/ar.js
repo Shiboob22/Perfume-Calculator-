@@ -431,6 +431,7 @@ export default {
     },
   },
   atlas: {
+    headline: "ابحث عن عطر.",
     title: "الأطلس",
     lead: "عطور ونوتات وأكوردات ودور عطور وعطّارون. ابحث في الكتالوج، أو تتبّع نوتة، أو اقترح عطرًا ناقصًا.",
     navLabel: "أقسام الأطلس",
@@ -439,6 +440,7 @@ export default {
     fields: { name: "الاسم", brand: "الدار", tier: "العائلة", year: "السنة", gender: "الفئة", country: "البلد" },
     genders: { women: "نسائي", men: "رجالي", unisex: "للجنسين" },
     search: {
+      era: "الحقبة", eras: { all: "الكل", pre1980: "قبل 1980", "1980s": "1980–99", "2000s": "2000–09", "2010s": "2010+" },
       label: "ابحث في الأطلس",
       placeholder: "عطر أو دار أو نوتة",
       submit: "بحث",
@@ -478,6 +480,7 @@ export default {
       notFound: "لا شيء بهذا الاسم في الأطلس.",
     },
     fragrance: {
+      all: "كل العطور", houseCard: "الدار", country: "البلد", useBlend: "استعمله في خلطة",
       by: "من {house}",
       released: "صدر عام {year}",
       family: "العائلة",

@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { Link } from "react-router-dom";
 import { COLORS } from "../../lib/theme";
 
 // Underlined tabs (Design System IV, "Tabs"): 48 px high, a 2 px resin rule
@@ -31,5 +32,26 @@ export default function Tabs({ tabs, value, onChange, label, idPrefix = "tab", c
         );
       })}
     </div>
+  );
+}
+
+/**
+ * Underlined links that look like Tabs but navigate (the Atlas's sections).
+ * tabs: [{ id, label, to }]; `value` is the id of the page you are on.
+ */
+export function TabLinks({ tabs, value, label, className = "" }) {
+  return (
+    <nav aria-label={label} className={`flex overflow-x-auto ${className}`} style={{ borderBottom: `1px solid ${COLORS.line}`, scrollbarWidth: "none" }}>
+      {tabs.map((tab) => {
+        const on = tab.id === value;
+        return (
+          <Link key={tab.id} to={tab.to} aria-current={on ? "page" : undefined}
+            className="min-h-[48px] px-5 whitespace-nowrap text-[15px] inline-flex items-center hover:text-[color:var(--c-ink)] focus-visible:outline-offset-[-2px]"
+            style={{ color: on ? COLORS.ink : COLORS.inkSoft, boxShadow: `inset 0 -2px 0 ${on ? COLORS.amber : "transparent"}` }}>
+            {tab.label}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

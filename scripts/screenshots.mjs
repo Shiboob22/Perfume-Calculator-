@@ -59,6 +59,17 @@ function wardrobeRows(now) {
   return { bottles, wear };
 }
 
+// A few catalogue rows for the Atlas screens (room screenshots only).
+const ATLAS_ROWS = [
+  ["Acqua di Giò", "Armani", 1996, "fresh", ["Fresh", "Citrus", "Woody"], "Italy"], ["Angel", "Mugler", 1992, "gourmand", ["Sweet", "Vanilla", "Balsamic"], "France"],
+  ["Aromatics Elixir", "Clinique", 1971, "floral", ["Mossy", "Floral", "Woody"], "USA"], ["Black Opium", "Yves Saint Laurent", 2014, "gourmand", ["Sweet", "Vanilla", "Floral"], "France"],
+  ["Bleu de Chanel", "Chanel", 2010, "fresh", ["Aromatic", "Citrus", "Woody"], "France"], ["Hawas", "Rasasi", 2019, "fresh", ["Fresh", "Fruity", "Aromatic"], "UAE"],
+  ["Khamrah", "Lattafa", 2022, "gourmand", ["Sweet", "Spicy", "Vanilla"], "UAE"], ["Santal 33", "Le Labo", 2011, "woody", ["Woody", "Spicy", "Leather"], "USA"],
+].map(([name, brand, year, tier, accords, country], i) => ({
+  id: `a0000000-0000-4000-8000-0000000000${String(i + 1).padStart(2, "0")}`, name, brand, year, tier, accords, country, olfactory_family: accords[0], gender: "unisex", rating: 4.1, status: "approved",
+  top_notes: ["Cardamom", "Iris"], middle_notes: ["Violet", "Papyrus"], base_notes: ["Sandalwood", "Amber"], perfumers: ["Ada Test"], source: "Perfume dataset", total: 8,
+}));
+
 const PROFILE = { locale: "en", default_unit: "ml", default_bottle: 100, digits: "latn", onboarded_at: "2026-10-01T00:00:00Z" };
 
 async function signedIn(page, { onboarded = true } = {}) {
@@ -79,6 +90,10 @@ async function signedIn(page, { onboarded = true } = {}) {
     const url = route.request().url();
     if (url.includes("/auth/v1/user")) return json(route, USER);
     if (url.includes("/rest/v1/profiles")) return json(route, [onboarded ? PROFILE : { ...PROFILE, onboarded_at: null }]);
+    if (url.includes("/rpc/atlas_search")) return json(route, ATLAS_ROWS);
+    if (url.includes("/rpc/is_admin")) return json(route, false);
+    if (url.includes("/rpc/similar_fragrances")) return json(route, { basis: "accords", similar: ATLAS_ROWS.slice(1, 4), same_brand: [] });
+    if (url.includes("/rest/v1/fragrances")) return json(route, ATLAS_ROWS[7]);
     if (url.includes("/rest/v1/wardrobe_bottles")) return json(route, wardrobeRows(Date.now()).bottles);
     if (url.includes("/rest/v1/wear_log")) return json(route, wardrobeRows(Date.now()).wear);
     return json(route, []);
@@ -107,7 +122,7 @@ const APP = {
 // VITE_FLAG_WARDROBE/ATLAS/SALON/NOSE=1 so the flagged rooms render.
 const ROOMS = {
   home: "/", bench: "/bench", journal: "/bench/journal", wardrobe: "/wardrobe", "wardrobe-collection": "/wardrobe?section=collection", library: "/library", "library-guide": "/library/at-the-bench",
-  atlas: "/atlas", salon: "/salon", nose: "/nose", signin: "/app", account: "/app/account",
+  atlas: "/atlas?q=a", "atlas-fragrance": "/atlas/fragrance/a0000000-0000-4000-8000-000000000008", salon: "/salon", nose: "/nose", signin: "/app", account: "/app/account",
 };
 
 const browser = await chromium.launch(process.env.CHROMIUM_PATH
