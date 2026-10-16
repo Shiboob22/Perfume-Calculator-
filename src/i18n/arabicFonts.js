@@ -1,8 +1,8 @@
 // Arabic webfonts, fetched only once someone switches to Arabic, so English
 // pages never download them. Arabic subsets only: Latin text keeps the
 // brand fonts, glyph by glyph.
-//   IBM Plex Sans Arabic — UI text (the role of Inter Tight)
-//   Amiri                — display and voice (the role of Fraunces)
+//   IBM Plex Sans Arabic — UI text (the role of Hanken Grotesk)
+//   Noto Naskh Arabic    — display and voice (the role of Newsreader)
 let loading = null;
 export function loadArabicFonts() {
   // Public pages already carry the faces (prerendered, font-display: optional).
@@ -11,8 +11,7 @@ export function loadArabicFonts() {
     import("@fontsource/ibm-plex-sans-arabic/arabic-400.css"),
     import("@fontsource/ibm-plex-sans-arabic/arabic-500.css"),
     import("@fontsource/ibm-plex-sans-arabic/arabic-600.css"),
-    import("@fontsource/amiri/arabic-400.css"),
-    import("@fontsource/amiri/arabic-700.css"),
+    import("./arabic-naskh.css"),
   ]).catch(() => { loading = null; }); // system Arabic fonts remain the fallback
   return loading;
 }

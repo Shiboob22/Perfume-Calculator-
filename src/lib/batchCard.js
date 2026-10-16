@@ -26,12 +26,12 @@ const W = 1000;
 const H = 1400;
 const SCALE = 2;
 const PAD = 70; // outer paper margin around the inner frame
-const SERIF = "'Fraunces Variable', Georgia, 'Times New Roman', serif";
+const SERIF = "'Newsreader Variable', Georgia, 'Times New Roman', serif";
 const MONO = "'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace";
-// Arabic: the app's faces (arabicFonts.js). Amiri's subset is Arabic only,
+// Arabic: the app's faces (arabicFonts.js). Noto Naskh Arabic's subset is Arabic only,
 // so Latin names fall through to Georgia. Labels use a proportional face:
 // monospaced Arabic stretches badly.
-const SERIF_AR = "Amiri, Georgia, 'Geeza Pro', 'Noto Naskh Arabic', serif";
+const SERIF_AR = "'Noto Naskh Arabic Variable', Georgia, 'Geeza Pro', 'Noto Naskh Arabic', serif";
 const LABEL_AR = "'IBM Plex Sans Arabic', 'Geeza Pro', 'Noto Sans Arabic', Tahoma, sans-serif";
 
 // Unicode isolates. Text from the user or the catalog (a Latin name like
@@ -248,8 +248,8 @@ async function arabicFontsReady() {
   if (!document.fonts?.load) return;
   const sample = "عطر";
   await Promise.all([
-    document.fonts.load("700 52px Amiri", sample),
-    document.fonts.load("400 24px Amiri", sample),
+    document.fonts.load("700 52px 'Noto Naskh Arabic Variable'", sample),
+    document.fonts.load("400 24px 'Noto Naskh Arabic Variable'", sample),
     document.fonts.load("400 26px 'IBM Plex Sans Arabic'", sample),
   ]).catch(() => {});
 }

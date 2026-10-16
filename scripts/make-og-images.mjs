@@ -21,11 +21,11 @@ import ar from "../src/i18n/messages/ar.js";
 const vfont = (pkg, file) => pathToFileURL(resolve("node_modules/@fontsource-variable", pkg, "files", file)).href;
 const font = (pkg, file) => pathToFileURL(resolve("node_modules/@fontsource", pkg, "files", file)).href;
 const FACES = `
-  @font-face { font-family: Fraunces; font-weight: 100 900; src: url(${vfont("fraunces", "fraunces-latin-opsz-normal.woff2")}); }
-  @font-face { font-family: Fraunces; font-style: italic; font-weight: 100 900; src: url(${vfont("fraunces", "fraunces-latin-opsz-italic.woff2")}); }
-  @font-face { font-family: "Inter Tight"; font-weight: 100 900; src: url(${vfont("inter-tight", "inter-tight-latin-wght-normal.woff2")}); }
+  @font-face { font-family: Newsreader; font-weight: 100 900; src: url(${vfont("newsreader", "newsreader-latin-opsz-normal.woff2")}); }
+  @font-face { font-family: Newsreader; font-style: italic; font-weight: 100 900; src: url(${vfont("newsreader", "newsreader-latin-opsz-italic.woff2")}); }
+  @font-face { font-family: "Hanken Grotesk"; font-weight: 100 900; src: url(${vfont("hanken-grotesk", "hanken-grotesk-latin-wght-normal.woff2")}); }
   @font-face { font-family: "IBM Plex Sans Arabic"; font-weight: 500; src: url(${font("ibm-plex-sans-arabic", "ibm-plex-sans-arabic-arabic-500-normal.woff2")}); }
-  @font-face { font-family: Amiri; font-weight: 400; src: url(${font("amiri", "amiri-arabic-400-normal.woff2")}); }
+  @font-face { font-family: "Noto Naskh Arabic"; font-weight: 400 700; src: url(${vfont("noto-naskh-arabic", "noto-naskh-arabic-arabic-wght-normal.woff2")}); }
 `;
 
 // The Kyphira symbol (design/logo/): ink flacon and smoke, the brand's brass flame.
@@ -35,8 +35,8 @@ const flacon = () => renderToStaticMarkup(React.createElement(KyphiraLogo, { for
 function card(family, lang) {
   const m = lang === "ar" ? ar : en;
   const rtl = lang === "ar";
-  const display = rtl ? "Amiri, Fraunces" : "Fraunces";
-  const ui = rtl ? "IBM Plex Sans Arabic, Inter Tight" : "Inter Tight";
+  const display = rtl ? "Noto Naskh Arabic, Newsreader" : "Newsreader";
+  const ui = rtl ? "IBM Plex Sans Arabic, Hanken Grotesk" : "Hanken Grotesk";
   return `<!doctype html><html lang="${lang}" dir="${rtl ? "rtl" : "ltr"}"><head><meta charset="utf-8"><style>
     ${FACES}
     * { margin: 0; box-sizing: border-box; }
@@ -46,7 +46,7 @@ function card(family, lang) {
     .eyebrow { font: 500 28px ${ui}; color: ${C.dim}; letter-spacing: ${rtl ? "0" : "0.15em"}; text-transform: uppercase; }
     .family { font: 400 108px ${display}; letter-spacing: ${rtl ? "0" : "-0.04em"}; color: ${C.ink}; margin-top: 18px; line-height: ${rtl ? 1.3 : 1.05}; }
     .row { display: flex; align-items: flex-end; justify-content: space-between; }
-    .brand { font: 400 52px ${display}; letter-spacing: -0.02em; color: ${C.ink}; } .tag { font: ${rtl ? "500 26px IBM Plex Sans Arabic" : "italic 400 26px Fraunces"}; color: ${C.inkSoft}; margin-top: 8px; }
+    .brand { font: 400 52px ${display}; letter-spacing: -0.02em; color: ${C.ink}; } .tag { font: ${rtl ? "500 26px IBM Plex Sans Arabic" : "italic 400 26px Newsreader"}; color: ${C.inkSoft}; margin-top: 8px; }
   </style></head><body><div class="frame"><div class="strip"></div>
     <div><div class="eyebrow">${m.recipe.eyebrow}</div><div class="family">${m.families[family].label}</div></div>
     <div class="row"><div><div class="brand">${m.brand}</div><div class="tag">${m.brandTagline}</div></div>${flacon()}</div>

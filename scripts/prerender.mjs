@@ -22,7 +22,7 @@ function write(file, html) {
 // The faces above the fold (headline, body, buttons, figures): preloaded so first paint already uses
 // them. Without this, the headline reflows when the display face arrives and
 // pushes the page down (measured CLS 0.11 on the home page on Slow 4G).
-const CRITICAL_FONTS = ["inter-tight-latin-wght-normal-", "fraunces-latin-opsz-normal-", "fraunces-latin-opsz-italic-", "ibm-plex-mono-latin-400-normal-"];
+const CRITICAL_FONTS = ["hanken-grotesk-latin-wght-normal-", "newsreader-latin-opsz-normal-", "newsreader-latin-opsz-italic-", "ibm-plex-mono-latin-400-normal-"];
 const assets = readdirSync(join(DIST, "assets"));
 const preloads = CRITICAL_FONTS.map((prefix) => {
   const file = assets.find((f) => f.startsWith(prefix) && f.endsWith(".woff2"));
@@ -41,7 +41,7 @@ const arabicOptional = arabicCssFiles.map((f) => readFileSync(join(DIST, "assets
 writeFileSync(join(DIST, "assets", "arabic-public.css"), arabicOptional);
 const arabicHead = [
   '<link rel="stylesheet" href="/assets/arabic-public.css" data-ar-fonts />',
-  ...assets.filter((f) => /^(ibm-plex-sans-arabic-arabic-(400|500|600)|amiri-arabic-400)-normal-.*\.woff2$/.test(f)).map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`),
+  ...assets.filter((f) => /^(ibm-plex-sans-arabic-arabic-(400|500|600)|noto-naskh-arabic-arabic-wght)-normal-.*\.woff2$/.test(f)).map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`),
 ].join("\n    ");
 
 function page(url, head) {

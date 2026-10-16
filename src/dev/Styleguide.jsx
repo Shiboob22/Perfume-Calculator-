@@ -5,12 +5,12 @@
 // The new type faces load here, not site-wide: switching the live site to
 // them is the Phase 2 re-skin, together with the font preloads (CLS).
 import React, { useState } from "react";
-import "@fontsource-variable/fraunces/opsz.css";
-import "@fontsource-variable/inter-tight/wght.css";
+import "@fontsource-variable/newsreader/opsz.css";
+import "@fontsource-variable/hanken-grotesk/wght.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-sans-arabic/arabic-400.css";
 import "@fontsource/ibm-plex-sans-arabic/arabic-600.css";
-import "@fontsource/amiri/arabic-400.css";
+import "../i18n/arabic-naskh.css";
 import { BRAND } from "../brand.js";
 import { COLORS, PALETTES } from "../lib/theme";
 import { contrastRatio, wcagGrade } from "../lib/contrast.js";
@@ -19,8 +19,8 @@ import { SiteHeader, SiteFooter } from "../components/SiteChrome";
 import LanguageToggle from "../components/LanguageToggle";
 import { Button, Card, Field, KyphiraLogo, Notice, ScaleReadout, SmokeLine } from "../components/kx";
 
-const DISPLAY = { fontFamily: "'Fraunces Variable', 'Amiri', Georgia, serif", fontVariationSettings: '"opsz" 144', fontWeight: 400 };
-const UI = { fontFamily: "'Inter Tight Variable', 'IBM Plex Sans Arabic', system-ui, sans-serif" };
+const DISPLAY = { fontFamily: "'Newsreader Variable', 'Noto Naskh Arabic Variable', Georgia, serif", fontVariationSettings: '"opsz" 144', fontWeight: 400 };
+const UI = { fontFamily: "'Hanken Grotesk Variable', 'IBM Plex Sans Arabic', system-ui, sans-serif" };
 
 const TAGLINES = [
   { en: BRAND.tagline.en, ar: BRAND.tagline.ar, chosen: true, why: "Names the three things the six rooms do. Three short imperatives; the Arabic is three imperatives too." },
@@ -128,13 +128,13 @@ export default function Styleguide() {
 
         <Section id="sg-type" title="Type">
           <div className="grid gap-6 md:grid-cols-2">
-            <Card title="Display: Fraunces" no={1}>
+            <Card title="Display: Newsreader" no={1}>
               <p className="text-5xl leading-tight" style={DISPLAY}>{ar ? "الفرن والميزان" : "Weigh it. Pour it."}</p>
               <p className="mt-2 text-sm" style={{ color: COLORS.dim }}>Variable serif with an optical-size axis. Large and sparing.</p>
             </Card>
-            <Card title="Interface: Inter Tight" no={2}>
+            <Card title="Interface: Hanken Grotesk" no={2}>
               <p className="text-base">{ar ? "الواجهة والنص: IBM Plex Sans Arabic" : "The quick brown flask pours twelve even grams."}</p>
-              <p className="mt-2 text-sm" style={{ color: COLORS.dim }}>Arabic: IBM Plex Sans Arabic, display Amiri, fallback Tajawal.</p>
+              <p className="mt-2 text-sm" style={{ color: COLORS.dim }}>Arabic: IBM Plex Sans Arabic, display Noto Naskh Arabic, fallback Tajawal.</p>
             </Card>
             <Card title="Measurements: IBM Plex Mono" no={3}>
               <p className="font-mono tabular-nums text-2xl" dir="ltr">23.75 g · 60.75 g · 84.50 g</p>

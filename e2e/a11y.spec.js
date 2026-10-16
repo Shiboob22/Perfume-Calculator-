@@ -35,7 +35,7 @@ for (const path of ["/", "/library/the-calculation", "/pricing"]) {
     await page.goto(path);
     await page.locator("h1").first().waitFor();
     await page.waitForLoadState("load");
-    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(16, 14, 10)");
+    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(21, 18, 15)");
     const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
     const summary = violations.map((v) => `${v.impact} ${v.id}: ${v.help} (${v.nodes.length}) e.g. ${v.nodes[0]?.target}`);
     expect(violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id), summary.join("\n")).toEqual([]);
