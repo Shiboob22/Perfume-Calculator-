@@ -174,3 +174,18 @@ summary::-webkit-details-marker { display: none; }
   html[dir="rtl"] .lib-rule { transform-origin: right; }
   .lib-lead { animation: lib-fade var(--m-slow) var(--ease-out) 1800ms both; }
 }
+
+/* The Salon profile header (Design/boards "Salon Board", 6e–6f): the third
+   place with cinematic motion. Glow 900 ms then an ambient drift; kicker,
+   catalogue number and monogram from 200 ms; name and handle from 500 ms
+   (rise 16 px); bio from 1.0 s (rise 10 px); stats and actions from 1.5 s. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes sal-rise16 { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes sal-rise10 { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes sal-drift { from { transform: translateX(-4%); } to { transform: translateX(4%); } }
+  .sal-glow { animation: lib-glow 900ms var(--ease-out) both, sal-drift 9s var(--ease-in-out) 900ms infinite alternate; }
+  .sal-fade { animation: lib-fade var(--m-slow) var(--ease-out) 200ms both; }
+  .sal-name { animation: sal-rise16 var(--m-slow) var(--ease-out) 500ms both; }
+  .sal-bio { animation: sal-rise10 var(--m-slow) var(--ease-out) 1000ms both; }
+  .sal-last { animation: sal-rise10 var(--m-slow) var(--ease-out) 1500ms both; }
+}

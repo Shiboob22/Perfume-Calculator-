@@ -70,6 +70,15 @@ const ATLAS_ROWS = [
   top_notes: ["Cardamom", "Iris"], middle_notes: ["Violet", "Papyrus"], base_notes: ["Sandalwood", "Amber"], perfumers: ["Ada Test"], source: "Perfume dataset", total: 8,
 }));
 
+// Salon posts and a profile (room screenshots only).
+const SALON_POSTS = [
+  ["Amber Study 07", "oriental", 50, 18, "Warm and resinous. Rested six weeks."], ["Labdanum Wash", "woody", 250, 15, "Dark, leathery, slow."], ["Cassia Morning", "fresh", 100, 10, "Bright cassia over a clean base."],
+  ["Rose Smoke 02", "floral", 30, 12, "Rose against smoke."], ["Kyphi No. 3", "oriental", 100, 20, "The reference batch."], ["Oud Wood Layer", "woody", 60, 25, "Layered over oud."],
+].map(([title, family, amount, pct, body], i) => ({
+  id: `c0000000-0000-4000-8000-0000000000${String(i + 1).padStart(2, "0")}`, kind: "recipe", title, body, family, handle: "nour_h", display_name: "Nour Hassan", likes: 400 - i * 60, liked: false, mine: false, status: "published",
+  created_at: new Date(Date.now() - i * 5 * DAY).toISOString(), snapshot: { amount, unit: "ml", concentration_pct: pct, oil_density: 0.95 },
+}));
+
 const PROFILE = { locale: "en", default_unit: "ml", default_bottle: 100, digits: "latn", onboarded_at: "2026-10-01T00:00:00Z" };
 
 async function signedIn(page, { onboarded = true } = {}) {
@@ -90,6 +99,9 @@ async function signedIn(page, { onboarded = true } = {}) {
     const url = route.request().url();
     if (url.includes("/auth/v1/user")) return json(route, USER);
     if (url.includes("/rest/v1/profiles")) return json(route, [onboarded ? PROFILE : { ...PROFILE, onboarded_at: null }]);
+    if (url.includes("/rpc/salon_feed")) return json(route, SALON_POSTS);
+    if (url.includes("/rpc/salon_profile")) return json(route, { user_id: USER.id, handle: "nour_h", display_name: "Nour Hassan", bio: "Weighs everything. Resin and amber studies, 20% in ethanol 96%. Notebook open since 2019.", is_public: true, posts: 24, followers: 1284, following: 187, i_follow: false, mine: false });
+    if (url.includes("/rest/v1/salon_profiles")) return json(route, [{ user_id: USER.id, handle: "me_here", display_name: "Preview", is_public: true }]);
     if (url.includes("/rpc/atlas_search")) return json(route, ATLAS_ROWS);
     if (url.includes("/rpc/is_admin")) return json(route, false);
     if (url.includes("/rpc/similar_fragrances")) return json(route, { basis: "accords", similar: ATLAS_ROWS.slice(1, 4), same_brand: [] });
@@ -122,7 +134,7 @@ const APP = {
 // VITE_FLAG_WARDROBE/ATLAS/SALON/NOSE=1 so the flagged rooms render.
 const ROOMS = {
   home: "/", bench: "/bench", journal: "/bench/journal", wardrobe: "/wardrobe", "wardrobe-collection": "/wardrobe?section=collection", library: "/library", "library-guide": "/library/at-the-bench",
-  atlas: "/atlas?q=a", "atlas-fragrance": "/atlas/fragrance/a0000000-0000-4000-8000-000000000008", salon: "/salon", nose: "/nose", signin: "/app", account: "/app/account",
+  atlas: "/atlas?q=a", "atlas-fragrance": "/atlas/fragrance/a0000000-0000-4000-8000-000000000008", salon: "/salon", "salon-profile": "/salon/u/nour_h", nose: "/nose", signin: "/app", account: "/app/account",
 };
 
 const browser = await chromium.launch(process.env.CHROMIUM_PATH

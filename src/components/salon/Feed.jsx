@@ -4,6 +4,7 @@ import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { getFeed } from "../../lib/salonApi";
 import Button from "../kx/Button";
+import Chip from "../kx/Chip";
 import PostCard from "./PostCard";
 
 const TABS = ["all", "recipe", "review", "following"];
@@ -12,7 +13,7 @@ const PAGE = 20;
 // The feed: everyone's public recipes and reviews, newest first, with the
 // kind filter and the people you follow. With `handle` it is one person's
 // posts (their profile page).
-export default function Feed({ handle = null, emptyKey = "salon.feed.empty" }) {
+export default function Feed({ handle = null, kind = null, emptyKey = "salon.feed.empty" }) {
   const { t } = useI18n();
   const [params, setParams] = useSearchParams();
   const tab = handle ? "all" : TABS.includes(params.get("tab")) ? params.get("tab") : "all";
@@ -22,9 +23,9 @@ export default function Feed({ handle = null, emptyKey = "salon.feed.empty" }) {
   const [failed, setFailed] = useState(false);
 
   const load = useCallback(async (before = null) => {
-    const page = await getFeed({ handle, kind: tab === "recipe" || tab === "review" ? tab : null, following: tab === "following", before, limit: PAGE });
+    const page = await getFeed({ handle, kind: handle ? kind : tab === "recipe" || tab === "review" ? tab : null, following: tab === "following", before, limit: PAGE });
     return page;
-  }, [handle, tab]);
+  }, [handle, tab, kind]);
 
   useEffect(() => {
     let live = true;
@@ -47,11 +48,7 @@ export default function Feed({ handle = null, emptyKey = "salon.feed.empty" }) {
       {!handle && (
         <div role="group" aria-label={t("salon.feed.tabsLabel")} className="flex flex-wrap gap-2 mb-5">
           {TABS.map((id) => (
-            <button key={id} type="button" aria-pressed={tab === id}
-              onClick={() => setParams(id === "all" ? {} : { tab: id }, { replace: true })}
-              className="px-3 min-h-[44px] text-sm border" style={{ borderColor: tab === id ? COLORS.forest : COLORS.field, color: tab === id ? COLORS.forestDeep : COLORS.inkSoft, background: tab === id ? COLORS.cardHi : "transparent" }}>
-              {t(`salon.feed.${id}`)}
-            </button>
+            <Chip key={id} pressed={tab === id} onClick={() => setParams(id === "all" ? {} : { tab: id }, { replace: true })}>{t(`salon.feed.${id}`)}</Chip>
           ))}
         </div>
       )}
@@ -60,12 +57,12 @@ export default function Feed({ handle = null, emptyKey = "salon.feed.empty" }) {
       {rows && rows.length === 0 && !failed && (
         <p className="text-sm" style={{ color: COLORS.inkSoft }}>
           {tab === "following" ? t("salon.feed.emptyFollowing") : t(emptyKey)}{" "}
-          {!handle && <Link to="/salon/new" className="underline underline-offset-2" style={{ color: COLORS.forestDeep }}>{t("salon.feed.writeFirst")}</Link>}
+          {!handle && <Link to="/salon/new" className="underline underline-offset-2" style={{ color: COLORS.actionText }}>{t("salon.feed.writeFirst")}</Link>}
         </p>
       )}
-      <ul className="grid gap-4 list-none p-0 m-0">
+      <ul className="grid gap-4 list-none p-0 m-0 md:grid-cols-2 xl:grid-cols-3">
         {(rows ?? []).map((p) => (
-          <li key={p.id}><PostCard post={p} onRemoved={(id) => setRows((r) => r.filter((x) => x.id !== id))} /></li>
+          <li key={p.id} className="min-w-0"><PostCard post={p} onRemoved={(id) => setRows((r) => r.filter((x) => x.id !== id))} /></li>
         ))}
       </ul>
       {more && <div className="mt-6"><Button variant="secondary" loading={busy} onClick={loadMore}>{t("salon.more")}</Button></div>}

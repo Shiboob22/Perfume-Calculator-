@@ -301,6 +301,7 @@ export default {
     },
   },
   salon: {
+    headline: "Recipes and reviews, shared.",
     title: "The Salon",
     lead: "Recipes and fragrance reviews that people choose to share. Read, like, follow, and share your own when you are ready. Everything of yours stays private until you make your profile public.",
     safety: "Recipes shared here are starting points, not guarantees: densities vary, so measure your own. Ethanol is highly flammable. Blend away from flames and heat.",
@@ -399,6 +400,7 @@ export default {
       removed: "Your Salon profile and posts are removed.",
     },
     profile: {
+      share: "Share", copied: "Link copied.", kinds: "Posts",
       notFound: "This profile is not available.",
       private: "Your profile is private. Only you can see it.",
       posts: "Posts",
