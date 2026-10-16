@@ -1244,6 +1244,7 @@ export default {
     traitWord: { aquatic: "مائي", powdery: "بودري", sweet: "حلاوة", smoky: "دخان", animalic: "نوتات حيوانية", leather: "جلد", green: "نوتات خضراء", spicy: "بهارات", floral: "زهري", fruity: "فاكهة", gourmand: "نوتات شهية", musky: "مسك" },
   },
   account: {
+    panes: { prefs: "الوحدات واللغة", plan: "الخطة", data: "البيانات والحساب" },
     link: "الحساب",
     title: "الحساب",
     signedInAs: "مسجّل الدخول باسم {email}",
@@ -1438,6 +1439,7 @@ export default {
     },
   },
   auth: {
+    panelSub: "المِنضدة والمكتبة ودفترك. حساب واحد.",
     loading: "جارٍ تحميل كيفيرا…",
     signIn: "تسجيل الدخول",
     heading: "سجّل الدخول إلى منضدتك.",

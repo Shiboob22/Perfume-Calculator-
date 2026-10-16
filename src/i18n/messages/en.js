@@ -1243,6 +1243,7 @@ export default {
     traitWord: { aquatic: "aquatic", powdery: "powdery", sweet: "sweetness", smoky: "smoke", animalic: "animalic notes", leather: "leather", green: "green notes", spicy: "spice", floral: "floral", fruity: "fruit", gourmand: "gourmand notes", musky: "musk" },
   },
   account: {
+    panes: { prefs: "Units and language", plan: "Plan", data: "Data and account" },
     link: "Account",
     title: "Account",
     signedInAs: "Signed in as {email}",
@@ -1437,6 +1438,7 @@ export default {
     },
   },
   auth: {
+    panelSub: "The Bench, the Library and your journal. One account.",
     loading: "Loading Kyphira…",
     signIn: "Sign in",
     heading: "Sign in to your bench.",

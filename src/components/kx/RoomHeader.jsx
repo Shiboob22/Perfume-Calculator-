@@ -8,10 +8,12 @@ export default function RoomHeader({ num, kicker, title, cat, children, classNam
   return (
     <div className={`flex flex-wrap items-end justify-between gap-6 ${className}`}>
       <div className="flex flex-col gap-2.5 min-w-0">
-        <span className="flex items-baseline gap-3 text-xs uppercase tracking-[0.14em] rtl:tracking-normal rtl:normal-case" style={{ color: COLORS.dim }}>
-          {num && <span dir="ltr" className="font-serif text-base tracking-[0.06em] normal-case" style={{ color: COLORS.actionText }}>{num}</span>}
-          {kicker}
-        </span>
+        {(num || kicker) && (
+          <span className="flex items-baseline gap-3 text-xs uppercase tracking-[0.14em] rtl:tracking-normal rtl:normal-case" style={{ color: COLORS.dim }}>
+            {num && <span dir="ltr" className="font-serif text-base tracking-[0.06em] normal-case" style={{ color: COLORS.actionText }}>{num}</span>}
+            {kicker}
+          </span>
+        )}
         <h1 className="font-serif font-light text-[40px] md:text-[64px] leading-[1.1] rtl:leading-[1.45] tracking-[-0.01em] rtl:tracking-normal" style={{ color: COLORS.ink }}>{title}</h1>
       </div>
       {(cat || children) && (
