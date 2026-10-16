@@ -36,7 +36,18 @@ Owner's answers before the pass (2026-10-16): light stays the default theme (dec
 
 ## Glossary terms without a handbook definition (owner to supply)
 
-Listed after the glossary commit; see the end of this file.
+The glossary quotes the guides and nothing else (`src/content/glossary.js`, tested verbatim). In this pass: reference density, concentration, volatility, projection, sillage, olfactory radius. The guides use these terms without a sentence that defines them; each needs a line from you (or from the books) before it can join:
+
+- **Tare** (the bench steps say what to do, not what it is)
+- **Longevity** (the guide lists what extends it)
+- **Maceration / rest** (rest days come from `tiers.js`, not a handbook; a known content gap)
+- **Perfumer's alcohol / 96% ethanol**
+- **Fragrance oil / concentrate**
+- **EDT, EDP, EDP Intense, Extrait** as named strengths (the Formulation volume names them; the Application volume says they are "not simply strength levels")
+- **Accord**, **top / heart / base notes**, **dry-down**
+- **Pulse points**, **layering**
+
+The Arabic glossary follows the Arabic guide drafts, so it waits on the same review.
 
 ## Quality gates
 

@@ -273,7 +273,6 @@ export default {
     heading: "From the catalog",
     matched: "Matches: {list}",
     year: "{year}",
-    openAtlas: "Open in the Atlas",
     shelf: {
       title: "Already on your shelf",
       lead: "Bottles in your Wardrobe that fit, matched by the same accords. They are read here, never sent to the AI.",

@@ -106,7 +106,11 @@ test("the feed shows posts with the safety copy, filters by kind, and says when 
   await expect(page.getByRole("heading", { level: 1, name: en.salon.title })).toBeVisible();
   await expect(page.getByText(en.salon.safety)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Oud Nights" })).toBeVisible();
-  await expect(page.getByText("100 mL · 25%")).toBeVisible();
+  // The blend as a labelled grid: batch, strength, oil density, family.
+  const page1 = page.getByRole("article", { name: "Oud Nights" });
+  await expect(page1.getByRole("definition").filter({ hasText: "100 mL" })).toBeVisible();
+  await expect(page1.getByRole("definition").filter({ hasText: "25%" })).toBeVisible();
+  await expect(page1.getByText(en.salon.post.grid.density)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Fresh and clean" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Ada" }).first()).toHaveAttribute("href", "/salon/u/ada_p");
   await expect(page.getByRole("link", { name: en.salon.post.openBench })).toHaveAttribute("href", /\/bench\?size=100&unit=ml&conc=25&family=woody&name=Oud\+Nights/);

@@ -76,7 +76,7 @@ test("shows the AI-and-privacy notice, asks, and lists catalog picks with the ac
   expect(asked).toEqual([{ task: "nose", question: "warm and woody for winter", locale: "en" }]);
 });
 
-test("a starter sends its own sentence; the Atlas link shows only when the Atlas is on", async ({ page }) => {
+test("a starter sends its own sentence; a pick links to the Atlas only when the Atlas is on", async ({ page }) => {
   await flags(page, "nose");
   await signIn(page);
   const asked = await fakeApi(page);
@@ -84,11 +84,11 @@ test("a starter sends its own sentence; the Atlas link shows only when the Atlas
   await page.getByRole("button", { name: en.nose.starters.fresh }).click();
   await expect(page.getByText("Amber Wood")).toBeVisible();
   expect(asked[0].question).toBe(en.nose.starters.fresh);
-  await expect(page.getByRole("link", { name: en.nose.openAtlas })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Amber Wood" })).toHaveCount(0);
   await flags(page, "atlas");
   await page.reload();
   await page.getByRole("button", { name: en.nose.starters.warm }).click();
-  await expect(page.getByRole("link", { name: en.nose.openAtlas }).first()).toHaveAttribute("href", /\/atlas\/fragrance\/8888/);
+  await expect(page.getByRole("link", { name: "Amber Wood" })).toHaveAttribute("href", /\/atlas\/fragrance\/8888/);
 });
 
 test("a too-short question is stopped in the browser", async ({ page }) => {
