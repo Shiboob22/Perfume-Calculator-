@@ -4,13 +4,16 @@ import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { deletePost, like, report, unlike } from "../../lib/salonApi";
 import { profileHref } from "../../lib/salon/paths";
-import { authorName, benchHref, recipeLine, REASONS } from "../../lib/salon/validate";
+import { authorName, benchHref, REASONS } from "../../lib/salon/validate";
+import { UNIT_LABELS } from "../../lib/calcPrefill";
 import { flagOn } from "../../lib/flags";
 import Button from "../kx/Button";
-import { Chip, SelectField, inputClass, inputStyle } from "../wardrobe/ui";
+import { SelectField, inputClass, inputStyle } from "../wardrobe/ui";
 
-// One post in the feed or on a profile: a recipe's blend or a review, with
-// like, report (anyone else's) and delete (your own).
+// One post in the feed or on a profile, laid out as a notebook page rather
+// than a social card: a running head (kind, date), the title in the serif,
+// the blend as a ruled grid of labelled figures, the note as prose. Like,
+// report (anyone else's) and delete (your own) stay quiet at the foot.
 export default function PostCard({ post, onRemoved }) {
   const { t, locale } = useI18n();
   const [liked, setLiked] = useState(post.liked);
@@ -44,37 +47,47 @@ export default function PostCard({ post, onRemoved }) {
   }
 
   return (
-    <article className="p-5" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }} aria-labelledby={`post-${post.id}`}>
-      <div className="flex flex-wrap items-center gap-2 text-sm" style={{ color: COLORS.inkSoft }}>
-        <Chip>{t(`salon.post.${post.kind}`)}</Chip>
-        {post.family && <Chip>{t(`families.${post.family}.label`)}</Chip>}
-        <span>{t("salon.post.by")} <Link to={profileHref(post.handle)} className="underline underline-offset-2" style={{ color: COLORS.ink }}>{authorName(post)}</Link></span>
-        <span aria-hidden="true">·</span>
-        <time dateTime={post.created_at}>{when}</time>
+    <article className="pt-4 pb-6" style={{ borderTop: `1px solid ${COLORS.ink}` }} aria-labelledby={`post-${post.id}`}>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-xs" style={{ color: COLORS.dim }}>
+        <span className="uppercase tracking-[0.15em] rtl:tracking-normal">{t(`salon.post.${post.kind}`)}</span>
+        <time dateTime={post.created_at} className="font-mono tabular-nums">{when}</time>
       </div>
-      <h3 id={`post-${post.id}`} className="font-serif text-xl mt-2" style={{ color: COLORS.ink }}>{post.title}</h3>
-      {post.kind === "recipe" && (
-        <p className="mt-1 text-sm">
-          <span className="font-mono" dir="ltr" style={{ color: COLORS.ink }}>{recipeLine(post.snapshot)}</span>
-          {post.snapshot?.oil_density && <span style={{ color: COLORS.dim }}> · {t("salon.post.oilDensity", { value: post.snapshot.oil_density })}</span>}
-        </p>
+      <h3 id={`post-${post.id}`} className="font-serif italic text-2xl sm:text-3xl mt-3" style={{ color: COLORS.ink }}>{post.title}</h3>
+      <p className="mt-1 text-sm" style={{ color: COLORS.inkSoft }}>
+        {t("salon.post.by")} <Link to={profileHref(post.handle)} className="underline underline-offset-2" style={{ color: COLORS.ink }}>{authorName(post)}</Link>
+      </p>
+      {post.kind === "recipe" && post.snapshot && (
+        <dl className="mt-4 grid grid-cols-2 sm:grid-cols-4" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+          {[
+            ["size", `${post.snapshot.amount} ${UNIT_LABELS[post.snapshot.unit] ?? post.snapshot.unit}`],
+            ["strength", `${post.snapshot.concentration_pct}%`],
+            post.snapshot.oil_density ? ["density", `${post.snapshot.oil_density} g/mL`] : null,
+            post.family ? ["family", t(`families.${post.family}.label`)] : null,
+          ].filter(Boolean).map(([k, v]) => (
+            <div key={k} className="py-2 pe-3" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+              <dt className="text-xs" style={{ color: COLORS.dim }}>{t(`salon.post.grid.${k}`)}</dt>
+              <dd className={k === "family" ? "text-sm" : "font-mono tabular-nums text-lg"} dir={k === "family" ? undefined : "ltr"} style={{ color: COLORS.ink, textAlign: "start" }}>{v}</dd>
+            </div>
+          ))}
+        </dl>
       )}
       {post.kind === "review" && (
-        <p className="mt-1 text-sm" style={{ color: COLORS.inkSoft }}>
+        <p className="mt-2 text-sm flex flex-wrap items-baseline gap-x-3" style={{ color: COLORS.inkSoft }}>
           {flagOn("atlas") && post.fragrance_id
             ? <Link to={`/atlas/fragrance/${post.fragrance_id}`} className="underline underline-offset-2" style={{ color: COLORS.ink }}>{post.fragrance_name}</Link>
             : <span style={{ color: COLORS.ink }}>{post.fragrance_name}</span>}
-          {" · "}<span aria-label={t("salon.post.rating", { n: post.rating })}>{"★".repeat(post.rating)}{"☆".repeat(5 - post.rating)}</span>
+          <span aria-label={t("salon.post.rating", { n: post.rating })} style={{ color: COLORS.actionText }}>{"★".repeat(post.rating)}{"☆".repeat(5 - post.rating)}</span>
         </p>
       )}
-      {post.body && <p className="mt-3 whitespace-pre-line max-w-prose" style={{ color: COLORS.ink }}>{post.body}</p>}
+      {post.body && <p className="mt-4 font-serif text-lg leading-relaxed whitespace-pre-line max-w-prose" style={{ color: COLORS.ink }}>{post.body}</p>}
       {hidden && <p role="status" className="mt-3 text-sm" style={{ color: COLORS.danger }}>{t("salon.post.hiddenNote")}</p>}
 
-      <div className="flex flex-wrap items-center gap-3 mt-4">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-4">
         {!hidden && (
-          <Button variant="secondary" aria-pressed={liked} onClick={toggleLike} disabled={post.mine}>
-            {liked ? t("salon.post.unlike") : t("salon.post.like")} <span className="font-mono ms-1" dir="ltr">{likes}</span>
-          </Button>
+          <button type="button" aria-pressed={liked} onClick={toggleLike} disabled={post.mine}
+            className="inline-flex items-center gap-1.5 text-sm min-h-[44px] underline underline-offset-2 disabled:no-underline disabled:cursor-default" style={{ color: liked ? COLORS.actionText : COLORS.inkSoft }}>
+            {liked ? t("salon.post.unlike") : t("salon.post.like")} <span className="font-mono tabular-nums" dir="ltr">{likes}</span>
+          </button>
         )}
         {post.kind === "recipe" && !hidden && <Link to={benchHref(post)} className="text-sm underline underline-offset-2 min-h-[44px] inline-flex items-center" style={{ color: COLORS.forestDeep }}>{t("salon.post.openBench")}</Link>}
         {!post.mine && !hidden && <button type="button" onClick={() => setMode(mode === "report" ? null : "report")} className="text-sm underline underline-offset-2 min-h-[44px]" style={{ color: COLORS.inkSoft }}>{t("salon.post.report")}</button>}
