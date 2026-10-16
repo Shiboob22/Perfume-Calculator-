@@ -82,9 +82,40 @@ const APP = {
   search: "/app/search", account: "/app/account", labels: "/app/labels?batch=11111111-1111-4111-8111-111111111111", bench: "/app/bench",
 };
 
+// KYPHIRA_ROOMS=1: every room, dark edition, 375 and 1440 wide, English and
+// Arabic, for comparing with the design boards (Design/boards/). Build with
+// VITE_FLAG_WARDROBE/ATLAS/SALON/NOSE=1 so the flagged rooms render.
+const ROOMS = {
+  home: "/", bench: "/bench", journal: "/bench/journal", wardrobe: "/wardrobe", library: "/library", "library-guide": "/library/at-the-bench",
+  atlas: "/atlas", salon: "/salon", nose: "/nose", signin: "/app", account: "/app/account",
+};
+
 const browser = await chromium.launch(process.env.CHROMIUM_PATH
   ? { executablePath: process.env.CHROMIUM_PATH }
   : { channel: process.env.CI ? undefined : "chrome" });
+if (process.env.KYPHIRA_ROOMS) {
+  const only = process.env.ROOMS_ONLY?.split(",");
+  for (const [size, width, height] of [["375", 375, 812], ["1440", 1440, 900]]) {
+    for (const lang of ["en", "ar"]) {
+      for (const [name, path] of Object.entries(ROOMS)) {
+        if (only && !only.includes(name)) continue;
+        const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, serviceWorkers: "block", reducedMotion: "reduce" });
+        const page = await context.newPage();
+        await page.addInitScript((l) => { globalThis.localStorage.setItem("theme", "dark"); globalThis.localStorage.setItem("sh-locale", l); }, lang);
+        if (!["home", "library", "library-guide", "signin"].includes(name)) await signedIn(page);
+        await page.goto(base + (lang === "ar" && ["home", "library", "library-guide"].includes(name) ? "/ar" + (path === "/" ? "" : path) : path), { waitUntil: "networkidle" }).catch(() => {});
+        await page.evaluate(() => globalThis.document.fonts.ready);
+        await page.waitForTimeout(400);
+        mkdirSync(`${out}/${name}`, { recursive: true });
+        await page.screenshot({ path: `${out}/${name}/${size}-${lang}.png`, fullPage: true });
+        await context.close();
+      }
+    }
+  }
+  await browser.close();
+  console.log(`screenshots: ${out}`);
+  process.exit(0);
+}
 for (const [size, width, height] of [["phone", 390, 844], ["desktop", 1280, 900]]) {
   const shoot = async (name, path, setup) => {
     const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, serviceWorkers: "block", reducedMotion: "reduce" }); // full-page shots never scroll, so scroll-tied reveals would stay hidden

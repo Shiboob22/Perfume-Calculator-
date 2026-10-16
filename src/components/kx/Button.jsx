@@ -19,7 +19,7 @@ export default function Button({ variant = "primary", size = "md", as: Tag = "bu
       disabled={Tag === "button" ? off : undefined}
       aria-disabled={off || undefined}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center gap-2 font-medium rounded-none transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${SIZES[size]} ${off ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 font-medium rounded-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${SIZES[size]} ${off ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"} ${className}`}
       style={{ ...VARIANTS[variant], ...style }}
       {...rest}
     >

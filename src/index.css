@@ -7,8 +7,11 @@
 @font-face { font-family: "Newsreader Fallback"; src: local("Georgia"); size-adjust: 96.8%; ascent-override: 76.4%; descent-override: 26.9%; line-gap-override: 0%; }
 @font-face { font-family: "Newsreader Fallback"; font-style: italic; src: local("Georgia Italic"), local("Georgia-Italic"); size-adjust: 89.5%; ascent-override: 82.7%; descent-override: 29%; line-gap-override: 0%; }
 
+:root { --m-fast: 150ms; --m-base: 250ms; --m-slow: 600ms; --ease-out: cubic-bezier(0.22, 1, 0.36, 1); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); }
+
 body {
   margin: 0;
+  font-variant-numeric: tabular-nums; /* figures line up in columns: grams, percentages, days */
   background: var(--c-paper);
   color: var(--c-ink);
   font-family: "Hanken Grotesk Variable", "IBM Plex Sans Arabic", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
@@ -106,7 +109,7 @@ html[dir="rtl"] .read-progress { transform-origin: right; }
 
 /* The live bench: pour columns and the scale's readout. */
 /* Figures change at once: nothing animates the digits, so they never read late. */
-.pour { transform-origin: bottom; transition: transform 240ms cubic-bezier(.2,0,0,1); }
+.pour { transform-origin: bottom; transition: transform var(--m-base) var(--ease-out); }
 .readout { font-variant-numeric: tabular-nums; }
 
 /* Turning a page between guides (View Transitions, where supported). */
@@ -123,10 +126,12 @@ html[dir="rtl"] .uppercase { text-transform: none; }
    foot of the screen, so a field that takes focus scrolls clear of them. */
 @media (max-width: 767px) { html { scroll-padding-bottom: 160px; } }
 
-/* Hover and colour changes ease at 180ms; fills and bars at 240ms (UI motion stays within 150–250ms). */
-a, button, summary { transition: color 180ms cubic-bezier(.2,0,0,1), background-color 180ms cubic-bezier(.2,0,0,1), border-color 180ms cubic-bezier(.2,0,0,1); }
-.fill-anim { transition: height 240ms cubic-bezier(.2,0,0,1), width 240ms cubic-bezier(.2,0,0,1), transform 240ms cubic-bezier(.2,0,0,1), y 240ms cubic-bezier(.2,0,0,1); }
-*:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 3px; }
+/* Motion tokens (Design System VI): fast 150 ms for hover and focus, base 250 ms for fills and bars. */
+a, button, summary { transition: color var(--m-fast) var(--ease-out), background-color var(--m-fast) var(--ease-out), border-color var(--m-fast) var(--ease-out); }
+.fill-anim { transition: height var(--m-base) var(--ease-out), width var(--m-base) var(--ease-out), transform var(--m-base) var(--ease-out), y var(--m-base) var(--ease-out); }
+/* Focus: 2 px resin outline, 2 px offset. 2 px text-colour outline on resin fills. */
+*:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+.on-resin:focus-visible, [data-fill="resin"]:focus-visible { outline-color: var(--c-ink); }
 summary::-webkit-details-marker { display: none; }
 
 /* Kyphira smoke line: a slow horizontal drift (a divider is still; a loading line moves). */
@@ -147,94 +152,6 @@ summary::-webkit-details-marker { display: none; }
 @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
 @keyframes sheetFade { from { opacity: 0; } to { opacity: 1; } }
 
-/* ───────── The Compounding: the home page's scroll scene ─────────
-   Scroll is time. Every mark is a pure function of scroll position, in one of
-   three ways, and the keyframes are shared:
-   1. where the browser has scroll-driven animations (@supports below), each
-      mark runs on the view timeline of its nearest [data-vt] box, and the
-      live scale runs on the scene's;
-   2. elsewhere, scrollFallback() writes --vp (per box) and --progress (scene)
-      once a frame and the same keyframes are held paused at that point;
-   3. under prefers-reduced-motion, or before any of that, nothing moves: the
-      scene is the static vertical layout, with no parallax and no smoke.
-   Only transform and opacity animate (the scale's counter animates a number
-   inside a 14px strip). Distances, ranges and easing come from
-   src/lib/compounding/config.js through custom properties. */
-@property --cg { syntax: "<integer>"; inherits: true; initial-value: 0; }
-@property --gw { syntax: "<integer>"; inherits: true; initial-value: 0; }
-@property --gf { syntax: "<integer>"; inherits: true; initial-value: 0; }
-
-[data-compounding] { position: relative; view-timeline: --cmp-scene block; }
-[data-vt] { view-timeline: --v block; }
-
-/* At rest: the mass, no loose grains, no haze, the per-stage scale. */
-.cmp-live { display: none; }
-.m-merge { opacity: 0; }
-.cmp-veil { opacity: 0; }
-@media (prefers-reduced-motion: reduce) { .cmp-smoke { display: none; } }
-.cmp-canvas { display: none; }
-.cmp-smoke[data-canvas] .cmp-canvas { display: block; }
-.cmp-smoke[data-canvas] .cmp-strokes { display: none; }
-/* The palette shift: each stage ends in a band that grades its ground into the next. No text sits in it. */
-.cmp-band { position: absolute; inset-inline: 0; bottom: 0; height: var(--band); pointer-events: none; }
-[data-stage][data-next] { padding-bottom: var(--band); }
-
-/* Which mark runs which keyframes. */
-.m-parallax { --kf: cmp-parallax; }
-.m-drift { --kf: cmp-drift; }
-.m-plate { --kf: cmp-plate; }
-.m-grain { --kf: cmp-grain; }
-.m-merge { --kf: cmp-merge; }
-.m-mass { --kf: cmp-mass; transform-box: fill-box; transform-origin: 50% 100%; }
-.m-ember { --kf: cmp-ember; }
-.m-smoke { --kf: cmp-smoke; }
-.m-clear { --kf: cmp-clear; }
-.m-wisp { --kf: cmp-wisp; }
-.m-veil { --kf: cmp-veil; }
-.m-grain, .m-merge { transform-box: fill-box; transform-origin: center; }
-
-@keyframes cmp-parallax { to { transform: translateY(var(--m-parallax)); } }
-@keyframes cmp-drift { from { transform: translateY(var(--m-drift)); } }
-@keyframes cmp-plate { from { opacity: 0; transform: translateY(var(--m-plate)); } }
-@keyframes cmp-grain { from { opacity: 0; transform: translateY(calc(var(--m-grain) * -1)); } }
-@keyframes cmp-merge { from { opacity: 1; } to { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.25); } }
-@keyframes cmp-mass { from { opacity: 0; transform: scale(.55, .3); } }
-@keyframes cmp-ember { from { opacity: 0; transform: scale(.15); } }
-@keyframes cmp-smoke { from { opacity: 0; transform: translateY(var(--m-smoke)); } }
-@keyframes cmp-clear { to { opacity: 0; } }
-@keyframes cmp-wisp { from { opacity: 0; transform: translateY(var(--m-wisp)) scale(.94); } }
-@keyframes cmp-veil { from { opacity: 1; } to { opacity: 0; transform: translateY(-100%); } }
-@keyframes cmp-fill { from { transform: scaleY(0); } }
-@keyframes cmp-tick { from { transform: translateY(100%); } }
-@keyframes cmp-grams { from { --cg: 0; } to { --cg: var(--cg-max); } }
-
-/* The live scale (a dark strip, so it reads on every stage's ground). */
-.cmp-live { position: absolute; inset-block: 0; inset-inline-start: 4px; width: 10px; z-index: 20; pointer-events: none; }
-.cmp-stick { position: sticky; top: 24px; height: calc(100svh - 48px); display: flex; flex-direction: column; align-items: flex-start; }
-.cmp-track { position: relative; flex: 1; width: 10px; overflow: clip; background: rgb(16 14 10 / .88); }
-.cmp-track::before { content: ""; position: absolute; inset-block: 0; inset-inline-start: 50%; width: 1px; background: rgb(246 242 234 / .3); }
-.cmp-fill { position: absolute; inset-block: 0; inset-inline-start: calc(50% - 1px); width: 3px; background: #E3A857; transform-origin: bottom; }
-.cmp-tickbox { position: absolute; inset: 0; }
-.cmp-tick { height: 1px; width: 10px; background: #F6F2EA; }
-.cmp-read { margin-top: 6px; padding: 2px 3px; background: rgb(16 14 10 / .88); color: #F6F2EA; font: 10px/1 "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; white-space: nowrap;
-  --gw: calc(var(--cg) / 100 - 0.5); --gf: calc(var(--cg) - var(--gw) * 100); counter-reset: cmpw var(--gw) cmpf var(--gf); }
-.cmp-read::before { content: counter(cmpw) "." counter(cmpf, decimal-leading-zero) "\2009g"; }
-
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    [data-compounding] .m { animation: var(--kf) var(--m-ease) both; animation-timeline: --v; animation-range: cover calc(var(--a) * 100%) cover calc(var(--b) * 100%); }
-    [data-compounding] .cmp-live { display: block; }
-    [data-compounding] .cmp-static { display: none; }
-    /* The scale follows the whole scene: 0 with its top at the top of the screen, 1 with its foot at the foot. */
-    [data-compounding] .cmp-fill, [data-compounding] .cmp-tickbox, [data-compounding] .cmp-read { animation-timing-function: linear; animation-fill-mode: both; animation-timeline: --cmp-scene; animation-range: cover 100vh cover calc(100% - 100vh); }
-    [data-compounding] .cmp-fill { animation-name: cmp-fill; }
-    [data-compounding] .cmp-tickbox { animation-name: cmp-tick; }
-    [data-compounding] .cmp-read { animation-name: cmp-grams; animation-duration: 1ms; }
-  }
-  [data-compounding][data-fallback] .m { animation: var(--kf) 1s var(--m-ease) both paused; animation-delay: calc(-1s * clamp(0, (var(--vp, 0) - var(--a)) / (var(--b) - var(--a)), 1)); }
-  [data-compounding][data-fallback] .cmp-live { display: block; }
-  [data-compounding][data-fallback] .cmp-static { display: none; }
-  [data-compounding][data-fallback] .cmp-fill { transform: scaleY(var(--progress, 0)); }
-  [data-compounding][data-fallback] .cmp-tickbox { transform: translateY(calc((1 - var(--progress, 0)) * 100%)); }
-  [data-compounding][data-fallback] .cmp-read { --cg: calc(var(--progress, 0) * var(--cg-max)); }
-}
+/* The Compounding hero's room links: a hairline that turns resin on hover and focus. */
+.hero-room:hover { border-top-color: #D4924A !important; }
+.hero-room:focus-visible { outline: 2px solid #D4924A; outline-offset: 2px; }

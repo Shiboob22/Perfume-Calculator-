@@ -64,7 +64,7 @@ function Block({ block, rule, marked }) {
       <ol className="my-6 space-y-4">
         {block.steps.map((s, i) => (
           <li key={s.title} id={s.id} className="flex gap-4 scroll-mt-6">
-            <span className="shrink-0 w-8 h-8 rounded-none grid place-items-center font-mono text-sm"
+            <span className="shrink-0 w-8 h-8 rounded-sm grid place-items-center font-mono text-sm"
               style={{ border: `1px solid ${COLORS.amberDeep}`, color: COLORS.actionText }}>{i + 1}</span>
             <span>
               <span className="block font-semibold" style={{ color: COLORS.forestDeep }}>{s.title}</span>
@@ -115,8 +115,8 @@ function Block({ block, rule, marked }) {
   if (block.evidence) {
     const color = TONE[block.evidence.tone] || COLORS.inkSoft;
     return (
-      <div className="my-4 p-4 rounded-none" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
-        <span className="inline-block px-2 py-0.5 rounded-none font-mono text-[10px] uppercase tracking-[0.14em]" style={{ border: `1px solid ${color}`, color }}>
+      <div className="my-4 p-4 rounded-sm" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
+        <span className="inline-block px-2 py-0.5 rounded-sm font-mono text-[10px] uppercase tracking-[0.14em]" style={{ border: `1px solid ${color}`, color }}>
           {block.evidence.label}
         </span>
         {block.title && <p className="mt-2 font-semibold" style={{ color: COLORS.forestDeep }}>{block.title}</p>}
@@ -286,7 +286,7 @@ export default function GuidePage() {
 
       {guide.benchCta && (
         <p className="mt-10">
-          <a href="/bench?ref=guide" className="inline-block px-5 py-3 rounded-none font-semibold"
+          <a href="/bench?ref=guide" className="inline-block px-5 py-3 rounded-sm font-semibold"
             style={{ background: COLORS.amber, color: COLORS.onAmber }}>
             {t("site.guides.benchCta")}
           </a>
@@ -294,7 +294,7 @@ export default function GuidePage() {
         </p>
       )}
       {calcHref && (
-        <a href={calcHref} className="inline-block mt-10 px-5 py-3 rounded-none font-semibold"
+        <a href={calcHref} className="inline-block mt-10 px-5 py-3 rounded-sm font-semibold"
           style={{ background: COLORS.amber, color: COLORS.onAmber }}>
           {t("site.guides.openCalc")}
         </a>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#0E0C0A}a{color:#D4924A}a:hover{color:#EDE4D6}</style>
+</helmet>
+
+<section data-screen-label="Wardrobe motion" style="padding:96px;display:flex;flex-direction:column;gap:48px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 3 · II · The Wardrobe</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">Key moment: logging a wear</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A;max-width:760px">Quiet motion. The bottle drops by the sprays you took, the log gains a row, one line confirms. Live: <a href="Wardrobe.dc.html">Wardrobe</a>.</p>
+  </div>
+  <div id="3e" style="display:flex;flex-direction:column;gap:24px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">3e · Storyboard, desktop EN</span>
+    <div style="display:grid;grid-template-columns:repeat(3, 576px);gap:32px 24px">
+      <sc-for list="{{ frames }}" as="f" hint-placeholder-count="3">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="width:576px;height:400px;overflow:hidden;border:1px solid #3B332B"><div style="width:1440px;zoom:0.4"><dc-import name="Wardrobe" lang="en" init-view="{{ f.view }}" init-logged="{{ f.logged }}" hint-size="1440px,1000px"></dc-import></div></div>
+          <div style="display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px">
+            <span style="font-family:'Newsreader',serif;font-size:22px;color:#D4924A">{{ f.n }}</span>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline"><span style="font-size:17px;font-weight:500">{{ f.title }}</span><span style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums">{{ f.time }}</span></div>
+              <span style="font-size:15px;line-height:1.5;color:#A3968A">{{ f.body }}</span>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div id="3f" style="display:flex;flex-direction:column;gap:16px;width:1100px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">3f · Motion spec</span>
+    <div role="table" style="display:flex;flex-direction:column;font-size:15px;font-variant-numeric:tabular-nums;border-top:1px solid #A3968A">
+      <div role="row" style="display:grid;grid-template-columns:300px 130px 120px minmax(0,1fr);gap:16px;padding:12px 0;color:#A3968A;font-size:12px;letter-spacing:0.12em;text-transform:uppercase"><span>Element</span><span>Duration</span><span>Easing</span><span>Trigger</span></div>
+      <sc-for list="{{ spec }}" as="r" hint-placeholder-count="6">
+        <div role="row" style="display:grid;grid-template-columns:300px 130px 120px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid #3B332B"><span>{{ r.el }}</span><span>{{ r.dur }}</span><span style="color:#D4924A">{{ r.ease }}</span><span style="color:#A3968A">{{ r.trig }}</span></div>
+      </sc-for>
+    </div>
+    <p style="margin:0;font-size:14px;color:#A3968A;line-height:1.6">Reduced motion: gauge and row appear in their final state, status shows at once. Tokens in <a href="Design System.dc.html">Design System</a>.</p>
+  </div>
+</section>
+
+<section data-screen-label="Wardrobe screens" style="padding:96px;display:flex;flex-direction:column;gap:64px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A;border-top:1px solid #3B332B">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 3 · Screens</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">The Wardrobe: 1440 and 375, EN and AR</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A">Collection with bottle detail, wear log, and the what-to-wear picker. Frames are live.</p>
+  </div>
+
+  <sc-for list="{{ rows }}" as="row" hint-placeholder-count="3">
+    <div style="display:flex;flex-wrap:wrap;gap:80px;align-items:flex-start">
+      <sc-for list="{{ row.items }}" as="it" hint-placeholder-count="4">
+        <div id="{{ it.id }}" style="display:flex;flex-direction:column;gap:16px">
+          <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">{{ it.label }}</span>
+          <div style="width:{{ it.w }}px;height:{{ it.h }}px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Wardrobe" lang="{{ it.lang }}" init-view="{{ it.view }}" init-sel="{{ it.sel }}" hint-size="{{ it.hint }}"></dc-import></div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-for>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const mk = (id, label, view, lang, mobile, h, sel) => ({ id, label, view, lang, sel, w: mobile ? 375 : 1440, h, hint: (mobile ? 375 : 1440) + 'px,' + h + 'px' });
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      frames: [
+        { n:'1', view:'collection', logged:false, time:'0 ms', title:'Bottle selected', body:'Santal 33 · 31.0 / 50 ml. Sprays set to 4, shown as ≈ 0.4 ml.' },
+        { n:'2', view:'collection', logged:true, time:'tap + 250 ms', title:'Logged', body:'Gauge falls to 30.6 ml, ease-out. Wears 14 to 15. One status line with Undo, stays 6 s.' },
+        { n:'3', view:'log', logged:true, time:'tab + 250 ms', title:'Row in the log', body:'New row at the top, today. Row fades in 250 ms with a Surface 1 ground that clears after 2 s.' },
+      ],
+      spec: [
+        { el:'Remaining gauge', dur:'250 ms (base)', ease:'ease-out', trig:'Log a wear' },
+        { el:'Status line', dur:'250 ms (base)', ease:'ease-out', trig:'Log a wear. Auto-dismiss 6 s' },
+        { el:'Log row', dur:'250 ms (base)', ease:'ease-out', trig:'Log tab opened after a wear' },
+        { el:'Plate selection', dur:'150 ms (fast)', ease:'ease-out', trig:'Hover, press, focus' },
+        { el:'Family chips', dur:'150 ms (fast)', ease:'ease-out', trig:'Toggle' },
+        { el:'Picker ranking', dur:'Instant', ease:'none', trig:'Temperature or occasion changes. No reorder animation' },
+      ],
+      rows: [
+        { items: [mk('3a','3a · Collection · Desktop 1440 · EN','collection','en',false,1500,0), mk('3b','3b · Collection · Desktop 1440 · AR','collection','ar',false,1500,0), mk('3c','3c · Collection · Mobile 375 · EN','collection','en',true,2800,3), mk('3d','3d · Collection · Mobile 375 · AR','collection','ar',true,2800,3)] },
+        { items: [mk('3g','3g · Wear log · Desktop 1440 · EN','log','en',false,1300,0), mk('3h','3h · Wear log · Desktop 1440 · AR','log','ar',false,1300,0), mk('3i','3i · Wear log · Mobile 375 · EN','log','en',true,2000,0), mk('3j','3j · Wear log · Mobile 375 · AR','log','ar',true,2000,0)] },
+        { items: [mk('3k','3k · Tonight · Desktop 1440 · EN','pick','en',false,1000,0), mk('3l','3l · Tonight · Desktop 1440 · AR','pick','ar',false,1000,0), mk('3m','3m · Tonight · Mobile 375 · EN','pick','en',true,1500,0), mk('3n','3n · Tonight · Mobile 375 · AR','pick','ar',true,1500,0)] },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

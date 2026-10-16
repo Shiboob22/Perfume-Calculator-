@@ -11,8 +11,8 @@ function Fallback({ onRetry }) {
         <h1 className="font-serif italic text-3xl mb-3" style={{ color: COLORS.forestDeep }}>{t("app.crash.title")}</h1>
         <p className="text-sm mb-6" style={{ color: COLORS.inkSoft }}>{t("app.crash.text")}</p>
         <div className="flex gap-3 justify-center">
-          <button type="button" onClick={onRetry} className="px-4 py-2 rounded-none text-sm" style={{ background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.line}` }}>{t("app.crash.retry")}</button>
-          <button type="button" onClick={() => window.location.reload()} className="px-4 py-2 rounded-none text-sm font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("app.crash.reload")}</button>
+          <button type="button" onClick={onRetry} className="px-4 py-2 rounded-sm text-sm" style={{ background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.line}` }}>{t("app.crash.retry")}</button>
+          <button type="button" onClick={() => window.location.reload()} className="px-4 py-2 rounded-sm text-sm font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("app.crash.reload")}</button>
         </div>
       </div>
     </div>

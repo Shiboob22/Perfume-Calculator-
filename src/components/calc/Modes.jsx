@@ -128,7 +128,7 @@ export function Adjust({ densities, defaultPct, defaultBasis = "volume" }) {
         <Num id="c-oil" label={t("calc.modes.adjust.oilLeft")} value={oilAvailableG} onChange={setOilAvailableG} />
       </div>
       {r && (
-        <div className="p-3 rounded-none" style={{ border: `1px solid ${r.reachable ? COLORS.amberDeep : COLORS.danger}` }}>
+        <div className="p-3 rounded-sm" style={{ border: `1px solid ${r.reachable ? COLORS.amberDeep : COLORS.danger}` }}>
           {r.add.material === null && r.reachable && <p style={{ color: COLORS.ink }}>{t("calc.modes.adjust.already")}</p>}
           {r.add.material && (
             <p className="font-semibold" style={{ color: COLORS.forestDeep }}>

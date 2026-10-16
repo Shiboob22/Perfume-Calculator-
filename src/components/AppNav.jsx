@@ -75,20 +75,18 @@ export default function AppNav({ active, tabs, dueCount, flags, onSignOut }) {
 
   return (
     <>
-      {/* Wide screens: the tabs as one framed row under the site header. */}
-      <div className="hidden md:block max-w-3xl mx-auto px-8 pt-6">
-        <nav aria-label={t("app.tabsLabel")}>
-          <ul className="flex flex-wrap" style={{ border: `1px solid ${COLORS.line}` }}>
+      {/* Wide screens: the section tabs, underlined (Design System IV, "Tabs"). */}
+      <div className="hidden md:block px-6 lg:px-12 pt-6">
+        <nav aria-label={t("app.tabsLabel")} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+          <ul className="flex flex-wrap">
             {tabs.map((id) => {
               const d = all.find((x) => x.id === id);
               const on = active === id;
-              const I = d.icon;
               return (
-                <li key={id} className="flex-1 min-w-[7.5rem]" style={{ borderInlineEnd: `1px solid ${COLORS.line}` }}>
+                <li key={id}>
                   <Dest d={d} to={to(d)} current={on}
-                    className={`w-full min-h-[48px] px-3 inline-flex items-center justify-center gap-2 text-sm whitespace-nowrap transition-colors ${SHAPE.control}`}
-                    style={{ background: on ? COLORS.ink : "transparent", color: on ? COLORS.paper : COLORS.inkSoft }}>
-                    <I size={18} accent={on ? COLORS.oil : undefined} />
+                    className="relative min-h-[48px] px-5 inline-flex items-center gap-2 text-[15px] whitespace-nowrap hover:text-[color:var(--c-ink)]"
+                    style={{ color: on ? COLORS.ink : COLORS.inkSoft, boxShadow: `inset 0 -2px 0 ${on ? COLORS.amber : "transparent"}` }}>
                     <span>{d.label}</span>
                     {id === "batches" && <DueBadge count={dueCount} t={t} />}
                   </Dest>

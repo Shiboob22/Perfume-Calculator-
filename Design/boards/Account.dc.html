@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#15120F}a{color:#D4924A}a:hover{color:#EDE4D6}input::placeholder{color:#A3968A}</style>
+</helmet>
+<div ref="{{ rootRef }}" dir="{{ dir }}" lang="{{ lang }}" style="width:100%;min-height:100%;background:#15120F;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:16px;line-height:{{ lhBody }};container-type:inline-size">
+
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;height:72px;padding:0 {{ pad }}px;border-bottom:1px solid #3B332B">
+    <img src="assets/kyphira-wordmark.svg" alt="Kyphira" style="height:15px;display:block">
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+        <nav style="display:flex;gap:4px">
+          <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6"><a href="#" style="display:flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;text-decoration:none;color:#A3968A" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ n }}</a></sc-for>
+        </nav>
+      </sc-if>
+    </sc-if>
+    <button onClick="{{ toggleLang }}" aria-label="{{ t.langAria }}" style="min-height:44px;min-width:44px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:14px;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.langSwitch }}</button>
+  </header>
+
+  <sc-if value="{{ isAuth }}" hint-placeholder-val="{{ true }}">
+  <main style="display:grid;grid-template-columns:{{ authCols }};min-height:{{ authH }}px">
+    <section aria-label="{{ t.formTitle }}" style="display:flex;flex-direction:column;justify-content:center;gap:28px;padding:{{ authPadY }}px {{ pad }}px;max-width:{{ formMax }}px;width:100%;box-sizing:border-box;margin:0 auto">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em;text-align:start">K·0000</span>
+        <h1 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:{{ h1 }}px;line-height:{{ lhHead }};letter-spacing:-0.01em">{{ t.formTitle }}</h1>
+        <p style="margin:0;color:#A3968A">{{ t.formSub }}</p>
+      </div>
+      <div role="tablist" style="display:flex;border-bottom:1px solid #3B332B">
+        <sc-for list="{{ modeTabs }}" as="mt" hint-placeholder-count="2">
+          <button role="tab" aria-selected="{{ mt.sel }}" onClick="{{ mt.pick }}" style="min-height:48px;padding:0 20px;background:transparent;border:none;box-shadow:inset 0 -2px 0 {{ mt.line }};color:{{ mt.fg }};font:inherit;font-size:15px;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ mt.label }}</button>
+        </sc-for>
+      </div>
+      <form onSubmit="{{ submit }}" style="display:flex;flex-direction:column;gap:18px">
+        <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:14px">{{ t.name }}
+            <input value="{{ vName }}" onChange="{{ onName }}" autocomplete="name" style="min-height:48px;padding:0 14px;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:16px" style-focus="outline:2px solid #D4924A;outline-offset:0;border-color:#D4924A">
+          </label>
+        </sc-if>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:14px">{{ t.email }}
+          <input type="email" dir="ltr" value="{{ vEmail }}" onChange="{{ onEmail }}" placeholder="you@studio.com" autocomplete="email" aria-invalid="{{ emailBad }}" style="min-height:48px;padding:0 14px;background:#1E1A16;border:1px solid {{ emailBd }};border-radius:2px;color:#EDE4D6;font:inherit;font-size:16px;text-align:start" style-focus="outline:2px solid #D4924A;outline-offset:0;border-color:#D4924A">
+          <sc-if value="{{ emailErrOn }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#E07A62">{{ t.emailErr }}</span></sc-if>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:14px">
+          <span style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span>{{ t.password }}</span><sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}"><a href="#" style="font-size:13px;display:flex;align-items:center;min-height:44px">{{ t.forgot }}</a></sc-if></span>
+          <div style="position:relative">
+            <input type="{{ pwType }}" dir="ltr" value="{{ vPw }}" onChange="{{ onPw }}" autocomplete="current-password" style="width:100%;box-sizing:border-box;min-height:48px;padding:0 14px;padding-inline-end:76px;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:16px;text-align:start" style-focus="outline:2px solid #D4924A;outline-offset:0;border-color:#D4924A">
+            <button type="button" onClick="{{ togglePw }}" style="position:absolute;inset-inline-end:2px;top:2px;min-height:44px;min-width:60px;padding:0 10px;background:transparent;border:none;color:#A3968A;font:inherit;font-size:13px;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ pwToggle }}</button>
+          </div>
+          <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#A3968A">{{ t.pwHint }}</span></sc-if>
+        </label>
+        <button type="submit" style="min-height:52px;padding:0 24px;background:#D4924A;color:#15120F;border:none;border-radius:2px;font:inherit;font-weight:600;font-size:16px;cursor:pointer" style-hover="background:#E3A866" style-focus="outline:2px solid #EDE4D6;outline-offset:2px">{{ submitLabel }}</button>
+      </form>
+      <div style="display:flex;align-items:center;gap:16px;color:#A3968A;font-size:13px"><span style="flex:1;height:1px;background:#3B332B"></span>{{ t.or }}<span style="flex:1;height:1px;background:#3B332B"></span></div>
+      <button style="display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:16px;cursor:pointer" style-hover="border-color:#A3968A" style-focus="outline:2px solid #D4924A;outline-offset:2px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 8l8 6 8-6"></path></svg>{{ t.link }}</button>
+      <span style="font-size:13px;color:#A3968A;text-wrap:pretty">{{ t.legal }}</span>
+    </section>
+    <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+    <aside aria-hidden="true" style="position:relative;overflow:hidden;border-inline-start:1px solid #3B332B;display:flex;flex-direction:column;justify-content:space-between;padding:48px;background:#1E1A16">
+      <div style="position:absolute;inset:0;background:radial-gradient(80% 70% at 30% -10%, rgba(232,170,104,0.30), rgba(232,170,104,0) 66%)"></div>
+      <img src="assets/kyphira-mark.svg" alt="" style="position:relative;height:120px;align-self:flex-start">
+      <div style="position:relative;display:flex;flex-direction:column;gap:16px;max-width:420px">
+        <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:44px;line-height:{{ lhHead }}">{{ t.panelTitle }}</span>
+        <span dir="ltr" style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums;text-align:start">{{ t.panelMeta }}</span>
+      </div>
+    </aside>
+    </sc-if>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+  <main style="padding:{{ padY }}px {{ pad }}px 96px;display:flex;flex-direction:column;gap:{{ gapY }}px">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px">
+      <h1 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:{{ h1 }}px;line-height:{{ lhHead }};letter-spacing:-0.01em">{{ t.settings }}</h1>
+      <span dir="ltr" style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">U·0042</span>
+    </div>
+    <div style="display:grid;grid-template-columns:{{ setCols }};gap:{{ gapX }}px;align-items:start">
+      <nav aria-label="{{ t.settings }}" style="display:flex;flex-direction:{{ secDir }};border-bottom:{{ secBorderB }};overflow-x:auto;scrollbar-width:none">
+        <sc-for list="{{ sections }}" as="sc" hint-placeholder-count="5">
+          <button onClick="{{ sc.pick }}" aria-current="{{ sc.cur }}" style="display:flex;align-items:center;min-height:48px;padding:0 {{ secPad }}px;white-space:nowrap;text-align:start;background:{{ sc.bg }};border:none;box-shadow:{{ sc.shadow }};color:{{ sc.fg }};font:inherit;font-size:15px;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ sc.label }}</button>
+        </sc-for>
+      </nav>
+
+      <div style="display:flex;flex-direction:column;gap:{{ gapY }}px;min-width:0">
+        <sc-if value="{{ secIs.profile }}" hint-placeholder-val="{{ true }}">
+        <section style="display:flex;flex-direction:column;gap:24px;max-width:640px">
+          <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:30px;line-height:{{ lhHead }}">{{ t.s0 }}</h2>
+          <div style="display:flex;align-items:center;gap:20px"><div aria-hidden="true" style="width:72px;height:72px;border-radius:50%;border:1px solid #D4924A;display:flex;align-items:center;justify-content:center;font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:28px;color:#D4924A">{{ t.initials }}</div><button style="min-height:44px;padding:0 18px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:14px;cursor:pointer" style-hover="border-color:#A3968A" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.change }}</button></div>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:14px">{{ t.name }}<input value="{{ t.pName }}" style="min-height:48px;padding:0 14px;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:16px" style-focus="outline:2px solid #D4924A;outline-offset:0;border-color:#D4924A"></label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:14px">{{ t.handle }}<input dir="ltr" value="@nour.h" style="min-height:48px;padding:0 14px;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:16px;text-align:start" style-focus="outline:2px solid #D4924A;outline-offset:0;border-color:#D4924A"></label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:14px">{{ t.bio }}<textarea rows="3" style="padding:12px 14px;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:16px;resize:vertical" style-focus="outline:2px solid #D4924A;outline-offset:0;border-color:#D4924A">{{ t.pBio }}</textarea><span style="font-size:13px;color:#A3968A">{{ t.bioHint }}</span></label>
+          <div style="display:flex;gap:12px;flex-wrap:wrap"><button onClick="{{ save }}" style="min-height:48px;padding:0 24px;background:#D4924A;color:#15120F;border:none;border-radius:2px;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#E3A866" style-focus="outline:2px solid #EDE4D6;outline-offset:2px">{{ t.save }}</button></div>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ secIs.units }}" hint-placeholder-val="{{ false }}">
+        <section style="display:flex;flex-direction:column;gap:24px;max-width:640px">
+          <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:30px;line-height:{{ lhHead }}">{{ t.s1 }}</h2>
+          <sc-for list="{{ unitRows }}" as="ur" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:20px;border-bottom:1px solid #3B332B">
+              <span style="font-size:14px;color:#A3968A">{{ ur.label }}</span>
+              <div role="group" dir="ltr" style="display:flex;align-self:flex-start;border:1px solid #3B332B;border-radius:2px">
+                <sc-for list="{{ ur.opts }}" as="uo" hint-placeholder-count="2"><button onClick="{{ uo.pick }}" aria-pressed="{{ uo.on }}" style="min-height:44px;min-width:76px;padding:0 16px;background:{{ uo.bg }};border:none;color:{{ uo.fg }};font:inherit;font-size:14px;font-weight:{{ uo.fw }};cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ uo.label }}</button></sc-for>
+              </div>
+              <span style="font-size:13px;color:#A3968A">{{ ur.hint }}</span>
+            </div>
+          </sc-for>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ secIs.notify }}" hint-placeholder-val="{{ false }}">
+        <section style="display:flex;flex-direction:column;gap:8px;max-width:640px">
+          <h2 style="margin:0 0 16px;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:30px;line-height:{{ lhHead }}">{{ t.s2 }}</h2>
+          <sc-for list="{{ toggles }}" as="tg" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-top:1px solid #3B332B">
+              <span style="display:flex;flex-direction:column;gap:2px"><span>{{ tg.label }}</span><span style="font-size:13px;color:#A3968A">{{ tg.hint }}</span></span>
+              <button role="switch" aria-checked="{{ tg.on }}" aria-label="{{ tg.label }}" onClick="{{ tg.flip }}" style="position:relative;width:52px;height:44px;padding:0;background:transparent;border:none;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px"><span style="position:absolute;inset-inline:0;top:10px;height:24px;border-radius:12px;border:1px solid {{ tg.bd }};background:{{ tg.track }}"></span><span style="position:absolute;top:14px;inset-inline-start:{{ tg.knobX }}px;width:16px;height:16px;border-radius:50%;background:{{ tg.knob }};transition:inset-inline-start 150ms cubic-bezier(0.22,1,0.36,1)"></span></button>
+            </div>
+          </sc-for>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ secIs.plan }}" hint-placeholder-val="{{ false }}">
+        <section style="display:flex;flex-direction:column;gap:24px;max-width:640px">
+          <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:30px;line-height:{{ lhHead }}">{{ t.s3 }}</h2>
+          <div style="display:flex;flex-direction:column;gap:16px;padding:24px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:26px">{{ t.free }}</span><span style="font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A">{{ t.current }}</span></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;justify-content:space-between;font-size:14px;font-variant-numeric:tabular-nums"><span style="color:#A3968A">{{ t.nose }}</span><span dir="ltr">1 / 3</span></div>
+              <div role="progressbar" aria-valuemin="0" aria-valuemax="3" aria-valuenow="1" style="display:flex;gap:4px"><span style="display:block;flex:1;height:6px;background:#D4924A"></span><span style="display:block;flex:1;height:6px;background:#29231D"></span><span style="display:block;flex:1;height:6px;background:#29231D"></span></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;font-variant-numeric:tabular-nums"><span style="color:#A3968A">{{ t.recipes }}</span><span dir="ltr">6 / 10</span></div>
+              <div role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="6" style="height:6px;background:#29231D"><span style="display:block;height:6px;width:60%;background:#D4924A"></span></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><a href="Homepage.dc.html#pro" style="display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;background:#D4924A;color:#15120F;border-radius:2px;text-decoration:none;font-weight:600;align-self:flex-start" style-hover="background:#E3A866;color:#15120F" style-focus="outline:2px solid #EDE4D6;outline-offset:2px">{{ t.seePro }}</a></div>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ secIs.danger }}" hint-placeholder-val="{{ false }}">
+        <section style="display:flex;flex-direction:column;gap:24px;max-width:640px">
+          <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:30px;line-height:{{ lhHead }}">{{ t.s4 }}</h2>
+          <div style="display:flex;flex-direction:column;gap:12px;padding:24px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16"><span style="font-size:17px">{{ t.exportT }}</span><span style="color:#A3968A">{{ t.exportD }}</span><button style="align-self:flex-start;min-height:48px;padding:0 20px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;cursor:pointer" style-hover="border-color:#A3968A" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.exportB }}</button></div>
+          <div style="display:flex;flex-direction:column;gap:12px;padding:24px;border:1px solid #E07A62;border-radius:2px;background:#1E1A16"><span style="font-size:17px">{{ t.delT }}</span><span style="color:#A3968A">{{ t.delD }}</span><button onClick="{{ askDelete }}" style="align-self:flex-start;min-height:48px;padding:0 20px;background:transparent;border:1px solid #E07A62;border-radius:2px;color:#E07A62;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#29231D" style-focus="outline:2px solid #E07A62;outline-offset:2px">{{ t.delB }}</button></div>
+          <sc-if value="{{ confirming }}" hint-placeholder-val="{{ false }}">
+            <div role="alertdialog" aria-label="{{ t.delB }}" style="display:flex;flex-direction:column;gap:16px;padding:24px;border:1px solid #3B332B;border-radius:2px;background:#29231D"><span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:24px;line-height:{{ lhHead }}">{{ t.confirmT }}</span><span style="color:#A3968A">{{ t.confirmD }}</span><div style="display:flex;gap:8px;flex-wrap:wrap"><button onClick="{{ cancelDelete }}" style="min-height:48px;padding:0 20px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.cancel }}</button><button style="min-height:48px;padding:0 20px;background:#E07A62;border:none;border-radius:2px;color:#15120F;font:inherit;font-weight:600;cursor:pointer" style-focus="outline:2px solid #EDE4D6;outline-offset:2px">{{ t.confirmB }}</button></div></div>
+          </sc-if>
+        </section>
+        </sc-if>
+
+        <sc-if value="{{ saved }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="display:flex;align-items:center;gap:12px;max-width:640px;padding:12px 18px;background:#29231D;border:1px solid #3B332B;border-radius:2px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9DB38A" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg><span style="font-size:15px">{{ t.saved }}</span></div>
+        </sc-if>
+      </div>
+    </div>
+  </main>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:860},&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;'en'|'ar'&quot;},&quot;initView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;login&quot;,&quot;signup&quot;,&quot;settings&quot;],&quot;default&quot;:&quot;login&quot;,&quot;tsType&quot;:&quot;'login'|'signup'|'settings'&quot;},&quot;initSection&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;profile&quot;,&quot;units&quot;,&quot;notify&quot;,&quot;plan&quot;,&quot;danger&quot;],&quot;default&quot;:&quot;profile&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showError&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showSaved&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;initConfirm&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const COPY = {
+  en: { langSwitch:'ع', langAria:'Language', nav:['The Bench','The Wardrobe','The Library','The Atlas','The Salon','The Nose'],
+    login:'Sign in', signup:'Create account', formTitle:'Open the notebook.', formSub:'Sign in to keep your formulas, bottles and wear log.', name:'Name', email:'Email', emailErr:'Use an address like you@studio.com.', password:'Password', forgot:'Forgot it?', pwHint:'At least 10 characters.', show:'Show', hide:'Hide',
+    or:'or', link:'Email me a sign-in link', legal:'By continuing you accept the terms. We email you about your account only.', panelTitle:'Weigh. Rest. Wear.', panelMeta:'412 terms · 12,480 fragrances',
+    settings:'Settings', s0:'Profile', s1:'Units', s2:'Notifications', s3:'Plan', s4:'Data and account', change:'Change photo', handle:'Handle', bio:'Bio', pName:'Nour Hassan', initials:'NH', pBio:'Weighs everything. Resin and amber studies, 20% in ethanol 96%.', bioHint:'Shown on your Salon profile. 160 characters.', save:'Save changes', saved:'Saved.',
+    free:'Free', current:'Current plan', nose:'Nose questions today', recipes:'Private recipes', seePro:'See Pro',
+    exportT:'Export your data', exportD:'Recipes, wear log and bottles as CSV. 1 file per list.', exportB:'Export CSV', delT:'Delete account', delD:'Removes your recipes, log and profile. 30 days to undo.', delB:'Delete account', confirmT:'Delete 6 recipes, 11 wears and 12 bottles?', confirmD:'This starts a 30-day countdown. Sign in again to cancel.', cancel:'Keep my account', confirmB:'Delete',
+    unitL:['Weight display','Volume display','Temperature'], unitH:['Grams are used for every formula.','Millilitres for bottles.','Used by The Wardrobe picker.'],
+    tog:[['Resting finished','When a batch passes its resting date.'],['Weekly wear summary','Sunday, one email.'],['New follower','In the Salon.'],['Library essays','One letter a month.']],
+    sec:['Profile','Units','Notifications','Plan','Data and account'] },
+  ar: { langSwitch:'EN', langAria:'اللغة', nav:['المِنضدة','الخزانة','المكتبة','الأطلس','الصالون','الأنف'],
+    login:'تسجيل الدخول', signup:'إنشاء حساب', formTitle:'افتح الدفتر.', formSub:'سجّل الدخول لتحتفظ بتركيباتك وزجاجاتك وسجل ارتدائك.', name:'الاسم', email:'البريد الإلكتروني', emailErr:'استعمل عنواناً مثل you@studio.com.', password:'كلمة المرور', forgot:'نسيتها؟', pwHint:'10 أحرف على الأقل.', show:'إظهار', hide:'إخفاء',
+    or:'أو', link:'أرسل لي رابط دخول', legal:'بالمتابعة تقبل الشروط. نراسلك بشأن حسابك فقط.', panelTitle:'زِن. أرِح. ارتدِ.', panelMeta:'412 مصطلحاً · 12,480 عطراً',
+    settings:'الإعدادات', s0:'الملف الشخصي', s1:'الوحدات', s2:'الإشعارات', s3:'الخطة', s4:'البيانات والحساب', change:'تغيير الصورة', handle:'المعرّف', bio:'نبذة', pName:'نور حسن', initials:'نح', pBio:'يزن كل شيء. دراسات الراتنج والعنبر، بتركيز 20% في إيثانول 96%.', bioHint:'تظهر في ملفك بالصالون. 160 حرفاً.', save:'احفظ التغييرات', saved:'تم الحفظ.',
+    free:'مجانية', current:'الخطة الحالية', nose:'أسئلة الأنف اليوم', recipes:'الوصفات الخاصة', seePro:'اعرف برو',
+    exportT:'صدّر بياناتك', exportD:'الوصفات وسجل الارتداء والزجاجات بصيغة CSV. ملف لكل قائمة.', exportB:'صدّر CSV', delT:'احذف الحساب', delD:'يزيل وصفاتك وسجلك وملفك. 30 يوماً للتراجع.', delB:'احذف الحساب', confirmT:'حذف 6 وصفات و11 ارتداءً و12 زجاجة؟', confirmD:'يبدأ هذا عدّاً تنازلياً لـ30 يوماً. سجّل الدخول مجدداً للإلغاء.', cancel:'أبقِ حسابي', confirmB:'احذف',
+    unitL:['عرض الوزن','عرض الحجم','درجة الحرارة'], unitH:['تُستعمل الجرامات في كل تركيبة.','المليلتر للزجاجات.','تستعملها أداة الاختيار في الخزانة.'],
+    tog:[['انتهاء الراحة','حين تتجاوز دفعة تاريخ راحتها.'],['ملخص الارتداء الأسبوعي','الأحد، رسالة واحدة.'],['متابِع جديد','في الصالون.'],['مقالات المكتبة','رسالة واحدة كل شهر.']],
+    sec:['الملف الشخصي','الوحدات','الإشعارات','الخطة','البيانات والحساب'] },
+};
+const SEC = ['profile', 'units', 'notify', 'plan', 'danger'];
+class Component extends DCLogic {
+  state = { lang: null, w: 1440, mode: null, sec: null, pw: false, email: null, name: '', pwv: '', unitsSel: [0, 0, 0], tg: [true, true, false, true], confirming: null, saved: false };
+  rootRef = React.createRef();
+  componentDidMount() {
+    const measure = () => { const r = this.rootRef.current; if (r) this.setState({ w: r.getBoundingClientRect().width }); };
+    const el = this.rootRef.current;
+    if (el) { this.ro = new ResizeObserver(e => this.setState({ w: e[0].contentRect.width })); this.ro.observe(el); }
+    measure(); setTimeout(measure, 120); setTimeout(measure, 600);
+  }
+  componentWillUnmount() { this.ro && this.ro.disconnect(); clearTimeout(this.to); }
+  renderVals() {
+    const lang = this.state.lang ?? (this.props.lang === 'ar' ? 'ar' : 'en');
+    const ar = lang === 'ar', t = COPY[lang];
+    const w = this.state.w, mobile = w < 1100, desktop = !mobile;
+    const view = this.props.initView ?? 'login';
+    const isSettings = view === 'settings', isAuth = !isSettings;
+    const mode = this.state.mode ?? (view === 'signup' ? 'signup' : 'login');
+    const sec = this.state.sec ?? this.props.initSection ?? 'profile';
+    const email = this.state.email ?? (this.props.showError ? 'nour@studio' : '');
+    const emailBad = !!this.props.showError && !/^\S+@\S+\.\S+$/.test(email);
+    const confirming = this.state.confirming ?? !!this.props.initConfirm;
+    const setLang = l => this.setState({ lang: l });
+    const U = [[['g', 'oz'], ['ml', 'fl oz'], ['°C', '°F']]][0];
+    return {
+      rootRef: this.rootRef, lang, dir: ar ? 'rtl' : 'ltr', t, desktop, mobile, kls: ar ? '0' : '0.14em', lhBody: ar ? 1.8 : 1.55, lhHead: ar ? 1.45 : 1.1,
+      pad: mobile ? 16 : 48, padY: mobile ? 28 : 56, gapY: mobile ? 24 : 32, gapX: 48, h1: mobile ? 36 : 56, nav: t.nav, toggleLang: () => setLang(ar ? 'en' : 'ar'),
+      isAuth, isSettings,
+      authCols: mobile ? 'minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr)', authH: mobile ? 0 : 860, authPadY: mobile ? 32 : 56, formMax: mobile ? 480 : 520,
+      modeTabs: [['login', t.login], ['signup', t.signup]].map(([k, label]) => ({ label, sel: mode === k ? 'true' : 'false', line: mode === k ? '#D4924A' : 'transparent', fg: mode === k ? '#EDE4D6' : '#A3968A', pick: () => this.setState({ mode: k }) })),
+      isSignup: mode === 'signup', isLogin: mode === 'login', submitLabel: mode === 'signup' ? t.signup : t.login,
+      vName: this.state.name, onName: e => this.setState({ name: e.target.value }), vEmail: email, onEmail: e => this.setState({ email: e.target.value }), vPw: this.state.pwv || (this.props.showError ? '••••••••••' : ''), onPw: e => this.setState({ pwv: e.target.value }),
+      emailErrOn: emailBad, emailBad: emailBad ? 'true' : 'false', emailBd: emailBad ? '#E07A62' : '#3B332B', pwType: this.state.pw ? 'text' : 'password', pwToggle: this.state.pw ? t.hide : t.show, togglePw: () => this.setState({ pw: !this.state.pw }),
+      submit: e => e.preventDefault(),
+      setCols: mobile ? 'minmax(0,1fr)' : '240px minmax(0,1fr)', secDir: mobile ? 'row' : 'column', secBorderB: mobile ? '1px solid #3B332B' : 'none', secPad: mobile ? 16 : 0,
+      sections: SEC.map((k, i) => { const on = sec === k; return { label: t.sec[i], cur: on ? 'page' : 'false', bg: 'transparent', fg: on ? '#EDE4D6' : '#A3968A', shadow: on ? (mobile ? 'inset 0 -2px 0 #D4924A' : 'inset ' + (ar ? '-2px' : '2px') + ' 0 0 #D4924A') : 'none', pick: () => this.setState({ sec: k, saved: false }) }; }),
+      secIs: { profile: sec === 'profile', units: sec === 'units', notify: sec === 'notify', plan: sec === 'plan', danger: sec === 'danger' },
+      save: () => { this.setState({ saved: true }); clearTimeout(this.to); this.to = setTimeout(() => this.setState({ saved: false }), 3000); }, saved: this.state.saved || !!this.props.showSaved,
+      unitRows: U.map((opts, i) => ({ label: t.unitL[i], hint: t.unitH[i], opts: opts.map((o, j) => { const on = this.state.unitsSel[i] === j; return { label: o, on: on ? 'true' : 'false', bg: on ? '#29231D' : 'transparent', fg: on ? '#EDE4D6' : '#A3968A', fw: on ? 600 : 400, pick: () => { const u = [...this.state.unitsSel]; u[i] = j; this.setState({ unitsSel: u }); } }; }) })),
+      toggles: t.tog.map((g, i) => { const on = this.state.tg[i]; return { label: g[0], hint: g[1], on: on ? 'true' : 'false', track: on ? '#D4924A' : '#29231D', bd: on ? '#D4924A' : '#3B332B', knob: on ? '#15120F' : '#A3968A', knobX: on ? 31 : 5, flip: () => { const n = [...this.state.tg]; n[i] = !on; this.setState({ tg: n }); } }; }),
+      confirming, askDelete: () => this.setState({ confirming: true }), cancelDelete: () => this.setState({ confirming: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -34,7 +34,7 @@ export default function WaitlistButton({ source }) {
   return (
     <div className="mt-3">
       <button type="button" onClick={join} disabled={state === "joining"}
-        className="px-4 py-2 text-sm font-semibold rounded-none disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+        className="px-4 py-2 text-sm font-semibold rounded-sm disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
         {t("account.waitlist.join")}
       </button>
       <p role="status" className="mt-2 text-xs" style={{ color: COLORS.danger }}>{state === "failed" ? t("account.waitlist.failed") : ""}</p>

@@ -45,6 +45,8 @@ const light = {
 
   // Kyphira accents. Plain names are fills and marks; the *Text names are the
   // shades safe for type (≥4.5:1 on paper, card and sand).
+  afternoon: "#3A2B1E",    // the hero's first frames only
+  resinHover: "#B47A2F",
   resin: "#C8893A",        // amber resin: the brand accent
   resinText: "#7A581B",
   myrrh: "#8C3B2A",        // secondary accent, used sparingly
@@ -89,6 +91,8 @@ const dark = {
   dangerBg: "#2A140E",
   dangerLine: "#5A2A1C",
 
+  afternoon: "#3A2B1E",
+  resinHover: "#E3A866",
   resin: "#D4924A",
   resinText: "#D4924A",
   myrrh: "#8C3B2A",
@@ -112,12 +116,13 @@ export const paletteVars = (palette) =>
 
 export const COLORS = Object.fromEntries(Object.keys(light).map((k) => [k, `var(${cssVar(k)})`]));
 
-// Corner radius by role. v3 is square: frames and buttons have no radius.
+// Corner radius by role. Kyphira System 1.0: 2 px everywhere (Tailwind's
+// rounded-sm); circles only for the ember and avatars.
 export const SHAPE = {
-  control: "rounded-none",
-  panel: "rounded-none",
+  control: "rounded-sm",
+  panel: "rounded-sm",
   row: "",
-  danger: "rounded-none",
+  danger: "rounded-sm",
 };
 
 // The editorial system: class strings, so prerendered HTML carries them.
@@ -131,9 +136,16 @@ export const TYPE = {
   voice: "font-serif italic",
 };
 
-// Motion, in ms. 180 for hover/colour, 480 for fills and bars. Every
-// animation also stops under prefers-reduced-motion (src/index.css).
-export const MOTION = { fast: 180, base: 320, slow: 480, ease: "cubic-bezier(.2,0,0,1)" };
+// Motion tokens (Design System, section VI), in ms: fast 150 hover, focus,
+// chip toggle; base 250 tabs, toasts, menus, stepper value; slow 600 modals,
+// room transitions, headline reveals; ambient 2 s or more. One ease-out, one
+// ease-in-out. Every animation also stops under prefers-reduced-motion
+// (src/index.css).
+export const MOTION = {
+  fast: 150, base: 250, slow: 600, ambient: 2000,
+  ease: "cubic-bezier(0.22, 1, 0.36, 1)",      // ease-out: anything arriving or responding
+  easeInOut: "cubic-bezier(0.65, 0, 0.35, 1)", // anything changing state in place
+};
 
 // Frames: 1px ink for primary objects; the offset paper shadow only on the
 // hero bench and the recipe card.

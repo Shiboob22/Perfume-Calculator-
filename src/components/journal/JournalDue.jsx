@@ -10,7 +10,7 @@ export default function JournalDue({ due, onDone }) {
   const { t } = useI18n();
   if (!due.length) return null;
   return (
-    <section aria-labelledby="journal-due-title" className="mb-6 p-4 border rounded-none" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card }}>
+    <section aria-labelledby="journal-due-title" className="mb-6 p-4 border rounded-sm" style={{ borderColor: COLORS.amberDeep, backgroundColor: COLORS.card }}>
       <h3 id="journal-due-title" className="text-sm font-semibold" style={{ color: COLORS.forestDeep }}>
         {t("journal.due.title", { count: due.length })}
       </h3>

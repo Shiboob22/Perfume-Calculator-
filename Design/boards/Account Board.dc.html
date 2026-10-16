@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#0E0C0A}a{color:#D4924A}a:hover{color:#EDE4D6}</style>
+</helmet>
+<section data-screen-label="Account screens" style="padding:96px;display:flex;flex-direction:column;gap:64px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 8 · Auth and settings</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">Sign in and settings: 1440 and 375, EN and AR</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A;max-width:760px">Shared system only: same tokens, inputs, tabs, switches and toasts as every room. No motion beyond the 150 ms switch. Live: <a href="Account.dc.html">Account</a>.</p>
+  </div>
+  <sc-for list="{{ rows }}" as="row" hint-placeholder-count="3">
+    <div style="display:flex;flex-wrap:wrap;gap:80px;align-items:flex-start">
+      <sc-for list="{{ row.items }}" as="it" hint-placeholder-count="4">
+        <div id="{{ it.id }}" style="display:flex;flex-direction:column;gap:16px">
+          <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">{{ it.label }}</span>
+          <div style="width:{{ it.w }}px;height:{{ it.h }}px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Account" lang="{{ it.lang }}" init-view="{{ it.view }}" init-section="{{ it.sec }}" show-error="{{ it.err }}" show-saved="{{ it.saved }}" init-confirm="{{ it.confirm }}" hint-size="{{ it.hint }}"></dc-import></div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-for>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const mk = (id, label, view, lang, mobile, h, o) => ({ id, label, view, lang, w: mobile ? 375 : 1440, h, hint: (mobile ? 375 : 1440) + 'px,' + h + 'px', sec: 'profile', err: false, saved: false, confirm: false, ...o });
+class Component extends DCLogic {
+  renderVals() {
+    return { rows: [
+      { items: [mk('8a','8a · Sign in · Desktop 1440 · EN','login','en',false,860), mk('8b','8b · Sign in · Desktop 1440 · AR','login','ar',false,860), mk('8c','8c · Sign in · Mobile 375 · EN','login','en',true,900), mk('8d','8d · Sign in · Mobile 375 · AR','login','ar',true,900)] },
+      { items: [mk('8g','8g · Settings · Desktop 1440 · EN','settings','en',false,1000,{ showSaved:true }), mk('8h','8h · Settings · Desktop 1440 · AR','settings','ar',false,1000,{ showSaved:true }), mk('8i','8i · Settings · Mobile 375 · EN','settings','en',true,1300,{ showSaved:true }), mk('8j','8j · Settings · Mobile 375 · AR','settings','ar',true,1300,{ showSaved:true })] },
+      { items: [mk('8k','8k · Create account with error · Desktop EN','signup','en',false,860,{ err:true }), mk('8l','8l · Plan · Desktop EN','settings','en',false,800,{ sec:'plan' }), mk('8m','8m · Delete confirm · Desktop EN','settings','en',false,1100,{ sec:'danger', confirm:true })] },
+    ] };
+  }
+}
+</script>
+</body>
+</html>

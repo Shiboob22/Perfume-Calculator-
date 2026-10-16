@@ -1,1 +1,1 @@
-export { default } from "./Compounding";
+export { default } from "./Hero";
