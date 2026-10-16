@@ -10,11 +10,11 @@ Measured on a throttled phone profile: 375×667 at 2×, CPU 4× slower, 1.6 Mbps
 |---|---|---|---|---|
 | EN | 2.05 s | 0 | 60.1 | 0 of 526 |
 | EN, low power | 2.36 s | 0 | 60.1 | 0 of 525 |
-| AR | 2.50 s | 0.024 | 60.1 | 0 of 501 |
+| AR (after the font fix) | 2.3 s | 0 | 60.1 | 0 of 501 |
 
 - **Hero JS:** 176,434 B gzip for the first script with the flag on (170,482 B with it off). The scene is 5,952 B gzip, of which the scroll fallback is 388 B. The flag-off build loads the scene as a separate chunk, only if a device switches it on, so the flag-off homepage is 5.9 KB lighter than before this branch.
 - **LCP element:** the afternoon headline. It never animates. These are lab figures, not field data.
-- **AR CLS 0.024 is not from the scene.** The shifting nodes are shared header/footer links when the Arabic font swaps in. The flag-off Arabic home gives the identical 0.0241. It needs a fix in the shared chrome (reserve the Arabic font metrics); not done here. AR LCP sits on the 2.5 s line for the same reason.
+- **Arabic CLS was 0.024** (also with the flag off): Arabic faces were fetched after hydration and swapped in, moving the nav and byline. Fixed 2026-10-16: public Arabic pages link the faces in the first response, preload the four used above the fold, and use `font-display: optional`, so a face that is late is skipped for that view instead of swapping in. Now 0 on the Arabic home and under 0.001 on pricing and library. First visit on a slow link may show the system Arabic font; the next view uses the cached face.
 - **Frame rate is a lab floor.** Headless software rendering at 4× throttling held 60 fps with no long frames. A real mid-range phone is untested; check the Vercel preview.
 
 ## What moves, and what it costs

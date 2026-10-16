@@ -30,10 +30,24 @@ const preloads = CRITICAL_FONTS.map((prefix) => {
   return `<link rel="preload" href="/assets/${file}" as="font" type="font/woff2" crossorigin />`;
 }).join("\n    ");
 
+// Arabic pages: the Arabic faces and their @font-face rules are in the first
+// response (not fetched after hydration), with font-display: optional. A face
+// that is not in by first paint is left out for that view (the system Arabic
+// font stays) instead of swapping in later and moving the lines; on the next
+// view it comes from the cache. That is what keeps the layout shift at 0.
+// Public pages only: the app keeps the swapping copies it loads itself.
+const arabicCssFiles = assets.filter((f) => f.startsWith("arabic-") && f.endsWith(".css"));
+const arabicOptional = arabicCssFiles.map((f) => readFileSync(join(DIST, "assets", f), "utf8").replaceAll("font-display:swap", "font-display:optional").replaceAll("font-display: swap", "font-display: optional")).join("\n");
+writeFileSync(join(DIST, "assets", "arabic-public.css"), arabicOptional);
+const arabicHead = [
+  '<link rel="stylesheet" href="/assets/arabic-public.css" data-ar-fonts />',
+  ...assets.filter((f) => /^(ibm-plex-sans-arabic-arabic-(400|500|600)|amiri-arabic-400)-normal-.*\.woff2$/.test(f)).map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`),
+].join("\n    ");
+
 function page(url, head) {
   return template
     .replace('<html lang="en">', `<html lang="${head.locale}" dir="${head.dir}">`)
-    .replace("<title>Kyphira</title>", `${preloads}\n    ${headHtml(head)}`)
+    .replace("<title>Kyphira</title>", `${preloads}\n    ${head.locale === "ar" ? `${arabicHead}\n    ` : ""}${headHtml(head)}`)
     .replace('<div id="root"></div>', `<div id="root">${render(url)}</div>`);
 }
 

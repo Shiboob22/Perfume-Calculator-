@@ -5,6 +5,8 @@
 //   Amiri                — display and voice (the role of Fraunces)
 let loading = null;
 export function loadArabicFonts() {
+  // Public pages already carry the faces (prerendered, font-display: optional).
+  if (typeof document !== "undefined" && document.querySelector("link[data-ar-fonts]")) return Promise.resolve();
   loading ??= Promise.all([
     import("@fontsource/ibm-plex-sans-arabic/arabic-400.css"),
     import("@fontsource/ibm-plex-sans-arabic/arabic-500.css"),
