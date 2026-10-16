@@ -105,3 +105,42 @@ describe("motion", () => {
     expect(afternoon).not.toMatch(/kf="(drift|plate|wisp)"/);
   });
 });
+
+describe("smoke", () => {
+  const css = readFileSync(new URL("../../index.css", import.meta.url), "utf8");
+  it("is a pure function of the scroll position", async () => {
+    const { plumePoint, smokeAt } = await import("./smoke.js");
+    expect(plumePoint(2, 7, 0.5, 0.4)).toEqual(plumePoint(2, 7, 0.5, 0.4));
+    expect(smokeAt(0)).toEqual({ rise: 0, alive: 1 });
+    expect(smokeAt(0.7).rise).toBe(1);
+    expect(smokeAt(1).alive).toBe(0);
+    for (let p = 0; p <= 1; p += 0.1) { const s = smokeAt(p); expect(s.rise).toBeGreaterThanOrEqual(0); expect(s.alive).toBeLessThanOrEqual(1); }
+  });
+  it("starts every plume at the ember and keeps it inside the field", async () => {
+    const { plumePoint } = await import("./smoke.js");
+    for (let i = 0; i < 7; i++) {
+      expect(plumePoint(i, 7, 0, 0.5).x).toBeCloseTo(0.5 + (i / 6 - 0.5) * 0.18, 5);
+      for (let u = 0; u <= 1; u += 0.1) { const { x } = plumePoint(i, 7, u, 0.3); expect(x).toBeGreaterThan(0); expect(x).toBeLessThan(1); }
+    }
+  });
+  it("leaves the static strokes in place and hides the canvas until it runs", () => {
+    expect(css).toMatch(/\.cmp-canvas \{ display: none; \}/);
+    expect(css).toMatch(/\.cmp-smoke\[data-canvas\] \.cmp-strokes \{ display: none; \}/);
+  });
+});
+
+describe("palette shift", () => {
+  it("grades each stage into the next, and every stage but the last two has a next", async () => {
+    const { BAND_NEXT } = await import("./config.js");
+    expect(Object.keys(BAND_NEXT)).toEqual(["afternoon", "sixteen", "pour", "dusk"]);
+    for (const [from, to] of Object.entries(BAND_NEXT)) {
+      expect(STAGE_LIGHT[from]).toBeTruthy();
+      expect(STAGE_LIGHT[to]).toBeTruthy();
+    }
+  });
+  it("keeps the foot padding at least as tall as the band, so no text sits in it", () => {
+    const css = readFileSync(new URL("../../index.css", import.meta.url), "utf8");
+    expect(css).toMatch(/\[data-stage\]\[data-next\] \{ padding-bottom: var\(--band\); \}/);
+    expect(css).toMatch(/\.cmp-band \{[^}]*height: var\(--band\)/);
+  });
+});

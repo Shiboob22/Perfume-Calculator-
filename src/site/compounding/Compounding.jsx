@@ -5,12 +5,13 @@ import { useI18n } from "../../i18n/I18nProvider";
 import { localePath } from "../meta";
 import { flagOn } from "../../lib/flags";
 import { fmt2 } from "../../lib/calc";
-import { STAGE_LIGHT } from "../../lib/compounding/config";
+import { BAND, BAND_NEXT, STAGE_LIGHT } from "../../lib/compounding/config";
 import { KYPHI_INGREDIENTS, roman } from "../../content/kyphi";
 import { benchFigures, BENCH_DEFAULT } from "../benchFigures";
 import LiveBench from "../LiveBench";
 import { IconArrow } from "../../components/icons";
-import { Bowl, Ember, GRAINS, Gauge, LiveGauge, SmokeStrokes } from "./parts";
+import { Bowl, Ember, GRAINS, Gauge, LiveGauge } from "./parts";
+import CanvasSmoke from "./CanvasSmoke";
 import { M, V, sceneVars, useScrollFallback } from "./motion";
 
 const WRAP = "max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14";
@@ -46,11 +47,13 @@ const lightVars = (id) => {
 // `overflow-clip`, not `hidden`: hidden makes the stage a scroll container,
 // and the marks inside it would then be timed against it instead of the page.
 function Stage({ id, children, className = "", style, vt }) {
+  const next = BAND_NEXT[id];
   return (
-    <section data-stage={id} data-vt={vt ? "" : undefined} aria-labelledby={`st-${id}`} className={`relative overflow-clip ${className}`}
-      style={{ background: "var(--st-bg)", color: "var(--st-ink)", ...lightVars(id), ...style }}>
+    <section data-stage={id} data-next={next} data-vt={vt ? "" : undefined} aria-labelledby={`st-${id}`} className={`relative overflow-clip ${className}`}
+      style={{ background: "var(--st-bg)", color: "var(--st-ink)", ...lightVars(id), "--band": `clamp(${BAND.min}px, ${BAND.vh}vh, ${BAND.max}px)`, ...style }}>
       <Gauge stage={id} />
       <div className={BODY}>{children(`st-${id}`)}</div>
+      {next && <div aria-hidden="true" className="cmp-band" style={{ background: `linear-gradient(to bottom, transparent, ${STAGE_LIGHT[next].bg})` }} />}
     </section>
   );
 }
@@ -173,7 +176,7 @@ export default function Compounding() {
       <Stage id="burn" vt className="py-16 lg:py-24">
         {(h) => (
           <>
-            <SmokeStrokes />
+            <CanvasSmoke />
             <div className="relative">
               <V>
                 <M kf="drift">

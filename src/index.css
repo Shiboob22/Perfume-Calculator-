@@ -167,6 +167,12 @@ summary::-webkit-details-marker { display: none; }
 .m-merge { opacity: 0; }
 .cmp-veil { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .cmp-smoke { display: none; } }
+.cmp-canvas { display: none; }
+.cmp-smoke[data-canvas] .cmp-canvas { display: block; }
+.cmp-smoke[data-canvas] .cmp-strokes { display: none; }
+/* The palette shift: each stage ends in a band that grades its ground into the next. No text sits in it. */
+.cmp-band { position: absolute; inset-inline: 0; bottom: 0; height: var(--band); pointer-events: none; }
+[data-stage][data-next] { padding-bottom: var(--band); }
 
 /* Which mark runs which keyframes. */
 .m-parallax { --kf: cmp-parallax; }

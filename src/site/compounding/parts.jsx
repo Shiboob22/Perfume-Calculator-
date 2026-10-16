@@ -67,7 +67,7 @@ const SMOKE = [
 ];
 export function SmokeStrokes() {
   return (
-    <svg viewBox="0 0 400 520" preserveAspectRatio="none" aria-hidden="true" focusable="false" className="cmp-smoke absolute inset-0 w-full h-full" fill="none" stroke="var(--st-accent)" strokeOpacity="0.28" strokeWidth="1.2">
+    <svg viewBox="0 0 400 520" preserveAspectRatio="none" aria-hidden="true" focusable="false" className="cmp-strokes absolute inset-0 w-full h-full" fill="none" stroke="var(--st-accent)" strokeOpacity="0.28" strokeWidth="1.2">
       <M as="g" kf="clear">
         {SMOKE.map((d, i) => (
           <M as="g" kf="smoke" i={i} key={i}><path d={d} strokeOpacity={i === 3 ? 0.4 : undefined} /></M>

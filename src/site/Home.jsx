@@ -7,7 +7,7 @@ import LiveBench from "./LiveBench";
 import SmokeField from "../components/kx/SmokeField";
 import { GuideRows } from "./GuideRows";
 import { Folio } from "./editorial";
-import Compounding from "./compounding/Compounding";
+import Compounding from "@compounding-scene";
 import { useCompounding } from "./compounding/useCompounding";
 import { IconArrow, IconBook, IconFlacon, IconPlus, IconScaleDrop, IconSeal, IconSteps, IconTile } from "../components/icons";
 

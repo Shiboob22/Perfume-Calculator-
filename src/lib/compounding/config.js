@@ -69,6 +69,36 @@ export const MOTION_SCENE = Object.freeze({
   distance: Object.freeze({ plate: 28, drift: 24, parallax: 40, grain: 34, smoke: 70, wisp: 44 }),
 });
 
+/**
+ * Smoke on the canvas. A pure function of the burn stage's own progress (0:
+ * its top touches the bottom of the screen, 1: its foot leaves the top), so
+ * it is drawn only when the page scrolls and costs nothing at rest.
+ * `rise` is the share of that line in which the plumes climb, `clear` where
+ * they thin out. `lowPlumes` is what a low-power device draws; below
+ * `lowPowerCores` logical cores, or with Save-Data, the canvas is skipped
+ * and the static strokes stay.
+ */
+export const SMOKE = Object.freeze({
+  plumes: 7,
+  lowPlumes: 3,
+  rise: [0.1, 0.62],
+  clear: [0.8, 1],
+  sway: 0.09, // horizontal wander, as a share of the width
+  alpha: 0.3,
+  lineWidth: 1.2,
+  maxDpr: 2,
+  lowPowerCores: 4,
+});
+
+/**
+ * The palette shift. Each stage ends in a band that grades its ground into
+ * the next one, so the light changes with the scroll position instead of
+ * cutting. No text sits in a band (the stage's foot padding is at least as
+ * tall), so contrast is held by the stage pairs in STAGE_LIGHT.
+ */
+export const BAND = Object.freeze({ min: 96, vh: 22, max: 220 }); // px, vh, px
+export const BAND_NEXT = Object.freeze({ afternoon: "sixteen", sixteen: "pour", pour: "dusk", dusk: "burn" });
+
 /** Progress (0–1) → the stage it falls in. */
 export function stageAt(progress) {
   const p = Math.min(1, Math.max(0, progress));

@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { MOTION_SCENE } from "../../lib/compounding/config";
 import { scrollFallback } from "./fallback";
+import { quiet } from "./env";
 
 const round = (n) => Math.round(n * 1000) / 1000;
 
@@ -41,14 +42,15 @@ export function useScrollFallback(ref) {
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof CSS === "undefined" || CSS.supports("animation-timeline: view()")) return undefined;
-    const quiet = matchMedia("(prefers-reduced-motion: reduce)");
+    const mq = matchMedia("(prefers-reduced-motion: reduce)");
     let stop = null;
     const sync = () => {
-      if (!quiet.matches && !stop) stop = scrollFallback(el);
-      else if (quiet.matches && stop) { stop(); stop = null; }
+      if (!quiet() && !stop) stop = scrollFallback(el);
+      else if (quiet() && stop) { stop(); stop = null; }
     };
     sync();
-    quiet.addEventListener("change", sync);
-    return () => { quiet.removeEventListener("change", sync); if (stop) stop(); };
+    mq.addEventListener("change", sync);
+    window.addEventListener("cmp-env", sync);
+    return () => { mq.removeEventListener("change", sync); window.removeEventListener("cmp-env", sync); if (stop) stop(); };
   }, [ref]);
 }

@@ -20,6 +20,7 @@ const SCREENS = {
   account: lazy(() => import("../components/Account")),
   labels: lazy(() => import("../components/Labels")),
   journal: lazy(() => import("./DevJournal")),
+  motion: lazy(() => import("./DevMotion")),
 };
 
 const DEV_USER = { email: "preview@example.com" };
