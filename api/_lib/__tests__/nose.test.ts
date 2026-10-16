@@ -12,16 +12,24 @@ const state = vi.hoisted(() => ({
   hits: [] as string[],
   rows: [] as any[],
   asked: [] as any[],
+  shelf: [] as any[],
+  shelfAccords: [] as any[],
+  shelfEq: [] as any[],
 }));
 
 vi.mock('@supabase/supabase-js', () => {
   const table = (name: string) => {
+    let byIds = false;
     const chain: any = {
-      select: () => chain, eq: () => chain, order: () => chain, limit: () => chain,
+      select: () => chain, order: () => chain, limit: () => chain,
+      eq: (col: string, val: unknown) => { if (name === 'wardrobe_bottles') state.shelfEq.push([col, val]); return chain; },
+      in: () => { byIds = true; return chain; },
       overlaps: (col: string, vals: string[]) => { state.asked.push({ col, vals }); return chain; },
       then: (ok: any) => ok({
         data: name === 'atlas_accords'
           ? ['Woody', 'Amber', 'Citrus', 'Vanilla', 'Fresh'].map((n, i) => ({ name: n, fragrances: 100 - i }))
+          : name === 'wardrobe_bottles' ? state.shelf
+          : byIds ? state.shelfAccords
           : state.rows,
         error: null,
       }),
@@ -68,6 +76,7 @@ const fetchMock = vi.fn();
 let log: any;
 beforeEach(() => {
   state.limits = {}; state.hits = []; state.rows = ROWS; state.asked = [];
+  state.shelf = []; state.shelfAccords = []; state.shelfEq = [];
   fetchMock.mockReset();
   vi.stubGlobal('fetch', fetchMock);
   vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -207,7 +216,7 @@ describe('Nose API: picks from the real catalog', () => {
     state.rows = [];
     fetchMock.mockResolvedValueOnce(gem(PREFS));
     const res = await ask(await load(), { question: 'a warm woody scent for winter' });
-    expect(res.body).toEqual({ kind: 'none' });
+    expect(res.body).toEqual({ kind: 'none', shelf: [] });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -215,6 +224,21 @@ describe('Nose API: picks from the real catalog', () => {
     fetchMock.mockResolvedValueOnce(gem('not json at all'));
     const res = await ask(await load(), { question: 'a warm woody scent for winter' });
     expect(res.statusCode).toBe(502);
+  });
+});
+
+describe('Nose API: the asker\'s own shelf', () => {
+  it('ranks only the asker\'s owned bottles, and never sends them to the model', async () => {
+    state.shelf = [
+      { id: 'w1', name: 'My Own Wood', family: 'woody', fragrance_id: 'f9' },
+      { id: 'w2', name: 'Typed Floral', family: 'floral', fragrance_id: null },
+    ];
+    state.shelfAccords = [{ id: 'f9', accords: ['Woody', 'Amber'] }];
+    fetchMock.mockResolvedValueOnce(gem(PREFS)).mockResolvedValueOnce(gem({ intro: '', picks: [{ id: 'a', reason: 'x' }] }));
+    const res = await ask(await load(), { question: 'a warm woody scent for winter' });
+    expect(res.body.shelf).toEqual([{ id: 'w1', name: 'My Own Wood', family: 'woody', matched: ['Woody', 'Amber'] }]);
+    expect(state.shelfEq).toEqual([['user_id', 'user-1'], ['status', 'owned']]);
+    for (const call of fetchMock.mock.calls) expect(call[1].body).not.toContain('My Own Wood');
   });
 });
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  cleanPrefs, cleanQuestion, dailyCap, groundAnswer, killSwitchOn, preRedirect, rankCandidates, reasonOk,
+  cleanPrefs, cleanQuestion, dailyCap, groundAnswer, killSwitchOn, preRedirect, rankCandidates, rankShelf, reasonOk,
   MAX_QUESTION_CHARS, DEFAULT_DAILY_CAP, type Row,
 } from './nose.js';
 
@@ -129,3 +129,23 @@ describe('the Nose: an answer held to the catalog', () => {
     expect(a.intro).toBe('Woods for you');
   });
 });
+
+describe('rankShelf', () => {
+  const prefs = { accords: ['Woody', 'Amber'], avoid: ['Citrus'], family: 'amber' };
+  it('ranks owned bottles by accords, then family alone, never an avoided one', () => {
+    const shelf = rankShelf([
+      { id: 'typed', name: 'Typed Oriental', family: 'oriental', accords: null },
+      { id: 'linked', name: 'Linked Wood', family: 'woody', accords: ['Woody', 'Amber', 'Spicy'] },
+      { id: 'citrus', name: 'Bright', family: 'fresh', accords: ['Citrus', 'Woody'] },
+      { id: 'none', name: 'Floral', family: 'floral', accords: ['Rose'] },
+    ], prefs);
+    expect(shelf.map((b) => b.id)).toEqual(['linked', 'typed']);
+    expect(shelf[0]).toEqual({ id: 'linked', name: 'Linked Wood', family: 'woody', matched: ['Woody', 'Amber'] });
+    expect(shelf[1].matched).toEqual([]);
+  });
+  it('keeps at most three', () => {
+    const many = Array.from({ length: 6 }, (_, i) => ({ id: `b${i}`, name: `B${i}`, family: null, accords: ['Woody'] }));
+    expect(rankShelf(many, prefs)).toHaveLength(3);
+  });
+});
+

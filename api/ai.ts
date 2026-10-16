@@ -5,7 +5,7 @@ import { loadEntitlements, can, lockedFeature } from './_lib/entitlements.js';
 import { TIER_KEYS as FAMILY_KEYS, familyGuide } from '../src/lib/formulation.js';
 import {
   NOSE_LIMITS, ANSWER_SCHEMA, answerPrompt, answerSystem, cleanPrefs, cleanQuestion, dailyCap, groundAnswer,
-  killSwitchOn, preRedirect, prefsSchema, prefsSystem, rankCandidates,
+  killSwitchOn, preRedirect, prefsSchema, prefsSystem, rankCandidates, rankShelf, type ShelfBottle,
 } from './_lib/nose.js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
@@ -363,6 +363,26 @@ async function accordVocabulary(admin: SupabaseClient): Promise<string[]> {
   return names;
 }
 
+// The asker's owned Wardrobe bottles with their catalog accords, for "Already
+// on your shelf". Scoped by user_id here (the service role bypasses RLS).
+// Never sent to the model. A read error means no shelf, not a failed answer.
+async function ownedShelf(admin: SupabaseClient, userId: string): Promise<ShelfBottle[]> {
+  try {
+    const { data: bottles, error } = await admin.from('wardrobe_bottles')
+      .select('id, name, family, fragrance_id').eq('user_id', userId).eq('status', 'owned').limit(300);
+    if (error || !bottles?.length) return [];
+    const ids = [...new Set(bottles.map((x: any) => x.fragrance_id).filter(Boolean))];
+    const accords = new Map<string, string[]>();
+    if (ids.length) {
+      const { data: rows } = await admin.from('fragrances').select('id, accords').in('id', ids).eq('status', 'approved');
+      for (const r of rows || []) accords.set(String((r as any).id), (r as any).accords ?? []);
+    }
+    return bottles.map((x: any) => ({ id: String(x.id), name: String(x.name), family: x.family ?? null, accords: x.fragrance_id ? accords.get(String(x.fragrance_id)) ?? null : null }));
+  } catch {
+    return [];
+  }
+}
+
 async function nose(admin: SupabaseClient, userId: string, b: any) {
   const started = Date.now();
   // What is logged: the outcome and timing. Never the question, the answer or who asked.
@@ -398,12 +418,16 @@ async function nose(admin: SupabaseClient, userId: string, b: any) {
     .select('id, name, brand, year, tier, olfactory_family, accords, rating, popularity')
     .eq('status', 'approved');
   if (prefs.accords.length) q = q.overlaps('accords', prefs.accords);
-  const { data: rows, error } = await q.order('popularity', { ascending: false, nullsFirst: false }).limit(300);
+  const [{ data: rows, error }, owned] = await Promise.all([
+    q.order('popularity', { ascending: false, nullsFirst: false }).limit(300),
+    ownedShelf(admin, userId),
+  ]);
   if (error) throw error;
   step('catalog');
+  const shelf = rankShelf(owned, prefs);
 
   const candidates = rankCandidates((rows || []) as any[], prefs);
-  if (candidates.length === 0) return done('none', { kind: 'none' }, { steps });
+  if (candidates.length === 0) return done('none', { kind: 'none', shelf }, { steps, shelf: shelf.length });
 
   let answer;
   try {
@@ -416,7 +440,7 @@ async function nose(admin: SupabaseClient, userId: string, b: any) {
     answer = groundAnswer(null, candidates);
   }
   step('answer');
-  return done('picks', answer, { picks: answer.picks.length, steps });
+  return done('picks', { ...answer, shelf }, { picks: answer.picks.length, shelf: shelf.length, steps });
 }
 
 function parseJson(text: string): unknown {

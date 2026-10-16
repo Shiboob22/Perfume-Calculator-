@@ -5,7 +5,7 @@ import { useI18n } from "../../i18n/I18nProvider";
 import { askNose } from "../../lib/aiApi";
 import { flagOn } from "../../lib/flags";
 import { fragranceHref } from "../../lib/atlas/entities.js";
-import { Button, Notice } from "../kx";
+import { Button, Chip, FragranceCard, Notice } from "../kx";
 import { inputClass, inputStyle } from "../wardrobe/ui";
 
 const STARTERS = ["warm", "fresh", "office", "sweet"];
@@ -25,6 +25,7 @@ export default function Nose() {
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
   const atlasOn = flagOn("atlas");
+  const wardrobeOn = flagOn("wardrobe");
 
   async function ask(text) {
     const q = text.trim();
@@ -78,6 +79,7 @@ export default function Nose() {
           </div>
         )}
         {result?.kind === "picks" && <Picks result={result} atlasOn={atlasOn} t={t} />}
+        {result?.shelf?.length > 0 && <Shelf shelf={result.shelf} wardrobeOn={wardrobeOn} t={t} />}
       </div>
     </div>
   );
@@ -90,15 +92,32 @@ function Picks({ result, atlasOn, t }) {
       {result.intro && <p className="text-sm mb-4 max-w-prose" style={{ color: COLORS.inkSoft }}>{result.intro}</p>}
       <ul className="grid gap-3 list-none p-0 m-0">
         {result.picks.map((p) => (
-          <li key={p.id} className="p-4 border" style={{ borderColor: COLORS.line, background: COLORS.card }}>
-            <p className="font-serif text-xl" style={{ color: COLORS.ink }}>{p.name}</p>
-            <p className="text-sm" style={{ color: COLORS.dim }}>{[p.brand, p.year, p.family].filter(Boolean).join(" · ")}</p>
+          <FragranceCard key={p.id} name={p.name} href={atlasOn ? fragranceHref(p.id) : undefined}
+            facts={[p.brand, p.year ? String(p.year) : null, p.family]} accords={p.accords ?? p.matched ?? []} matched={p.matched ?? []}>
             {p.reason && <p className="text-sm mt-2 max-w-prose" style={{ color: COLORS.ink }}>{p.reason}</p>}
             {p.matched?.length > 0 && <p className="text-xs mt-2" style={{ color: COLORS.inkSoft }}>{t("nose.matched", { list: p.matched.join(", ") })}</p>}
-            {atlasOn && <Link to={fragranceHref(p.id)} className="inline-block mt-2 text-sm underline underline-offset-2 min-h-[44px] leading-[44px]" style={{ color: COLORS.forestDeep }}>{t("nose.openAtlas")}</Link>}
+          </FragranceCard>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+// Bottles the asker already owns that fit: matched on the server, never by the AI.
+function Shelf({ shelf, wardrobeOn, t }) {
+  return (
+    <section aria-labelledby="nose-shelf-h" className="mt-8">
+      <h2 id="nose-shelf-h" className="font-serif italic text-2xl mb-1" style={{ color: COLORS.ink }}>{t("nose.shelf.title")}</h2>
+      <p className="text-sm mb-4 max-w-prose" style={{ color: COLORS.inkSoft }}>{t("nose.shelf.lead")}</p>
+      <ul className="grid gap-2 list-none p-0 m-0">
+        {shelf.map((b) => (
+          <li key={b.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+            <span className="font-serif text-lg me-auto" style={{ color: COLORS.ink }}>{b.name}</span>
+            {b.matched.length > 0 ? b.matched.map((a) => <Chip key={a}>{a}</Chip>) : <Chip>{t("nose.shelf.byFamily")}</Chip>}
           </li>
         ))}
       </ul>
+      {wardrobeOn && <Link to="/wardrobe" className="inline-flex items-center mt-3 text-sm underline underline-offset-4 min-h-[44px]" style={{ color: COLORS.ink }}>{t("nose.shelf.open")}</Link>}
     </section>
   );
 }

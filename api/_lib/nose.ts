@@ -211,8 +211,8 @@ export function answerPrompt(question: string, candidates: Candidate[]): string 
   return `Request: ${question}\n\nCatalog matches (one per line):\n${list}`;
 }
 
-export type NosePick = { id: string; name: string; brand: string | null; year: number | null; family: string | null; matched: string[]; reason: string };
-export type Answer = { kind: 'picks'; intro: string; picks: NosePick[] };
+export type NosePick = { id: string; name: string; brand: string | null; year: number | null; family: string | null; accords: string[]; matched: string[]; reason: string };
+export type Answer = { kind: 'picks'; intro: string; picks: NosePick[]; shelf?: ShelfPick[] };
 
 const sentence = (v: unknown, max: number) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').replace(/\*\*|^#+\s*/g, '').trim().slice(0, max) : '');
 
@@ -241,5 +241,26 @@ export function groundAnswer(raw: unknown, candidates: Candidate[]): Answer {
 }
 
 function toPick(c: Candidate, reason: string): NosePick {
-  return { id: c.id, name: c.name, brand: c.brand, year: c.year, family: c.olfactory_family || c.tier, matched: c.matched, reason };
+  return { id: c.id, name: c.name, brand: c.brand, year: c.year, family: c.olfactory_family || c.tier, accords: (c.accords ?? []).slice(0, 6), matched: c.matched, reason };
+}
+
+/* ---------------- The asker's own shelf ---------------- */
+
+// Bottles the asker already owns that fit the question, ranked by the same
+// rules as the catalog. Server-side only and never sent to the model: the
+// shelf is matched by accords (a bottle linked to the catalog) or by family
+// (one typed by hand). The Wardrobe's families are the calculator's; the
+// Nose's "amber" is the Wardrobe's "oriental".
+export type ShelfBottle = { id: string; name: string; family: string | null; accords: string[] | null };
+export type ShelfPick = { id: string; name: string; family: string | null; matched: string[] };
+
+export const SHELF_LIMIT = 3;
+const SHELF_FAMILY: Record<string, string> = { oriental: 'amber' };
+
+export function rankShelf(bottles: ShelfBottle[], prefs: Pick<Prefs, 'accords' | 'avoid' | 'family'>, limit = SHELF_LIMIT): ShelfPick[] {
+  const rows: Row[] = bottles.map((b) => ({
+    id: b.id, name: b.name, brand: null, year: null, rating: null,
+    tier: b.family ? (SHELF_FAMILY[b.family] ?? b.family) : null, olfactory_family: null, accords: b.accords,
+  }));
+  return rankCandidates(rows, prefs, limit).map((c) => ({ id: c.id, name: c.name, family: bottles.find((b) => b.id === c.id)?.family ?? null, matched: c.matched }));
 }

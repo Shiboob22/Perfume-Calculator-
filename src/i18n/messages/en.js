@@ -271,6 +271,12 @@ export default {
     matched: "Matches: {list}",
     year: "{year}",
     openAtlas: "Open in the Atlas",
+    shelf: {
+      title: "Already on your shelf",
+      lead: "Bottles in your Wardrobe that fit, matched by the same accords. They are read here, never sent to the AI.",
+      byFamily: "Same family",
+      open: "Open the Wardrobe",
+    },
     none: "Nothing in the catalog matched that closely. Try describing the feel (warm, fresh, powdery) or naming a note.",
     redirect: {
       health: "The Nose chooses scents by how they smell, not by what they do to the body. For allergies, skin reactions, pregnancy, children or any health question, please ask a doctor or pharmacist.",
