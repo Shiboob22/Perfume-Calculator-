@@ -60,11 +60,11 @@ export default function BenchCards() {
       <div className="no-print flex flex-wrap gap-2 mb-6 items-center">
         {CARDS.map((c) => (
           <button key={c} type="button" onClick={() => setParams({ card: c })} aria-pressed={c === card}
-            className="px-3 py-1.5 text-xs rounded-none border" style={{ borderColor: c === card ? COLORS.actionText : COLORS.line, color: c === card ? COLORS.actionText : COLORS.inkSoft }}>
+            className="px-3 py-1.5 text-xs rounded border" style={{ borderColor: c === card ? COLORS.actionText : COLORS.line, color: c === card ? COLORS.actionText : COLORS.inkSoft }}>
             {t(`cards.tabs.${c}`)}
           </button>
         ))}
-        <button type="button" onClick={() => window.print()} className="ms-auto px-4 py-2 rounded-none font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+        <button type="button" onClick={() => window.print()} className="ms-auto px-4 py-2 rounded font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
           {t("cards.print")}
         </button>
       </div>

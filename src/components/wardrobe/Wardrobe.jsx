@@ -9,6 +9,7 @@ import Collection from "./Collection";
 import Stats from "./Stats";
 import Lists from "./Lists";
 import Privacy from "./Privacy";
+import RoomHeader from "../kx/RoomHeader";
 
 const SECTIONS = ["today", "collection", "stats", "lists"];
 
@@ -35,13 +36,14 @@ export default function Wardrobe() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-6">
-      <h1 className="font-serif text-4xl" style={{ color: COLORS.ink }}>{t("wardrobe.title")}</h1>
-      <p className="mt-2 text-sm max-w-prose" style={{ color: COLORS.inkSoft }}>{t("wardrobe.lead")}</p>
-      <nav aria-label={t("wardrobe.tabsLabel")} className="flex gap-2 border-b overflow-x-auto mt-5 mb-6" style={{ borderColor: COLORS.line }}>
+      <RoomHeader numeral="II" name={t("wardrobe.title")}
+        headline={state.loading || state.failed ? null : t("wardrobe.headline", { count: bottles.filter((b) => b.status === "owned").length })} />
+      <p className="text-sm max-w-prose" style={{ color: COLORS.inkSoft }}>{t("wardrobe.lead")}</p>
+      <nav aria-label={t("wardrobe.tabsLabel")} className="flex gap-1 border-b overflow-x-auto mt-5 mb-6" style={{ borderColor: COLORS.line }}>
         {SECTIONS.map((s) => (
           <button key={s} type="button" onClick={() => go(s)} aria-current={section === s ? "page" : undefined}
-            className="px-3 py-2 text-sm -mb-px border-b-2 whitespace-nowrap min-h-[44px]"
-            style={{ borderColor: section === s ? COLORS.forest : "transparent", color: section === s ? COLORS.forestDeep : COLORS.inkSoft }}>
+            className="px-4 text-[15px] -mb-px border-b-2 whitespace-nowrap min-h-[48px]"
+            style={{ borderColor: section === s ? COLORS.actionText : "transparent", color: section === s ? COLORS.ink : COLORS.inkSoft }}>
             {t(`wardrobe.tabs.${s}`)}
           </button>
         ))}

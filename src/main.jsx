@@ -5,13 +5,13 @@ import { inject } from "@vercel/analytics";
 import Root from "./Root";
 import { isAppPath } from "./routes";
 import { applyFlagLink } from "./lib/flags";
-// Newsreader (display and voice; weight axis only: the optical-size files are twice the size), Hanken Grotesk (interface), IBM Plex Mono (numbers).
+// Newsreader (display and voice; weight axis only: the optical-size files are twice the size), Hanken Grotesk (interface), figures are Hanken with tabular numerals.
 import "@fontsource-variable/newsreader/wght.css";
 import "@fontsource-variable/newsreader/wght-italic.css";
 import "@fontsource-variable/hanken-grotesk/wght.css";
-import "@fontsource/ibm-plex-mono/latin-400.css";
-import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./index.css";
+import "./motion/motion.css";
+import { initMotion } from "./motion";
 
 // A sign-in link that lands on a public page (Supabase falls back to the
 // Site URL when /app isn't an allowed redirect) carries its tokens in the
@@ -22,6 +22,7 @@ if (!isAppPath(location.pathname) && /(^|[#&])(access_token|error_description)=/
 
 // ?flag=wardrobe / ?unflag=wardrobe: try a flagged room on this device.
 applyFlagLink(location.search);
+initMotion();
 
 const tree = (
   <React.StrictMode>

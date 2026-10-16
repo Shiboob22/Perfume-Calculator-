@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#15120F}a{color:#D4924A}a:hover{color:#EDE4D6}</style>
+</helmet>
+<div ref="{{ rootRef }}" dir="{{ dir }}" lang="{{ lang }}" style="width:100%;min-height:100%;background:#15120F;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:16px;line-height:{{ lhBody }};container-type:inline-size">
+
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;height:72px;padding:0 {{ pad }}px;border-bottom:1px solid #3B332B">
+    <img src="assets/kyphira-wordmark.svg" alt="Kyphira" style="height:15px;display:block">
+    <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+      <nav style="display:flex;gap:4px">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+          <a href="#" style="display:flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;text-decoration:none;color:{{ n.fg }};box-shadow:inset 0 -1px 0 {{ n.line }}" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ n.label }}</a>
+        </sc-for>
+      </nav>
+    </sc-if>
+    <div style="display:flex;gap:8px">
+      <button onClick="{{ toggleLang }}" aria-label="{{ t.langAria }}" style="min-height:44px;min-width:44px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:14px;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.langSwitch }}</button>
+      <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+        <button aria-label="{{ t.menu }}" style="width:44px;height:44px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;display:flex;align-items:center;justify-content:center;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h9"></path></svg></button>
+      </sc-if>
+    </div>
+  </header>
+
+  <section aria-label="{{ t.profile }}" style="position:relative;overflow:hidden;padding:{{ heroPadY }}px {{ pad }}px;border-bottom:1px solid #3B332B">
+    <div style="position:absolute;inset:0;pointer-events:none;opacity:{{ glowOp }};background:radial-gradient(70% 90% at {{ glowX }}% -10%, rgba(232,170,104,0.32), rgba(232,170,104,0) 66%)"></div>
+    <div style="position:relative;display:grid;grid-template-columns:{{ heroCols }};gap:{{ heroGap }}px;align-items:end">
+      <div style="display:flex;flex-direction:column;gap:{{ stackGap }}px;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;opacity:{{ o1 }}">
+          <span style="display:flex;gap:12px;align-items:baseline;font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A"><span style="font-family:'Newsreader',serif;font-size:16px;color:#D4924A;letter-spacing:0.06em">V</span>{{ t.kicker }}</span>
+          <span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">S·0042</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:{{ avGap }}px;min-width:0">
+          <div aria-hidden="true" style="flex-shrink:0;width:{{ avSize }}px;height:{{ avSize }}px;border-radius:50%;border:1px solid #D4924A;display:flex;align-items:center;justify-content:center;font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:{{ avFont }}px;font-weight:300;color:#D4924A;opacity:{{ o1 }}">{{ p.initials }}</div>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:0;opacity:{{ o2 }};transform:{{ tf2 }}">
+            <h1 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:{{ nameSize }}px;line-height:{{ lhHead }};letter-spacing:-0.015em">{{ p.name }}</h1>
+            <span style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:#A3968A"><span dir="ltr">{{ p.handle }}</span><span>{{ p.place }}</span></span>
+          </div>
+        </div>
+        <p style="margin:0;max-width:560px;font-size:{{ bioSize }}px;line-height:{{ lhStand }};color:#A3968A;opacity:{{ o3 }};transform:{{ tf3 }};text-wrap:pretty">{{ p.bio }}</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px;opacity:{{ o4 }};transform:{{ tf4 }}">
+        <div style="display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:1px;background:#3B332B;border:1px solid #3B332B;border-radius:2px;overflow:hidden">
+          <sc-for list="{{ stats }}" as="st" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:2px;padding:16px;background:#15120F;min-width:0"><span dir="ltr" style="font-size:{{ statNum }}px;font-weight:500;line-height:1.1;font-variant-numeric:tabular-nums;text-align:start">{{ st.val }}</span><span style="font-size:13px;color:#A3968A">{{ st.label }}</span></div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onClick="{{ toggleFollow }}" aria-pressed="{{ followAttr }}" style="flex:1 1 160px;min-height:48px;padding:0 24px;background:{{ followBg }};color:{{ followFg }};border:1px solid #D4924A;border-radius:2px;font:inherit;font-weight:600;cursor:pointer" style-focus="outline:2px solid #EDE4D6;outline-offset:2px">{{ followLabel }}</button>
+          <button aria-label="{{ t.share }}" style="min-height:48px;min-width:48px;padding:0 16px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="border-color:#A3968A" style-focus="outline:2px solid #D4924A;outline-offset:2px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M5 13v6h14v-6"></path></svg>{{ t.share }}</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main style="padding:{{ padY }}px {{ pad }}px 96px;display:flex;flex-direction:column;gap:{{ gapY }}px">
+    <div role="tablist" style="display:flex;border-bottom:1px solid #3B332B;overflow-x:auto;scrollbar-width:none">
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
+        <button role="tab" aria-selected="{{ tb.sel }}" onClick="{{ tb.pick }}" style="min-height:48px;padding:0 20px;white-space:nowrap;background:transparent;border:none;box-shadow:inset 0 -2px 0 {{ tb.line }};color:{{ tb.fg }};font:inherit;font-size:15px;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ tb.label }}<span style="margin-inline-start:8px;font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums">{{ tb.count }}</span></button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ isRecipes }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:{{ cardCols }};gap:16px">
+      <sc-for list="{{ recipes }}" as="rc" hint-placeholder-count="6">
+        <article style="display:flex;flex-direction:column;gap:20px;padding:24px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">{{ rc.cat }}</span><span style="font-size:12px;color:#D4924A">{{ rc.fam }}</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:28px;line-height:{{ lhHead }}">{{ rc.name }}</span><span dir="ltr" style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums;text-align:start">{{ rc.meta }}</span></div>
+          <div aria-hidden="true" style="display:flex;height:6px;gap:2px"><sc-for list="{{ rc.segs }}" as="sg" hint-placeholder-count="3"><div style="width:{{ sg.w }}%;background:{{ sg.c }}"></div></sc-for></div>
+          <div style="display:flex;flex-direction:column;border-top:1px solid #3B332B">
+            <sc-for list="{{ rc.mats }}" as="m" hint-placeholder-count="3"><div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #3B332B;font-size:15px;font-variant-numeric:tabular-nums"><span>{{ m.name }}</span><span dir="ltr" style="white-space:nowrap;flex-shrink:0">{{ m.g }} g</span></div></sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto">
+            <button onClick="{{ rc.save }}" aria-pressed="{{ rc.savedAttr }}" aria-label="{{ t.save }}" style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px 0 0;background:transparent;border:none;color:{{ rc.saveFg }};font:inherit;font-size:14px;font-variant-numeric:tabular-nums;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px"><svg width="20" height="20" viewBox="0 0 24 24" fill="{{ rc.fill }}" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"><path d="M7 4h10v16l-5-3.5L7 20z"></path></svg>{{ rc.saves }}</button>
+            <a href="Bench.dc.html" style="display:flex;align-items:center;gap:8px;min-height:44px;color:#D4924A;text-decoration:none;font-size:14px;font-weight:600" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.open }}<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="transform:{{ flip }}"><path d="M3.5 10h13M11.5 5l5 5-5 5"></path></svg></a>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isReviews }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;border-top:1px solid #A3968A">
+      <sc-for list="{{ reviews }}" as="rv" hint-placeholder-count="4">
+        <article style="display:grid;grid-template-columns:{{ revCols }};gap:12px 40px;padding:28px 0;border-bottom:1px solid #3B332B">
+          <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+            <span dir="ltr" style="display:flex;flex-direction:column;text-align:start"><span style="font-family:'Newsreader',serif;font-size:26px;line-height:1.15">{{ rv.name }}</span><span style="font-size:13px;color:#A3968A">{{ rv.house }}</span></span>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div aria-hidden="true" style="display:flex;gap:3px"><sc-for list="{{ rv.pips }}" as="pp" hint-placeholder-count="5"><span style="display:block;width:18px;height:6px;background:{{ pp.c }}"></span></sc-for></div>
+              <span dir="ltr" style="font-size:15px;font-weight:500;font-variant-numeric:tabular-nums">{{ rv.rating }} / 5</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+            <p style="margin:0;font-size:17px;text-wrap:pretty">{{ rv.text }}</p>
+            <span style="display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;color:#A3968A;font-variant-numeric:tabular-nums"><span>{{ rv.date }}</span><span>{{ rv.helpful }}</span></span>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isFollowing }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;border-top:1px solid #A3968A">
+      <sc-for list="{{ people }}" as="pe" hint-placeholder-count="5">
+        <div style="display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:16px;align-items:center;padding:18px 0;border-bottom:1px solid #3B332B">
+          <div aria-hidden="true" style="width:56px;height:56px;border-radius:50%;border:1px solid #3B332B;display:flex;align-items:center;justify-content:center;font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:22px;color:#EDE4D6">{{ pe.initials }}</div>
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:22px;line-height:{{ lhHead }}">{{ pe.name }}</span><span style="font-size:13px;color:#A3968A"><span dir="ltr">{{ pe.handle }}</span> · {{ pe.recipes }}</span></div>
+          <button onClick="{{ pe.toggle }}" aria-pressed="{{ pe.on }}" style="min-height:44px;min-width:104px;padding:0 18px;background:{{ pe.bg }};color:{{ pe.fg }};border:1px solid {{ pe.bd }};border-radius:2px;font:inherit;font-size:14px;font-weight:600;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ pe.label }}</button>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1300},&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;'en'|'ar'&quot;},&quot;initView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;recipes&quot;,&quot;reviews&quot;,&quot;following&quot;],&quot;default&quot;:&quot;recipes&quot;,&quot;tsType&quot;:&quot;'recipes'|'reviews'|'following'&quot;},&quot;reduced&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;freezeAt&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;number|null&quot;}}">
+const MAT = { Frankincense:'لبان', 'Iso E Super':'إيزو إي سوبر', Sandalwood:'صندل', Labdanum:'لادن', Cassia:'سليخة', Honey:'عسل', Rose:'ورد', Vetiver:'فيتيفر', Oud:'عود', Ambroxan:'أمبروكسان', Bergamot:'برغموت', Patchouli:'باتشولي', Cedar:'أرز', Cardamom:'هيل', Myrrh:'مُرّ' };
+const FAM = { amber:['Amber','عنبري'], leather:['Leather','جلدي'], floral:['Floral','زهري'], spiced:['Spiced','حار'], oud:['Oud','عودي'], woody:['Woody','خشبي'] };
+const RECIPES = [
+  ['R·0318','Kyphi No. 3','كيفي رقم 3','amber',20,100,[['Iso E Super',30],['Frankincense',22],['Sandalwood',20]],412],
+  ['R·0301','Labdanum Wash','غسول اللادن','leather',15,250,[['Labdanum',40],['Cedar',25],['Vetiver',15]],286],
+  ['R·0287','Amber Study 07','دراسة العنبر 07','amber',18,50,[['Ambroxan',35],['Labdanum',25],['Honey',12]],231],
+  ['R·0264','Rose Smoke 02','دخان الورد 02','floral',12,30,[['Rose',38],['Oud',20],['Patchouli',14]],197],
+  ['R·0249','Cassia Morning','صباح السليخة','spiced',10,100,[['Bergamot',32],['Cassia',18],['Cardamom',12]],143],
+  ['R·0233','Oud Wood Layer','طبقة عود وود','oud',25,60,[['Oud',28],['Sandalwood',22],['Myrrh',14]],98],
+].map(r => ({ cat:r[0], en:r[1], ar:r[2], f:r[3], conc:r[4], total:r[5], mats:r[6], saves:r[7] }));
+const REVIEWS = [
+  { name:'Santal 33', house:'Le Labo', r:4.5, date:[12,'Oct'], helpful:28, en:'Cardamom opens, sandalwood stays. 4 sprays last 7 hours on skin at 24 °C. Dry down is the best part. It gets loud in a closed room.', ar:'تفتح بالهيل ويبقى الصندل. 4 رشّات تدوم 7 ساعات على البشرة عند 24 °C. الجفاف أجمل ما فيه. وتعلو في الغرف المغلقة.' },
+  { name:'Khamrah', house:'Lattafa', r:4.0, date:[3,'Oct'], helpful:41, en:'Cinnamon and dates, then vanilla. 100 ml for a price that makes sense. Sweet. I wear it at 14 °C and below, never in summer.', ar:'قرفة وتمر ثم فانيليا. 100 ml بسعر منطقي. حلو. أرتديه عند 14 °C وما دونها، ولا أرتديه صيفاً.' },
+  { name:'Mitsouko', house:'Guerlain', r:5.0, date:[19,'Sep'], helpful:17, en:'Oakmoss and peach, 1919 and still exact. I smell it three times: at 1 minute, at 1 hour, at 6. Each is different.', ar:'طحلب البلوط والخوخ، 1919 وما زال دقيقاً. أشمّه ثلاث مرات: بعد دقيقة، وبعد ساعة، وبعد 6 ساعات. وكل مرة تختلف.' },
+  { name:'Hawas', house:'Rasasi', r:3.5, date:[2,'Sep'], helpful:9, en:'Apple and bergamot, fresh for 2 hours. Then musk. Good for 35 °C. Not for a long day.', ar:'تفاح وبرغموت، منعش لساعتين. ثم المسك. مناسب لدرجة 35 °C. ولا يصلح ليوم طويل.' },
+];
+const MONTHS = { en:{ Oct:'Oct', Sep:'Sep' }, ar:{ Oct:'أكتوبر', Sep:'سبتمبر' } };
+const PEOPLE = [
+  ['Omar Fathy','عمر فتحي','@omar.f',31,true],['Salma Adel','سلمى عادل','@salma.adel',18,true],['Youssef Kamel','يوسف كامل','@y.kamel',44,false],['Mariam Nabil','مريم نبيل','@mariam.n',12,true],['Karim Sherif','كريم شريف','@karim.s',27,false],
+];
+const COPY = {
+  en: { langSwitch:'ع', langAria:'Language', menu:'Menu', kicker:'The Salon', profile:'Profile', share:'Share', follow:'Follow', following:'Following', save:'Save recipe', open:'Open in the Bench',
+    tabs:['Recipes','Reviews','Following'], recipesW:'recipes', followersW:'Followers', followingW:'Following', recipesL:'Recipes', helpful:'found this useful', suffixSave:'',
+    nav:['The Bench','The Wardrobe','The Library','The Atlas','The Salon','The Nose'], person:{ name:'Nour Hassan', handle:'@nour.h', place:'Maadi, Cairo', initials:'NH', bio:'Weighs everything. Resin and amber studies, 20% in ethanol 96%. Notebook open since 2019.' } },
+  ar: { langSwitch:'EN', langAria:'اللغة', menu:'القائمة', kicker:'الصالون', profile:'الملف الشخصي', share:'مشاركة', follow:'تابِع', following:'تتابعه', save:'احفظ الوصفة', open:'افتح في المِنضدة',
+    tabs:['الوصفات','المراجعات','المتابَعون'], recipesW:'وصفة', followersW:'متابِعون', followingW:'يتابع', recipesL:'وصفات', helpful:'وجدوها مفيدة', suffixSave:'',
+    nav:['المِنضدة','الخزانة','المكتبة','الأطلس','الصالون','الأنف'], person:{ name:'نور حسن', handle:'@nour.h', place:'المعادي، القاهرة', initials:'نح', bio:'يزن كل شيء. دراسات الراتنج والعنبر، بتركيز 20% في إيثانول 96%. دفتره مفتوح منذ 2019.' } },
+};
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const eo = x => 1 - Math.pow(1 - x, 3);
+const END = 2.6;
+
+class Component extends DCLogic {
+  state = { lang: null, w: 1440, tab: null, t: 0, follow: false, saved: {}, ppl: {} };
+  rootRef = React.createRef();
+  componentDidMount() {
+    const el = this.rootRef.current;
+    const measure = () => { const r = this.rootRef.current; if (r) this.setState({ w: r.getBoundingClientRect().width }); };
+    if (el) { this.ro = new ResizeObserver(e => this.setState({ w: e[0].contentRect.width })); this.ro.observe(el); }
+    measure(); setTimeout(measure, 120); setTimeout(measure, 600);
+    if (this.props.freezeAt != null) return;
+    const reduce = this.props.reduced || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (reduce) { this.setState({ t: END }); return; }
+    const s0 = performance.now();
+    const tick = now => { const t = (now - s0) / 1000; this.setState({ t }); if (t < END) this.raf = requestAnimationFrame(tick); };
+    this.raf = requestAnimationFrame(tick);
+  }
+  componentWillUnmount() { this.ro && this.ro.disconnect(); cancelAnimationFrame(this.raf); }
+  renderVals() {
+    const lang = this.state.lang ?? (this.props.lang === 'ar' ? 'ar' : 'en');
+    const ar = lang === 'ar', t = COPY[lang], A = +ar;
+    const w = this.state.w, mobile = w < 1100, desktop = !mobile;
+    const tab = this.state.tab ?? this.props.initView ?? 'recipes';
+    const T0 = this.props.freezeAt ?? this.state.t;
+    const p = (s, d) => eo(clamp((T0 - s) / d));
+    const up = (s, d, px) => 'translateY(' + (px * (1 - p(s, d))).toFixed(1) + 'px)';
+    const followed = this.state.follow;
+    const followers = 1284 + (followed ? 1 : 0);
+    const nm = n => ar ? (MAT[n] || n) : n;
+    const fl = k => FAM[k][A];
+    const setLang = l => this.setState({ lang: l });
+    const savedOf = i => !!this.state.saved[i];
+    const pplOn = (i, base) => this.state.ppl[i] ?? base;
+    return {
+      rootRef: this.rootRef, lang, dir: ar ? 'rtl' : 'ltr', t, p: t.person, desktop, mobile, kls: ar ? '0' : '0.14em', lhBody: ar ? 1.8 : 1.55, lhHead: ar ? 1.45 : 1.1, lhStand: ar ? 1.9 : 1.6,
+      pad: mobile ? 16 : 48, padY: mobile ? 28 : 48, gapY: mobile ? 24 : 32, flip: ar ? 'scaleX(-1)' : 'none',
+      nav: t.nav.map((n, i) => ({ label: n, fg: i === 4 ? '#EDE4D6' : '#A3968A', line: i === 4 ? '#D4924A' : 'transparent' })),
+      toggleLang: () => setLang(ar ? 'en' : 'ar'),
+      heroPadY: mobile ? 32 : 64, heroCols: mobile ? 'minmax(0,1fr)' : 'minmax(0,1fr) 420px', heroGap: mobile ? 28 : 64, stackGap: mobile ? 20 : 32,
+      avSize: mobile ? 72 : 112, avFont: mobile ? 28 : 44, avGap: mobile ? 16 : 28, nameSize: mobile ? 40 : 80, bioSize: mobile ? 17 : 19, statNum: mobile ? 22 : 30,
+      glowOp: p(0, 0.9).toFixed(3), glowX: (26 + 8 * Math.sin(T0 * 0.8)).toFixed(1),
+      o1: p(0.2, 0.5).toFixed(3), o2: p(0.5, 0.6).toFixed(3), tf2: up(0.5, 0.6, 16), o3: p(1.0, 0.6).toFixed(3), tf3: up(1.0, 0.6, 10), o4: p(1.5, 0.6).toFixed(3), tf4: up(1.5, 0.6, 10),
+      stats: [[String(RECIPES.length * 4), t.recipesL], [followers.toLocaleString('en-US'), t.followersW], ['187', t.followingW]].map(s => ({ val: s[0], label: s[1] })),
+      toggleFollow: () => this.setState({ follow: !followed }), followAttr: followed ? 'true' : 'false', followLabel: followed ? t.following : t.follow, followBg: followed ? 'transparent' : '#D4924A', followFg: followed ? '#D4924A' : '#15120F',
+      tabs: [['recipes', RECIPES.length * 4], ['reviews', 63], ['following', 187]].map(([k, c], i) => ({ label: t.tabs[i], count: c, sel: tab === k ? 'true' : 'false', line: tab === k ? '#D4924A' : 'transparent', fg: tab === k ? '#EDE4D6' : '#A3968A', pick: () => this.setState({ tab: k }) })),
+      isRecipes: tab === 'recipes', isReviews: tab === 'reviews', isFollowing: tab === 'following',
+      cardCols: w < 700 ? 'minmax(0,1fr)' : 'repeat(auto-fill, minmax(340px, 1fr))',
+      recipes: RECIPES.map((r, i) => {
+        const sum = r.mats.reduce((s, m) => s + m[1], 0), on = savedOf(i);
+        return { cat: r.cat, name: ar ? r.ar : r.en, fam: fl(r.f), meta: r.conc + '% · ' + r.total.toFixed(2) + ' g',
+          segs: r.mats.map((m, k) => ({ w: (m[1] / sum * 100).toFixed(1), c: 'rgba(212,146,74,' + [1, 0.6, 0.35][k] + ')' })),
+          mats: r.mats.map(m => ({ name: nm(m[0]), g: m[1].toFixed(2) })), saves: r.saves + (on ? 1 : 0), savedAttr: on ? 'true' : 'false', saveFg: on ? '#D4924A' : '#A3968A', fill: on ? 'currentColor' : 'none',
+          save: () => this.setState({ saved: { ...this.state.saved, [i]: !on } }) };
+      }),
+      revCols: mobile ? 'minmax(0,1fr)' : '360px minmax(0,1fr)',
+      reviews: REVIEWS.map(r => ({ name: r.name, house: r.house, rating: r.r.toFixed(1), text: ar ? r.ar : r.en, date: r.date[0] + ' ' + MONTHS[lang][r.date[1]] + ' 2026', helpful: r.helpful + ' ' + t.helpful,
+        pips: [1, 2, 3, 4, 5].map(n => ({ c: r.r >= n ? '#D4924A' : r.r >= n - 0.5 ? 'rgba(212,146,74,0.5)' : '#29231D' })) })),
+      people: PEOPLE.map((q, i) => { const on = pplOn(i, q[4]); return { name: ar ? q[1] : q[0], initials: ar ? q[1].split(' ').map(s => s[0]).join('') : q[0].split(' ').map(s => s[0]).join(''), handle: q[2], recipes: q[3] + ' ' + t.recipesW,
+        on: on ? 'true' : 'false', label: on ? t.following : t.follow, bg: on ? 'transparent' : '#D4924A', fg: on ? '#D4924A' : '#15120F', bd: '#D4924A', toggle: () => this.setState({ ppl: { ...this.state.ppl, [i]: !on } }) }; }),
+    };
+  }
+}
+</script>
+</body>
+</html>

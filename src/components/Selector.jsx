@@ -49,12 +49,12 @@ export default function Selector({ onSelectPerfume }) {
         <div className="mt-6 flex flex-wrap items-center gap-3">
           {hasDraft ? (
             <>
-              <button type="button" onClick={() => setStep(Math.min(Math.max(draft.step, 1), LAST_STEP))} className="px-5 min-h-[48px] rounded-none" style={primary}>{t("selector.intro.resume")}</button>
-              <button type="button" onClick={restart} className="px-4 min-h-[48px] rounded-none underline underline-offset-4" style={{ color: COLORS.inkSoft }}>{t("selector.restart")}</button>
+              <button type="button" onClick={() => setStep(Math.min(Math.max(draft.step, 1), LAST_STEP))} className="px-5 min-h-[48px] rounded" style={primary}>{t("selector.intro.resume")}</button>
+              <button type="button" onClick={restart} className="px-4 min-h-[48px] rounded underline underline-offset-4" style={{ color: COLORS.inkSoft }}>{t("selector.restart")}</button>
               <p className="w-full text-xs" style={{ color: COLORS.dim }}>{t("selector.intro.resumeNote")}</p>
             </>
           ) : (
-            <button type="button" onClick={() => setStep(1)} className="px-5 min-h-[48px] rounded-none" style={primary}>{t("selector.intro.begin")}</button>
+            <button type="button" onClick={() => setStep(1)} className="px-5 min-h-[48px] rounded" style={primary}>{t("selector.intro.begin")}</button>
           )}
         </div>
       </div>
@@ -100,8 +100,8 @@ export default function Selector({ onSelectPerfume }) {
       </fieldset>
 
       <div className="mt-8 flex items-center justify-between gap-3">
-        <button type="button" onClick={() => setStep(step - 1)} className="px-4 min-h-[48px] rounded-none" style={quiet}>{t("selector.back")}</button>
-        <button type="button" onClick={() => setStep(step + 1)} className="px-6 min-h-[48px] rounded-none"
+        <button type="button" onClick={() => setStep(step - 1)} className="px-4 min-h-[48px] rounded" style={quiet}>{t("selector.back")}</button>
+        <button type="button" onClick={() => setStep(step + 1)} className="px-6 min-h-[48px] rounded"
           style={answered || last ? primary : quiet}>
           {last ? t("selector.seeResults") : answered ? t("selector.next") : t("selector.skip")}
         </button>

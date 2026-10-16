@@ -27,6 +27,9 @@ html[dir="rtl"] body * {
   letter-spacing: normal !important;
 }
 
+/* Figures (board): Hanken Grotesk with tabular numerals, never a monospace. */
+.font-mono { font-variant-numeric: tabular-nums; }
+
 /* The mono labels are a Latin design device. In Arabic they would take their
    word spaces from IBM Plex Mono (fixed-width, so gaps look wide); use the
    proportional UI fonts instead. */
@@ -104,13 +107,18 @@ html[dir="rtl"] .read-progress { transform-origin: right; }
 }
 @supports not (animation-timeline: scroll()) { .read-progress { display: none; } }
 
+/* Motion tokens (Kyphira board): fast 150, base 250, slow 600, ambient 2 s+, one ease-out, one ease-in-out. Mirrors MOTION in theme.js. */
+:root { --dur-fast: 150ms; --dur-base: 250ms; --dur-slow: 600ms; --dur-ambient: 2000ms; --ease-out: cubic-bezier(.22,1,.36,1); --ease-in-out: cubic-bezier(.65,0,.35,1); --offset-shadow: 8px 8px 0 var(--c-sand); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --offset-shadow: none; } }
+:root[data-theme="dark"] { --offset-shadow: none; }
+
 /* The live bench: pour columns and the scale's readout. */
 /* Figures change at once: nothing animates the digits, so they never read late. */
-.pour { transform-origin: bottom; transition: transform 240ms cubic-bezier(.2,0,0,1); }
+.pour { transform-origin: bottom; transition: transform var(--dur-base) var(--ease-out); }
 .readout { font-variant-numeric: tabular-nums; }
 
 /* Turning a page between guides (View Transitions, where supported). */
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: 320ms; animation-timing-function: cubic-bezier(.2,0,0,1); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--dur-slow); animation-timing-function: var(--ease-in-out); }
 
 /* v3: labels in spaced capitals become plain in Arabic; display type gets air. */
 html[dir="rtl"] h1, html[dir="rtl"] h2 { line-height: 1.3; }
@@ -123,10 +131,14 @@ html[dir="rtl"] .uppercase { text-transform: none; }
    foot of the screen, so a field that takes focus scrolls clear of them. */
 @media (max-width: 767px) { html { scroll-padding-bottom: 160px; } }
 
-/* Hover and colour changes ease at 180ms; fills and bars at 240ms (UI motion stays within 150–250ms). */
-a, button, summary { transition: color 180ms cubic-bezier(.2,0,0,1), background-color 180ms cubic-bezier(.2,0,0,1), border-color 180ms cubic-bezier(.2,0,0,1); }
-.fill-anim { transition: height 240ms cubic-bezier(.2,0,0,1), width 240ms cubic-bezier(.2,0,0,1), transform 240ms cubic-bezier(.2,0,0,1), y 240ms cubic-bezier(.2,0,0,1); }
-*:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 3px; }
+/* Hover and colour changes: fast (150 ms, ease-out); fills, bars and moving marks: base (250 ms, ease-out). */
+a, button, summary { transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+.fill-anim { transition: height var(--dur-base) var(--ease-out), width var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out), y var(--dur-base) var(--ease-out); }
+*:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+/* On a resin fill the ring is the text colour (board: 2 px text outline on resin). */
+.kx-fill:focus-visible { outline-color: var(--c-ink); }
+/* Arabic captions: 13 px, no tracking (board). */
+html[dir="rtl"] .running-head, html[dir="rtl"] .text-\[11px\].uppercase { font-size: 13px; letter-spacing: 0; }
 summary::-webkit-details-marker { display: none; }
 
 /* Kyphira smoke line: a slow horizontal drift (a divider is still; a loading line moves). */
@@ -216,9 +228,23 @@ summary::-webkit-details-marker { display: none; }
 .cmp-fill { position: absolute; inset-block: 0; inset-inline-start: calc(50% - 1px); width: 3px; background: #E3A857; transform-origin: bottom; }
 .cmp-tickbox { position: absolute; inset: 0; }
 .cmp-tick { height: 1px; width: 10px; background: #F6F2EA; }
-.cmp-read { margin-top: 6px; padding: 2px 3px; background: rgb(16 14 10 / .88); color: #F6F2EA; font: 10px/1 "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; white-space: nowrap;
+.cmp-read { margin-top: 6px; padding: 2px 3px; background: rgb(16 14 10 / .88); color: #F6F2EA; font: 10px/1 "Hanken Grotesk Variable", system-ui, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap;
   --gw: calc(var(--cg) / 100 - 0.5); --gf: calc(var(--cg) - var(--gw) * 100); counter-reset: cmpw var(--gw) cmpf var(--gf); }
 .cmp-read::before { content: counter(cmpw) "." counter(cmpf, decimal-leading-zero) "\2009g"; }
+
+/* The ember breathes at rest: ambient, 3.2 s, ease-in-out, off under reduced motion. */
+@media (prefers-reduced-motion: no-preference) { .cmp-breath { animation: cmp-breath var(--dur-ambient) var(--ease-in-out) infinite alternate; } }
+/* Cinematic rise (Salon profile header only): 600 ms ease-out. Static under reduced motion. */
+@media (prefers-reduced-motion: no-preference) { .kx-rise { animation: kx-rise var(--dur-slow) var(--ease-out) both; } }
+@keyframes kx-rise { from { opacity: 0; transform: translateY(14px); } }
+/* The Nose's thinking state: three dots, ambient (2 s), still under reduced motion. */
+.kx-think i { width: 6px; height: 6px; border-radius: 50%; background: var(--c-action-text); display: block; opacity: .6; }
+@media (prefers-reduced-motion: no-preference) {
+  .kx-think i { animation: kx-think var(--dur-ambient) var(--ease-in-out) infinite alternate; }
+  .kx-think i:nth-child(2) { animation-delay: 250ms; } .kx-think i:nth-child(3) { animation-delay: 500ms; }
+}
+@keyframes kx-think { from { opacity: .25; } to { opacity: 1; } }
+@keyframes cmp-breath { from { opacity: .7; transform: scale(.94); } to { opacity: 1; transform: scale(1.08); } }
 
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {

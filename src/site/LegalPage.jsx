@@ -18,7 +18,7 @@ export default function LegalPage({ page }) {
   return (
     <article className="max-w-2xl mx-auto px-4 sm:px-8 pt-10">
       {doc.draft && (
-        <p role="note" className="mb-6 p-3 rounded-none text-sm" style={{ background: COLORS.dangerBg, border: `1px solid ${COLORS.danger}`, color: COLORS.ink }}>
+        <p role="note" className="mb-6 p-3 rounded text-sm" style={{ background: COLORS.dangerBg, border: `1px solid ${COLORS.danger}`, color: COLORS.ink }}>
           {t("site.legal.draft")}
         </p>
       )}

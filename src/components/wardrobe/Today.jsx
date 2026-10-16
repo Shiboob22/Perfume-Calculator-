@@ -9,6 +9,8 @@ import { wearRow } from "../../lib/wardrobe/validate";
 import Button from "../kx/Button";
 import Field from "../kx/Field";
 import Notice from "../kx/Notice";
+import Chip from "../kx/Chip";
+import Stepper from "../kx/Stepper";
 import { SelectField, inputClass, inputStyle } from "./ui";
 
 // What to wear today: the picker's ranked bottles with their reasons, and a
@@ -82,13 +84,21 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
       <h2 id="today-h" className="font-serif italic text-2xl mb-1" style={{ color: COLORS.ink }}>{t("wardrobe.today.title")}</h2>
       <p className="text-sm mb-5 max-w-prose" style={{ color: COLORS.inkSoft }}>{t("wardrobe.today.lead")}</p>
 
-      {/* One question up front; weather and time refine it when given. */}
-      <SelectField className="max-w-sm" label={t("wardrobe.today.question")} value={occasion} onChange={setOccasion}
-        options={[{ value: "", label: t("wardrobe.today.any") }, ...OCCASIONS.map((o) => ({ value: o.id, label: t(`wardrobe.occasions.${o.id}`) }))]} />
+      {/* The board's two controls up front: temperature as a stepper, the occasion as chips. Time of day stays folded. */}
+      <Stepper label={t("wardrobe.today.temp")} className="max-w-xs" inputId="wear-temp" value={temp} unit="°C"
+        decLabel={t("wardrobe.today.tempLess")} incLabel={t("wardrobe.today.tempMore")}
+        onType={setTemp} onStep={(dir) => setTemp(String((temp === "" || !Number.isFinite(Number(temp)) ? 22 : Number(temp)) + dir))}
+        after={<p className="text-xs mt-1.5" style={{ color: COLORS.dim }}>{t("wardrobe.today.tempHint")}</p>} />
+      <div role="group" aria-labelledby="occ-q" className="mt-5">
+        <p id="occ-q" className="text-sm mb-2" style={{ color: COLORS.inkSoft }}>{t("wardrobe.today.question")}</p>
+        <div className="flex flex-wrap gap-2">
+          <Chip onToggle={() => setOccasion("")} pressed={occasion === ""}>{t("wardrobe.today.any")}</Chip>
+          {OCCASIONS.map((o) => <Chip key={o.id} onToggle={() => setOccasion(o.id)} pressed={occasion === o.id}>{t(`wardrobe.occasions.${o.id}`)}</Chip>)}
+        </div>
+      </div>
       <details className="mt-3 mb-6">
         <summary className="inline-flex items-center min-h-[44px] text-sm cursor-pointer underline underline-offset-4" style={{ color: COLORS.inkSoft }}>{t("wardrobe.today.more")}</summary>
-        <div className="grid gap-4 sm:grid-cols-2 mt-2 max-w-xl">
-          <Field label={t("wardrobe.today.temp")} hint={t("wardrobe.today.tempHint")} mono inputMode="decimal" value={temp} onChange={(e) => setTemp(e.target.value)} dir="ltr" />
+        <div className="mt-2 max-w-xs">
           <SelectField label={t("wardrobe.today.time")} value={time} onChange={setTime} options={[{ value: "", label: t("wardrobe.today.any") }, ...TIMES.map((x) => ({ value: x, label: t(`wardrobe.times.${x}`) }))]} />
         </div>
       </details>

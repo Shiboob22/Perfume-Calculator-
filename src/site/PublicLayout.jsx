@@ -1,9 +1,11 @@
 import React, { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { Link } from "../motion";
 import { SiteFooter, SiteHeader } from "../components/SiteChrome";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { headFor, localePath, parsePath } from "./meta";
+import { PageTransition } from "../motion";
 
 // Keeps <title> and the description in step on client-side navigation. The
 // full head (canonical, hreflang, Open Graph) is written by the prerender.
@@ -36,7 +38,7 @@ export default function PublicLayout({ children }) {
         </Link>
       } />
 
-      <main className="flex-1 w-full">{children}</main>
+      <PageTransition as="main" className="flex-1 w-full">{children}</PageTransition>
 
       <SiteFooter links={<>
         <Link to={to("/privacy")} className="hover:underline underline-offset-4 min-h-[24px]">{t("site.nav.privacy")}</Link>

@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../../motion";
 import { TYPE, COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { localePath } from "../meta";
@@ -96,6 +96,7 @@ export default function Compounding() {
               </h1>
               <p className={`mt-7 measure ${TYPE.lead}`}>{t("site.compounding.afternoon.lead")}</p>
               <p className="mt-6 text-sm" style={{ color: "var(--st-dim)" }}>{t("site.compounding.afternoon.hint")}</p>
+              <a href="#cmp-rooms" className="mt-3 inline-flex items-center min-h-[44px] text-sm underline underline-offset-4" style={{ color: "var(--st-accent)" }}>{t("site.compounding.afternoon.skip")}</a>
             </div>
             <V className="w-full max-w-[420px] justify-self-center lg:justify-self-end">
               <M kf="parallax"><Bowl fill="empty" className="w-full" /></M>
@@ -185,13 +186,14 @@ export default function Compounding() {
                   <p className="mt-4 font-serif text-lg measure" style={{ color: "var(--st-dim)" }}>{t("site.compounding.burn.text")}</p>
                 </M>
               </V>
-              <nav aria-labelledby={h} className="mt-12">
+              <nav id="cmp-rooms" aria-labelledby={h} className="mt-12 scroll-mt-8">
                 <ul className="grid grid-cols-2 lg:grid-cols-6 gap-x-3 gap-y-6 lg:items-start">
                   {ROOMS.map((room, i) => {
                     const open = !room.flag || flagOn(room.flag);
                     const w = WISPS[i];
                     const body = (
                       <>
+                        <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} block text-base mb-1`} style={{ color: "var(--st-accent)" }}>{roman(i + 1)}</span>
                         <span className={`block font-serif ${ar ? "text-xl leading-[1.5]" : "text-lg leading-tight"}`}>{t(`site.compounding.rooms.${room.id}.name`)}</span>
                         <span className="block mt-1 text-xs" style={{ color: "var(--st-dim)" }}>{open ? t(`site.compounding.rooms.${room.id}.line`) : t("site.compounding.closed")}</span>
                       </>

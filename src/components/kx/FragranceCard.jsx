@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import Chip from "./Chip";
 import { catalogueNumber } from "./Card";
@@ -12,7 +12,7 @@ export default function FragranceCard({ name, href, facts = [], accords = [], ma
   const hit = new Set(matched.map((a) => a.toLowerCase()));
   const shown = facts.filter(Boolean);
   return (
-    <Tag className="p-4 sm:p-5" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
+    <Tag className="mo-lift p-4 sm:p-5" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
       <div className="flex items-baseline justify-between gap-3">
         {href
           ? <Link to={href} className="font-serif text-xl underline-offset-4 hover:underline" style={{ color: COLORS.ink }}>{name}</Link>

@@ -1,6 +1,7 @@
 import React from "react";
 import { fmt2 } from "../../lib/calc";
 import { STAGE_SHOWN_GRAMS, SCALE_FULL_G } from "../../lib/compounding/scale";
+import { MOTION_SCENE } from "../../lib/compounding/config";
 import { M } from "./motion";
 
 // One light-drawn bowl: a shallow lab vessel, no ornament. `fill` is what is
@@ -79,7 +80,9 @@ export function SmokeStrokes() {
 
 export function Ember() {
   return (
-    <M as="span" kf="ember" aria-hidden="true" className="block w-3 h-3 rounded-full" style={{ background: "var(--st-resin)", boxShadow: "0 0 18px 6px color-mix(in srgb, var(--st-resin) 55%, transparent)" }} />
+    <M as="span" kf="ember" aria-hidden="true" className="block w-3 h-3">
+      <span className="cmp-breath block w-3 h-3 rounded-full" style={{ background: "var(--st-resin)", boxShadow: "0 0 18px 6px color-mix(in srgb, var(--st-resin) 55%, transparent)", animationDuration: `${MOTION_SCENE.ambient.emberBreathMs}ms` }} />
+    </M>
   );
 }
 

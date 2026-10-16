@@ -158,7 +158,7 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
         </div>
       </header>
       <main class="flex-1 w-full px-4 sm:px-8 py-12">
-        <article class="w-full max-w-2xl mx-auto" style="background-color:${COLORS.card};border:1px solid ${COLORS.ink};box-shadow:${OFFSET_SHADOW.replace(COLORS.sand, COLORS.line)}">
+        <article class="w-full max-w-2xl mx-auto" style="background-color:${COLORS.card};border:1px solid ${COLORS.ink};box-shadow:${OFFSET_SHADOW}">
           <div class="flex items-center justify-between gap-3 px-6 py-3" style="border-bottom:1px solid ${COLORS.line}">
             <p class="${TYPE.label}" style="color:${COLORS.dim}">${esc(t("recipe.eyebrow"))}</p>
             <p class="font-mono text-xs" dir="ltr" style="color:${COLORS.dim}">${esc(r.slug)}</p>

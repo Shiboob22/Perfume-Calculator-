@@ -112,12 +112,12 @@ export const paletteVars = (palette) =>
 
 export const COLORS = Object.fromEntries(Object.keys(light).map((k) => [k, `var(${cssVar(k)})`]));
 
-// Corner radius by role. v3 is square: frames and buttons have no radius.
+// Corner radius by role. Kyphira board: 2 px everywhere (Tailwind `rounded`).
 export const SHAPE = {
-  control: "rounded-none",
-  panel: "rounded-none",
+  control: "rounded",
+  panel: "rounded",
   row: "",
-  danger: "rounded-none",
+  danger: "rounded",
 };
 
 // The editorial system: class strings, so prerendered HTML carries them.
@@ -131,11 +131,16 @@ export const TYPE = {
   voice: "font-serif italic",
 };
 
-// Motion, in ms. 180 for hover/colour, 480 for fills and bars. Every
-// animation also stops under prefers-reduced-motion (src/index.css).
-export const MOTION = { fast: 180, base: 320, slow: 480, ease: "cubic-bezier(.2,0,0,1)" };
+// Motion tokens from the Kyphira board, in ms: fast (hover, focus, chip, press),
+// base (tabs, menus, stepper value, scale fills), slow (modals, room changes,
+// headline reveals); ambient is 2 s and up (light, smoke, ember breath).
+// Two eases: out for anything arriving, in-out for a state changing in place.
+// The same numbers are CSS variables in src/index.css. Every animation also
+// stops under prefers-reduced-motion.
+export const MOTION = { fast: 150, base: 250, slow: 600, ambient: 2000, easeOut: "cubic-bezier(.22,1,.36,1)", easeInOut: "cubic-bezier(.65,0,.35,1)" };
 
 // Frames: 1px ink for primary objects; the offset paper shadow only on the
 // hero bench and the recipe card.
 export const FRAME = { border: `1px solid ${COLORS.ink}` };
-export const OFFSET_SHADOW = `8px 8px 0 ${COLORS.sand}`;
+// Light edition only: the board's dark edition has no shadows on UI.
+export const OFFSET_SHADOW = "var(--offset-shadow)";

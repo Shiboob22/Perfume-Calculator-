@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../motion";
 import { BrandMark } from "./FlaconMark";
 import FlaconMark from "./FlaconMark";
 import ThemeToggle from "./ThemeToggle";
@@ -13,9 +13,10 @@ import { useI18n } from "../i18n/I18nProvider";
 const site = (locale, p) => (locale === "ar" ? `/ar${p === "/" ? "" : p}` : p);
 
 function NavLink({ to, cross, active, icon: I, children }) {
-  const style = { color: active ? COLORS.forest : COLORS.ink, borderBottom: `1px solid ${active ? COLORS.forest : "transparent"}` };
-  const cls = "inline-flex items-center gap-2 min-h-[44px] text-sm whitespace-nowrap hover:opacity-80";
-  const body = <><I size={18} /><span>{children}</span></>;
+  const style = { color: active ? COLORS.forest : COLORS.ink };
+  const cls = "relative inline-flex items-center gap-2 min-h-[44px] text-sm whitespace-nowrap hover:opacity-80";
+  // The active room's underline is its own element so a route change can slide it (src/motion).
+  const body = <><I size={18} /><span>{children}</span><span aria-hidden="true" data-mo-ind="site" data-on={active ? "" : undefined} className="absolute inset-x-0 bottom-0 h-px" style={{ background: active ? COLORS.forest : "transparent" }} /></>;
   return cross
     ? <a href={to} className={cls} style={style} aria-current={active ? "page" : undefined}>{body}</a>
     : <Link to={to} className={cls} style={style} aria-current={active ? "page" : undefined}>{body}</Link>;
@@ -28,7 +29,7 @@ export function SiteHeader({ zone, active, language, extra, wardrobe = false, at
   const { t, locale } = useI18n();
   const inApp = zone === "app";
   return (
-    <header className="w-full" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+    <header data-mo-chrome="header" className="w-full" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
       <div className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 py-3 flex flex-wrap items-center gap-x-8 gap-y-1">
         {inApp
           ? <a href={site(locale, "/")} aria-label={t("site.nav.home")} className="me-auto"><BrandMark brand={t("brand")} sub={t("brandTagline")} signature={t("brandSignature")} /></a>

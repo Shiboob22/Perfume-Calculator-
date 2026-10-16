@@ -119,7 +119,7 @@ export default function Results({ answers, known, onEdit, onRestart, onSelectPer
         {load.status === "error" && (
           <div role="alert" className="py-6">
             <p style={{ color: COLORS.danger }}>{t("selector.error")}</p>
-            <button type="button" onClick={() => setAttempt((n) => n + 1)} className="mt-3 px-4 min-h-[44px] rounded-none" style={{ border: `1px solid ${COLORS.field}`, color: COLORS.ink }}>{t("selector.retry")}</button>
+            <button type="button" onClick={() => setAttempt((n) => n + 1)} className="mt-3 px-4 min-h-[44px] rounded" style={{ border: `1px solid ${COLORS.field}`, color: COLORS.ink }}>{t("selector.retry")}</button>
           </div>
         )}
       </div>
@@ -161,7 +161,7 @@ export default function Results({ answers, known, onEdit, onRestart, onSelectPer
                 </div>
               )}
               {onSelectPerfume && (
-                <button type="button" onClick={() => onSelectPerfume(m.profile.row)} className="mt-4 px-4 min-h-[44px] rounded-none text-sm"
+                <button type="button" onClick={() => onSelectPerfume(m.profile.row)} className="mt-4 px-4 min-h-[44px] rounded text-sm"
                   style={{ border: `1px solid ${COLORS.actionText}`, color: COLORS.actionText }}>{t("selector.results.openCalculator")}</button>
               )}
             </li>
@@ -170,8 +170,8 @@ export default function Results({ answers, known, onEdit, onRestart, onSelectPer
       )}
       <p className="mt-6 text-xs max-w-prose" style={{ color: COLORS.dim }}>{t("selector.results.method")}</p>
       <div className="mt-6 flex flex-wrap gap-3">
-        <button type="button" onClick={onEdit} className="px-4 min-h-[44px] rounded-none" style={{ border: `1px solid ${COLORS.field}`, color: COLORS.ink }}>{t("selector.empty.action")}</button>
-        <button type="button" onClick={onRestart} className="px-4 min-h-[44px] rounded-none underline underline-offset-4" style={{ color: COLORS.inkSoft }}>{t("selector.restart")}</button>
+        <button type="button" onClick={onEdit} className="px-4 min-h-[44px] rounded" style={{ border: `1px solid ${COLORS.field}`, color: COLORS.ink }}>{t("selector.empty.action")}</button>
+        <button type="button" onClick={onRestart} className="px-4 min-h-[44px] rounded underline underline-offset-4" style={{ color: COLORS.inkSoft }}>{t("selector.restart")}</button>
       </div>
     </div>
   );
@@ -182,7 +182,7 @@ function Notice({ title, text, action, onAction }) {
     <div className="py-8" role="status">
       <h3 className="font-serif italic text-2xl" style={{ color: COLORS.ink }}>{title}</h3>
       <p className="mt-2 max-w-prose" style={{ color: COLORS.inkSoft }}>{text}</p>
-      <button type="button" onClick={onAction} className="mt-4 px-4 min-h-[44px] rounded-none" style={{ border: `1px solid ${COLORS.field}`, color: COLORS.ink }}>{action}</button>
+      <button type="button" onClick={onAction} className="mt-4 px-4 min-h-[44px] rounded" style={{ border: `1px solid ${COLORS.field}`, color: COLORS.ink }}>{action}</button>
     </div>
   );
 }

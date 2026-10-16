@@ -80,7 +80,7 @@ export default function PerfumerChat() {
                 type="button"
                 onClick={() => send(t(`chat.starters.${key}`))}
                 disabled={sending}
-                className="text-start px-4 py-2 text-sm font-serif italic border rounded-none disabled:opacity-50"
+                className="text-start px-4 py-2 text-sm font-serif italic border rounded disabled:opacity-50"
                 style={{ borderColor: COLORS.line, backgroundColor: COLORS.card, color: COLORS.ink }}
               >
                 {t(`chat.starters.${key}`)}
@@ -95,7 +95,7 @@ export default function PerfumerChat() {
         {messages.map((m, i) => (
           <div
             key={i}
-            className="px-4 py-3 text-sm rounded-none whitespace-pre-wrap"
+            className="px-4 py-3 text-sm rounded whitespace-pre-wrap"
             style={
               m.role === "user"
                 ? { marginInlineStart: "15%", backgroundColor: COLORS.cardHi, border: `1px solid ${COLORS.amberDeep}`, color: COLORS.ink }
@@ -122,14 +122,14 @@ export default function PerfumerChat() {
           maxLength={2000}
           placeholder={t("chat.placeholder")}
           aria-label={t("chat.placeholder")}
-          className="flex-1 px-3 py-2 text-sm border rounded-none resize-y focus:outline-none focus:ring-2"
+          className="flex-1 px-3 py-2 text-sm border rounded resize-y focus:outline-none focus:ring-2"
           style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
         />
         <button
           type="button"
           onClick={() => send(draft)}
           disabled={sending || !draft.trim()}
-          className="px-5 py-3 text-sm font-semibold rounded-none disabled:opacity-50"
+          className="px-5 py-3 text-sm font-semibold rounded disabled:opacity-50"
           style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}
         >
           {t("chat.send")}

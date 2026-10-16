@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { useNavigate } from "../motion";
 import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
@@ -8,6 +9,8 @@ import { calculate, fmt2, gToOz, mlToFlOz, weightShare } from "../lib/calc";
 import { BottleFill, RatioBar } from "./Bottle";
 import { IconBookmark, IconBookmarkCheck, IconCheck, IconCopy, IconDiamondAlert, IconDrop, IconFlameTriangle } from "./icons";
 import { STRENGTHS } from "../lib/formulation";
+import Stepper from "./kx/Stepper";
+import RoomHeader from "./kx/RoomHeader";
 
 // The handbook's four named strengths plus a plain 22% (the owner's own
 // preset, not a handbook strength: it stays out of STRENGTHS and the bench).
@@ -88,32 +91,24 @@ function TextInput(props) {
   );
 }
 
-function AmountWithUnit({ id, unitLabel, value, onChange, unit, onUnitChange, units }) {
+// The batch size: the board's stepper (±5 for mL and g, ±1 for fl oz and oz;
+// typing still works) with the unit picker under it.
+function AmountWithUnit({ id, label, unitLabel, value, onChange, unit, onUnitChange, units, t }) {
+  const step = unit === "ml" || unit === "g" ? 5 : 1;
+  const name = UNIT_LABELS[unit] ?? unit;
+  const bump = (dir) => {
+    const n = Number(value);
+    onChange(String(Math.max(1, Math.round(((Number.isFinite(n) ? n : 0) + dir * step) * 100) / 100)));
+  };
   return (
-    <div className="flex gap-2">
-      <input
-        id={id}
-        type="number"
-        inputMode="decimal"
-        value={value}
-        min="0.01"
-        step="0.1"
-        onChange={(e) => onChange(e.target.value)}
-        className="flex-1 min-w-0 px-3 py-2 min-h-[56px] font-mono text-2xl tabular-nums border focus:outline-none focus:ring-2"
-        style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
-      />
-      <select
-        aria-label={unitLabel}
-        value={unit}
-        onChange={(e) => onUnitChange(e.target.value)}
-        className="px-2 py-2 min-h-[56px] font-mono text-lg border focus:outline-none focus:ring-2"
-        style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
-      >
-        {units.map((u) => (
-          <option key={u.value} value={u.value}>{u.label}</option>
-        ))}
-      </select>
-    </div>
+    <Stepper label={label} hideLabel inputId={id} value={value} unit={name} onStep={bump} onType={onChange}
+      decLabel={t("calc.stepper.batchLess", { step, unit: name })} incLabel={t("calc.stepper.batchMore", { step, unit: name })}
+      after={(
+        <select aria-label={unitLabel} value={unit} onChange={(e) => onUnitChange(e.target.value)}
+          className="mt-2 px-3 min-h-[48px] text-base border" style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}>
+          {units.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
+        </select>
+      )} />
   );
 }
 
@@ -138,7 +133,7 @@ function QuickResult({ shown, t }) {
   );
 }
 
-// weight / volume are the engine's displayed (already rounded-none) values.
+// weight / volume are the engine's displayed (already rounded) values.
 function ReadoutRow({ label, weight, volume, bold }) {
   const oz = gToOz(weight);
   const flOz = mlToFlOz(volume);
@@ -502,6 +497,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
+      <RoomHeader numeral="I" name={t("site.compounding.rooms.bench.name")} title={t("calc.heading")} />
       <RestingLine />
       {selectedPerfume && (
         <div className="mb-6 px-4 py-3 border flex items-center justify-between" style={{ borderColor: COLORS.line, backgroundColor: COLORS.card }}>
@@ -521,7 +517,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       <div role="group" aria-label={t("calc.modes.label")} className="flex flex-wrap gap-2 mb-6">
         {MODES.map((m) => (
           <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}
-            className="px-3 py-1.5 text-sm border rounded-none min-h-[32px]"
+            className="px-3 py-1.5 text-sm border rounded min-h-[32px]"
             style={{ borderColor: mode === m ? COLORS.actionText : COLORS.field, color: mode === m ? COLORS.actionText : COLORS.inkSoft }}>
             {t(`calc.modes.tabs.${m}`)}
           </button>
@@ -641,7 +637,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
           <Field label={t("calc.batchSize")} htmlFor="calc-size">
             <AmountWithUnit
-              id="calc-size" unitLabel={t("calc.unit")}
+              id="calc-size" label={t("calc.batchSize")} unitLabel={t("calc.unit")} t={t}
               value={batchSize} onChange={setBatchSize} unit={batchUnit} onUnitChange={setBatchUnit}
               units={[{value:"ml",label:"mL"},{value:"floz",label:"fl oz"},{value:"g",label:"g"},{value:"oz",label:"oz"}]}
             />
@@ -665,7 +661,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             </div>
           </Field>
 
-          <Field label={t("calc.concentration", { pct: concPct })} extra={<Source id="strengths" />} hint={t("calc.familyDefault", { pct: tier.defaultConc })} htmlFor="calc-conc">
+          <Field label={t("calc.concentration", { pct: concPct })} extra={<Source id="strengths" />} hint={t("calc.familyDefault", { pct: tier.defaultConc })}>
             <div className="flex flex-wrap gap-2 mb-3">
               {CALC_STRENGTHS.map(({ pct: c, name }) => (
                 <button
@@ -684,12 +680,10 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 </button>
               ))}
             </div>
-            <input
-              id="calc-conc"
-              type="range" min="10" max="40" step="1" value={concPct}
-              onChange={(e) => { chosen.current.conc = true; setConcPct(e.target.value); }}
-              className="w-full" style={{ accentColor: COLORS.forest }}
-            />
+            <Stepper label={t("calc.concentration", { pct: concPct })} hideLabel value={concPct} unit="%"
+              decLabel={t("calc.stepper.concLess")} incLabel={t("calc.stepper.concMore")}
+              decDisabled={Number(concPct) <= 1} incDisabled={Number(concPct) >= 99}
+              onStep={(dir) => { chosen.current.conc = true; setConcPct(String(Math.min(99, Math.max(1, Math.round((Number(concPct) + dir) * 100) / 100)))); }} />
           </Field>
 
           <details className="mt-2 mb-5">
@@ -852,13 +846,13 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             type="button"
             onClick={handleAdvise}
             disabled={!fragName.trim() || tipsLoading}
-            className="mt-4 px-4 py-2 text-sm border rounded-none disabled:opacity-50"
+            className="mt-4 px-4 py-2 text-sm border rounded disabled:opacity-50"
             style={{ borderColor: COLORS.amberDeep, color: COLORS.actionText }}
           >
             {tipsLoading ? t("calc.asking") : t("calc.advise")}
           </button>}
           {tips && (
-            <div className="mt-3 p-3 text-sm whitespace-pre-wrap border rounded-none" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
+            <div className="mt-3 p-3 text-sm whitespace-pre-wrap border rounded" style={{ borderColor: COLORS.line, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
               {tips}
               <div className="text-[10px] font-mono mt-2" style={{ color: COLORS.dim }}>{t("calc.aiCaveat")}</div>
             </div>

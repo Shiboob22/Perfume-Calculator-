@@ -65,6 +65,8 @@ export const MOTION_SCENE = Object.freeze({
     wisp: [0, 0.3], // a room comes out of the smoke
     veil: [0, 0.4], // the handoff's haze lifts
   }),
+  /** Ambient loops at rest (board: ember breath 3.2 s). */
+  ambient: Object.freeze({ emberBreathMs: 3200 }),
   stagger: Object.freeze({ plate: 0.035, grain: 0.012, merge: 0.006, smoke: 0.05, wisp: 0.035 }),
   distance: Object.freeze({ plate: 28, drift: 24, parallax: 40, grain: 34, smoke: 70, wisp: 44 }),
 });

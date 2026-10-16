@@ -7,11 +7,14 @@ import { EMPTY_FILTERS, isEmpty, parseFilters, toParams } from "../../lib/atlas/
 import { FAMILIES } from "../../lib/wardrobe/framework";
 import Button from "../kx/Button";
 import Field from "../kx/Field";
-import { SelectField } from "../wardrobe/ui";
+import Chip from "../kx/Chip";
 import ResultList from "./ResultList";
 
 // The Atlas search. The URL holds the search (so it can be linked and
 // reloaded); the form edits a draft and applies it on submit.
+// The board's era chips: a range of release years, applied on tap.
+const ERAS = [["pre", null, 1979], ["y80", 1980, 1999], ["y00", 2000, 2009], ["y10", 2010, null]];
+
 export default function Search() {
   const { t } = useI18n();
   const [params, setParams] = useSearchParams();
@@ -35,6 +38,8 @@ export default function Search() {
 
   const set = (patch) => setDraft((d) => ({ ...d, ...patch }));
   const submit = (e) => { e.preventDefault(); setParams(toParams({ ...draft, page: 1 })); };
+  // A chip applies at once (the URL is the state); the form's other fields wait for Search.
+  const apply = (patch) => setParams(toParams({ ...applied, ...patch, page: 1 }));
   const year = (k) => (e) => set({ [k]: e.target.value === "" ? null : e.target.value });
 
   return (
@@ -42,11 +47,24 @@ export default function Search() {
       <h2 id="atlas-search-h" className="sr-only">{t("atlas.search.label")}</h2>
       <form onSubmit={submit} role="search" aria-label={t("atlas.search.label")} className="grid gap-4">
         <Field label={t("atlas.search.label")} type="search" value={draft.q} onChange={(e) => set({ q: e.target.value })} placeholder={t("atlas.search.placeholder")} autoComplete="off" maxLength={120} />
-        <details open={!!(applied.family || applied.house || applied.note || applied.accord || applied.perfumer || applied.from || applied.to)}>
+        <div role="group" aria-label={t("atlas.search.family")}>
+          <p className="text-sm mb-2" style={{ color: COLORS.inkSoft }}>{t("atlas.search.family")}</p>
+          <div className="flex flex-wrap gap-2">
+            {FAMILIES.map((f) => <Chip key={f} onToggle={() => apply({ family: applied.family === f ? "" : f })} pressed={applied.family === f}>{t(`families.${f}.label`)}</Chip>)}
+          </div>
+        </div>
+        <div role="group" aria-label={t("atlas.search.era")}>
+          <p className="text-sm mb-2" style={{ color: COLORS.inkSoft }}>{t("atlas.search.era")}</p>
+          <div className="flex flex-wrap gap-2">
+            {ERAS.map(([k, from, to]) => {
+              const on = applied.from === from && applied.to === to;
+              return <Chip key={k} onToggle={() => apply(on ? { from: null, to: null } : { from, to })} pressed={on}>{t(`atlas.search.eras.${k}`)}</Chip>;
+            })}
+          </div>
+        </div>
+        <details open={!!(applied.house || applied.note || applied.accord || applied.perfumer || applied.from || applied.to)}>
           <summary className="cursor-pointer text-sm min-h-[44px] inline-flex items-center" style={{ color: COLORS.forestDeep }}>{t("atlas.search.filters")}</summary>
           <div className="grid gap-4 sm:grid-cols-2 mt-3">
-            <SelectField label={t("atlas.search.family")} value={draft.family} onChange={(v) => set({ family: v })}
-              options={[{ value: "", label: t("atlas.search.familyAny") }, ...FAMILIES.map((f) => ({ value: f, label: t(`families.${f}.label`) }))]} />
             <Field label={t("atlas.search.house")} value={draft.house} onChange={(e) => set({ house: e.target.value })} maxLength={120} />
             <Field label={t("atlas.search.note")} value={draft.note} onChange={(e) => set({ note: e.target.value })} maxLength={120} />
             <Field label={t("atlas.search.accord")} value={draft.accord} onChange={(e) => set({ accord: e.target.value })} maxLength={120} />

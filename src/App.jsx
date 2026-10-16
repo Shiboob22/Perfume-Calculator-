@@ -1,5 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
-import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate } from "./motion";
 import { flagOn } from "./lib/flags";
 import { tabFromPath, tabPath } from "./routes";
 import RenameNotice from "./components/kx/RenameNotice";
@@ -20,6 +21,7 @@ import { flush } from "./lib/outbox";
 import { logBatch, listBatches, saveCheckIn } from "./lib/fragranceApi";
 import { dueNow, JOURNAL_CHANGED } from "./lib/journal";
 import { installGlobalHandlers } from "./lib/reportError";
+import { PageTransition, Skeleton, motionOn } from "./motion";
 
 // Search ships with the app shell; the other tabs load as separate chunks,
 // fetched while the browser is idle after first paint so a tab switch never
@@ -77,7 +79,7 @@ export default function App() {
 
   // Each tab is its own page to screen readers and the tab switcher.
   const page = activeTab ?? tab;
-  const pageHeading = page === "selector" || page === "account" || page === "wardrobe" || page === "atlas" || page === "salon" || page === "nose" ? null
+  const pageHeading = page === "calculator" || page === "selector" || page === "account" || page === "wardrobe" || page === "atlas" || page === "salon" || page === "nose" ? null
     : TABS.includes(page) ? t(`app.tabs.${page}`) : page === "labels" ? t("labels.title") : page === "cards" ? t("cards.open") : null;
   useEffect(() => {
     const name = TABS.includes(page) ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : page === "labels" ? t("labels.title") : page === "wardrobe" ? t("wardrobe.title") : page === "atlas" ? t("atlas.title") : page === "salon" ? t("salon.title") : page === "nose" ? t("nose.title") : null;
@@ -154,7 +156,7 @@ export default function App() {
         onSignOut={() => signOut()} />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-4 empty:hidden"><RenameNotice /></div>
-      <main className="pb-16">
+      <PageTransition as="main" className="pb-16">
         {/* One h1 per page for screen readers; Selector and Account title themselves. */}
         {pageHeading && <h1 className="sr-only">{pageHeading}</h1>}
         <Suspense fallback={<TabLoading />}>
@@ -182,7 +184,7 @@ export default function App() {
           </div>
         )}
         </Suspense>
-      </main>
+      </PageTransition>
       <SiteFooter />
     </div>
         )}
@@ -238,6 +240,18 @@ function CountDueCheckIns() {
 
 function TabLoading() {
   const { t } = useI18n();
+  // With the motion layer on, a still page of slow-sweeping lines; the words stay for screen readers.
+  if (motionOn()) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 grid gap-3" role="status">
+        <span className="sr-only">{t("app.loading")}</span>
+        <Skeleton w="38%" h={28} />
+        <Skeleton w="100%" h={14} />
+        <Skeleton w="86%" h={14} />
+        <Skeleton w="62%" h={14} />
+      </div>
+    );
+  }
   return (
     <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 text-xs font-mono" style={{ color: COLORS.inkSoft }}>
       {t("app.loading")}

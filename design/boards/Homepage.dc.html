@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#15120F}a{color:#D4924A}a:hover{color:#EDE4D6}::placeholder{color:#A3968A}</style>
+</helmet>
+<div ref="{{ rootRef }}" dir="{{ dir }}" lang="{{ lang }}" style="position:relative;width:100%;background:#15120F;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:16px;line-height:{{ lhBody }};container-type:inline-size">
+
+  <header style="position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:24px;height:72px;padding:0 clamp(16px, 3.4cqw, 48px);border-bottom:1px solid #3B332B;background:#15120F">
+    <a href="#top" aria-label="Kyphira" style="display:flex;align-items:center;min-height:44px" style-focus="outline:2px solid #D4924A;outline-offset:4px"><img src="assets/kyphira-wordmark.svg" alt="Kyphira" style="height:16px;display:block"></a>
+    <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+      <nav aria-label="{{ t.roomsLabel }}" style="display:flex;gap:4px">
+        <sc-for list="{{ rooms }}" as="r" hint-placeholder-count="6">
+          <a href="{{ r.href }}" style="display:flex;align-items:center;min-height:44px;padding:0 12px;color:#A3968A;text-decoration:none;font-size:14px" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px;color:#EDE4D6">{{ r.name }}</a>
+        </sc-for>
+      </nav>
+    </sc-if>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button onClick="{{ toggleLang }}" aria-label="{{ t.langAria }}" style="min-height:44px;min-width:44px;padding:0 12px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:14px;cursor:pointer" style-hover="border-color:#A3968A" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.langSwitch }}</button>
+      <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:8px">
+          <a href="#signin" style="display:flex;align-items:center;min-height:44px;padding:0 12px;color:#EDE4D6;text-decoration:none;font-size:14px" style-hover="color:#D4924A" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ t.signIn }}</a>
+          <a href="#pro" style="display:flex;align-items:center;min-height:44px;padding:0 18px;background:#D4924A;color:#15120F;border-radius:2px;text-decoration:none;font-size:14px;font-weight:600" style-hover="background:#E3A866;color:#15120F" style-focus="outline:2px solid #EDE4D6;outline-offset:2px">{{ t.pro }}</a>
+        </div>
+      </sc-if>
+      <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ toggleMenu }}" aria-expanded="{{ menuOpen }}" aria-label="{{ t.menu }}" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h9"></path></svg>
+        </button>
+      </sc-if>
+    </div>
+  </header>
+
+  <sc-if value="{{ menuShown }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;z-index:3;top:72px;inset-inline:0;background:#1E1A16;border-bottom:1px solid #3B332B;padding:8px 16px 24px;display:flex;flex-direction:column">
+      <sc-for list="{{ rooms }}" as="r" hint-placeholder-count="6">
+        <a href="{{ r.href }}" style="display:flex;align-items:baseline;gap:16px;min-height:52px;padding:12px 4px;border-bottom:1px solid #3B332B;color:#EDE4D6;text-decoration:none">
+          <span style="font-family:'Newsreader',serif;font-size:14px;color:#D4924A;width:32px">{{ r.num }}</span>
+          <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:22px">{{ r.name }}</span>
+        </a>
+      </sc-for>
+      <div style="display:flex;gap:8px;margin-top:20px">
+        <a href="#signin" style="flex:1;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;text-decoration:none">{{ t.signIn }}</a>
+        <a href="#pro" style="flex:1;display:flex;align-items:center;justify-content:center;min-height:48px;background:#D4924A;border-radius:2px;color:#15120F;text-decoration:none;font-weight:600">{{ t.pro }}</a>
+      </div>
+    </div>
+  </sc-if>
+
+  <section id="top" aria-label="{{ t.heroLabel }}">
+    <dc-import name="Compounding" lang="{{ lang }}" reduced="{{ reduced }}" freeze-at="{{ freezeAt }}" hint-size="100%,860px"></dc-import>
+  </section>
+
+  <section id="rooms" style="padding:clamp(72px, 8cqw, 128px) clamp(16px, 3.4cqw, 48px) 0">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:48px">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A">{{ t.roomsKicker }}</span>
+        <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:clamp(36px, 4cqw, 56px);line-height:{{ lhHead }};letter-spacing:-0.01em">{{ t.roomsTitle }}</h2>
+      </div>
+      <p style="margin:0;max-width:380px;color:#A3968A;text-wrap:pretty">{{ t.roomsSub }}</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(min(100%, 340px), 1fr));gap:1px;background:#3B332B;border:1px solid #3B332B">
+      <sc-for list="{{ rooms }}" as="r" hint-placeholder-count="6">
+        <a id="{{ r.id }}" href="{{ r.href }}" style="display:flex;flex-direction:column;justify-content:space-between;gap:40px;min-height:300px;padding:28px;background:#15120F;color:#EDE4D6;text-decoration:none" style-hover="background:#1E1A16" style-focus="outline:2px solid #D4924A;outline-offset:-2px;background:#1E1A16">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+            <span style="font-family:'Newsreader',serif;font-size:15px;color:#D4924A;letter-spacing:0.06em">{{ r.num }}</span>
+            <sc-if value="{{ r.pro }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;letter-spacing:{{ kls }};text-transform:uppercase;color:#D4924A;border:1px solid #D4924A;border-radius:2px;padding:2px 8px">{{ t.pro }}</span></sc-if>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:34px;font-weight:300;line-height:{{ lhHead }}">{{ r.name }}</span>
+              <span style="font-family:'Noto Naskh Arabic','Newsreader',serif;font-size:16px;color:#A3968A">{{ r.alt }}</span>
+            </div>
+            <p style="margin:0;color:#A3968A;max-width:300px;text-wrap:pretty">{{ r.desc }}</p>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:16px;border-top:1px solid #3B332B">
+            <span style="font-variant-numeric:tabular-nums;font-size:14px;color:#EDE4D6">{{ r.fig }}</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#D4924A" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="transform:{{ flip }}"><path d="M3.5 10h13M11.5 5l5 5-5 5"></path></svg>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <section id="method" style="padding:clamp(72px, 8cqw, 128px) clamp(16px, 3.4cqw, 48px) 0;display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 420px), 1fr));gap:clamp(40px, 6cqw, 96px);align-items:start">
+    <div style="display:flex;flex-direction:column;gap:40px">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A">{{ t.methodKicker }}</span>
+        <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:clamp(36px, 4cqw, 56px);line-height:{{ lhHead }};letter-spacing:-0.01em">{{ t.methodTitle }}</h2>
+      </div>
+      <ol style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column">
+        <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+          <li style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:16px;padding:24px 0;border-top:1px solid #3B332B">
+            <span style="font-variant-numeric:tabular-nums;font-size:14px;color:#D4924A;padding-top:6px">{{ s.n }}</span>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:26px;line-height:{{ lhHead }}">{{ s.title }}</span>
+              <span style="color:#A3968A;text-wrap:pretty">{{ s.body }}</span>
+            </div>
+          </li>
+        </sc-for>
+      </ol>
+    </div>
+    <figure style="margin:0;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;padding:28px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span dir="ltr" style="font-size:12px;letter-spacing:0.1em;color:#A3968A;font-variant-numeric:tabular-nums;text-align:start">R·0318</span>
+          <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:26px">{{ t.recipeName }}</span>
+        </div>
+        <span style="font-size:13px;color:#A3968A;font-variant-numeric:tabular-nums">{{ t.recipeMeta }}</span>
+      </div>
+      <div role="table" style="display:flex;flex-direction:column;font-variant-numeric:tabular-nums;font-size:15px">
+        <div role="row" style="display:grid;grid-template-columns:minmax(0,1fr) 80px 64px;gap:8px;padding-bottom:10px;color:#A3968A;font-size:12px;letter-spacing:0.1em;text-transform:uppercase">
+          <span role="columnheader">{{ t.colMaterial }}</span><span role="columnheader" style="text-align:end">g</span><span role="columnheader" style="text-align:end">%</span>
+        </div>
+        <sc-for list="{{ recipe }}" as="l" hint-placeholder-count="6">
+          <div role="row" style="display:grid;grid-template-columns:minmax(0,1fr) 80px 64px;gap:8px;padding:11px 0;border-top:1px solid #3B332B;align-items:baseline">
+            <span role="cell" style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">{{ l.name }} <span style="color:#A3968A;font-size:13px">{{ l.dil }}</span></span>
+            <span role="cell" dir="ltr" style="text-align:right">{{ l.g }}</span>
+            <span role="cell" dir="ltr" style="text-align:right;color:#A3968A">{{ l.pct }}</span>
+          </div>
+        </sc-for>
+        <div role="row" style="display:grid;grid-template-columns:minmax(0,1fr) 80px 64px;gap:8px;padding:12px 0;border-top:1px solid #A3968A;font-weight:500">
+          <span role="cell">{{ t.total }}</span><span role="cell" dir="ltr" style="text-align:right">100.00</span><span role="cell" dir="ltr" style="text-align:right;color:#A3968A;font-weight:400">100.0</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;padding-top:4px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-variant-numeric:tabular-nums">
+          <span style="color:#A3968A">{{ t.resting }}</span>
+          <span>{{ t.restDays }}</span>
+        </div>
+        <div role="progressbar" aria-valuemin="0" aria-valuemax="42" aria-valuenow="18" style="height:2px;background:#3B332B"><div style="height:2px;width:42.9%;background:#D4924A"></div></div>
+      </div>
+    </figure>
+  </section>
+
+  <section id="pro" style="margin:clamp(72px, 8cqw, 128px) clamp(16px, 3.4cqw, 48px) 0;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;padding:clamp(28px, 4.4cqw, 64px);display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 360px), 1fr));gap:48px">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;gap:32px">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#D4924A">{{ t.proKicker }}</span>
+        <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:clamp(36px, 4cqw, 56px);line-height:{{ lhHead }};letter-spacing:-0.01em">{{ t.proTitle }}</h2>
+        <p style="margin:0;color:#A3968A;max-width:380px;text-wrap:pretty">{{ t.proSub }}</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px">
+        <a href="#pro-detail" style="display:flex;align-items:center;min-height:48px;padding:0 24px;background:#D4924A;color:#15120F;border-radius:2px;text-decoration:none;font-weight:600" style-hover="background:#E3A866;color:#15120F" style-focus="outline:2px solid #EDE4D6;outline-offset:2px">{{ t.proCta }}</a>
+        <a href="#signup" style="display:flex;align-items:center;min-height:48px;padding:0 24px;border:1px solid #3B332B;color:#EDE4D6;border-radius:2px;text-decoration:none" style-hover="border-color:#A3968A;color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.proCta2 }}</a>
+      </div>
+    </div>
+    <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column">
+      <sc-for list="{{ pro }}" as="f" hint-placeholder-count="5">
+        <li style="display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;padding:18px 0;border-top:1px solid #3B332B">
+          <span style="font-family:'Newsreader',serif;font-size:14px;color:#D4924A;padding-top:3px">{{ f.num }}</span>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-size:17px;font-weight:500">{{ f.title }}</span>
+            <span style="color:#A3968A;font-size:15px">{{ f.body }}</span>
+          </div>
+        </li>
+      </sc-for>
+    </ul>
+  </section>
+
+  <footer style="margin-top:clamp(72px, 8cqw, 128px);border-top:1px solid #3B332B;padding:56px clamp(16px, 3.4cqw, 48px) 32px;display:flex;flex-direction:column;gap:56px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 320px), 1fr));gap:48px;align-items:end">
+      <div style="display:flex;align-items:flex-end;gap:24px">
+        <img src="assets/kyphira-mark.svg" alt="" style="height:96px;display:block">
+        <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-style:italic;font-size:20px;color:#A3968A;line-height:1.5">{{ t.builtIn }}</span>
+      </div>
+      <form onSubmit="{{ onSubscribe }}" style="display:flex;flex-direction:column;gap:12px">
+        <label for="nl-email" style="font-size:15px;color:#EDE4D6">{{ t.nlLabel }}</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="nl-email" type="email" required="" placeholder="you@studio.com" dir="ltr" style="flex:1 1 220px;min-height:48px;padding:0 16px;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:15px;text-align:start" style-focus="outline:2px solid #D4924A;outline-offset:0;border-color:#D4924A">
+          <button type="submit" style="min-height:48px;padding:0 24px;background:transparent;border:1px solid #D4924A;border-radius:2px;color:#D4924A;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#D4924A;color:#15120F" style-focus="outline:2px solid #EDE4D6;outline-offset:2px">{{ subscribeLabel }}</button>
+        </div>
+      </form>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;padding-top:24px;border-top:1px solid #3B332B;font-size:13px;color:#A3968A">
+      <span style="font-variant-numeric:tabular-nums">{{ t.copyright }}</span>
+      <div role="group" aria-label="{{ t.langAria }}" style="display:flex;gap:4px">
+        <button onClick="{{ setEn }}" aria-pressed="{{ isEn }}" style="min-height:44px;padding:0 12px;background:transparent;border:none;border-bottom:1px solid {{ enBorder }};color:{{ enColor }};font-family:'Hanken Grotesk',sans-serif;font-size:14px;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:-2px">English</button>
+        <button onClick="{{ setAr }}" aria-pressed="{{ isAr }}" style="min-height:44px;padding:0 12px;background:transparent;border:none;border-bottom:1px solid {{ arBorder }};color:{{ arColor }};font-family:'IBM Plex Sans Arabic',sans-serif;font-size:14px;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:-2px">العربية</button>
+      </div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;'en'|'ar'&quot;},&quot;reduced&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;freezeAt&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;number|null&quot;}}">
+const ROOMS = [
+  { en:'The Bench', ar:'المِنضدة', de:'Weigh a formula. Scale a batch. Time the rest.', da:'زِن التركيبة. كبِّر الدفعة. احسب مدة الراحة.', fe:'0.01 g resolution', fa:'دقة 0.01 g' },
+  { en:'The Wardrobe', ar:'الخزانة', de:'Your bottles, what you wore, what to wear tonight.', da:'زجاجاتك، وما ارتديته، وما ترتديه الليلة.', fe:'3 taps to log a wear', fa:'3 لمسات لتسجيل ارتداء' },
+  { en:'The Library', ar:'المكتبة', de:'Essays on materials and method. A glossary of 412 terms.', da:'مقالات في المواد والمنهج. ومسرد من 412 مصطلحاً.', fe:'412 terms', fa:'412 مصطلحاً' },
+  { en:'The Atlas', ar:'الأطلس', de:'12,480 fragrances by note, accord and house.', da:'12,480 عطراً حسب النوتة والأكورد والدار.', fe:'12,480 entries', fa:'12,480 مدخلاً' },
+  { en:'The Salon', ar:'الصالون', de:'Public recipes, reviews and the people behind them.', da:'وصفات منشورة ومراجعات، والناس وراءها.', fe:'2,150 public recipes', fa:'2,150 وصفة منشورة' },
+  { en:'The Nose', ar:'الأنف', de:'An advisor that reads your shelf before it answers.', da:'مستشار يقرأ رفّك قبل أن يجيب.', fe:'Reads 12,480 entries', fa:'يقرأ 12,480 مدخلاً', pro:true },
+];
+const NUM = ['I','II','III','IV','V','VI'];
+const RECIPE = [
+  ['Frankincense','لبان','resinoid 50%','راتنجي 50%',22.00],
+  ['Labdanum','لادن','absolute','مطلق',14.00],
+  ['Iso E Super','إيزو إي سوبر','neat','صافٍ',30.00],
+  ['Cassia','سليخة','oil, 10%','زيت، 10%',6.00],
+  ['Honey','عسل','abs. 10%','مطلق 10%',8.00],
+  ['Sandalwood','صندل','oil','زيت',20.00],
+];
+const COPY = {
+  en: {
+    roomsLabel:'Rooms', heroLabel:'The Compounding', langSwitch:'ع', langAria:'Language', signIn:'Sign in', pro:'Pro', menu:'Menu',
+    roomsKicker:'6 rooms', roomsTitle:'Each room does one job.', roomsSub:'Move between them freely. Your bottles, recipes and notes follow you.',
+    methodKicker:'Method', methodTitle:'Weigh. Rest. Wear.',
+    steps:[['Weigh','Every material in grams, to two decimals. The dilution stays on the line.'],['Rest','4 to 6 weeks, cool and dark. The Bench counts the days.'],['Wear','Wear it, log it, set it against 12,480 entries in the Atlas.']],
+    recipeName:'Kyphi No. 3', recipeMeta:'100.00 g · 20% in alcohol', colMaterial:'Material', total:'Total', resting:'Resting', restDays:'Day 18 of 42',
+    proKicker:'Kyphira Pro', proTitle:'For daily work at the bench.', proSub:'Free covers the rooms. Pro adds depth where you use them most.', proCta:'See Pro', proCta2:'Start free',
+    proList:[['Unlimited Nose sessions','Ask as often as you work.'],['Batch scaling and export','Any batch size. CSV and PDF.'],['Private recipes','Keep a formula off the Salon.'],['Full Atlas filters','Every note, accord, house and year.'],['Wear-log insights','What you reach for, by season and hour.']],
+    builtIn:'Built in Cairo.', nlLabel:'One letter a month. Materials and methods. No offers.', subscribe:'Subscribe', subscribed:'Subscribed', copyright:'© 2026 Kyphira',
+  },
+  ar: {
+    roomsLabel:'الغرف', heroLabel:'التركيب', langSwitch:'EN', langAria:'اللغة', signIn:'تسجيل الدخول', pro:'برو', menu:'القائمة',
+    roomsKicker:'6 غرف', roomsTitle:'لكل غرفة عمل واحد.', roomsSub:'تنقّل بينها بحرية. زجاجاتك ووصفاتك وملاحظاتك تتبعك.',
+    methodKicker:'المنهج', methodTitle:'زِن. أرِح. ارتدِ.',
+    steps:[['زِن','كل مادة بالجرام، بخانتين عشريتين. والتخفيف يبقى على السطر.'],['أرِح','من 4 إلى 6 أسابيع، في مكان بارد ومظلم. المِنضدة تعدّ الأيام.'],['ارتدِ','ارتدِه، وسجّله، وضعه بجوار 12,480 مدخلاً في الأطلس.']],
+    recipeName:'كيفي رقم 3', recipeMeta:'100.00 g · 20% في الكحول', colMaterial:'المادة', total:'المجموع', resting:'الراحة', restDays:'اليوم 18 من 42',
+    proKicker:'كيفيرا برو', proTitle:'للعمل اليومي على المِنضدة.', proSub:'المجاني يفتح الغرف. وبرو يضيف العمق حيث تعمل أكثر.', proCta:'اعرف برو', proCta2:'ابدأ مجاناً',
+    proList:[['جلسات غير محدودة مع الأنف','اسأل كلما عملت.'],['تكبير الدفعات وتصديرها','أي حجم دفعة. بصيغة CSV وPDF.'],['وصفات خاصة','أبقِ التركيبة بعيداً عن الصالون.'],['كل فلاتر الأطلس','كل نوتة وأكورد ودار وسنة.'],['قراءات سجل الارتداء','ما تختاره، حسب الموسم والساعة.']],
+    builtIn:'صُنعت في القاهرة.', nlLabel:'رسالة واحدة كل شهر. مواد ومناهج. بلا عروض.', subscribe:'اشترك', subscribed:'تم الاشتراك', copyright:'© 2026 كيفيرا',
+  },
+};
+const ROMAN = ['I','II','III','IV','V'];
+
+class Component extends DCLogic {
+  state = { lang: null, w: 1440, menu: false, subscribed: false };
+  rootRef = React.createRef();
+  componentDidMount() {
+    const el = this.rootRef.current;
+    if (el) { this.ro = new ResizeObserver(e => this.setState({ w: e[0].contentRect.width })); this.ro.observe(el); }
+  }
+  componentWillUnmount() { this.ro && this.ro.disconnect(); }
+  renderVals() {
+    const lang = this.state.lang ?? (this.props.lang === 'ar' ? 'ar' : 'en');
+    const ar = lang === 'ar', t = COPY[lang];
+    const mobile = this.state.w < 1080;
+    const setLang = l => this.setState({ lang: l, menu: false });
+    return {
+      rootRef: this.rootRef, lang, dir: ar ? 'rtl' : 'ltr', t, kls: ar ? '0' : '0.14em',
+      lhBody: ar ? 1.85 : 1.55, lhHead: ar ? 1.45 : 1.1,
+      desktop: !mobile, mobile, menuOpen: this.state.menu ? 'true' : 'false', menuShown: mobile && this.state.menu,
+      toggleMenu: () => this.setState(s => ({ menu: !s.menu })),
+      toggleLang: () => setLang(ar ? 'en' : 'ar'), setEn: () => setLang('en'), setAr: () => setLang('ar'),
+      isEn: ar ? 'false' : 'true', isAr: ar ? 'true' : 'false',
+      enColor: ar ? '#A3968A' : '#EDE4D6', arColor: ar ? '#EDE4D6' : '#A3968A',
+      enBorder: ar ? 'transparent' : '#D4924A', arBorder: ar ? '#D4924A' : 'transparent',
+      flip: ar ? 'scaleX(-1)' : 'none',
+      reduced: !!this.props.reduced, freezeAt: this.props.freezeAt ?? null,
+      rooms: ROOMS.map((r, i) => ({ num: NUM[i], id: 'room-' + (i + 1), href: '#room-' + (i + 1), name: ar ? r.ar : r.en, alt: ar ? r.en : r.ar, desc: ar ? r.da : r.de, fig: ar ? r.fa : r.fe, pro: !!r.pro })),
+      steps: t.steps.map((s, i) => ({ n: '0' + (i + 1), title: s[0], body: s[1] })),
+      recipe: RECIPE.map(r => ({ name: ar ? r[1] : r[0], dil: ar ? r[3] : r[2], g: r[4].toFixed(2), pct: r[4].toFixed(1) })),
+      pro: t.proList.map((f, i) => ({ num: ROMAN[i], title: f[0], body: f[1] })),
+      subscribeLabel: this.state.subscribed ? t.subscribed : t.subscribe,
+      onSubscribe: e => { e.preventDefault(); this.setState({ subscribed: true }); },
+    };
+  }
+}
+</script>
+</body>
+</html>

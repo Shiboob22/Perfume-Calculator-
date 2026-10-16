@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#15120F}a{color:#D4924A}a:hover{color:#EDE4D6}input::placeholder{color:#A3968A}</style>
+</helmet>
+<div ref="{{ rootRef }}" dir="{{ dir }}" lang="{{ lang }}" style="width:100%;min-height:100%;background:#15120F;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:16px;line-height:{{ lhBody }};container-type:inline-size">
+
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;height:72px;padding:0 {{ pad }}px;border-bottom:1px solid #3B332B">
+    <img src="assets/kyphira-wordmark.svg" alt="Kyphira" style="height:15px;display:block">
+    <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+      <nav style="display:flex;gap:4px">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+          <a href="#" style="display:flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;text-decoration:none;color:{{ n.fg }};box-shadow:inset 0 -1px 0 {{ n.line }}" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ n.label }}</a>
+        </sc-for>
+      </nav>
+    </sc-if>
+    <div style="display:flex;gap:8px">
+      <button onClick="{{ toggleLang }}" aria-label="{{ t.langAria }}" style="min-height:44px;min-width:44px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:14px;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.langSwitch }}</button>
+      <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+        <button aria-label="{{ t.menu }}" style="width:44px;height:44px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;display:flex;align-items:center;justify-content:center;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h9"></path></svg></button>
+      </sc-if>
+    </div>
+  </header>
+
+  <main style="padding:{{ padY }}px {{ pad }}px 96px;display:flex;flex-direction:column;gap:{{ gapY }}px">
+
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="display:flex;gap:12px;align-items:baseline;font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A"><span style="font-family:'Newsreader',serif;font-size:16px;color:#D4924A;letter-spacing:0.06em">I</span>{{ t.kicker }}</span>
+        <h1 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:{{ h1 }}px;line-height:{{ lhHead }};letter-spacing:-0.01em">{{ t.title }}</h1>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;font-variant-numeric:tabular-nums;font-size:14px;color:#A3968A">
+        <span dir="ltr" style="text-align:start">R·0318</span>
+        <span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:22px;color:#EDE4D6">{{ t.recipe }}</span>
+      </div>
+    </div>
+
+    <div role="tablist" aria-label="{{ t.modeLabel }}" style="display:flex;border-bottom:1px solid #3B332B;margin-top:-{{ tabPull }}px">
+      <sc-for list="{{ modeTabs }}" as="mt" hint-placeholder-count="2">
+        <button role="tab" aria-selected="{{ mt.sel }}" onClick="{{ mt.pick }}" style="min-height:48px;padding:0 20px;background:transparent;border:none;box-shadow:inset 0 -2px 0 {{ mt.line }};color:{{ mt.fg }};font:inherit;font-size:15px;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ mt.label }}</button>
+      </sc-for>
+    </div>
+
+    <div style="display:grid;grid-template-columns:{{ cols }};gap:{{ gapX }}px;align-items:start">
+
+      <div style="display:flex;flex-direction:column;gap:{{ gapY }}px;min-width:0">
+
+        <section aria-label="{{ t.inputs }}" style="display:grid;grid-template-columns:{{ inCols }};gap:16px">
+          <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+            <span id="lb-batch" style="font-size:13px;color:#A3968A">{{ batchTitle }}</span>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <div role="group" aria-label="{{ t.unit }}" dir="ltr" style="display:flex;border:1px solid #3B332B;border-radius:2px">
+                <sc-for list="{{ unitTabs }}" as="ut" hint-placeholder-count="2">
+                  <button onClick="{{ ut.pick }}" aria-pressed="{{ ut.on }}" style="min-height:44px;min-width:52px;padding:0 14px;background:{{ ut.bg }};border:none;color:{{ ut.fg }};font:inherit;font-size:14px;font-weight:{{ ut.fw }};cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ ut.label }}</button>
+                </sc-for>
+              </div>
+              <div role="group" aria-label="{{ t.basisLabel }}" dir="ltr" style="display:flex;border:1px solid #3B332B;border-radius:2px">
+                <sc-for list="{{ basisTabs }}" as="bt" hint-placeholder-count="2">
+                  <button onClick="{{ bt.pick }}" aria-pressed="{{ bt.on }}" title="{{ bt.title }}" style="min-height:44px;min-width:56px;padding:0 12px;background:{{ bt.bg }};border:none;color:{{ bt.fg }};font:inherit;font-size:14px;font-weight:{{ bt.fw }};cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ bt.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;align-items:stretch;height:{{ stepH }}px;border:1px solid #3B332B;border-radius:2px;background:#15120F">
+              <button onClick="{{ batchDec }}" aria-label="{{ batchDecAria }}" style="width:{{ stepW }}px;background:transparent;border:none;border-inline-end:1px solid #3B332B;color:#EDE4D6;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#29231D" style-focus="outline:2px solid #D4924A;outline-offset:-2px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+              <div dir="ltr" style="flex:1;min-width:0;display:flex;align-items:baseline;justify-content:center;gap:8px;padding-top:{{ stepPad }}px;font-variant-numeric:tabular-nums"><span style="font-size:{{ bigNum }}px;font-weight:500;line-height:1">{{ batchLabel }}</span><span style="font-size:18px;color:#A3968A">{{ unit }}</span></div>
+              <button onClick="{{ batchInc }}" aria-label="{{ batchIncAria }}" style="width:{{ stepW }}px;background:transparent;border:none;border-inline-start:1px solid #3B332B;color:#EDE4D6;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#29231D" style-focus="outline:2px solid #D4924A;outline-offset:-2px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <sc-for list="{{ batchPresets }}" as="bp" hint-placeholder-count="4">
+                <button dir="ltr" onClick="{{ bp.pick }}" aria-pressed="{{ bp.on }}" style="min-height:44px;min-width:56px;padding:0 12px;border-radius:2px;border:1px solid {{ bp.bd }};background:{{ bp.bg }};color:{{ bp.fg }};font:inherit;font-size:14px;font-variant-numeric:tabular-nums;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ bp.label }}</button>
+              </sc-for>
+            </div>
+            <span dir="ltr" style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums;text-align:start">{{ approx }}</span>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+            <span style="font-size:13px;color:#A3968A">{{ concLabel }}</span>
+            <div style="display:flex;align-items:stretch;height:{{ stepH }}px;border:1px solid #3B332B;border-radius:2px;background:#15120F">
+              <button onClick="{{ concDec }}" aria-label="{{ t.concDec }}" style="width:{{ stepW }}px;background:transparent;border:none;border-inline-end:1px solid #3B332B;color:#EDE4D6;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#29231D" style-focus="outline:2px solid #D4924A;outline-offset:-2px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+              <div dir="ltr" style="flex:1;min-width:0;display:flex;align-items:baseline;justify-content:center;gap:6px;padding-top:{{ stepPad }}px;font-variant-numeric:tabular-nums"><span style="font-size:{{ bigNum }}px;font-weight:500;line-height:1">{{ conc }}</span><span style="font-size:18px;color:#A3968A">%</span></div>
+              <button onClick="{{ concInc }}" aria-label="{{ t.concInc }}" style="width:{{ stepW }}px;background:transparent;border:none;border-inline-start:1px solid #3B332B;color:#EDE4D6;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#29231D" style-focus="outline:2px solid #D4924A;outline-offset:-2px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+            </div>
+            <span dir="ltr" style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums;text-align:start">{{ ratio }}</span>
+          </div>
+        </section>
+
+        <section aria-label="{{ t.results }}" style="display:grid;grid-template-columns:{{ resCols }};gap:1px;background:#3B332B;border:1px solid #3B332B;border-radius:2px;overflow:hidden">
+          <sc-for list="{{ results }}" as="r" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:{{ resDir }};justify-content:space-between;align-items:{{ resAlign }};gap:6px;padding:{{ resPad }}px;background:#15120F;min-width:0">
+              <span style="font-size:13px;color:#A3968A">{{ r.label }}</span>
+              <span dir="ltr" style="display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums;text-align:start"><span style="font-size:{{ resNum }}px;font-weight:500;color:{{ r.color }};line-height:1.1">{{ r.val }}</span><span style="font-size:14px;color:#A3968A">{{ r.unit }}</span></span>
+            </div>
+          </sc-for>
+        </section>
+
+        <sc-if value="{{ isBlend }}" hint-placeholder-val="{{ false }}">
+        <section aria-label="{{ t.blendTitle }}" style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+            <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:30px;line-height:{{ lhHead }}">{{ t.blendTitle }}</h2>
+            <span style="font-size:14px;color:#A3968A">{{ t.blendHint }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;padding:20px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+            <label for="fr-search" style="font-size:13px;color:#A3968A">{{ t.searchLabel }}</label>
+            <div style="position:relative">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A3968A" stroke-width="1.25" stroke-linecap="round" style="position:absolute;inset-inline-start:14px;top:14px;pointer-events:none"><path d="M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.5 15.5L20 20"></path></svg>
+              <input id="fr-search" role="combobox" aria-expanded="true" aria-controls="fr-results" autocomplete="off" dir="auto" value="{{ q }}" onChange="{{ onQ }}" placeholder="{{ t.searchPh }}" style="width:100%;box-sizing:border-box;min-height:48px;padding:0 14px;padding-inline-start:44px;background:#15120F;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:16px" style-focus="outline:2px solid #D4924A;outline-offset:0;border-color:#D4924A">
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ famChips }}" as="fc" hint-placeholder-count="8">
+                <button onClick="{{ fc.pick }}" aria-pressed="{{ fc.on }}" style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:2px;border:1px solid {{ fc.bd }};background:{{ fc.bg }};color:{{ fc.fg }};font:inherit;font-size:14px;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ fc.label }}<span style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums">{{ fc.count }}</span></button>
+              </sc-for>
+            </div>
+            <div id="fr-results" role="listbox" style="display:flex;flex-direction:column;border-top:1px solid #A3968A">
+              <sc-for list="{{ found }}" as="fr" hint-placeholder-count="6">
+                <button role="option" onClick="{{ fr.add }}" aria-label="{{ fr.aria }}" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;min-height:56px;padding:8px 4px;background:transparent;border:none;border-bottom:1px solid #3B332B;color:#EDE4D6;font:inherit;text-align:start;cursor:pointer" style-hover="background:#29231D" style-focus="outline:2px solid #D4924A;outline-offset:-2px">
+                  <span dir="ltr" style="display:flex;flex-direction:column;min-width:0;text-align:start"><span style="font-family:'Newsreader',serif;font-size:19px;line-height:1.25">{{ fr.name }}</span><span style="font-size:13px;color:#A3968A">{{ fr.house }}</span></span>
+                  <span style="display:flex;align-items:center;gap:12px;font-size:13px;color:#A3968A">{{ fr.fam }}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4924A" stroke-width="1.25" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></span>
+                </button>
+              </sc-for>
+              <sc-if value="{{ noFound }}" hint-placeholder-val="{{ false }}"><div style="padding:20px 4px;color:#A3968A;font-size:15px">{{ t.noMatch }}</div></sc-if>
+            </div>
+            <span style="font-size:13px;color:#A3968A;font-variant-numeric:tabular-nums">{{ foundNote }}</span>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:8px;padding:20px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:13px;color:#A3968A">{{ t.yourBlend }}</span><span dir="ltr" style="font-size:13px;color:#A3968A;font-variant-numeric:tabular-nums">{{ partsNote }}</span></div>
+            <div aria-hidden="true" style="display:flex;height:6px;gap:2px">
+              <sc-for list="{{ segs }}" as="sg" hint-placeholder-count="3"><div style="width:{{ sg.w }}%;background:{{ sg.c }}"></div></sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;border-top:1px solid #A3968A">
+            <sc-if value="{{ blendEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:24px 0;color:#A3968A;font-size:15px;border-bottom:1px solid #3B332B">{{ t.blendEmpty }}</div></sc-if>
+            <sc-for list="{{ blendLines }}" as="bl" hint-placeholder-count="2">
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px;padding:16px 0;border-bottom:1px solid #3B332B;align-items:center">
+                <span dir="ltr" style="display:flex;flex-direction:column;min-width:0;text-align:start"><span style="font-family:'Newsreader',serif;font-size:21px;line-height:1.25">{{ bl.name }}</span><span style="font-size:13px;color:#A3968A">{{ bl.house }} · {{ bl.fam }}</span></span>
+                <span dir="ltr" style="display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums;text-align:end"><span style="font-size:22px;font-weight:500">{{ bl.g }}</span><span style="font-size:14px;color:#A3968A">g</span><span style="font-size:13px;color:#A3968A;min-width:52px">{{ bl.pct }}%</span></span>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div dir="ltr" style="display:flex;align-items:stretch;border:1px solid #3B332B;border-radius:2px;background:#15120F;height:44px">
+                    <button onClick="{{ bl.dec }}" aria-label="{{ bl.decAria }}" style="width:44px;background:transparent;border:none;border-inline-end:1px solid #3B332B;color:#EDE4D6;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#29231D" style-focus="outline:2px solid #D4924A;outline-offset:-2px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                    <span style="min-width:76px;display:flex;align-items:center;justify-content:center;gap:6px;font-variant-numeric:tabular-nums"><span style="font-weight:500">{{ bl.parts }}</span><span style="font-size:13px;color:#A3968A">{{ t.parts }}</span></span>
+                    <button onClick="{{ bl.inc }}" aria-label="{{ bl.incAria }}" style="width:44px;background:transparent;border:none;border-inline-start:1px solid #3B332B;color:#EDE4D6;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#29231D" style-focus="outline:2px solid #D4924A;outline-offset:-2px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+                  </div>
+                </div>
+                <button onClick="{{ bl.remove }}" style="justify-self:end;min-height:44px;padding:0 8px;background:transparent;border:none;color:#A3968A;font:inherit;font-size:14px;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.remove }}</button>
+              </div>
+            </sc-for>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;padding:14px 0;border-bottom:1px solid #3B332B;color:#A3968A"><span>{{ t.etohLine }}</span><span dir="ltr" style="font-variant-numeric:tabular-nums;color:#EDE4D6;text-align:end">{{ etohG }} g</span><span style="font-size:13px">{{ t.waterNote }}</span><span dir="ltr" style="font-size:13px;font-variant-numeric:tabular-nums;text-align:end">{{ waterG }} g</span></div>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:14px 0;border-top:1px solid #A3968A;font-weight:500"><span>{{ t.total }}</span><span dir="ltr" style="font-variant-numeric:tabular-nums;text-align:end">{{ batchG }} g</span></div>
+          </div>
+        </section>
+        </sc-if>
+        <sc-if value="{{ isMaterials }}" hint-placeholder-val="{{ true }}">
+        <section aria-label="{{ t.formula }}" style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+            <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:30px;line-height:{{ lhHead }}">{{ t.formula }}</h2>
+            <span style="font-size:14px;color:#A3968A">{{ t.weighHint }}</span>
+          </div>
+          <div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ weighedPct }}" style="display:flex;flex-direction:column;gap:10px;padding:20px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+              <span style="font-size:13px;color:#A3968A">{{ t.weighed }}</span>
+              <span dir="ltr" style="display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums"><span style="font-size:{{ resNum }}px;font-weight:500">{{ weighedG }}</span><span style="font-size:14px;color:#A3968A">/ {{ concG }} g</span></span>
+            </div>
+            <div style="position:relative;height:16px">
+              <div style="position:absolute;inset-inline:0;top:7px;height:2px;background:#3B332B"></div>
+              <div style="position:absolute;inset-inline-start:0;top:7px;height:2px;width:{{ weighedPct }}%;background:#D4924A;transition:width 250ms cubic-bezier(0.22,1,0.36,1)"></div>
+              <div style="position:absolute;inset:0;display:flex;justify-content:space-between">
+                <sc-for list="{{ ticks }}" as="tk" hint-placeholder-count="11"><span style="width:1px;height:{{ tk.h }}px;margin-top:{{ tk.m }}px;background:#A3968A"></span></sc-for>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;color:#A3968A"><span>{{ nextLine }}</span><span dir="ltr" style="font-variant-numeric:tabular-nums">{{ leftLabel }}</span></div>
+          </div>
+
+          <div role="table" style="display:flex;flex-direction:column;font-variant-numeric:tabular-nums;font-size:15px">
+            <div role="row" style="display:grid;grid-template-columns:{{ rowCols }};gap:12px;padding:10px 0;font-size:12px;letter-spacing:{{ kls }};text-transform:uppercase;color:#A3968A;border-bottom:1px solid #A3968A">
+              <span></span><span role="columnheader">{{ t.material }}</span><span role="columnheader" style="text-align:end">g</span><sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><span role="columnheader" style="text-align:end">%</span></sc-if>
+            </div>
+            <sc-for list="{{ lines }}" as="l" hint-placeholder-count="6">
+              <div role="row" style="display:grid;grid-template-columns:{{ rowCols }};gap:12px;align-items:center;border-bottom:1px solid #3B332B;background:{{ l.bg }}">
+                <button role="checkbox" aria-checked="{{ l.checked }}" aria-label="{{ l.aria }}" onClick="{{ l.toggle }}" style="width:44px;height:52px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center" style-focus="outline:2px solid #D4924A;outline-offset:-2px">
+                  <span style="width:20px;height:20px;border:1px solid {{ l.box }};border-radius:2px;background:{{ l.boxBg }};display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#15120F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:{{ l.tick }}"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+                </button>
+                <span role="cell" style="display:flex;flex-direction:column;gap:0;min-width:0;padding:8px 0;color:{{ l.fg }}"><span style="display:flex;gap:10px;align-items:baseline"><span style="font-family:'Newsreader',serif;font-size:14px;color:#D4924A;min-width:{{ numW }}px">{{ l.n }}</span>{{ l.name }}</span><span style="font-size:13px;color:#A3968A;padding-inline-start:{{ numIndent }}px">{{ l.dil }}</span></span>
+                <span role="cell" dir="ltr" style="text-align:end;font-size:{{ lineG }}px;font-weight:500;color:{{ l.fg }}">{{ l.g }}</span>
+                <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><span role="cell" dir="ltr" style="text-align:end;color:#A3968A">{{ l.pct }}</span></sc-if>
+              </div>
+            </sc-for>
+            <div role="row" style="display:grid;grid-template-columns:{{ rowCols }};gap:12px;padding:14px 0;border-top:1px solid #A3968A;font-weight:500">
+              <span></span><span role="cell">{{ t.concentrate }}</span><span role="cell" dir="ltr" style="text-align:end">{{ concG }}</span><sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><span role="cell" dir="ltr" style="text-align:end;color:#A3968A;font-weight:400">100.0</span></sc-if>
+            </div>
+            <div role="row" style="display:grid;grid-template-columns:{{ rowCols }};gap:12px;padding:8px 0;color:#A3968A">
+              <span></span><span role="cell">{{ t.ethanol }}</span><span role="cell" dir="ltr" style="text-align:end;color:#EDE4D6">{{ etohG }}</span><sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><span></span></sc-if>
+            </div>
+          </div>
+        </section>
+        </sc-if>
+      </div>
+
+      <aside style="display:flex;flex-direction:column;gap:{{ gapY }}px;min-width:0">
+
+        <section aria-label="{{ t.resting }}" style="display:flex;flex-direction:column;gap:20px;padding:24px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+            <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:26px;line-height:{{ lhHead }}">{{ t.resting }}</h2>
+            <span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">R·0318</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:12px;font-variant-numeric:tabular-nums">
+            <span dir="ltr" style="font-size:{{ timerNum }}px;font-weight:500;line-height:1">24</span>
+            <span style="font-size:18px;color:#A3968A">{{ t.daysLeft }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div role="progressbar" aria-valuemin="0" aria-valuemax="42" aria-valuenow="18" style="position:relative;height:16px">
+              <div style="position:absolute;inset-inline:0;top:7px;height:2px;background:#3B332B"></div>
+              <div style="position:absolute;inset-inline-start:0;top:7px;height:2px;width:42.86%;background:#D4924A"></div>
+              <div style="position:absolute;inset-inline-start:42.86%;top:2px;width:10px;height:10px;margin-inline-start:-5px;border-radius:50%;background:#D4924A"></div>
+              <div style="position:absolute;inset:0;display:flex;justify-content:space-between">
+                <sc-for list="{{ restTicks }}" as="tk" hint-placeholder-count="7"><span style="width:1px;height:{{ tk.h }}px;margin-top:{{ tk.m }}px;background:#A3968A"></span></sc-for>
+              </div>
+            </div>
+            <div dir="ltr" style="display:flex;justify-content:space-between;font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums"><span>0</span><span>7</span><span>14</span><span>21</span><span>28</span><span>35</span><span>42</span></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#3B332B;border:1px solid #3B332B">
+            <div style="display:flex;flex-direction:column;gap:2px;padding:12px;background:#1E1A16"><span style="font-size:13px;color:#A3968A">{{ t.started }}</span><span style="font-variant-numeric:tabular-nums">{{ t.startedVal }}</span></div>
+            <div style="display:flex;flex-direction:column;gap:2px;padding:12px;background:#1E1A16"><span style="font-size:13px;color:#A3968A">{{ t.opens }}</span><span style="font-variant-numeric:tabular-nums;color:#D4924A">{{ t.opensVal }}</span></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button style="min-height:48px;padding:0 20px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:15px;cursor:pointer" style-hover="border-color:#A3968A" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.remind }}</button>
+            <button style="min-height:48px;padding:0 20px;background:transparent;border:none;color:#D4924A;font:inherit;font-size:15px;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.shake }}</button>
+          </div>
+        </section>
+
+        <section aria-label="{{ t.batches }}" style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+            <h2 style="margin:0;font-family:'Newsreader','Noto Naskh Arabic',serif;font-weight:300;font-size:26px;line-height:{{ lhHead }}">{{ t.batches }}</h2>
+            <button style="min-height:44px;padding:0 4px;background:transparent;border:none;color:#D4924A;font:inherit;font-size:14px;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ t.newBatch }}</button>
+          </div>
+          <div style="display:flex;flex-direction:column;border-top:1px solid #A3968A">
+            <sc-for list="{{ batches }}" as="b" hint-placeholder-count="4">
+              <a href="#" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;padding:14px 0;border-bottom:1px solid #3B332B;color:#EDE4D6;text-decoration:none;min-height:44px" style-hover="background:#1E1A16" style-focus="outline:2px solid #D4924A;outline-offset:-2px">
+                <span style="display:flex;gap:10px;align-items:baseline;min-width:0"><span dir="ltr" style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">{{ b.cat }}</span><span style="font-family:'Newsreader','Noto Naskh Arabic',serif;font-size:19px">{{ b.name }}</span></span>
+                <span dir="ltr" style="font-variant-numeric:tabular-nums;text-align:end">{{ b.g }}</span>
+                <span style="font-size:13px;color:{{ b.sc }}">{{ b.status }}</span>
+                <span dir="ltr" style="font-size:13px;color:#A3968A;font-variant-numeric:tabular-nums;text-align:end">{{ b.ratio }}</span>
+                <div style="grid-column:1 / -1;height:2px;background:#3B332B"><div style="height:2px;width:{{ b.pct }}%;background:{{ b.bar }}"></div></div>
+              </a>
+            </sc-for>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1500},&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;'en'|'ar'&quot;},&quot;initMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;materials&quot;,&quot;blend&quot;],&quot;default&quot;:&quot;materials&quot;,&quot;tsType&quot;:&quot;'materials'|'blend'&quot;},&quot;initUnit&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;g&quot;,&quot;ml&quot;],&quot;default&quot;:&quot;g&quot;,&quot;tsType&quot;:&quot;'g'|'ml'&quot;},&quot;initWeighed&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;min&quot;:0,&quot;max&quot;:6,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;}}">
+const BASE = [
+  ['I','Frankincense','لبان','resinoid 50%','راتنجي 50%',22],
+  ['III','Labdanum','لادن','absolute','مطلق',14],
+  ['X','Iso E Super','إيزو إي سوبر','neat','صافٍ',30],
+  ['IV','Cassia','سليخة','oil, 10%','زيت، 10%',6],
+  ['VII','Honey','عسل','abs. 10%','مطلق 10%',8],
+  ['XVI','Sandalwood','صندل','oil','زيت',20],
+];
+const D_OIL = 0.95, D_ETOH = 0.807;
+const densOf = (c, basis) => basis === 'w/w' ? 1 / (c / D_OIL + (1 - c) / D_ETOH) : c * D_OIL + (1 - c) * D_ETOH;
+const COPY = {
+  en: { modeLabel:'Mode', modeMat:'Raw materials', modeBlend:'Fragrance blend', blendTitle:'Blend', blendHint:'Mix ready-made fragrances, then dilute.', searchLabel:'Search fragrances', searchPh:'Name, house or family', noMatch:'No match. Try a house or a family.', yourBlend:'Your blend', blendEmpty:'Nothing added. Search above and pick a fragrance.', parts:'parts', remove:'Remove', etohLine:'Ethanol 96%', waterNote:'of which water (4%)', fragrances:'Fragrances', concBlend:'Fragrance share', all:'All', showing:'Showing', of:'of', matches:'matches',
+    langSwitch:'ع', langAria:'Language', menu:'Menu', kicker:'The Bench', title:'Weigh a formula.', recipe:'Kyphi No. 3',
+    inputs:'Inputs', batch:'Batch size', batchDec:'Subtract 5 g', batchInc:'Add 5 g', unit:'Unit', basisLabel:'Concentration basis', wwTitle:'By weight', vvTitle:'By volume', oil:'oil', ethanolShort:'ethanol', batchMl:'Bottle size', batchDecMl:'Subtract 5 ml', batchIncMl:'Add 5 ml', conc:'Concentration', concDec:'Subtract 1%', concInc:'Add 1%',
+    results:'Results', concentrate:'Concentrate', ethanol:'Ethanol 96%', total:'Total batch',
+    formula:'Formula', weighHint:'Tick each line as you weigh it.', weighed:'Weighed', material:'Material',
+    resting:'Resting', daysLeft:'days left', started:'Started', startedVal:'17 Oct', opens:'Opens', opensVal:'28 Nov', remind:'Remind me', shake:'Log a shake',
+    batches:'Batches', newBatch:'New batch', done:'Weighed', next:'Next', left:'left', allDone:'All lines weighed',
+    nav:['The Bench','The Wardrobe','The Library','The Atlas','The Salon','The Nose'], day:'Day', of:'of', ready:'Ready', rest:'Resting' },
+  ar: { modeLabel:'الوضع', modeMat:'مواد خام', modeBlend:'خلط عطور', blendTitle:'الخلطة', blendHint:'اخلط عطوراً جاهزة، ثم خفّفها.', searchLabel:'ابحث في العطور', searchPh:'الاسم أو الدار أو العائلة', noMatch:'لا نتيجة. جرّب داراً أو عائلة.', yourBlend:'خلطتك', blendEmpty:'لم تُضف شيئاً. ابحث أعلاه واختر عطراً.', parts:'أجزاء', remove:'إزالة', etohLine:'إيثانول 96%', waterNote:'منه ماء (4%)', fragrances:'العطور', concBlend:'نسبة العطور', all:'الكل', showing:'يُعرض', matches:'نتيجة',
+    langSwitch:'EN', langAria:'اللغة', menu:'القائمة', kicker:'المِنضدة', title:'زِن تركيبة.', recipe:'كيفي رقم 3',
+    inputs:'المدخلات', batch:'حجم الدفعة', batchDec:'اطرح 5 g', batchInc:'أضف 5 g', unit:'الوحدة', basisLabel:'أساس التركيز', wwTitle:'بالوزن', vvTitle:'بالحجم', oil:'زيت', ethanolShort:'إيثانول', batchMl:'حجم الزجاجة', batchDecMl:'اطرح 5 ml', batchIncMl:'أضف 5 ml', conc:'التركيز', concDec:'اطرح 1%', concInc:'أضف 1%',
+    results:'النتائج', concentrate:'المركّز', ethanol:'إيثانول 96%', total:'الدفعة كاملة',
+    formula:'التركيبة', weighHint:'علِّم كل سطر بعد أن تزنه.', weighed:'الموزون', material:'المادة',
+    resting:'الراحة', daysLeft:'يوماً متبقياً', started:'بدأت', startedVal:'17 أكتوبر', opens:'تُفتح', opensVal:'28 نوفمبر', remind:'ذكّرني', shake:'سجّل رجّة',
+    batches:'الدفعات', newBatch:'دفعة جديدة', done:'موزون', next:'التالي', left:'متبقٍ', allDone:'وُزنت كل الأسطر',
+    nav:['المِنضدة','الخزانة','المكتبة','الأطلس','الصالون','الأنف'], day:'اليوم', of:'من', ready:'جاهزة', rest:'تستريح' },
+};
+const FAM = {
+  amber:['Amber','عنبري'], woody:['Woody','خشبي'], oud:['Oud','عودي'], floral:['Floral','زهري'], citrus:['Citrus','حمضي'],
+  fresh:['Fresh','منعش'], aromatic:['Aromatic','عطري'], chypre:['Chypre','شيبر'], fougere:['Fougère','فوجير'], leather:['Leather','جلدي'], gourmand:['Gourmand','جورماند'],
+};
+const DB = `Angels' Share|Kilian|amber
+Ambre Nuit|Dior|amber
+Tobacco Vanille|Tom Ford|amber
+Shalimar|Guerlain|amber
+Opium|Yves Saint Laurent|amber
+Ambre Sultan|Serge Lutens|amber
+Interlude Man|Amouage|amber
+Amber Oud Gold Edition|Al Haramain|amber
+Santal 33|Le Labo|woody
+Terre d'Hermès|Hermès|woody
+Molecule 01|Escentric Molecules|woody
+Wonderwood|Comme des Garçons|woody
+Tam Dao|Diptyque|woody
+Sycomore|Chanel|woody
+Encre Noire|Lalique|woody
+Oud Wood|Tom Ford|oud
+Black Afgano|Nasomatto|oud
+Oud for Greatness|Initio|oud
+Arabians Tonka|Montale|oud
+Oud Satin Mood|Maison Francis Kurkdjian|oud
+Oud Mood|Lattafa|oud
+No. 5|Chanel|floral
+Portrait of a Lady|Frédéric Malle|floral
+Rose 31|Le Labo|floral
+J'adore|Dior|floral
+Lyric Woman|Amouage|floral
+Tuberose Criminelle|Serge Lutens|floral
+Jasmin Rouge|Tom Ford|floral
+Acqua di Giò|Armani|citrus
+Neroli Portofino|Tom Ford|citrus
+Bergamote 22|Le Labo|citrus
+Orange Sanguine|Atelier Cologne|citrus
+Eau Sauvage|Dior|citrus
+Light Blue|Dolce & Gabbana|fresh
+Hawas|Rasasi|fresh
+Aqua Universalis|Maison Francis Kurkdjian|fresh
+Cool Water|Davidoff|fresh
+Sauvage|Dior|aromatic
+Bleu de Chanel|Chanel|aromatic
+Eau d'Hadrien|Annick Goutal|aromatic
+Fahrenheit|Dior|aromatic
+Mitsouko|Guerlain|chypre
+Miss Dior (original)|Dior|chypre
+Aromatics Elixir|Clinique|chypre
+Femme|Rochas|chypre
+Fougère Royale|Houbigant|fougere
+Drakkar Noir|Guy Laroche|fougere
+Jazz|Yves Saint Laurent|fougere
+Brut|Fabergé|fougere
+Tuscan Leather|Tom Ford|leather
+Cuir de Russie|Chanel|leather
+Knize Ten|Knize|leather
+Bandit|Robert Piguet|leather
+Angel|Mugler|gourmand
+Black Opium|Yves Saint Laurent|gourmand
+La Vie Est Belle|Lancôme|gourmand
+Khamrah|Lattafa|gourmand
+Prada Candy|Prada|gourmand
+Vanille Fatale|Tom Ford|gourmand`.split('\n').map(l => { const p = l.split('|'); return { name:p[0], house:p[1], f:p[2] }; });
+const byName = n => DB.findIndex(d => d.name === n);
+const BATCHES = [
+  ['B·0042','Kyphi No. 3','كيفي رقم 3',100,'rest',18,42,'1 : 4'],
+  ['B·0041','Amber Study 07','دراسة العنبر 07',50,'ready',28,28,'1 : 9'],
+  ['B·0039','Rose Smoke 02','دخان الورد 02',30,'rest',3,28,'1 : 6'],
+  ['B·0036','Labdanum Wash','غسول اللادن',250,'ready',42,42,'1 : 19'],
+];
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+class Component extends DCLogic {
+  state = { unit: null, basis: null, ml: 100, lang: null, w: 1440, batch: 100, conc: 20, wset: null, mode: null, q: '', fam: null, blend: null };
+  rootRef = React.createRef();
+  componentDidMount() {
+    const el = this.rootRef.current;
+    if (el) { this.ro = new ResizeObserver(e => this.setState({ w: e[0].contentRect.width })); this.ro.observe(el); }
+  }
+  componentWillUnmount() { this.ro && this.ro.disconnect(); }
+  renderVals() {
+    const lang = this.state.lang ?? (this.props.lang === 'ar' ? 'ar' : 'en');
+    const ar = lang === 'ar', t = COPY[lang];
+    const w = this.state.w, mobile = w < 1100, desktop = !mobile;
+    const conc = this.state.conc, unit = this.state.unit ?? (this.props.initUnit === 'ml' ? 'ml' : 'g'), ml = this.state.ml;
+    const basis = this.state.basis ?? (unit === 'ml' ? 'v/v' : 'w/w');
+    const dens = densOf(conc / 100, basis);
+    const batch = unit === 'ml' ? ml * dens : this.state.batch;
+    const mlOut = batch / dens;
+    const setUnit = u => this.setState(s => {
+      const cur = s.unit ?? (this.props.initUnit === 'ml' ? 'ml' : 'g');
+      if (u === cur) return null;
+      const d = densOf(s.conc / 100, s.basis ?? (cur === 'ml' ? 'v/v' : 'w/w'));
+      return u === 'ml' ? { unit: 'ml', basis: null, ml: clamp(Math.round(s.batch / d / 5) * 5, 5, 1000) } : { unit: 'g', basis: null, batch: clamp(Math.round(s.ml * d / 5) * 5, 5, 1000) };
+    });
+    const wset = this.state.wset ?? Array.from({ length: BASE.length }, (_, i) => i < (this.props.initWeighed ?? 0));
+    const concG = basis === 'w/w' ? batch * conc / 100 : mlOut * conc / 100 * D_OIL, etoh = batch - concG;
+    const oilMl = concG / D_OIL, etohMl = etoh / D_ETOH;
+    const lines = BASE.map((b, i) => {
+      const g = concG * b[5] / 100, on = wset[i];
+      return { n: b[0], name: ar ? b[2] : b[1], dil: ar ? b[4] : b[3], g: g.toFixed(2), gv: g, pct: b[5].toFixed(1),
+        checked: on ? 'true' : 'false', aria: (ar ? b[2] : b[1]) + ' ' + g.toFixed(2) + ' g',
+        fg: on ? '#A3968A' : '#EDE4D6', bg: on ? '#1E1A16' : 'transparent', box: on ? '#D4924A' : '#A3968A', boxBg: on ? '#D4924A' : 'transparent', tick: on ? 1 : 0,
+        toggle: () => this.setState({ wset: wset.map((v, j) => j === i ? !v : v) }) };
+    });
+    const weighedG = lines.reduce((s, l, i) => s + (wset[i] ? l.gv : 0), 0);
+    const pct = concG ? weighedG / concG * 100 : 0;
+    const nextIdx = wset.findIndex(v => !v);
+    const nextLine = nextIdx < 0 ? t.allDone : t.next + ': ' + lines[nextIdx].name + ', ' + lines[nextIdx].g + ' g';
+    const setLang = l => this.setState({ lang: l });
+    const mode = this.state.mode ?? (this.props.initMode === 'blend' ? 'blend' : 'materials');
+    const isBlend = mode === 'blend';
+    const blend = this.state.blend ?? [{ i: byName('Santal 33'), p: 2 }, { i: byName('Oud Wood'), p: 1 }, { i: byName('Neroli Portofino'), p: 1 }];
+    const setBlend = b => this.setState({ blend: b });
+    const fl = k => FAM[k][ar ? 1 : 0];
+    const qn = this.state.q.trim().toLowerCase(), fam = this.state.fam;
+    const inB = new Set(blend.map(b => b.i));
+    const matched = DB.map((d, i) => ({ ...d, i })).filter(d => !inB.has(d.i) && (!fam || d.f === fam) &&
+      (!qn || d.name.toLowerCase().includes(qn) || d.house.toLowerCase().includes(qn) || FAM[d.f][0].toLowerCase().includes(qn) || FAM[d.f][1].includes(qn)));
+    const found = matched.slice(0, 6).map(d => ({ name: d.name, house: d.house, fam: fl(d.f), aria: d.name + ', ' + d.house + ', ' + fl(d.f),
+      add: () => setBlend([...blend, { i: d.i, p: 1 }]) }));
+    const sumP = blend.reduce((s, b) => s + b.p, 0);
+    const blendLines = blend.map((b, k) => {
+      const d = DB[b.i], g = sumP ? concG * b.p / sumP : 0;
+      return { name: d.name, house: d.house, fam: fl(d.f), g: g.toFixed(2), pct: sumP ? (b.p / sumP * 100).toFixed(1) : '0.0', parts: b.p,
+        decAria: (ar ? 'اطرح جزءاً من ' : 'Remove 1 part of ') + d.name, incAria: (ar ? 'أضف جزءاً إلى ' : 'Add 1 part to ') + d.name,
+        dec: () => setBlend(blend.map((x, j) => j === k ? { ...x, p: Math.max(1, x.p - 1) } : x)),
+        inc: () => setBlend(blend.map((x, j) => j === k ? { ...x, p: Math.min(20, x.p + 1) } : x)),
+        remove: () => setBlend(blend.filter((_, j) => j !== k)) };
+    });
+    const segs = [...blend.map((b, k) => ({ w: (sumP ? concG * b.p / sumP : 0) / batch * 100, c: 'rgba(212,146,74,' + (k % 2 ? 0.55 : 1) + ')' })), { w: etoh / batch * 100, c: '#3B332B' }].map(x => ({ w: x.w.toFixed(2), c: x.c }));
+    const famCount = k => DB.filter(d => d.f === k).length;
+    const step = (key, d, lo, hi) => () => this.setState(s => ({ [key]: clamp(s[key] + d, lo, hi) }));
+    return {
+      rootRef: this.rootRef, lang, dir: ar ? 'rtl' : 'ltr', t, desktop, mobile, kls: ar ? '0' : '0.14em',
+      lhBody: ar ? 1.8 : 1.55, lhHead: ar ? 1.45 : 1.1,
+      pad: mobile ? 16 : 48, padY: mobile ? 32 : 56, gapY: mobile ? 28 : 40, gapX: 32, h1: mobile ? 40 : 64,
+      cols: mobile ? 'minmax(0,1fr)' : 'minmax(0,1fr) 400px', inCols: w < 600 ? 'minmax(0,1fr)' : 'repeat(2, minmax(0,1fr))',
+      stepH: mobile ? 72 : 88, stepW: 56, resAlign: w < 600 ? 'baseline' : 'stretch', narrow: w < 600, resCols: w < 600 ? 'minmax(0,1fr)' : 'repeat(3, minmax(0,1fr))', resDir: w < 600 ? 'row' : 'column', stepPad: mobile ? 20 : 26, bigNum: mobile ? 36 : 48, resNum: mobile ? 26 : 34, resPad: mobile ? 14 : 22, timerNum: mobile ? 56 : 72, lineG: mobile ? 16 : 17,
+      rowCols: desktop ? '44px minmax(0,1fr) 90px 70px' : '44px minmax(0,1fr) 84px', numW: 34, numIndent: 44,
+      nav: t.nav.map((n, i) => ({ label: n, fg: i === 0 ? '#EDE4D6' : '#A3968A', line: i === 0 ? '#D4924A' : 'transparent' })),
+      toggleLang: () => setLang(ar ? 'en' : 'ar'),
+      batchLabel: (unit === 'ml' ? ml : batch).toFixed(0), unit, conc: conc.toFixed(0), batchG: batch.toFixed(2), batchTitle: unit === 'ml' ? t.batchMl : t.batch,
+      batchDecAria: unit === 'ml' ? t.batchDecMl : t.batchDec, batchIncAria: unit === 'ml' ? t.batchIncMl : t.batchInc,
+      unitTabs: ['g', 'ml'].map(u => ({ label: u, on: unit === u ? 'true' : 'false', bg: unit === u ? '#29231D' : 'transparent', fg: unit === u ? '#EDE4D6' : '#A3968A', fw: unit === u ? 600 : 400, pick: () => setUnit(u) })),
+      approx: '≈ ' + (unit === 'ml' ? batch.toFixed(2) + ' g' : mlOut.toFixed(1) + ' ml') + ' · ' + oilMl.toFixed(1) + ' ml ' + t.oil + ' + ' + etohMl.toFixed(1) + ' ml ' + t.ethanolShort,
+      basisTabs: [['w/w', t.wwTitle], ['v/v', t.vvTitle]].map(([b, title]) => ({ label: b, title, on: basis === b ? 'true' : 'false', bg: basis === b ? '#29231D' : 'transparent', fg: basis === b ? '#EDE4D6' : '#A3968A', fw: basis === b ? 600 : 400, pick: () => this.setState({ basis: b }) })),
+      batchDec: step(unit === 'ml' ? 'ml' : 'batch', -5, 5, 1000), batchInc: step(unit === 'ml' ? 'ml' : 'batch', 5, 5, 1000), concDec: step('conc', -1, 1, 40), concInc: step('conc', 1, 1, 40),
+      ratio: '1 : ' + (100 / conc - 1).toFixed(1) + '  (' + conc + ' : ' + (100 - conc) + ')',
+      batchPresets: (unit === 'ml' ? [10, 30, 50, 100] : [30, 50, 100, 250]).map(v => { const cur = unit === 'ml' ? ml : batch, on = cur === v; return { label: v + ' ' + unit, on: on ? 'true' : 'false', bd: on ? '#D4924A' : '#3B332B', bg: on ? '#29231D' : 'transparent', fg: on ? '#EDE4D6' : '#A3968A', pick: () => this.setState(unit === 'ml' ? { ml: v } : { batch: v }) }; }),
+      results: [
+        { label: isBlend ? t.fragrances : t.concentrate, val: concG.toFixed(2), unit: 'g', color: '#D4924A' },
+        { label: t.ethanol, val: etoh.toFixed(2), unit: 'g', color: '#EDE4D6' },
+        { label: t.total, val: batch.toFixed(2), unit: 'g', color: '#EDE4D6' },
+      ],
+      isBlend, isMaterials: !isBlend, tabPull: mobile ? 12 : 16,
+      modeTabs: [['materials', t.modeMat], ['blend', t.modeBlend]].map(([k, label]) => ({ label, sel: mode === k ? 'true' : 'false', line: mode === k ? '#D4924A' : 'transparent', fg: mode === k ? '#EDE4D6' : '#A3968A', pick: () => this.setState({ mode: k }) })),
+      concLabel: (isBlend ? t.concBlend : t.conc) + ' · ' + basis,
+      q: this.state.q, onQ: e => this.setState({ q: e.target.value }),
+      famChips: [[null, t.all, DB.length], ...Object.keys(FAM).map(k => [k, fl(k), famCount(k)])].map(([k, label, count]) => { const on = fam === k; return { label, count, on: on ? 'true' : 'false', bd: on ? '#D4924A' : '#3B332B', bg: on ? '#29231D' : 'transparent', fg: on ? '#EDE4D6' : '#A3968A', pick: () => this.setState({ fam: k }) }; }),
+      found, noFound: found.length === 0, foundNote: t.showing + ' ' + found.length + ' ' + t.of + ' ' + matched.length + ' ' + t.matches,
+      blendLines, blendEmpty: blend.length === 0, segs, partsNote: sumP + ' ' + t.parts, waterG: (etoh * 0.04).toFixed(2),
+      lines, concG: concG.toFixed(2), etohG: etoh.toFixed(2),
+      weighedG: weighedG.toFixed(2), weighedPct: pct.toFixed(1), nextLine, leftLabel: (concG - weighedG).toFixed(2) + ' g ' + t.left,
+      ticks: Array.from({ length: 11 }, (_, i) => ({ h: i % 5 === 0 ? 16 : 8, m: i % 5 === 0 ? 0 : 4 })),
+      restTicks: Array.from({ length: 7 }, () => ({ h: 16, m: 0 })),
+      batches: BATCHES.map(b => {
+        const isReady = b[4] === 'ready';
+        return { cat: b[0], name: ar ? b[2] : b[1], g: b[3].toFixed(2) + ' g', ratio: b[7],
+          status: isReady ? t.ready : t.day + ' ' + b[5] + ' ' + t.of + ' ' + b[6] + ' · ' + t.rest,
+          sc: isReady ? '#9DB38A' : '#A3968A', bar: isReady ? '#9DB38A' : '#D4924A', pct: (b[5] / b[6] * 100).toFixed(1) };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

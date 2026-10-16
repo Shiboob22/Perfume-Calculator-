@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, Reveal } from "../motion";
 import { COLORS, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { localePath } from "./meta";
@@ -58,7 +58,7 @@ export default function Home() {
       )}
 
       {/* Three principles */}
-      <section className="reveal" style={{ borderBlock: `1px solid ${COLORS.line}`, background: COLORS.card }}>
+      <Reveal as="section" className="reveal" style={{ borderBlock: `1px solid ${COLORS.line}`, background: COLORS.card }}>
         <div className={`${WRAP} py-14`}>
           <h2 className={`${TYPE.label} mb-8`} style={{ color: COLORS.dim }}>{t("site.home.principlesLabel")}</h2>
           <ol className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -77,16 +77,16 @@ export default function Home() {
             })}
           </ol>
         </div>
-      </section>
+      </Reveal>
 
       {/* Quote */}
-      <blockquote className={`${WRAP} reveal py-16 text-center`}>
+      <Reveal as="blockquote" className={`${WRAP} reveal py-16 text-center`}>
         <p className="font-serif italic text-[clamp(1.6rem,3.6vw,2.5rem)] max-w-3xl mx-auto leading-snug">“{t("site.home.quote")}”</p>
         <footer className={`mt-5 ${TYPE.label}`} style={{ color: COLORS.dim }}>{t("site.home.quoteSource")}</footer>
-      </blockquote>
+      </Reveal>
 
       {/* Guide library */}
-      <section className={`${WRAP} reveal py-14`} style={{ borderTop: `1px solid ${COLORS.line}` }}>
+      <Reveal as="section" className={`${WRAP} reveal py-14`} style={{ borderTop: `1px solid ${COLORS.line}` }}>
         <p className={`${TYPE.label} mb-3`} style={{ color: COLORS.dim }}>{t("site.home.contents")}</p>
         <SectionTitle>{t("site.home.guidesTitle")}</SectionTitle>
         <p className="font-serif mb-8" style={{ color: COLORS.inkSoft }}>{t("site.home.guidesLead")}</p>
@@ -94,10 +94,10 @@ export default function Home() {
         <Link to={to("/library")} className="inline-flex items-center gap-2 mt-8 text-sm font-medium min-h-[44px]" style={{ color: COLORS.forest }}>
           {t("site.home.allGuides")} <IconArrow size={18} />
         </Link>
-      </section>
+      </Reveal>
 
       {/* Pricing teaser band */}
-      <section className="reveal" style={{ background: COLORS.sand, borderBlock: `1px solid ${COLORS.line}` }}>
+      <Reveal as="section" className="reveal" style={{ background: COLORS.sand, borderBlock: `1px solid ${COLORS.line}` }}>
         <div className={`${WRAP} py-10 flex flex-wrap items-center gap-6`}>
           <IconTile icon={IconSeal} size={56} />
           <div className="flex-1 min-w-[14rem]">
@@ -108,7 +108,7 @@ export default function Home() {
             {t("site.home.comparePlans")} <IconArrow size={18} />
           </Link>
         </div>
-      </section>
+      </Reveal>
 
       {/* FAQ */}
       <section className={`${WRAP} py-14`}>

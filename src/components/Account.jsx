@@ -33,7 +33,7 @@ function Section({ title, children, danger = false, id }) {
   }
   return (
     <section id={id} className="py-7 border-t" style={{ borderColor: COLORS.line }}>
-      <h2 className="font-serif text-2xl mb-3" style={{ color: COLORS.forestDeep }}>{title}</h2>
+      <h2 className="font-serif font-light text-3xl mb-3 rtl:leading-[1.5]" style={{ color: COLORS.ink }}>{title}</h2>
       {children}
     </section>
   );
@@ -56,7 +56,7 @@ export default function Account({ user }) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 sm:px-8 py-6">
-      <h1 className="font-serif italic text-3xl sm:text-4xl mb-1" style={{ color: COLORS.forestDeep }}>{t("account.title")}</h1>
+      <h1 className="font-serif font-light text-4xl sm:text-5xl mb-1 rtl:leading-[1.5]" style={{ color: COLORS.ink }}>{t("account.title")}</h1>
       <p className="text-sm mb-6 font-mono" style={{ color: COLORS.inkSoft }}>{t("account.signedInAs", { email: user.email })}</p>
 
       <Section title={t("account.plan.title")}>
@@ -66,6 +66,13 @@ export default function Account({ user }) {
             ? t("account.plan.unlimited", { used: entitlements.batchesUsed })
             : t("account.plan.usage", { used: entitlements.batchesUsed, cap: entitlements.batchCap })}
         </p>
+        {entitlements.batchCap != null && (
+          <div dir="ltr" role="meter" aria-label={t("account.plan.title")} aria-valuemin={0} aria-valuemax={entitlements.batchCap} aria-valuenow={Math.min(entitlements.batchesUsed, entitlements.batchCap)}
+            className="relative mt-3 h-4 max-w-sm">
+            <span className="absolute inset-x-0 top-[7px] h-[2px]" style={{ background: COLORS.line }} />
+            <span className="absolute start-0 top-[7px] h-[2px] fill-anim" style={{ width: `${Math.min(100, (entitlements.batchesUsed / entitlements.batchCap) * 100)}%`, background: COLORS.oil }} />
+          </div>
+        )}
         <a href={locale === "ar" ? "/ar/pricing" : "/pricing"} className="inline-block text-sm underline mt-3" style={{ color: COLORS.actionText }}>{t("account.plan.seePricing")}</a>
       </Section>
 
@@ -112,7 +119,7 @@ function Waitlist() {
       {joined
         ? <p role="status" className="text-sm font-semibold" style={{ color: COLORS.actionText }}>✓ {t("account.waitlist.joined")}</p>
         : <button type="button" disabled={busy || joined === null} onClick={join}
-            className="px-5 py-2 rounded-none text-sm font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+            className="px-5 py-2 rounded text-sm font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
             {t("account.waitlist.join")}
           </button>}
       {error && <p role="alert" className="text-sm mt-3" style={{ color: COLORS.danger }}>{error}</p>}
@@ -141,14 +148,14 @@ function Preferences({ profile, save, locale, setLocale }) {
     <div>
       <label className={row} style={{ borderColor: COLORS.line }}>
         <span style={{ color: COLORS.ink }}>{t("account.prefs.language")}</span>
-        <select value={locale} onChange={(e) => { setLocale(e.target.value); update({ locale: e.target.value }); }} className="px-3 py-2 rounded-none" style={inputStyle}>
+        <select value={locale} onChange={(e) => { setLocale(e.target.value); update({ locale: e.target.value }); }} className="px-3 py-2 rounded" style={inputStyle}>
           <option value="en" lang="en">English</option>
           <option value="ar" lang="ar">العربية</option>
         </select>
       </label>
       <label className={row} style={{ borderColor: COLORS.line }}>
         <span style={{ color: COLORS.ink }}>{t("account.prefs.unit")}</span>
-        <select value={unit} onChange={(e) => update({ default_unit: e.target.value })} className="px-3 py-2 rounded-none" style={inputStyle}>
+        <select value={unit} onChange={(e) => update({ default_unit: e.target.value })} className="px-3 py-2 rounded" style={inputStyle}>
           {Object.keys(UNIT_LABELS).map((u) => <option key={u} value={u}>{t(`onboarding.unit.${u}`)}</option>)}
         </select>
       </label>
@@ -157,7 +164,7 @@ function Preferences({ profile, save, locale, setLocale }) {
         <span className="flex items-center gap-2">
           <input type="number" inputMode="decimal" min="0" step="any" value={bottle} onChange={(e) => setBottle(e.target.value)}
             onBlur={() => { const n = Number(bottle); if (n > 0 && n !== profile?.default_bottle) update({ default_bottle: n }); }}
-            className="w-28 px-3 py-2 rounded-none font-mono" style={inputStyle} />
+            className="w-28 px-3 py-2 rounded font-mono" style={inputStyle} />
           <span className="font-mono text-sm" style={{ color: COLORS.inkSoft }}>{UNIT_LABELS[unit]}</span>
         </span>
       </label>
@@ -185,12 +192,12 @@ function ExportData() {
       {tables.length > 0 && (
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => download(`scent-handbook-${stamp()}.json`, toJson(data), "application/json")}
-            className="px-4 py-2 rounded-none text-sm font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+            className="px-4 py-2 rounded text-sm font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
             {t("account.data.json")}
           </button>
           {tables.map((table) => (
             <button key={table} type="button" onClick={() => download(`scent-handbook-${table}-${stamp()}.csv`, toCsv(data[table]), "text/csv;charset=utf-8")}
-              className="px-4 py-2 rounded-none text-sm" style={buttonStyle}>
+              className="px-4 py-2 rounded text-sm" style={buttonStyle}>
               {t("account.data.csv", { table: t(`account.data.tables.${table}`) })}
             </button>
           ))}
@@ -228,10 +235,10 @@ function DeleteAccount({ email }) {
       <label className="block text-sm mb-3" style={{ color: COLORS.inkSoft }}>
         {t("account.delete.confirmLabel")}
         <input type="email" autoComplete="off" value={confirm} onChange={(e) => setConfirm(e.target.value)} dir="ltr"
-          className="mt-1 w-full px-3 py-2 rounded-none font-mono" style={inputStyle} />
+          className="mt-1 w-full px-3 py-2 rounded font-mono" style={inputStyle} />
       </label>
       <button type="submit" disabled={!matches || busy}
-        className="px-5 py-2 rounded-none text-sm font-semibold disabled:opacity-40" style={{ background: COLORS.danger, color: COLORS.paper }}>
+        className="px-5 py-2 rounded text-sm font-semibold disabled:opacity-40" style={{ background: COLORS.danger, color: COLORS.paper }}>
         {busy ? t("account.delete.working") : t("account.delete.button")}
       </button>
       {error && <p role="alert" className="text-sm mt-3" style={{ color: COLORS.danger }}>{error}</p>}

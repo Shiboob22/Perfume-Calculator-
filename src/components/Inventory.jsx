@@ -76,7 +76,7 @@ export default function Inventory() {
       )}
 
       {lowStock.length > 0 && (
-        <div className="mb-4 px-4 py-3 border rounded-none text-sm font-mono" style={{ borderColor: COLORS.danger, color: COLORS.danger, backgroundColor: COLORS.dangerBg }}>
+        <div className="mb-4 px-4 py-3 border rounded text-sm font-mono" style={{ borderColor: COLORS.danger, color: COLORS.danger, backgroundColor: COLORS.dangerBg }}>
           {t("inventory.lowStock", { count: lowStock.length, names: lowStock.map((r) => r.fragrances?.name).join(", ") })}
         </div>
       )}
@@ -85,7 +85,7 @@ export default function Inventory() {
         {rows.map((r) => {
           const low = r.stock_g <= r.low_stock_threshold_g;
           return (
-            <div key={r.fragrance_id} className="p-4 border rounded-none" style={{ borderColor: low ? COLORS.danger : COLORS.line, backgroundColor: COLORS.card }}>
+            <div key={r.fragrance_id} className="p-4 border rounded" style={{ borderColor: low ? COLORS.danger : COLORS.line, backgroundColor: COLORS.card }}>
               <div className="flex items-start justify-between">
                 <div>
                   <div className="text-sm font-serif font-semibold" style={{ color: COLORS.forestDeep }}>
@@ -111,13 +111,13 @@ export default function Inventory() {
                   aria-label={t("inventory.restockLabel", { name: r.fragrances?.name || "" })}
                   value={restockAmounts[r.fragrance_id] || ""}
                   onChange={(e) => setRestockAmounts({ ...restockAmounts, [r.fragrance_id]: e.target.value })}
-                  className="flex-1 min-w-0 px-3 py-1.5 font-mono text-xs border rounded-none"
+                  className="flex-1 min-w-0 px-3 py-1.5 font-mono text-xs border rounded"
                   style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
                 />
                 <button
                   type="button"
                   onClick={() => handleRestock(r.fragrance_id)}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-none"
+                  className="px-3 py-1.5 text-xs font-semibold rounded"
                   style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}
                 >
                   {t("inventory.addStock")}
@@ -127,7 +127,7 @@ export default function Inventory() {
                   aria-label={t("inventory.thresholdLabel")}
                   defaultValue={r.low_stock_threshold_g}
                   onBlur={(e) => handleThresholdChange(r.fragrance_id, e.target.value)}
-                  className="w-20 px-2 py-1.5 font-mono text-xs border rounded-none"
+                  className="w-20 px-2 py-1.5 font-mono text-xs border rounded"
                   style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
                 />
               </div>

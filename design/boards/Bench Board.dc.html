@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#0E0C0A}a{color:#D4924A}a:hover{color:#EDE4D6}</style>
+</helmet>
+
+<section data-screen-label="Bench motion" style="padding:96px;display:flex;flex-direction:column;gap:48px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 2 · I · The Bench</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">Key moment: weighing the formula</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A;max-width:760px">Quiet motion only. Each tick moves the weight scale by that line's grams in 250 ms ease-out. Live version: <a href="Bench.dc.html">Bench</a>.</p>
+  </div>
+  <div id="2g" style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
+    <div style="display:flex;flex-direction:column;gap:16px"><span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">2g · Fragrance blend · EN</span><div style="width:1440px;height:1500px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Bench" lang="en" init-mode="blend" hint-size="1440px,1500px"></dc-import></div></div>
+    <div style="display:flex;flex-direction:column;gap:16px"><span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">2h · Fragrance blend · AR</span><div style="width:1440px;height:1500px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Bench" lang="ar" init-mode="blend" hint-size="1440px,1500px"></dc-import></div></div>
+    <div style="display:flex;flex-direction:column;gap:16px"><span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">2i · Blend mobile 375 · EN</span><div style="width:375px;height:2400px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Bench" lang="en" init-mode="blend" hint-size="375px,2400px"></dc-import></div></div>
+    <div style="display:flex;flex-direction:column;gap:16px"><span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">2j · Blend mobile 375 · AR</span><div style="width:375px;height:2400px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Bench" lang="ar" init-mode="blend" hint-size="375px,2400px"></dc-import></div></div>
+  </div>
+  <div id="2e" style="display:flex;flex-direction:column;gap:24px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">2e · Storyboard, desktop EN</span>
+    <div style="display:grid;grid-template-columns:repeat(4, 576px);gap:32px 24px">
+      <sc-for list="{{ frames }}" as="f" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="width:576px;height:380px;overflow:hidden;border:1px solid #3B332B"><div style="width:1440px;zoom:0.4"><dc-import name="Bench" lang="en" init-weighed="{{ f.k }}" hint-size="1440px,950px"></dc-import></div></div>
+          <div style="display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px">
+            <span style="font-family:'Newsreader',serif;font-size:22px;color:#D4924A">{{ f.n }}</span>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline"><span style="font-size:17px;font-weight:500">{{ f.title }}</span><span style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums">{{ f.time }}</span></div>
+              <span style="font-size:15px;line-height:1.5;color:#A3968A">{{ f.body }}</span>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div id="2f" style="display:flex;flex-direction:column;gap:16px;width:1100px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">2f · Motion spec</span>
+    <div role="table" style="display:flex;flex-direction:column;font-size:15px;font-variant-numeric:tabular-nums;border-top:1px solid #A3968A">
+      <div role="row" style="display:grid;grid-template-columns:300px 120px 120px minmax(0,1fr);gap:16px;padding:12px 0;color:#A3968A;font-size:12px;letter-spacing:0.12em;text-transform:uppercase"><span>Element</span><span>Duration</span><span>Easing</span><span>Trigger</span></div>
+      <sc-for list="{{ spec }}" as="r" hint-placeholder-count="6">
+        <div role="row" style="display:grid;grid-template-columns:300px 120px 120px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid #3B332B"><span>{{ r.el }}</span><span>{{ r.dur }}</span><span style="color:#D4924A">{{ r.ease }}</span><span style="color:#A3968A">{{ r.trig }}</span></div>
+      </sc-for>
+    </div>
+    <p style="margin:0;font-size:14px;color:#A3968A;line-height:1.6">Reduced motion: the scale and numbers jump to their new value with no transition. Tokens in <a href="Design System.dc.html">Design System</a>.</p>
+  </div>
+</section>
+
+<section data-screen-label="Bench screens" style="padding:96px;display:flex;flex-direction:column;gap:48px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A;border-top:1px solid #3B332B">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 2 · Screens</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">The Bench: 1440 and 375, EN and AR</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A">Frames are live. Change batch size or concentration, tick lines, switch language.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:80px;align-items:flex-start">
+    <div id="2a" style="display:flex;flex-direction:column;gap:16px"><span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">2a · Desktop 1440 · EN</span><div style="width:1440px;height:1180px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Bench" lang="en" init-weighed="2" hint-size="1440px,1180px"></dc-import></div></div>
+    <div id="2b" style="display:flex;flex-direction:column;gap:16px"><span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">2b · Desktop 1440 · AR</span><div style="width:1440px;height:1180px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Bench" lang="ar" init-weighed="2" hint-size="1440px,1180px"></dc-import></div></div>
+    <div id="2c" style="display:flex;flex-direction:column;gap:16px"><span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">2c · Mobile 375 · EN</span><div style="width:375px;height:2000px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Bench" lang="en" init-weighed="2" hint-size="375px,2000px"></dc-import></div></div>
+    <div id="2d" style="display:flex;flex-direction:column;gap:16px"><span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">2d · Mobile 375 · AR</span><div style="width:375px;height:2000px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Bench" lang="ar" init-weighed="2" hint-size="375px,2000px"></dc-import></div></div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      frames: [
+        { n:'1', k:0, time:'0 ms', title:'Empty scale', body:'0.00 / 20.00 g. Six lines, none ticked. Next line named under the scale.' },
+        { n:'2', k:2, time:'tap + 250 ms', title:'Two lines weighed', body:'Boxes fill resin, row text drops to Muted. Scale advances 7.20 g.' },
+        { n:'3', k:4, time:'tap + 250 ms', title:'Four lines weighed', body:'0.00 to 14.40 g. "Next" updates to the remaining line, grams in tabular figures.' },
+        { n:'4', k:6, time:'tap + 250 ms', title:'Complete', body:'20.00 / 20.00 g. Next line becomes "All lines weighed". No fanfare.' },
+      ],
+      spec: [
+        { el:'Weight scale fill', dur:'250 ms (base)', ease:'ease-out', trig:'Row checkbox toggled' },
+        { el:'Row tint and tick', dur:'150 ms (fast)', ease:'ease-out', trig:'Row checkbox toggled' },
+        { el:'Result figures', dur:'Instant', ease:'none', trig:'Stepper press. No tweening, so figures stay readable' },
+        { el:'Stepper press', dur:'150 ms (fast)', ease:'ease-out', trig:'Hover, press, hold repeats at 120 ms' },
+        { el:'Resting marker', dur:'Static', ease:'none', trig:'Moves once a day, at midnight' },
+        { el:'Batch row hover', dur:'150 ms (fast)', ease:'ease-out', trig:'Hover or focus' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

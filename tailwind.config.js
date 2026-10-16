@@ -6,6 +6,7 @@ const ARABIC_SYSTEM = ["'Geeza Pro'", "'Noto Sans Arabic'", "'Segoe UI'", "Tahom
 
 import plugin from "tailwindcss/plugin";
 import { COLORS, PALETTES, paletteVars } from "./src/lib/theme.js";
+import { motionVars } from "./src/motion/config.js";
 
 const light = paletteVars(PALETTES.light);
 const dark = paletteVars(PALETTES.dark);
@@ -18,10 +19,14 @@ export default {
       // Focus rings in the palette's focus colour, fully opaque (WCAG 1.4.11).
       ringColor: { DEFAULT: COLORS.focus },
       ringOpacity: { DEFAULT: "1" },
+      // Kyphira board: 2 px corners everywhere (circles only for the ember and avatars).
+      borderRadius: { DEFAULT: "2px" },
       fontFamily: {
         serif: ["'Newsreader Variable'", "'Newsreader Fallback'", "'Noto Naskh Arabic Variable'", "Georgia", ...ARABIC_SYSTEM, "serif"],
         sans: ["'Hanken Grotesk Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
-        mono: ["'IBM Plex Mono'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "ui-monospace", "monospace"],
+        // The board has no monospace: figures are Hanken Grotesk with tabular numerals
+        // (`.font-mono` in index.css switches them on), so columns of grams still line up.
+        mono: ["'Hanken Grotesk Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
       },
     },
   },
@@ -29,7 +34,8 @@ export default {
     // The palettes as CSS custom properties. Light by default; dark when the
     // system asks and the reader hasn't chosen light, or when they chose dark.
     plugin(({ addBase }) => addBase({
-      ":root": { ...light, colorScheme: "light" },
+      // The motion tokens (src/motion/config.js) ride along; inert until the motion flag is on.
+      ":root": { ...light, colorScheme: "light", ...motionVars() },
       "@media (prefers-color-scheme: dark)": { ':root:not([data-theme="light"])': { ...dark, colorScheme: "dark" } },
       ':root[data-theme="dark"]': { ...dark, colorScheme: "dark" },
     })),
