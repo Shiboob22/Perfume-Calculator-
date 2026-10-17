@@ -246,6 +246,19 @@ summary::-webkit-details-marker { display: none; }
 @keyframes kx-think { from { opacity: .25; } to { opacity: 1; } }
 @keyframes cmp-breath { from { opacity: .7; transform: scale(.94); } to { opacity: 1; transform: scale(1.08); } }
 
+/* Homepage v2 keyframes (from the owner's Kyphira Homepage v2 export). Nothing uses them until a class opts in.
+   .kv fades from 0: keep it off anything on the fold at load (see .reveal, which moves without fading). */
+@keyframes kRise { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
+@keyframes kGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes kFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes kDrift { from { background-position: 0 0; } to { background-position: 200% 0; } }
+@keyframes kPulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .kv { animation: kRise both cubic-bezier(.2,.7,.2,1); animation-timeline: view(); animation-range: entry 0% entry 45%; }
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
     [data-compounding] .m { animation: var(--kf) var(--m-ease) both; animation-timeline: --v; animation-range: cover calc(var(--a) * 100%) cover calc(var(--b) * 100%); }
