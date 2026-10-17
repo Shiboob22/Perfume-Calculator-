@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&family=Lora:ital@0;1&family=IBM+Plex+Mono&display=swap">
+<style>body{margin:0;background:#E7E1D5}a{color:#1F4A36}a:hover{color:#100E0A}</style>
+</helmet>
+<section style="padding:64px;display:flex;gap:64px;align-items:flex-start;font-family:Poppins,sans-serif;color:#100E0A">
+<div style="width:420px;flex-shrink:0;display:grid;gap:36px">
+<div><p style="margin:0;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#5A544A">1a · Rationale</p>
+<ol style="margin:16px 0 0;padding-left:18px;font-family:Lora,serif;font-size:16px;line-height:1.55;display:grid;gap:8px">
+<li>A book that came to life: hairline rules, roman numerals, fleurons, square corners, no cards or shadows.</li>
+<li>Numbers are the hero: the gram readout is the largest type on screen, set in Plex Mono with tabular figures.</li>
+<li>Scale contrast does the luxury work: 96px Poppins headline over a Lora reading column.</li>
+<li>Forest green is spent once per view, on the primary action.</li>
+<li>Amber is used only to show oil (in the bottle, the ratio bar and the legend), never for text, so it always means "oil".</li>
+<li>Accord bars become one bar: oil to alcohol by weight.</li>
+<li>Motion: one easing curve, cubic-bezier(.2,0,0,1). Controls take 180 ms, the pour and digit roll 460–620 ms, staggered. Only transform is animated, and nothing moves when reduced motion is on.</li>
+</ol></div>
+<div><p style="margin:0 0 12px;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#5A544A">Colour</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:12px">
+<div style="display:flex;gap:10px;align-items:center"><span style="width:28px;height:28px;background:#F6F2EA;border:1px solid #D9D1C2"></span>paper #F6F2EA</div>
+<div style="display:flex;gap:10px;align-items:center"><span style="width:28px;height:28px;background:#EEE8DC;border:1px solid #D9D1C2"></span>paper-2 #EEE8DC</div>
+<div style="display:flex;gap:10px;align-items:center"><span style="width:28px;height:28px;background:#100E0A"></span>ink #100E0A</div>
+<div style="display:flex;gap:10px;align-items:center"><span style="width:28px;height:28px;background:#3A352D"></span>ink-2 #3A352D</div>
+<div style="display:flex;gap:10px;align-items:center"><span style="width:28px;height:28px;background:#5A544A"></span>muted #5A544A</div>
+<div style="display:flex;gap:10px;align-items:center"><span style="width:28px;height:28px;background:#D9D1C2"></span>rule #D9D1C2</div>
+<div style="display:flex;gap:10px;align-items:center"><span style="width:28px;height:28px;background:#1F4A36"></span>forest #1F4A36</div>
+<div style="display:flex;gap:10px;align-items:center"><span style="width:28px;height:28px;background:#C99A45"></span>oil #C99A45</div>
+<div style="display:flex;gap:10px;align-items:center"><span style="width:28px;height:28px;background:#E4EBE5;border:1px solid #9AA89E"></span>ethanol #E4EBE5</div>
+</div></div>
+<div><p style="margin:0 0 12px;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#5A544A">Type</p>
+<div style="display:grid;gap:10px;font-size:13px">
+<div><span style="font-size:40px;font-weight:500;letter-spacing:-0.035em">Display</span> · Poppins 500, 46–96px, −0.035em</div>
+<div><span style="font-size:24px;font-weight:500">Heading</span> · Poppins 500, 20–52px</div>
+<div><span style="font-family:Lora,serif;font-size:17px">Reading</span> · Lora 400, 17–19px, 1.6</div>
+<div><span style="font-family:'IBM Plex Mono',monospace;font-size:32px">30.38 g</span> · Plex Mono 500, 40–64px, tnum</div>
+<div><span style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase">Label</span> · Poppins 12px caps, +0.16em</div>
+<div style="color:#5A544A">Arabic: Tajawal / Amiri / Plex Sans Arabic</div>
+</div></div>
+</div>
+<div style="display:grid;gap:12px;flex-shrink:0"><span style="font-size:13px">1b · Desktop 1440</span><iframe src="Scent Ledger Landing.dc.html" title="Desktop" style="width:1440px;height:3900px;border:0;background:#F6F2EA"></iframe></div>
+<div style="display:grid;gap:12px;flex-shrink:0"><span style="font-size:13px">1c · Mobile 390</span><iframe src="Scent Ledger Landing.dc.html" title="Mobile" style="width:390px;height:5200px;border:0;background:#F6F2EA"></iframe></div>
+</section>
+</x-dc>
+</body>
+</html>

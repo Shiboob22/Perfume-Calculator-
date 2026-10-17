@@ -5,7 +5,7 @@
 // The new type faces load here, not site-wide: switching the live site to
 // them is the Phase 2 re-skin, together with the font preloads (CLS).
 import React, { useState } from "react";
-import "@fontsource-variable/newsreader/opsz.css";
+import "@fontsource-variable/newsreader/wght.css";
 import "@fontsource-variable/hanken-grotesk/wght.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-sans-arabic/arabic-400.css";
@@ -19,7 +19,7 @@ import { SiteHeader, SiteFooter } from "../components/SiteChrome";
 import LanguageToggle from "../components/LanguageToggle";
 import { Button, Card, Field, KyphiraLogo, Notice, ScaleReadout, SmokeLine } from "../components/kx";
 
-const DISPLAY = { fontFamily: "'Newsreader Variable', 'Noto Naskh Arabic Variable', Georgia, serif", fontVariationSettings: '"opsz" 144', fontWeight: 400 };
+const DISPLAY = { fontFamily: "'Newsreader Variable', 'Noto Naskh Arabic Variable', Georgia, serif", fontWeight: 400 };
 const UI = { fontFamily: "'Hanken Grotesk Variable', 'IBM Plex Sans Arabic', system-ui, sans-serif" };
 
 const TAGLINES = [

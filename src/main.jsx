@@ -5,9 +5,9 @@ import { inject } from "@vercel/analytics";
 import Root from "./Root";
 import { isAppPath } from "./routes";
 import { applyFlagLink } from "./lib/flags";
-// Newsreader (display and voice; optical-size axis), Hanken Grotesk (interface), figures are Hanken with tabular numerals.
-import "@fontsource-variable/newsreader/opsz.css";
-import "@fontsource-variable/newsreader/opsz-italic.css";
+// Newsreader (display and voice; weight axis only: the optical-size files are twice the size), Hanken Grotesk (interface), figures are Hanken with tabular numerals.
+import "@fontsource-variable/newsreader/wght.css";
+import "@fontsource-variable/newsreader/wght-italic.css";
 import "@fontsource-variable/hanken-grotesk/wght.css";
 import "./index.css";
 import "./motion/motion.css";

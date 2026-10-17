@@ -22,7 +22,7 @@ export default {
       // Kyphira board: 2 px corners everywhere (circles only for the ember and avatars).
       borderRadius: { DEFAULT: "2px" },
       fontFamily: {
-        serif: ["'Newsreader Variable'", "'Noto Naskh Arabic Variable'", "Georgia", ...ARABIC_SYSTEM, "serif"],
+        serif: ["'Newsreader Variable'", "'Newsreader Fallback'", "'Noto Naskh Arabic Variable'", "Georgia", ...ARABIC_SYSTEM, "serif"],
         sans: ["'Hanken Grotesk Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
         // The board has no monospace: figures are Hanken Grotesk with tabular numerals
         // (`.font-mono` in index.css switches them on), so columns of grams still line up.

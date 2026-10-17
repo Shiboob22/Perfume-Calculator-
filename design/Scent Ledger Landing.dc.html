@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0;background:#F6F2EA;color:#100E0A;-webkit-font-smoothing:antialiased}
+a{color:#1F4A36;text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:#100E0A}
+*:focus-visible{outline:2px solid #1F4A36;outline-offset:3px}
+summary::-webkit-details-marker{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</helmet>
+<div style="font-family:Poppins,sans-serif;background:#F6F2EA;color:#100E0A;min-height:100vh">
+<header style="max-width:1200px;margin:0 auto;padding:22px clamp(20px,5vw,72px);display:flex;flex-wrap:wrap;gap:16px 40px;align-items:center;justify-content:space-between;border-bottom:1px solid #D9D1C2">
+<a href="#" style="display:flex;gap:12px;align-items:center;color:#100E0A;text-decoration:none;min-height:44px">
+<svg width="18" height="28" viewBox="0 0 18 28" fill="none" stroke="#100E0A" stroke-width="1.2"><rect x="5" y="1" width="8" height="6"></rect><rect x="7" y="7" width="4" height="3"></rect><rect x="1" y="10" width="16" height="17" rx="2"></rect><line x1="1" y1="20" x2="17" y2="20"></line></svg>
+<span style="font-weight:500;font-size:17px;letter-spacing:-0.01em">Scent Ledger</span></a>
+<nav style="display:flex;flex-wrap:wrap;gap:4px 28px;font-size:14px">
+<a href="#guides" style="color:#100E0A;text-decoration:none;padding:12px 0" style-hover="color:#1F4A36">Guides</a>
+<a href="#bench" style="color:#100E0A;text-decoration:none;padding:12px 0" style-hover="color:#1F4A36">Calculator</a>
+<a href="#" style="color:#100E0A;text-decoration:none;padding:12px 0" style-hover="color:#1F4A36">Journal</a>
+<a href="#pricing" style="color:#100E0A;text-decoration:none;padding:12px 0" style-hover="color:#1F4A36">Pricing</a>
+<a href="#" lang="ar" style="color:#100E0A;text-decoration:none;padding:12px 0;font-family:Tajawal,Poppins,sans-serif" style-hover="color:#1F4A36">العربية</a>
+</nav>
+</header>
+
+<main style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,72px)">
+<section id="bench" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:clamp(40px,6vw,96px);padding:clamp(48px,8vw,112px) 0 clamp(64px,8vw,120px);align-items:center">
+<div>
+<p style="margin:0 0 28px;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#5A544A">III · Formulation — The bench</p>
+<h1 style="margin:0;font-weight:500;font-size:clamp(46px,6.6vw,96px);line-height:0.98;letter-spacing:-0.035em;text-wrap:balance">Weigh it.<br>Pour it.<br><span style="font-family:Lora,serif;font-style:italic;font-weight:400;letter-spacing:-0.02em">Let it rest.</span></h1>
+<p style="margin:32px 0 0;max-width:30em;font-family:Lora,serif;font-size:clamp(17px,1.4vw,19px);line-height:1.6;color:#3A352D;text-wrap:pretty">A blending calculator and bench guide for diluting fragrance oil with 96% ethanol — by weight, to 0.01 g. Pick a bottle and a strength. The scale tells you the rest.</p>
+<div style="display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:40px;align-items:center">
+<a href="#" style="display:inline-flex;align-items:center;min-height:48px;padding:0 26px;background:#1F4A36;color:#F6F2EA;text-decoration:none;font-size:14px;font-weight:500;letter-spacing:0.02em;transition:background 180ms cubic-bezier(.2,0,0,1)" style-hover="background:#163828;color:#F6F2EA">Open the calculator</a>
+<a href="#guides" style="font-size:14px;color:#100E0A;padding:12px 0">Read the guide →</a>
+</div>
+</div>
+
+<div style="border:1px solid #100E0A;background:#FBF8F2">
+<div style="display:flex;justify-content:space-between;align-items:baseline;padding:16px 22px;border-bottom:1px solid #D9D1C2">
+<span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase">The bench</span>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A544A">No. 001</span>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:20px;padding:22px">
+<div style="display:grid;gap:18px">
+<fieldset style="border:0;margin:0;padding:0">
+<legend style="font-size:12px;color:#5A544A;margin-bottom:8px">Bottle</legend>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #100E0A">
+<sc-for list="{{ sizes }}" as="o" hint-placeholder-count="4">
+<button aria-pressed="{{ o.on }}" onClick="{{ o.pick }}" style="min-height:44px;border:0;border-left:{{ o.bl }};background:{{ o.bg }};color:{{ o.fg }};font-family:'IBM Plex Mono',monospace;font-size:13px;cursor:pointer;transition:background 180ms cubic-bezier(.2,0,0,1),color 180ms cubic-bezier(.2,0,0,1)">{{ o.label }}</button>
+</sc-for>
+</div>
+</fieldset>
+<fieldset style="border:0;margin:0;padding:0">
+<legend style="font-size:12px;color:#5A544A;margin-bottom:8px">Strength</legend>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #100E0A">
+<sc-for list="{{ strengths }}" as="o" hint-placeholder-count="4">
+<button aria-pressed="{{ o.on }}" onClick="{{ o.pick }}" style="min-height:52px;border:0;border-left:{{ o.bl }};background:{{ o.bg }};color:{{ o.fg }};cursor:pointer;display:grid;gap:2px;place-content:center;transition:background 180ms cubic-bezier(.2,0,0,1),color 180ms cubic-bezier(.2,0,0,1)"><span style="font-family:'IBM Plex Mono',monospace;font-size:14px">{{ o.label }}</span><span style="font-family:Poppins,sans-serif;font-size:10px;letter-spacing:0.06em;opacity:0.75">{{ o.sub }}</span></button>
+</sc-for>
+</div>
+</fieldset>
+</div>
+<div style="display:flex;align-items:flex-end;justify-content:center" aria-hidden="true">
+<svg viewBox="0 0 120 200" width="120" height="200" style="overflow:visible;transform:scale({{ bScale }});transform-origin:50% 100%;transition:{{ tr }}">
+<defs><clipPath id="body"><rect x="14" y="66" width="92" height="132" rx="8"></rect></clipPath></defs>
+<g clip-path="url(#body)">
+<rect x="14" y="66" width="92" height="132" fill="#E4EBE5" style="transform-box:fill-box;transform-origin:50% 100%;transform:scaleY(0.9)"></rect>
+<rect x="14" y="66" width="92" height="132" fill="#C99A45" style="transform-box:fill-box;transform-origin:50% 100%;transform:scaleY({{ oilScale }});transition:{{ tr }}"></rect>
+</g>
+<rect x="14" y="66" width="92" height="132" rx="8" fill="none" stroke="#100E0A" stroke-width="1.5"></rect>
+<rect x="48" y="46" width="24" height="20" fill="none" stroke="#100E0A" stroke-width="1.5"></rect>
+<rect x="38" y="8" width="44" height="38" fill="#100E0A"></rect>
+</svg>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #100E0A">
+<div style="padding:20px 22px;border-right:1px solid #D9D1C2">
+<div style="display:flex;gap:8px;align-items:center;font-size:12px;color:#3A352D"><span style="width:8px;height:8px;background:#C99A45;display:inline-block"></span>Fragrance oil</div>
+<div aria-live="polite" aria-label="{{ oilLabel }}" style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-weight:500;font-size:clamp(40px,4.6vw,64px);letter-spacing:-0.03em;line-height:1;margin-top:14px;display:flex;align-items:baseline">
+<sc-for list="{{ oilDigits }}" as="d" hint-placeholder-count="5"><span aria-hidden="true" style="display:inline-block;width:1ch;height:1em;overflow:hidden;opacity:{{ d.op }}"><span style="display:block;transform:{{ d.t }};transition:{{ d.tr }}"><sc-for list="{{ d.col }}" as="n"><span style="display:block;height:1em;line-height:1em">{{ n }}</span></sc-for></span></span></sc-for>
+<span style="font-size:0.38em;margin-left:6px;color:#5A544A">g</span></div>
+</div>
+<div style="padding:20px 22px">
+<div style="display:flex;gap:8px;align-items:center;font-size:12px;color:#3A352D"><span style="width:8px;height:8px;background:#E4EBE5;border:1px solid #9AA89E;display:inline-block"></span>Ethanol 96%</div>
+<div aria-live="polite" aria-label="{{ alcLabel }}" style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-weight:500;font-size:clamp(40px,4.6vw,64px);letter-spacing:-0.03em;line-height:1;margin-top:14px;display:flex;align-items:baseline">
+<sc-for list="{{ alcDigits }}" as="d" hint-placeholder-count="5"><span aria-hidden="true" style="display:inline-block;width:1ch;height:1em;overflow:hidden;opacity:{{ d.op }}"><span style="display:block;transform:{{ d.t }};transition:{{ d.tr }}"><sc-for list="{{ d.col }}" as="n"><span style="display:block;height:1em;line-height:1em">{{ n }}</span></sc-for></span></span></sc-for>
+<span style="font-size:0.38em;margin-left:6px;color:#5A544A">g</span></div>
+</div>
+</div>
+
+<div style="padding:0 22px 18px">
+<div style="height:6px;background:#E4EBE5;overflow:hidden"><div style="height:100%;width:100%;background:#C99A45;transform-origin:0 50%;transform:scaleX({{ oilShare }});transition:{{ tr }}"></div></div>
+<div style="display:flex;justify-content:space-between;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A544A"><span>{{ ratioText }}</span><span>ρ 0.95 / 0.81 g·mL⁻¹</span></div>
+</div>
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;padding:12px 22px;border-top:1px solid #D9D1C2">
+<p style="margin:0;font-size:12px;color:#3A352D;max-width:26em">Ethanol is highly flammable. Blend away from flame and heat.</p>
+<button onClick="{{ copy }}" style="min-height:44px;padding:0 16px;border:1px solid #100E0A;background:transparent;color:#100E0A;font-family:Poppins,sans-serif;font-size:13px;cursor:pointer;transition:background 180ms cubic-bezier(.2,0,0,1)" style-hover="background:#EEE8DC">{{ copyLabel }}</button>
+</div>
+</div>
+</section>
+
+<div style="display:flex;align-items:center;gap:20px;color:#5A544A" aria-hidden="true"><span style="flex:1;height:1px;background:#D9D1C2"></span><span style="font-family:Lora,serif;font-size:20px">❦</span><span style="flex:1;height:1px;background:#D9D1C2"></span></div>
+
+<section style="padding:clamp(64px,8vw,120px) 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:48px clamp(32px,4vw,64px)">
+<article style="border-top:1px solid #100E0A;padding-top:24px"><p style="margin:0;font-family:Lora,serif;font-style:italic;font-size:28px">I</p><h2 style="margin:28px 0 12px;font-weight:500;font-size:24px;letter-spacing:-0.02em">Weigh, don't measure</h2><p style="margin:0;font-family:Lora,serif;font-size:17px;line-height:1.6;color:#3A352D;text-wrap:pretty">Oil and alcohol have different densities. A pipette guesses; a 0.01 g scale knows.</p></article>
+<article style="border-top:1px solid #100E0A;padding-top:24px"><p style="margin:0;font-family:Lora,serif;font-style:italic;font-size:28px">II</p><h2 style="margin:28px 0 12px;font-weight:500;font-size:24px;letter-spacing:-0.02em">The method, step by step</h2><p style="margin:0;font-family:Lora,serif;font-size:17px;line-height:1.6;color:#3A352D;text-wrap:pretty">From tare to cap, every move at the bench in the order you make it.</p></article>
+<article style="border-top:1px solid #100E0A;padding-top:24px"><p style="margin:0;font-family:Lora,serif;font-style:italic;font-size:28px">III</p><h2 style="margin:28px 0 12px;font-weight:500;font-size:24px;letter-spacing:-0.02em">A record of what you made</h2><p style="margin:0;font-family:Lora,serif;font-size:17px;line-height:1.6;color:#3A352D;text-wrap:pretty">Save each batch, note how it changes while it rests, and make it again exactly.</p></article>
+</section>
+
+<section id="guides" style="padding:0 0 clamp(64px,8vw,120px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:32px clamp(32px,6vw,96px)">
+<div><p style="margin:0 0 16px;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#5A544A">Contents</p><h2 style="margin:0;font-weight:500;font-size:clamp(34px,4vw,52px);line-height:1.05;letter-spacing:-0.03em">The guide library</h2><p style="margin:20px 0 0;font-family:Lora,serif;font-size:17px;line-height:1.6;color:#3A352D;max-width:24em">Free to read. Written for the bench, not the shelf.</p></div>
+<ol style="list-style:none;margin:0;padding:0;border-top:1px solid #100E0A">
+<sc-for list="{{ guides }}" as="g" hint-placeholder-count="3">
+<li style="border-bottom:1px solid #D9D1C2"><a href="#" style="display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:16px;align-items:baseline;padding:22px 0;color:#100E0A;text-decoration:none;transition:color 180ms cubic-bezier(.2,0,0,1)" style-hover="color:#1F4A36"><span style="font-family:Lora,serif;font-style:italic;font-size:20px">{{ g.n }}</span><span><span style="display:block;font-size:20px;font-weight:500;letter-spacing:-0.01em">{{ g.t }}</span><span style="display:block;margin-top:4px;font-family:Lora,serif;font-size:15px;color:#5A544A">{{ g.d }}</span></span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A544A">{{ g.m }}</span></a></li>
+</sc-for>
+</ol>
+</section>
+
+<section id="pricing" style="padding:clamp(64px,8vw,120px) 0;border-top:1px solid #D9D1C2">
+<h2 style="margin:0 0 48px;font-weight:500;font-size:clamp(34px,4vw,52px);letter-spacing:-0.03em">Free, and Pro</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));border:1px solid #100E0A">
+<div style="padding:clamp(24px,3vw,40px)"><div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="margin:0;font-weight:500;font-size:22px">Free</h3><span style="font-family:'IBM Plex Mono',monospace;font-size:28px">0</span></div>
+<ul style="margin:28px 0 0;padding:0;list-style:none;font-family:Lora,serif;font-size:16px;line-height:1.5;display:grid;gap:12px;color:#3A352D"><li>— The calculator, every strength</li><li>— The full guide library</li><li>— Saved batches and batch cards</li><li>— Public recipe pages</li></ul></div>
+<div style="padding:clamp(24px,3vw,40px);background:#EEE8DC;border-left:1px solid #100E0A"><div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="margin:0;font-weight:500;font-size:22px">Pro</h3><span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;border:1px solid #100E0A;padding:4px 8px">Not on sale yet</span></div>
+<ul style="margin:28px 0 0;padding:0;list-style:none;font-family:Lora,serif;font-size:16px;line-height:1.5;display:grid;gap:12px;color:#3A352D"><li>— Everything in Free</li><li>— The resting journal with check-ins</li><li>— Unlimited batches</li></ul></div>
+</div>
+</section>
+
+<section style="padding:0 0 clamp(64px,8vw,120px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:32px clamp(32px,6vw,96px)">
+<h2 style="margin:0;font-weight:500;font-size:clamp(34px,4vw,52px);letter-spacing:-0.03em">Questions</h2>
+<div style="border-top:1px solid #100E0A">
+<sc-for list="{{ faqs }}" as="f" hint-placeholder-count="4">
+<details style="border-bottom:1px solid #D9D1C2"><summary style="list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:16px;padding:20px 0;min-height:44px;font-size:18px;font-weight:500">{{ f.q }}<span style="font-family:'IBM Plex Mono',monospace;color:#5A544A">+</span></summary><p style="margin:0 0 22px;font-family:Lora,serif;font-size:17px;line-height:1.6;color:#3A352D;max-width:36em">{{ f.a }}</p></details>
+</sc-for>
+</div>
+</section>
+</main>
+
+<footer style="background:#100E0A;color:#F6F2EA">
+<div style="max-width:1200px;margin:0 auto;padding:56px clamp(20px,5vw,72px) 40px;display:grid;gap:40px">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;align-items:flex-end"><p style="margin:0;font-family:Lora,serif;font-style:italic;font-size:clamp(24px,3vw,36px);max-width:18em;line-height:1.25">Grown from a printed handbook in three volumes — Application, Wardrobe, Formulation.</p><span style="font-family:Lora,serif;font-size:28px" aria-hidden="true">❦</span></div>
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;padding-top:24px;border-top:1px solid #3A352D;font-size:13px;color:#C9C1B3"><span>Hisham Shiboob · Scent Ledger</span><span>Ethanol is highly flammable. Keep away from flame, heat and children.</span></div>
+</div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const COL='0123456789'.split('');
+const SZ=[10,30,50,100],ST=[[15,'EDT'],[20,'EDP'],[25,'Intense'],[30,'Extrait']];
+class Component extends DCLogic{
+state={size:50,str:25,copied:false};
+digits(v,tr){return [...v.toFixed(2).padStart(5,' ')].map((c,i)=>c==='.'?{col:['.'],t:'none',op:1,tr:'none'}:{col:COL,t:`translateY(${-(c===' '?0:+c)}em)`,op:c===' '?0:1,tr:tr.replace('520ms',`${460+i*40}ms`)});}
+renderVals(){
+const {size,str}=this.state,s=str/100,oil=size*s*0.95,alc=size*(1-s)*0.81;
+const tr='transform 520ms cubic-bezier(.2,0,0,1)';
+const seg=(on,i)=>({on,bg:on?'#100E0A':'transparent',fg:on?'#F6F2EA':'#100E0A',bl:i?'1px solid #100E0A':'0'});
+return{
+sizes:SZ.map((v,i)=>({label:v+' mL',...seg(v===size,i),pick:()=>this.setState({size:v})})),
+strengths:ST.map(([v,n],i)=>({label:v+'%',sub:n,...seg(v===str,i),pick:()=>this.setState({str:v})})),
+oilDigits:this.digits(oil,tr),alcDigits:this.digits(alc,tr),
+oilLabel:oil.toFixed(2)+' grams of fragrance oil',alcLabel:alc.toFixed(2)+' grams of ethanol',
+oilScale:0.9*s,bScale:0.72+0.28*SZ.indexOf(size)/3,tr,
+oilShare:oil/(oil+alc),ratioText:`${(oil/(oil+alc)*100).toFixed(1)} : ${(alc/(oil+alc)*100).toFixed(1)} by weight`,
+copyLabel:this.state.copied?'Copied':'Copy recipe',
+copy:()=>{navigator.clipboard?.writeText(`${size} mL at ${str}% — oil ${oil.toFixed(2)} g, ethanol ${alc.toFixed(2)} g`);this.setState({copied:true});clearTimeout(this.t);this.t=setTimeout(()=>this.setState({copied:false}),1600);},
+guides:[{n:'I',t:'Why weigh',d:'Density, and why millilitres drift.',m:'6 min'},{n:'II',t:'The calculation',d:'From bottle and strength to two numbers.',m:'8 min'},{n:'III',t:'At the bench',d:'Tare, pour, cap, rest. The five precision rules.',m:'12 min'}],
+faqs:[{q:'Why grams instead of millilitres?',a:'Oil and ethanol have different densities, so equal volumes weigh differently. Weighing on a 0.01 g scale removes the guesswork.'},{q:'Can I change the densities?',a:'Yes. The defaults are 0.95 g/mL for oil and 0.81 g/mL for 96% ethanol; both are editable in the calculator.'},{q:'How long should a batch rest?',a:'The guide covers resting in detail. The journal lets you log check-ins while a batch matures.'},{q:'Is there an Arabic edition?',a:'Yes — the full site is available in Arabic at /ar.'}]
+};}}
+</script>
+</body>
+</html>
