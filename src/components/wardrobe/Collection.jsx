@@ -4,6 +4,7 @@ import { useI18n } from "../../i18n/I18nProvider";
 import { addBottle, deleteBottle, updateBottle } from "../../lib/wardrobeApi";
 import { costPerWear, wearCounts } from "../../lib/wardrobe/stats";
 import Button from "../kx/Button";
+import { Reveal, Stagger } from "../../motion";
 import BottleForm from "./BottleForm";
 import { catalogueNumber } from "../kx/Card";
 import { roman } from "../../content/kyphi";
@@ -67,13 +68,13 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
       ) : (
         <Button onClick={() => { setMode("add"); setStatus(""); setError(""); }}>{t("wardrobe.collection.add")}</Button>
       )}
-      <p role="status" className="text-sm mt-3" style={{ color: COLORS.verdigrisText }}>{status}</p>
+      <p role="status" className="text-sm mt-3" style={{ color: COLORS.verdigrisText }}><Reveal as="span" eager key={status}>{status}</Reveal></p>
       {error && <p role="alert" className="text-sm mt-2" style={{ color: COLORS.danger }}>{error}</p>}
 
       {owned.length === 0 && mode !== "add" && (
         <p className="mt-6 p-6 text-sm text-center" style={{ background: COLORS.card, border: `1px dashed ${COLORS.line}`, color: COLORS.inkSoft }}>{t("wardrobe.collection.empty")}</p>
       )}
-      <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+      <Stagger as="ul" eager className="mt-6 grid gap-4 sm:grid-cols-2">
         {owned.map((b, i) => {
           const wears = counts.get(b.id) ?? 0;
           const per = costPerWear(b, wears);
@@ -114,7 +115,7 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
             </li>
           );
         })}
-      </ul>
+      </Stagger>
     </section>
   );
 }
