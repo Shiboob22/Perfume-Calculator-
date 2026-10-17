@@ -227,3 +227,16 @@ Visible differences left against the boards (screens in `docs/redesign/phase-boa
 - Catalogue tags (R·0318 etc.) are not shown anywhere.
 - Light edition is not redrawn from the boards (Q10); the dark edition carries every board value.
 - Full-page screenshots draw the fixed bottom bar mid-page: a capture artefact.
+
+## Delta (2026-10-18): refresh from the newest export
+
+Source: `~/Downloads/Scent handbook app project.zip` (2026-10-16 15:44, SHA-1 `4d919929`), the newest export on the machine. Q1–Q10 and every prior decision stand.
+
+**Method.** `design/boards/` is tracked (lowercase path; the macOS disk ignores case). `git diff HEAD -- design/boards` after copying the export in is empty, and the folder is also byte-identical to the earlier unpacked export (`Design/Scent handbook app project/`).
+
+| Changed frame | App file | What differs | Action |
+|---|---|---|---|
+| none (18 `.dc.html` boards + `support.js`) | n/a | Byte-identical to the committed `design/boards/` and to the earlier export | matches, no source change |
+| `assets/` (3 logo SVGs), `uploads/`, `scratch/` | n/a | In the export, not in `Design/boards/`; logos are already in `design/logo/` and `public/brand/` | skip, no UI effect |
+
+**Result.** Delta is empty: nothing to implement, no commits, no screenshots, no baseline changes. If a newer export exists, it has not reached this machine.
