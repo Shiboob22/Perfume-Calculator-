@@ -12,7 +12,7 @@ import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import EmptyState from "./EmptyState";
 import { refusedBatches, dismissRefused } from "../lib/outbox";
-import { useNavigate } from "../motion";
+import { Stagger, useNavigate } from "../motion";
 import { can } from "../lib/entitlements";
 import { dueNow, JOURNAL_CHANGED, restTimeline } from "../lib/journal";
 import { IconHourglass, IconSeal, IconDrop, IconToday, IconPlus } from "./icons";
@@ -67,7 +67,7 @@ function BatchList({ batches, selectedId, onSelect }) {
         <span className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("journal.listTitle")}</span>
         <span dir="ltr" className="font-mono text-xs" style={{ color: COLORS.dim }}>{batches.length}</span>
       </div>
-      <ul>
+      <Stagger as="ul" eager>
         {batches.map((b) => {
           const tl = restTimeline(b);
           const on = b.id === selectedId;
@@ -95,7 +95,7 @@ function BatchList({ batches, selectedId, onSelect }) {
             </li>
           );
         })}
-      </ul>
+      </Stagger>
       <button type="button" onClick={() => navigate("/bench")} className="w-full inline-flex items-center gap-2 px-4 min-h-[52px] text-sm font-medium" style={{ color: COLORS.forest }}>
         <IconPlus size={18} /> {t("journal.newBatch")}
       </button>

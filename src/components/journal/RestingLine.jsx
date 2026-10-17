@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "../../motion";
+import { Link, Reveal } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { listBatches } from "../../lib/fragranceApi";
@@ -33,6 +33,7 @@ export default function RestingLine() {
   const pct = Math.max(0, Math.min(100, (next.day / next.target) * 100));
   const name = next.batch.fragrance_name || t("journal.unnamed");
   return (
+    <Reveal eager>
     <Link to="/bench/journal" aria-label={t("journal.nextReady", { count: next.left, name, day: next.day, target: next.target })}
       className="block mb-6 p-4 sm:p-5 border rounded" style={{ borderColor: COLORS.line, color: COLORS.ink }}>
       <span className="flex items-center justify-between gap-3 text-sm" style={{ color: COLORS.inkSoft }}>
@@ -52,5 +53,6 @@ export default function RestingLine() {
         </span>
       )}
     </Link>
+    </Reveal>
   );
 }
