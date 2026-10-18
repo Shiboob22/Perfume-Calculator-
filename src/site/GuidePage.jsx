@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Link } from "../motion";
+import { Link, Reveal, TextReveal } from "../motion";
 import { COLORS, TYPE } from "../lib/theme";
 import { ChapterMark, Folio } from "./editorial";
 import { useI18n } from "../i18n/I18nProvider";
@@ -31,13 +31,13 @@ const CALLOUT = {
 // A paragraph with its glossary terms marked: each links to the definition
 // at the foot of the page (plain anchors, so the prerendered page works
 // without script).
-function Marked({ parts }) {
+function Marked({ parts, defs }) {
   return parts.map((x, i) => (typeof x === "string" ? x : (
-    <a key={i} href={`#term-${x.term}`} className="underline decoration-1 underline-offset-4" style={{ color: "inherit", textDecorationColor: COLORS.actionText }}>{x.match}</a>
+    <a key={i} href={`#term-${x.term}`} data-def={defs?.[x.term]} className="gloss-pop underline decoration-1 underline-offset-4" style={{ color: "inherit", textDecorationColor: COLORS.actionText }}>{x.match}</a>
   )));
 }
 
-function Block({ block, rule, marked }) {
+function Block({ block, rule, marked, defs }) {
   if (block.h2) {
     return (
       <h2 id={block.id} className="text-3xl font-medium tracking-[-0.03em] rtl:tracking-normal mt-14 mb-4 scroll-mt-24">
@@ -45,7 +45,7 @@ function Block({ block, rule, marked }) {
       </h2>
     );
   }
-  if (block.p) return <p className="font-serif text-[19px] leading-[1.7] my-5" style={{ color: COLORS.inkSoft }}>{marked ? <Marked parts={marked} /> : block.p}</p>;
+  if (block.p) return <Reveal as="p" className="font-serif text-[19px] leading-[1.7] my-5" style={{ color: COLORS.inkSoft }}>{marked ? <Marked parts={marked} defs={defs} /> : block.p}</Reveal>;
   if (block.quote) {
     return (
       <blockquote className="my-8 ps-5 font-serif italic text-2xl leading-snug" style={{ borderInlineStart: `2px solid ${COLORS.amberDeep}`, color: COLORS.forestDeep }}>
@@ -220,6 +220,8 @@ export default function GuidePage() {
   });
   const terms = GLOSSARY_ENTRIES.filter((e) => seen.has(e.id)).map((e) => glossaryTerm(e, locale)).filter(Boolean);
 
+  const defs = Object.fromEntries(terms.map((x) => [x.id, x.text]));
+
   return (
     <article className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 pt-10">
       <div aria-hidden="true" className="read-progress" />
@@ -227,7 +229,7 @@ export default function GuidePage() {
         <IconBook size={18} />
         {t("site.guides.eyebrow", { n: ROMAN[at]?.toUpperCase() ?? at + 1, total: ROMAN[inSection.length - 1]?.toUpperCase() ?? inSection.length, minutes: readingMinutes(g) })}
       </p>
-      <h1 className={`${TYPE.display} mt-5 max-w-[14ch]`} style={{ viewTransitionName: "guide-title" }}>{g.title}</h1>
+      <TextReveal as="h1" text={g.title} className={`${TYPE.display} mt-5 max-w-[14ch]`} style={{ viewTransitionName: "guide-title" }} />
       <p className={`mt-6 measure italic ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{g.summary}</p>
       <p className="mt-4 text-sm" style={{ color: COLORS.dim }}>
         {t("site.guides.from", {
@@ -248,7 +250,7 @@ export default function GuidePage() {
         </a>
       </aside>
       <div className="max-w-[37rem]">
-      <div className="guide-body">{g.body.map((b, i) => <Block key={i} block={b} rule={ruleOf(b)} marked={marks[i]?.length > 1 ? marks[i] : null} />)}</div>
+      <div className="guide-body">{g.body.map((b, i) => <Block key={i} block={b} rule={ruleOf(b)} defs={defs} marked={marks[i]?.length > 1 ? marks[i] : null} />)}</div>
 
       {terms.length > 0 && (
         <section aria-labelledby="terms-h" className="mt-12 pt-6" style={{ borderTop: `1px solid ${COLORS.line}` }}>

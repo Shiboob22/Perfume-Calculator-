@@ -152,6 +152,7 @@ test("bench mode shows the weight on the scale against the target", async ({ pag
   await expect(live).toHaveAttribute("aria-label", new RegExp(en.bench.scale.ok));
   await page.getByLabel(en.bench.oil.actual).fill("13");
   await expect(live).toHaveAttribute("aria-label", new RegExp(en.bench.scale.over));
+  await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().filter((a) => a.timeline instanceof DocumentTimeline && a.effect?.getComputedTiming().endTime !== Infinity).map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))])); // entrances settle first: axe must not read a half-faded colour
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
   expect(axe.violations).toEqual([]);
 });
@@ -180,6 +181,7 @@ test("bench mode logs the full record and offers next steps", async ({ page }) =
   expect(sent.logs[0]).toMatchObject({ lot: "L-0412", amount: 50, unit: "ml", actual_oil_g: 11.9, actual_ethanol_g: 30.4 });
   expect(sent.logs[0].notes).toBeNull();
 
+  await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().filter((a) => a.timeline instanceof DocumentTimeline && a.effect?.getComputedTiming().endTime !== Infinity).map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))])); // entrances settle first: axe must not read a half-faded colour
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
   expect(axe.violations).toEqual([]);
 
@@ -193,6 +195,7 @@ test("a batch is edited, and made again", async ({ page }) => {
   await page.goto("/bench/journal");
   await page.getByRole("button", { name: en.batches.edit.open }).click();
   await page.getByLabel(en.batches.edit.name).fill("Oud Nights II");
+  await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().filter((a) => a.timeline instanceof DocumentTimeline && a.effect?.getComputedTiming().endTime !== Infinity).map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))])); // entrances settle first: axe must not read a half-faded colour
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
   expect(axe.violations).toEqual([]);
   await page.getByRole("button", { name: en.batches.edit.save }).click();
@@ -212,6 +215,7 @@ test("Arabic: the edit form and the history panel", async ({ page }) => {
   await page.goto("/bench/journal");
   await page.getByRole("button", { name: ar.batches.edit.open }).click();
   await expect(page.getByLabel(ar.batches.edit.lot)).toHaveValue("L-7");
+  await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().filter((a) => a.timeline instanceof DocumentTimeline && a.effect?.getComputedTiming().endTime !== Infinity).map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))])); // entrances settle first: axe must not read a half-faded colour
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
   expect(axe.violations).toEqual([]);
 });

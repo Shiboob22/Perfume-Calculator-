@@ -150,6 +150,7 @@ test("Arabic at 320 px: sends locale ar, no sideways scroll, no axe violations, 
   await expect(page.getByRole("heading", { level: 1, name: ar.nose.title })).toBeVisible();
   const check = async (label) => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), label).toBe(false);
+    await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().filter((a) => a.timeline instanceof DocumentTimeline && a.effect?.getComputedTiming().endTime !== Infinity).map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))])); // entrances settle first: axe must not read a half-faded colour
     const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
     expect(axe.violations, label).toEqual([]);
   };

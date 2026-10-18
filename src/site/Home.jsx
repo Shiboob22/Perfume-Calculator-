@@ -65,7 +65,7 @@ export default function Home() {
             {benefits.map((b, i) => {
               const I = PRINCIPLE_ICONS[i] ?? IconFlacon;
               return (
-                <li key={b.title} className="grid gap-4 content-start">
+                <li key={b.title} className="kv grid gap-4 content-start">
                   <div className="flex items-center gap-4">
                     <IconTile icon={I} size={60} />
                     <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-4xl`} style={{ color: COLORS.brass }}>{["I", "II", "III"][i] ?? i + 1}</span>
@@ -82,7 +82,7 @@ export default function Home() {
       {/* Quote */}
       <Reveal as="blockquote" className={`${WRAP} reveal py-16 text-center`}>
         <p className="font-serif italic text-[clamp(1.6rem,3.6vw,2.5rem)] max-w-3xl mx-auto leading-snug">“{t("site.home.quote")}”</p>
-        <footer className={`mt-5 ${TYPE.label}`} style={{ color: COLORS.dim }}>{t("site.home.quoteSource")}</footer>
+        <footer className={`kv-fade mt-5 ${TYPE.label}`} style={{ color: COLORS.dim }}>{t("site.home.quoteSource")}</footer>
       </Reveal>
 
       {/* Guide library */}
@@ -113,9 +113,10 @@ export default function Home() {
       {/* FAQ */}
       <section className={`${WRAP} py-14`}>
         <SectionTitle>{t("site.home.faqTitle")}</SectionTitle>
+        <div aria-hidden="true" className="kv-grow mb-6 h-px" style={{ background: COLORS.brass }} />
         <div style={{ borderTop: `1px solid ${COLORS.ink}` }}>
           {faq.map((item) => (
-            <details key={item.q} className="group" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+            <details key={item.q} className="kv group" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
               <summary className="cursor-pointer list-none flex items-center justify-between gap-4 py-4 min-h-[56px] text-lg font-medium">
                 {item.q}
                 <span className="inline-flex items-center justify-center w-9 h-9 shrink-0 group-open:rotate-45 fill-anim" style={{ border: `1px solid ${COLORS.ink}` }}>

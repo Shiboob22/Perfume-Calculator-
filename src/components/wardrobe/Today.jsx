@@ -7,6 +7,7 @@ import { sprayAdvice, suggest, wearable } from "../../lib/wardrobe/suggest";
 import { reasonText } from "../../lib/wardrobe/reasons";
 import { wearRow } from "../../lib/wardrobe/validate";
 import Button from "../kx/Button";
+import { Reveal } from "../../motion";
 import Field from "../kx/Field";
 import Notice from "../kx/Notice";
 import Chip from "../kx/Chip";
@@ -109,7 +110,7 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
         <>
           {/* One answer, large; the next two quieter beneath it. */}
           {top.slice(0, 1).map((r) => (
-            <article key={r.bottle.id} aria-labelledby="today-answer" className="p-6" style={{ background: COLORS.card, border: `1px solid ${COLORS.actionText}` }}>
+            <Reveal as="article" eager key={r.bottle.id} aria-labelledby="today-answer" className="p-6" style={{ background: COLORS.card, border: `1px solid ${COLORS.actionText}` }}>
               <div className="flex items-baseline justify-between gap-3">
                 <p className="text-sm" style={{ color: COLORS.dim }}>{t("wardrobe.today.picks")}</p>
                 <span className="font-mono tabular-nums text-xs" dir="ltr" style={{ color: COLORS.dim }}>{t("wardrobe.today.score", { score: r.score.toFixed(1) })}</span>
@@ -126,7 +127,7 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
                   </Button>
                 </div>
               )}
-            </article>
+            </Reveal>
           ))}
           {top.length > 1 && (
             <>
@@ -167,7 +168,7 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
         </div>
       )}
 
-      <p role="status" className="text-sm mt-4" style={{ color: COLORS.verdigrisText }}>{status}</p>
+      <p role="status" className="text-sm mt-4" style={{ color: COLORS.verdigrisText }}><Reveal as="span" eager key={status}>{status}</Reveal></p>
       {error && <p role="alert" className="text-sm mt-2" style={{ color: COLORS.danger }}>{error}</p>}
       <p className="text-xs mt-6" style={{ color: COLORS.dim }}>{t("wardrobe.today.note")}</p>
     </section>

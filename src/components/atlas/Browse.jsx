@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "../../motion";
+import { Link, Stagger } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { listEntities } from "../../lib/atlasApi";
@@ -39,7 +39,7 @@ export default function Browse({ terms }) {
       <Field label={t("atlas.browse.filter", { kind: t(`atlas.browse.kinds.${kind}`).toLowerCase() })} value={q} onChange={(e) => setQ(e.target.value)} maxLength={60} className="mb-4 max-w-sm" />
       {state.status === "failed" && <p role="alert" className="text-sm" style={{ color: COLORS.danger }}>{t("atlas.loadFailed")}</p>}
       {state.status === "done" && state.rows.length === 0 && <p role="status" className="text-sm" style={{ color: COLORS.inkSoft }}>{t("atlas.browse.none")}</p>}
-      <ul className="grid gap-2 sm:grid-cols-2 list-none p-0 m-0">
+      <Stagger as="ul" eager key={kind} className="grid gap-2 sm:grid-cols-2 list-none p-0 m-0">
         {state.rows.map((r) => (
           <li key={r.key}>
             <Link to={entityHref(kind, r.key)} className="flex items-baseline justify-between gap-3 px-4 min-h-[44px] py-2 border" style={{ borderColor: COLORS.line, background: COLORS.card, color: COLORS.ink }}>
@@ -48,7 +48,7 @@ export default function Browse({ terms }) {
             </Link>
           </li>
         ))}
-      </ul>
+      </Stagger>
     </section>
   );
 }

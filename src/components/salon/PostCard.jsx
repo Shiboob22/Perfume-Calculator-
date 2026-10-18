@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "../../motion";
+import { Link, Reveal } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { deletePost, like, report, unlike } from "../../lib/salonApi";
@@ -111,7 +111,7 @@ export default function PostCard({ post, onRemoved }) {
           <Button variant="secondary" onClick={() => setMode(null)}>{t("salon.cancel")}</Button>
         </div>
       )}
-      <p role="status" className="text-sm mt-2" style={{ color: COLORS.verdigrisText }}>{status}</p>
+      <p role="status" className="text-sm mt-2" style={{ color: COLORS.verdigrisText }}><Reveal as="span" eager key={status}>{status}</Reveal></p>
       {error && <p role="alert" className="text-sm mt-2" style={{ color: COLORS.danger }}>{error}</p>}
     </article>
   );

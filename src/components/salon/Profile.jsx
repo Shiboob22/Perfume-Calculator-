@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "../../motion";
+import { Link, Reveal } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { follow, getProfile, report, unfollow } from "../../lib/salonApi";
@@ -67,7 +67,7 @@ export default function Profile({ handle }) {
       <dl className="grid grid-cols-3 gap-3 mt-5 max-w-md kx-rise" style={{ animationDelay: "240ms" }}>
         {[["posts", info.posts], ["followers", followers], ["following", info.following]].map(([k, n]) => (
           <div key={k} className="p-3 rounded" style={{ border: `1px solid ${COLORS.line}` }}>
-            <dd className="m-0 font-serif text-3xl tabular-nums" dir="ltr" style={{ color: COLORS.ink }}>{Number(n)}</dd>
+            <dd className="m-0 font-serif text-3xl tabular-nums" dir="ltr" style={{ color: COLORS.ink }}><Reveal as="span" eager key={Number(n)}>{Number(n)}</Reveal></dd>
             <dt className="text-xs" style={{ color: COLORS.dim }}>{t(`salon.profile.${k}`)}</dt>
           </div>
         ))}
@@ -89,7 +89,7 @@ export default function Profile({ handle }) {
           <div className="flex gap-3"><Button type="submit" loading={busy}>{t("salon.post.reportSend")}</Button><Button type="button" variant="secondary" onClick={() => setMode(false)}>{t("salon.cancel")}</Button></div>
         </form>
       )}
-      <p role="status" className="text-sm mt-2" style={{ color: COLORS.verdigrisText }}>{status}</p>
+      <p role="status" className="text-sm mt-2" style={{ color: COLORS.verdigrisText }}><Reveal as="span" eager key={status}>{status}</Reveal></p>
       {error && <p role="alert" className="text-sm mt-2" style={{ color: COLORS.danger }}>{error}</p>}
       <div className="mt-8"><Feed handle={info.handle} emptyKey="salon.profile.emptyPosts" /></div>
     </section>

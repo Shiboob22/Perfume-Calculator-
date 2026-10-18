@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "../../motion";
+import { Link, Reveal } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { getFragrance, getRelated, getWearStats } from "../../lib/atlasApi";
@@ -55,9 +55,9 @@ export default function FragrancePage({ id, terms }) {
   const sameHouse = related?.same_brand ?? [];
   const similar = related?.similar ?? [];
   return (
-    <article aria-labelledby="atlas-fragrance-h">
+    <Reveal as="article" eager aria-labelledby="atlas-fragrance-h">
       <Link to="/atlas" className="text-sm underline underline-offset-4 inline-flex items-center min-h-[44px]" style={{ color: COLORS.forest }}>{t("atlas.nav.search")}</Link>
-      <h2 id="atlas-fragrance-h" className="font-serif text-3xl sm:text-4xl mt-1" style={{ color: COLORS.ink }}>{f.name}</h2>
+      <h2 id="atlas-fragrance-h" className="font-serif text-3xl sm:text-4xl mt-1" style={{ color: COLORS.ink, viewTransitionName: `frag-${f.id}` }}>{f.name}</h2>
       <p className="mt-2 text-base flex flex-wrap items-center gap-x-4 gap-y-1" style={{ color: COLORS.inkSoft }}>
         {house && <Link to={entityHref("house", house)} className="underline underline-offset-4 inline-flex items-center min-h-[44px]" style={{ color: COLORS.ink }}>{t("atlas.fragrance.by", { house: termName(terms, "house", house.toLowerCase(), locale, house) })}</Link>}
         {f.year && <span className="font-mono tabular-nums">{t("atlas.fragrance.released", { year: f.year })}</span>}
@@ -138,6 +138,6 @@ export default function FragrancePage({ id, terms }) {
       <p className="text-xs mt-10" style={{ color: COLORS.dim }}>
         {f.source ? `${t("atlas.fragrance.source", { source: f.source })}. ` : ""}{t("atlas.fragrance.sourceNote")}
       </p>
-    </article>
+    </Reveal>
   );
 }

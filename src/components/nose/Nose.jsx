@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "../../motion";
+import { Link, Reveal, Stagger } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { askNose } from "../../lib/aiApi";
@@ -76,13 +76,13 @@ export default function Nose() {
             <span aria-hidden="true" className="kx-think inline-flex gap-1"><i /><i /><i /></span>{t("nose.thinking")}
           </p>
         )}
-        {error && <p role="alert" className="text-sm" style={{ color: COLORS.danger }}>{error}</p>}
-        {result?.kind === "none" && <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("nose.none")}</p>}
+        {error && <p role="alert" className="text-sm" style={{ color: COLORS.danger }}><Reveal as="span" eager key={error}>{error}</Reveal></p>}
+        {result?.kind === "none" && <Reveal as="p" eager className="text-sm" style={{ color: COLORS.inkSoft }}>{t("nose.none")}</Reveal>}
         {result?.kind === "redirect" && (
-          <div>
+          <Reveal eager>
             <p className="text-sm max-w-prose" style={{ color: COLORS.ink }}>{t(`nose.redirect.${result.reason}`)}</p>
             {result.reason === "diy" && <Button as={Link} to="/bench" variant="secondary" className="mt-3">{t("nose.openBench")}</Button>}
-          </div>
+          </Reveal>
         )}
         {/* Picks on the left; on wide screens the shelf sits beside them (the board's shelf panel). */}
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-10 lg:items-start">
@@ -96,10 +96,10 @@ export default function Nose() {
 
 function Picks({ result, atlasOn, t }) {
   return (
-    <section aria-labelledby="nose-results-h">
+    <Reveal as="section" eager aria-labelledby="nose-results-h">
       <h2 id="nose-results-h" className="font-serif italic text-2xl mb-1" style={{ color: COLORS.ink }}>{t("nose.heading")}</h2>
       {result.intro && <p className="text-sm mb-4 max-w-prose" style={{ color: COLORS.inkSoft }}>{result.intro}</p>}
-      <ul className="grid gap-3 list-none p-0 m-0">
+      <Stagger as="ul" eager key={result.picks.map((p) => p.id).join(",")} className="grid gap-3 list-none p-0 m-0">
         {result.picks.map((p) => (
           <FragranceCard key={p.id} name={p.name} href={atlasOn ? fragranceHref(p.id) : undefined}
             facts={[p.brand, p.year ? String(p.year) : null, p.family]} accords={p.accords ?? p.matched ?? []} matched={p.matched ?? []}>
@@ -107,15 +107,15 @@ function Picks({ result, atlasOn, t }) {
             {p.matched?.length > 0 && <p className="text-xs mt-2" style={{ color: COLORS.inkSoft }}>{t("nose.matched", { list: p.matched.join(", ") })}</p>}
           </FragranceCard>
         ))}
-      </ul>
-    </section>
+      </Stagger>
+    </Reveal>
   );
 }
 
 // Bottles the asker already owns that fit: matched on the server, never by the AI.
 function Shelf({ shelf, wardrobeOn, t }) {
   return (
-    <section aria-labelledby="nose-shelf-h" className="mt-8 lg:mt-0 lg:p-5 lg:rounded lg:border" style={{ borderColor: COLORS.line }}>
+    <Reveal as="section" eager aria-labelledby="nose-shelf-h" className="mt-8 lg:mt-0 lg:p-5 lg:rounded lg:border" style={{ borderColor: COLORS.line }}>
       <h2 id="nose-shelf-h" className="font-serif italic text-2xl mb-1" style={{ color: COLORS.ink }}>{t("nose.shelf.title")}</h2>
       <p className="text-sm mb-4 max-w-prose" style={{ color: COLORS.inkSoft }}>{t("nose.shelf.lead")}</p>
       <ul className="grid gap-2 list-none p-0 m-0">
@@ -127,6 +127,6 @@ function Shelf({ shelf, wardrobeOn, t }) {
         ))}
       </ul>
       {wardrobeOn && <Link to="/wardrobe" className="inline-flex items-center mt-3 text-sm underline underline-offset-4 min-h-[44px]" style={{ color: COLORS.ink }}>{t("nose.shelf.open")}</Link>}
-    </section>
+    </Reveal>
   );
 }

@@ -150,6 +150,7 @@ test("sharing: publish with a public note, then stop sharing", async ({ page }) 
   await expect(panel.getByLabel(en.share.restLabel)).toHaveValue("1");
   await panel.getByLabel(en.share.restLabel).fill("24");
 
+  await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().filter((a) => a.timeline instanceof DocumentTimeline && a.effect?.getComputedTiming().endTime !== Infinity).map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))])); // entrances settle first: axe must not read a half-faded colour
   const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
   expect(violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id} ${v.nodes[0]?.target}`)).toEqual([]);
 
