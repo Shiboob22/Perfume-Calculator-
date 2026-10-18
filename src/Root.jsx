@@ -68,6 +68,8 @@ export default function Root() {
       )}
       {Styleguide && (
         <>
+          <Route path="/dev/design" element={<I18nProvider locale="en"><Suspense fallback={<AppLoading />}><Styleguide /></Suspense></I18nProvider>} />
+          <Route path="/ar/dev/design" element={<I18nProvider locale="ar"><Suspense fallback={<AppLoading />}><Styleguide /></Suspense></I18nProvider>} />
           <Route path="/styleguide" element={<I18nProvider locale="en"><Suspense fallback={<AppLoading />}><Styleguide /></Suspense></I18nProvider>} />
           <Route path="/ar/styleguide" element={<I18nProvider locale="ar"><Suspense fallback={<AppLoading />}><Styleguide /></Suspense></I18nProvider>} />
         </>

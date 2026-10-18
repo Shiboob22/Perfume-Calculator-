@@ -17,7 +17,9 @@ import { contrastRatio, wcagGrade } from "../lib/contrast.js";
 import { useI18n } from "../i18n/I18nProvider";
 import { SiteHeader, SiteFooter } from "../components/SiteChrome";
 import LanguageToggle from "../components/LanguageToggle";
-import { Button, Card, Field, KyphiraLogo, Notice, ScaleReadout, SmokeLine } from "../components/kx";
+import { Button, Card, Chip, Field, FragranceCard, KyphiraLogo, Notice, RoomHeader, ScaleReadout, SmokeLine, Stepper } from "../components/kx";
+import { TOKENS } from "../motion/config";
+import { Reveal, Stagger } from "../motion";
 
 const DISPLAY = { fontFamily: "'Newsreader Variable', 'Noto Naskh Arabic Variable', Georgia, serif", fontWeight: 400 };
 const UI = { fontFamily: "'Hanken Grotesk Variable', 'IBM Plex Sans Arabic', system-ui, sans-serif" };
@@ -66,11 +68,39 @@ function Swatches({ palette, name }) {
   );
 }
 
+// One specimen set in both languages, side by side; each pane sets its own direction.
+const PAIRS = [
+  { dir: "ltr", lang: "en", title: "Weigh it. Pour it.", body: "Oil first, then alcohol, slowly. A measured density always wins.", num: "23.75 g", ui: UI },
+  { dir: "rtl", lang: "ar", title: "زِن. اسكب.", body: "الزيت أولاً ثم الكحول ببطء. الكثافة المقاسة هي الأصل.", num: "23.75 g", ui: { fontFamily: "'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif" } },
+];
+
+function Pair() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {PAIRS.map((p) => (
+        <div key={p.lang} dir={p.dir} lang={p.lang} className="p-5" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card, ...p.ui }}>
+          <p className="text-4xl leading-tight rtl:leading-[1.5]" style={DISPLAY}>{p.title}</p>
+          <p className="mt-3 max-w-[40ch]" style={{ color: COLORS.inkSoft }}>{p.body}</p>
+          <p className="mt-3 font-mono tabular-nums text-xl" dir="ltr">{p.num}</p>
+          <div className="mt-4 flex flex-wrap gap-2 items-center">
+            <Button>{p.lang === "ar" ? "ابدأ" : "Start"}</Button>
+            <Chip>{p.lang === "ar" ? "عنبر" : "Amber"}</Chip>
+            <Chip onToggle={() => {}} pressed>{p.lang === "ar" ? "خشبي" : "Woody"}</Chip>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Styleguide() {
   const { locale } = useI18n();
   const ar = locale === "ar";
   const [grams, setGrams] = useState(23.75);
   const [name, setName] = useState("");
+  const [vol, setVol] = useState(50);
+  const [on, setOn] = useState(["Woody"]);
+  const [replay, setReplay] = useState(0);
   const body = ar ? { fontFamily: "'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif" } : UI;
 
   return (
@@ -172,6 +202,58 @@ export default function Styleguide() {
               <Notice tone="success" title="Rested">Day 28. Ready to wear.</Notice>
               <SmokeLine />
               <SmokeLine loading label="Loading" />
+            </div>
+          </div>
+        </Section>
+
+        <Section id="sg-pair" title="English and Arabic, side by side">
+          <Pair />
+        </Section>
+
+        <Section id="sg-motion" title="Motion tokens">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <table className="text-sm font-mono tabular-nums" dir="ltr"><tbody>
+              {Object.entries(TOKENS.duration).map(([k, v]) => <tr key={k}><td className="pe-6" style={{ color: COLORS.dim }}>duration.{k}</td><td>{v} ms</td></tr>)}
+              {Object.entries(TOKENS.ease).map(([k, v]) => <tr key={k}><td className="pe-6" style={{ color: COLORS.dim }}>ease.{k}</td><td>{v}</td></tr>)}
+              {Object.entries(TOKENS.stagger).map(([k, v]) => <tr key={k}><td className="pe-6" style={{ color: COLORS.dim }}>stagger.{k}</td><td>{v}</td></tr>)}
+              {Object.entries(TOKENS.distance).map(([k, v]) => <tr key={k}><td className="pe-6" style={{ color: COLORS.dim }}>distance.{k}</td><td>{v} px</td></tr>)}
+            </tbody></table>
+            <div>
+              <Button variant="secondary" onClick={() => setReplay((n) => n + 1)}>Replay</Button>
+              <Stagger as="ul" eager key={replay} className="mt-4 grid gap-2 list-none p-0">
+                {["Reveal", "Stagger", "TextReveal"].map((x) => <li key={x} className="p-3" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>{x}</li>)}
+              </Stagger>
+              <Reveal eager key={`r${replay}`} className="mt-4 text-sm" style={{ color: COLORS.dim }}>Calculator figures never animate; UI fills take {TOKENS.duration.base} ms.</Reveal>
+            </div>
+          </div>
+        </Section>
+
+        <Section id="sg-states" title="Component states">
+          <div className="grid gap-8 lg:grid-cols-2">
+            <div className="grid gap-5 content-start">
+              <Stepper label="Batch size" value={vol} unit="mL" decLabel="Less" incLabel="More" onStep={(d) => setVol((v) => Math.max(10, v + d * 10))} decDisabled={vol <= 10} />
+              <Stepper label="At the minimum" value={10} unit="mL" decLabel="Less" incLabel="More" onStep={() => {}} decDisabled />
+              <div className="flex flex-wrap gap-2 items-center">
+                <Chip>Label</Chip>
+                <Chip to="#sg-states">Link</Chip>
+                {["Woody", "Amber", "Fresh"].map((c) => (
+                  <Chip key={c} pressed={on.includes(c)} count={3} onToggle={() => setOn((l) => (l.includes(c) ? l.filter((x) => x !== c) : [...l, c]))}>{c}</Chip>
+                ))}
+              </div>
+              <Field label="Default" value="" onChange={() => {}} />
+              <Field label="Disabled" value="Locked" onChange={() => {}} disabled />
+              <Field label="Error" value="900" onChange={() => {}} error="Enter a weight between 0 and 500 g." />
+            </div>
+            <div className="grid gap-5 content-start">
+              <RoomHeader numeral="I" name="The Bench" headline="12 bottles." />
+              <RoomHeader numeral="II" name="The Library" title="Essays" />
+              <ul className="grid gap-3 list-none p-0">
+                <FragranceCard name="Oud Nights" facts={["House", "2019", "Woody"]} accords={["oud", "amber", "rose"]} matched={["oud"]} no={7} />
+                <FragranceCard name="Citrus Bench" href="#sg-states" facts={["House", "2021"]} accords={["citrus"]} />
+              </ul>
+              <Notice tone="warning" title="Warning">Ethanol is flammable.</Notice>
+              <Notice tone="info" title="Info">Densities are starting points.</Notice>
+              <Notice tone="success" title="Success">Rested. Ready to wear.</Notice>
             </div>
           </div>
         </Section>
