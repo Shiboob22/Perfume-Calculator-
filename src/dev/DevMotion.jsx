@@ -40,7 +40,7 @@ function Switch({ on, set, children }) {
 
 export default function DevMotion() {
   const { locale, setLocale } = useI18n();
-  const [read, setRead] = useState({ p: 0, stage: "reading", fps: 0, native: false });
+  const [read, setRead] = useState({ p: 0, stage: "reading", fps: 0, native: false, wg: 0, rs: 0, smoke: false });
   const [reduce, setReduce] = useState(false);
   const [low, setLow] = useState(false);
   // ?view=scene is the Compounding; the default is the motion layer's primitives.
@@ -85,13 +85,24 @@ export default function DevMotion() {
       const scene = document.querySelector("[data-compounding]");
       const r = scene?.getBoundingClientRect();
       const p = r ? clamp(-r.top / Math.max(1, r.height - window.innerHeight)) : 0;
-      setRead((o) => (o.p === p && o.fps === fr.length ? o : { p, stage: stageAt(p).id, fps: fr.length, native: CSS.supports("animation-timeline: view()") }));
+      const pin = (sel) => { const e = document.querySelector(sel); if (!e) return 0; const b = e.getBoundingClientRect(); return clamp(-b.top / Math.max(1, b.height - window.innerHeight)); };
+      const wg = pin(".wg");
+      const rs = pin(".rs");
+      const smoke = Boolean(document.querySelector(".wg-smoke"));
+      setRead((o) => (o.p === p && o.fps === fr.length && o.wg === wg && o.rs === rs && o.smoke === smoke ? o : { p, stage: stageAt(p).id, fps: fr.length, native: CSS.supports("animation-timeline: view()"), wg, rs, smoke }));
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  // Beats of the pinned weighing (share of its pinned stretch) and the rooms strip.
+  const PIN_MARKS = [["wg", ".wg", [["oil", 0.02], ["dusk", 0.44], ["alcohol", 0.5], ["total", 0.93]]], ["rs", ".rs", [["start", 0.02], ["half", 0.5], ["end", 0.98]]]];
+  const jumpPin = (sel, f) => {
+    const e = document.querySelector(sel);
+    if (!e) return;
+    window.scrollTo({ top: e.getBoundingClientRect().top + window.scrollY + f * (e.offsetHeight - window.innerHeight), behavior: "auto" });
+  };
   const jump = (id) => {
     const s = STAGES.find((x) => x.id === id);
     const scene = document.querySelector("[data-compounding]");
@@ -126,6 +137,13 @@ export default function DevMotion() {
           <span className="absolute top-[-2px] bottom-[-2px] w-0.5 bg-amber-400" style={{ left: `${read.p * 100}%` }} />
         </div>
         <div className="flex flex-wrap gap-x-2 text-[10px] opacity-80">{STAGES.map((s) => <span key={s.id}>{s.id} {s.from}</span>)}</div>
+        {PIN_MARKS.map(([key, sel, marks]) => (
+          <div key={key} className="mt-2">
+            <div className="flex justify-between"><span>{key === "wg" ? "weighing pin" : "rooms pin"}</span><b data-readout={`pin-${key}`}>{read[key].toFixed(3)}</b></div>
+            <div className="flex flex-wrap gap-1 mt-1">{marks.map(([label, f]) => <button key={label} type="button" onClick={() => jumpPin(sel, f)} className="px-1 border border-white/40 hover:bg-white/25">{label}</button>)}</div>
+          </div>
+        ))}
+        <div className="flex justify-between mt-2"><span>smoke canvas</span><b data-readout="smoke">{read.smoke ? "running" : "off"}</b></div>
         </>}
         <div className="mt-2 grid gap-1">
           <Switch on={layer} set={setLayer}>motion layer</Switch>
