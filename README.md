@@ -1,9 +1,18 @@
-# Scent Ledger — unified system
+# Kyphira (formerly Scent Ledger) — unified system
 
 One Supabase-backed React app: search, calculate, log batches, and track
 inventory. Replaces the previous split between the HTML tool (local
 database + localStorage personal log) and this app (Supabase search
 only, dumb calculator) — everything now shares one database.
+
+## Design system and motion (Kyphira, branch `redesign/kyphira`)
+
+- **Tokens:** colours are CSS variables generated from `PALETTES` in `src/lib/theme.js` (light default, dark behind a toggle; one accent, resin). Text uses the `*Text` shades; contrast of both palettes is unit-tested. Radius, type scale and motion durations come from the same file. Faces: Newsreader (display), Hanken Grotesk (UI), Noto Naskh Arabic (Arabic display), IBM Plex Sans Arabic (Arabic UI).
+- **Components:** `src/components/kx/` (`Button`, `Card`, `Chip`, `Field`, `FragranceCard`, `Notice`, `RoomHeader`, `ScaleReadout`, `SmokeLine`, `Stepper`, `KyphiraLogo`). Rooms compose these; they do not restyle them.
+- **Motion layer:** `src/motion/`, behind the `motion` flag (sets `<html data-motion>`). Primitives: `Reveal`, `Stagger`, `TextReveal`, `DrawLine`, `Parallax`, `Pin`, `CountUp`, `Skeleton`, `PageTransition`, `Link`, `useNavigate`. Rooms use only these. Tokens in `src/motion/config.js` (150 / 250 / 600 ms, two eases, stagger step 60 ms). Rules: calculator figures never animate; above-the-fold content never fades in prerendered markup; `eager` is for client-rendered content only; reduced motion and no-flag give a static page; a changed `key` on a `Stagger`/`Reveal` replays an entrance.
+- **Living sheet:** `/dev/design` and `/ar/dev/design` under `vite dev` (tokens, EN/AR side by side, motion tokens with replay, component states). `/dev/motion` and `/dev/primitives` show the layer's progress and reduced-motion/RTL switches. None of these are in a production build.
+- **Home:** the Compounding scroll scene (flag `compounding`) plus the Homepage v2 keyframes (`.kv`, `.kv-grow`, `.kv-fade` in `src/index.css`).
+- **Checks:** `npx playwright test` (axe runs after entrances settle), `npm run test`, `node scripts/perf-pages.mjs <base-url>` for LCP/CLS on a throttled phone, `node scripts/screenshots.mjs <dir> <base-url>` for screenshots. Latest numbers: `docs/redesign/METRICS-2026-10-18.md`. Handoff: `docs/redesign/KYPHIRA-HANDOFF.md`.
 
 ## Architecture
 
