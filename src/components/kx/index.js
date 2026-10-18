@@ -12,3 +12,4 @@ export { default as FragranceCard } from "./FragranceCard";
 export { default as Stepper } from "./Stepper";
 export { default as RoomHeader } from "./RoomHeader";
 export { default as WeightScale } from "./WeightScale";
+export { default as Confirm } from "./Confirm";

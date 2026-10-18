@@ -8,6 +8,7 @@ import { deleteAccount, fetchExport, joinWaitlist, onWaitlist } from "../lib/acc
 import { EXPORT_TABLES, toCsv, toJson } from "../lib/exportData";
 import { UNIT_LABELS } from "../lib/calcPrefill";
 import { signOut } from "../lib/auth";
+import { Reveal } from "../motion";
 
 function download(name, text, type) {
   const url = URL.createObjectURL(new Blob([text], { type }));
@@ -32,10 +33,10 @@ function Section({ title, children, danger = false, id }) {
     );
   }
   return (
-    <section id={id} className="py-7 border-t" style={{ borderColor: COLORS.line }}>
+    <Reveal as="section" id={id} className="py-7 border-t" style={{ borderColor: COLORS.line }}>
       <h2 className="font-serif font-light text-3xl mb-3 rtl:leading-[1.5]" style={{ color: COLORS.ink }}>{title}</h2>
       {children}
-    </section>
+    </Reveal>
   );
 }
 

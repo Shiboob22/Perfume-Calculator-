@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useNavigate } from "../motion";
+import { CountUp, useNavigate } from "../motion";
 import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
@@ -789,7 +789,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                   <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
                     <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: sw, border: `1px solid ${COLORS.ink}` }} />{t(k)}
                   </span>
-                  <span dir="ltr" className="readout block font-mono leading-[1.15] tracking-[-0.03em] whitespace-nowrap" key={g} style={{ fontSize: `min(3rem, calc(100cqw / ${(fmt2(g).length * 0.6 + 0.6).toFixed(2)}))` }}>{fmt2(g)}<span className="text-2xl ms-1">g</span></span>
+                  <span dir="ltr" className="readout block font-mono leading-[1.15] tracking-[-0.03em] whitespace-nowrap" style={{ fontSize: `min(3rem, calc(100cqw / ${(fmt2(g).length * 0.6 + 0.6).toFixed(2)}))` }}><CountUp value={g} format={fmt2} onView />{" "}<span className="text-2xl ms-1">g</span></span>
                 </div>
               ))}
             </div>

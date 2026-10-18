@@ -8,6 +8,7 @@ import { reasonText } from "../../lib/wardrobe/reasons";
 import { wearRow } from "../../lib/wardrobe/validate";
 import Button from "../kx/Button";
 import { Reveal } from "../../motion";
+import Confirm from "../kx/Confirm";
 import Field from "../kx/Field";
 import Notice from "../kx/Notice";
 import Chip from "../kx/Chip";
@@ -168,7 +169,7 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
         </div>
       )}
 
-      <p role="status" className="text-sm mt-4" style={{ color: COLORS.verdigrisText }}><Reveal as="span" eager key={status}>{status}</Reveal></p>
+      <Confirm className="mt-4">{status}</Confirm>
       {error && <p role="alert" className="text-sm mt-2" style={{ color: COLORS.danger }}>{error}</p>}
       <p className="text-xs mt-6" style={{ color: COLORS.dim }}>{t("wardrobe.today.note")}</p>
     </section>

@@ -4,6 +4,7 @@ import { useI18n } from "../../i18n/I18nProvider";
 import { addBottle, deleteBottle, updateBottle } from "../../lib/wardrobeApi";
 import { costPerWear, wearCounts } from "../../lib/wardrobe/stats";
 import Button from "../kx/Button";
+import Confirm from "../kx/Confirm";
 import { Reveal, Stagger } from "../../motion";
 import BottleForm from "./BottleForm";
 import { catalogueNumber } from "../kx/Card";
@@ -68,7 +69,7 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
       ) : (
         <Button onClick={() => { setMode("add"); setStatus(""); setError(""); }}>{t("wardrobe.collection.add")}</Button>
       )}
-      <p role="status" className="text-sm mt-3" style={{ color: COLORS.verdigrisText }}><Reveal as="span" eager key={status}>{status}</Reveal></p>
+      <Confirm className="mt-3">{status}</Confirm>
       {error && <p role="alert" className="text-sm mt-2" style={{ color: COLORS.danger }}>{error}</p>}
 
       {owned.length === 0 && mode !== "add" && (

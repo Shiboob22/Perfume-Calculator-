@@ -73,7 +73,7 @@ export default function Nose() {
       <div aria-live="polite" className="mt-6">
         {busy && (
           <p className="flex items-center gap-3 text-sm" style={{ color: COLORS.inkSoft }}>
-            <span aria-hidden="true" className="kx-think inline-flex gap-1"><i /><i /><i /></span>{t("nose.thinking")}
+            <span aria-hidden="true" className="cmp-breath block w-2.5 h-2.5 rounded-full" style={{ background: COLORS.oil, boxShadow: "0 0 14px 4px color-mix(in srgb, var(--c-oil) 45%, transparent)" }} /><span aria-hidden="true" className="kx-think inline-flex gap-1"><i /><i /><i /></span>{t("nose.thinking")}
           </p>
         )}
         {error && <p role="alert" className="text-sm" style={{ color: COLORS.danger }}><Reveal as="span" eager key={error}>{error}</Reveal></p>}

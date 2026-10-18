@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Link, Reveal, TextReveal } from "../motion";
+import { DrawLine, Link, Reveal, TextReveal } from "../motion";
 import { COLORS, TYPE } from "../lib/theme";
 import { ChapterMark, Folio } from "./editorial";
 import { useI18n } from "../i18n/I18nProvider";
@@ -230,6 +230,7 @@ export default function GuidePage() {
         {t("site.guides.eyebrow", { n: ROMAN[at]?.toUpperCase() ?? at + 1, total: ROMAN[inSection.length - 1]?.toUpperCase() ?? inSection.length, minutes: readingMinutes(g) })}
       </p>
       <TextReveal as="h1" text={g.title} className={`${TYPE.display} mt-5 max-w-[14ch]`} style={{ viewTransitionName: "guide-title" }} />
+      <DrawLine className="mt-6 w-24" style={{ color: COLORS.amber, height: 2 }} />
       <p className={`mt-6 measure italic ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{g.summary}</p>
       <p className="mt-4 text-sm" style={{ color: COLORS.dim }}>
         {t("site.guides.from", {

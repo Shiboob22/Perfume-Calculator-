@@ -231,6 +231,12 @@ summary::-webkit-details-marker { display: none; }
 /* Cinematic rise (Salon profile header only): 600 ms ease-out. Static under reduced motion. */
 @media (prefers-reduced-motion: no-preference) { .kx-rise { animation: kx-rise var(--dur-slow) var(--ease-out) both; } }
 @keyframes kx-rise { from { opacity: 0; transform: translateY(14px); } }
+/* A confirmation: the check draws, 600 ms ease-out. Still under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .kx-tick path { stroke-dasharray: 24; animation: kx-tick-draw var(--dur-slow) var(--ease-out) both; }
+  .kx-confirm { animation: kx-rise var(--dur-base) var(--ease-out) both; }
+}
+@keyframes kx-tick-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
 /* The Nose's thinking state: three dots, ambient (2 s), still under reduced motion. */
 .kx-think i { width: 6px; height: 6px; border-radius: 50%; background: var(--c-action-text); display: block; opacity: .6; }
 @media (prefers-reduced-motion: no-preference) {
