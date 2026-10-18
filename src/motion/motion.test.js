@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { TOKENS, countValue, motionVars, splitWords, staggerIndex } from "./config.js";
 import { isPlainClick } from "./nav.js";
 import { FLAGS } from "../lib/flags.js";
+import { MOTION } from "../lib/theme.js";
+import { MOTION_SCENE } from "../lib/compounding/config.js";
 
 const css = readFileSync(new URL("./motion.css", import.meta.url), "utf8");
 
@@ -13,6 +15,12 @@ describe("tokens", () => {
   });
   it("has one standard ease-out and one ease-in-out", () => {
     expect(Object.keys(TOKENS.ease).sort()).toEqual(["inOut", "out"]);
+  });
+  it("matches the board tokens in theme.js and the Compounding scene", () => {
+    expect(TOKENS.ease.out).toBe(MOTION.easeOut);
+    expect(TOKENS.ease.inOut).toBe(MOTION.easeInOut);
+    expect(TOKENS.duration).toMatchObject({ fast: MOTION.fast, base: MOTION.base, slow: MOTION.slow, ambient: MOTION.ambient });
+    expect(MOTION_SCENE.ease).toBe(MOTION.easeOut);
   });
   it("writes every token out as a custom property", () => {
     const v = motionVars();

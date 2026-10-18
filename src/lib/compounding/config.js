@@ -38,7 +38,7 @@ export const SCALE = Object.freeze({
  * live here and nowhere else.
  */
 export const MOTION_SCENE = Object.freeze({
-  ease: "cubic-bezier(.2,0,0,1)",
+  ease: "cubic-bezier(.22,1,.36,1)", // the board's ease-out, same as TOKENS.ease.out and MOTION.easeOut
   ranges: Object.freeze({
     drift: [0.02, 0.3], // a stage's words settle (movement only, never a fade)
     pan: [0, 0.55], // the brass pan fills behind the reading

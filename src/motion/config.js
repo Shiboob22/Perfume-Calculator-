@@ -7,10 +7,10 @@
 
 export const TOKENS = Object.freeze({
   /** Milliseconds. fast: hover/press. base: UI in and out. slow: an entrance. ambient: a loop (2 s or more). */
-  duration: Object.freeze({ fast: 150, base: 250, slow: 600, ambient: 2200 }),
+  duration: Object.freeze({ fast: 150, base: 250, slow: 600, ambient: 2000 }),
 
   /** `out` is the standard ease (a quick start, a long settle); `inOut` is for things that travel. */
-  ease: Object.freeze({ out: "cubic-bezier(.2,0,0,1)", inOut: "cubic-bezier(.65,0,.35,1)" }),
+  ease: Object.freeze({ out: "cubic-bezier(.22,1,.36,1)", inOut: "cubic-bezier(.65,0,.35,1)" }),
 
   /** Stagger: ms between siblings, at most `max` steps (a long list still finishes in time); `word` is the step between words of a heading. */
   stagger: Object.freeze({ step: 60, max: 8, word: 40, maxWords: 14 }),
