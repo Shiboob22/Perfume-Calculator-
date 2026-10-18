@@ -121,7 +121,7 @@ html[data-motion]::view-transition-group(mo-ind-site), html[data-motion]::view-t
   transform: translate(calc(var(--lx, 0) * 52px), calc(var(--ly, 0) * 40px)); }
 @keyframes mo-light-scroll { from { opacity: .85; translate: 0 6%; } to { opacity: .12; translate: 0 -26%; } }
 @media (prefers-reduced-motion: no-preference) {
-  html[data-motion] .mo-light { transition: transform 700ms var(--mo-ease); }
+  html[data-motion] .mo-light { transition: transform var(--mo-slow) var(--mo-ease); }
   @supports (animation-timeline: view()) {
     html[data-motion] .mo-light { animation: mo-light-scroll linear both; animation-timeline: view(); animation-range: cover 0% cover 100%; }
   }
@@ -138,12 +138,12 @@ html[data-motion]::view-transition-group(mo-ind-site), html[data-motion]::view-t
 
 /* ── Pointer marks (Magnetic, Tilt): fine pointers only; the JS never attaches elsewhere ── */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  html[data-motion] .mo-magnetic { transition: translate 260ms var(--mo-ease), background-color var(--mo-fast) var(--mo-ease), border-color var(--mo-fast) var(--mo-ease), color var(--mo-fast) var(--mo-ease); }
-  html[data-motion] .mo-tilt { transition: transform 360ms var(--mo-ease); will-change: auto; }
+  html[data-motion] .mo-magnetic { transition: translate var(--mo-base) var(--mo-ease), background-color var(--mo-fast) var(--mo-ease), border-color var(--mo-fast) var(--mo-ease), color var(--mo-fast) var(--mo-ease); }
+  html[data-motion] .mo-tilt { transition: transform var(--mo-base) var(--mo-ease); will-change: auto; }
 }
-/* Press and release feel the same everywhere: 100 ms down, 150 ms up. */
+/* Press and release feel the same everywhere: one fast step (150 ms) either way. */
 @media (prefers-reduced-motion: no-preference) {
-  html[data-motion] :is(button, [role="button"], a.mo-press, .mo-magnetic):not(:disabled, [aria-disabled="true"]):active { scale: .985; transition-duration: 90ms; }
+  html[data-motion] :is(button, [role="button"], a.mo-press, .mo-magnetic):not(:disabled, [aria-disabled="true"]):active { scale: .985; transition-duration: var(--mo-fast); }
 }
 
 /* ── Reading and scroll progress: one hairline under the header, drawn by scroll ── */
@@ -161,7 +161,7 @@ html[data-motion] .mo-progress[data-js] { transform: scaleX(var(--sp, 0)); }
 /* ── Rooms: the beam's pan draws in once; a quiet light sits behind the rail ── */
 html[data-motion] .mo-light.kx-room-light { inset-inline-end: auto; inset-inline-start: -8%; top: -34%; width: min(64vw, 46rem); }
 @media (prefers-reduced-motion: no-preference) {
-  html[data-motion] .kx-pan { transform-origin: 0 50%; animation: mo-draw var(--mo-slow) var(--mo-ease-io) 120ms backwards; }
+  html[data-motion] .kx-pan { transform-origin: 0 50%; animation: mo-draw var(--mo-slow) var(--mo-ease-io) calc(var(--mo-step) * 2) backwards; }
   html[data-motion]:is([dir="rtl"]) .kx-pan { transform-origin: 100% 50%; }
 }
 
@@ -177,7 +177,7 @@ html[data-motion] .mo-light.kx-room-light { inset-inline-end: auto; inset-inline
     html[data-motion]:not([data-mo-low]) .mo-ink { animation: mo-grow linear both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
     html[data-motion]:not([data-mo-low]) .mo-band { animation: mo-grow linear both; animation-timeline: view(); animation-range: entry calc(var(--i, 0) * 12%) entry calc(70% + var(--i, 0) * 12%); }
   }
-  html[data-motion] .mo-ember { animation: mo-ember var(--mo-slow) var(--mo-ease) backwards; animation-delay: calc(var(--mo-step) * 8 + var(--i, 0) * 90ms); }
+  html[data-motion] .mo-ember { animation: mo-ember var(--mo-slow) var(--mo-ease) backwards; animation-delay: calc(var(--mo-step) * 8 + var(--i, 0) * var(--mo-step) * 1.5); }
 }
 
 /* Smooth wheel scrolling on the home page (src/motion/smooth.js). Lenis adds

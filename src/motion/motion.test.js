@@ -13,6 +13,10 @@ describe("tokens", () => {
     expect(TOKENS.duration).toMatchObject({ fast: 150, base: 250, slow: 600 });
     expect(TOKENS.duration.ambient).toBeGreaterThanOrEqual(2000);
   });
+  it("keeps every duration in motion.css on a token (no literal ms)", () => {
+    const code = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(code.match(/\b\d+(\.\d+)?ms\b/g) ?? []).toEqual([]);
+  });
   it("has one standard ease-out and one ease-in-out", () => {
     expect(Object.keys(TOKENS.ease).sort()).toEqual(["inOut", "out"]);
   });
