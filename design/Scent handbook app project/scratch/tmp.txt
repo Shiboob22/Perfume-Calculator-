@@ -1,0 +1,26 @@
+n>
+      </sc-for>
+    </div>
+
+    <div style="display:grid;grid-template-columns:{{ cols }};gap:{{ gapX }}px;align-items:start">
+
+      <div style="display:flex;flex-direction:column;gap:{{ gapY }}px;min-width:0">
+
+        <section aria-label="{{ t.inputs }}" style="display:grid;grid-template-columns:{{ inCols }};gap:16px">
+          <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+              <span id="lb-batch" style="font-size:13px;color:#A3968A">{{ batchTitle }}</span>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end">
+              <div role="group" aria-label="{{ t.unit }}" dir="ltr" style="display:flex;border:1px solid #3B332B;border-radius:2px">
+                <sc-for list="{{ unitTabs }}" as="ut" hint-placeholder-count="2">
+                  <button onClick="{{ ut.pick }}" aria-pressed="{{ ut.on }}" style="min-height:44px;min-width:52px;padding:0 14px;background:{{ ut.bg }};border:none;color:{{ ut.fg }};font:inherit;font-size:14px;font-weight:{{ ut.fw }};cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ ut.label }}</button>
+                </sc-for>
+              </div>
+              <div role="group" aria-label="{{ t.basisLabel }}" dir="ltr" style="display:flex;border:1px solid #3B332B;border-radius:2px">
+                <sc-for list="{{ basisTabs }}" as="bt" hint-placeholder-count="2">
+                  <button onClick="{{ bt.pick }}" aria-pressed="{{ bt.on }}" title="{{ bt.title }}" style="min-height:44px;min-width:56px;padding:0 12px;background:{{ bt.bg }};border:none;color:{{ bt.fg }};font:inherit;font-size:14px;font-weight:{{ bt.fw }};cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ bt.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;align-items:stretch;height:{{ stepH }}px;border:1px solid #3B332B;border-radius:2px;background:#15120F">
+              <button onClick="{{ batchDec }}" aria-label="{{ batchDecAria }}" style="width:{{ stepW }}px;background:transparent;border:none;border-inline-end:1px solid #3B332B;color:#EDE4D6;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#29231D" style-focus="outline:2px solid #D4924A;outline-offset:-2px"><svg width="20" height="20" viewBox

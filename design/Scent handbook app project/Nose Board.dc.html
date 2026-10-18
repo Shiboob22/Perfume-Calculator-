@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#0E0C0A}a{color:#D4924A}a:hover{color:#EDE4D6}</style>
+</helmet>
+
+<section data-screen-label="Nose motion" style="padding:96px;display:flex;flex-direction:column;gap:48px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 7 · VI · The Nose</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">Key moment: thinking, then an answer</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A;max-width:760px">The thinking state shows what is being read, with counts, not a spinner. The answer arrives in 1.2 s, quietly. Live: <a href="Nose.dc.html">Nose</a>.</p>
+  </div>
+  <div id="7e" style="display:flex;flex-direction:column;gap:24px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">7e · Storyboard, desktop EN</span>
+    <div style="display:grid;grid-template-columns:repeat(4, 576px);gap:32px 24px">
+      <sc-for list="{{ frames }}" as="f" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="width:576px;height:400px;overflow:hidden;border:1px solid #3B332B"><div style="width:1440px;zoom:0.4"><dc-import name="Nose" lang="en" init-view="{{ f.view }}" freeze-at="{{ f.at }}" hint-size="1440px,1000px"></dc-import></div></div>
+          <div style="display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px">
+            <span style="font-family:'Newsreader',serif;font-size:22px;color:#D4924A">{{ f.n }}</span>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline"><span style="font-size:17px;font-weight:500">{{ f.title }}</span><span style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums">{{ f.time }}</span></div>
+              <span style="font-size:15px;line-height:1.5;color:#A3968A">{{ f.body }}</span>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div id="7f" style="display:flex;flex-direction:column;gap:16px;width:1100px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">7f · Motion spec</span>
+    <div role="table" style="display:flex;flex-direction:column;font-size:15px;font-variant-numeric:tabular-nums;border-top:1px solid #A3968A">
+      <div role="row" style="display:grid;grid-template-columns:300px 100px 190px 120px minmax(0,1fr);gap:16px;padding:12px 0;color:#A3968A;font-size:12px;letter-spacing:0.12em;text-transform:uppercase"><span>Element</span><span>Start</span><span>Duration</span><span>Easing</span><span>Trigger</span></div>
+      <sc-for list="{{ spec }}" as="r" hint-placeholder-count="7">
+        <div role="row" style="display:grid;grid-template-columns:300px 100px 190px 120px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid #3B332B"><span>{{ r.el }}</span><span>{{ r.start }}</span><span>{{ r.dur }}</span><span style="color:#D4924A">{{ r.ease }}</span><span style="color:#A3968A">{{ r.trig }}</span></div>
+      </sc-for>
+    </div>
+    <p style="margin:0;font-size:14px;color:#A3968A;line-height:1.6">Reduced motion: the thinking card shows its steps at once, the answer appears without rising. The Pro gate never animates. Tokens in <a href="Design System.dc.html">Design System</a>.</p>
+  </div>
+</section>
+
+<section data-screen-label="Nose screens" style="padding:96px;display:flex;flex-direction:column;gap:64px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A;border-top:1px solid #3B332B">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 7 · Screens</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">The Nose: 1440 and 375, EN and AR</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A">Conversation, thinking state, and the Pro gate. Frames are live: tap a suggested question, ask three, hit the gate.</p>
+  </div>
+  <sc-for list="{{ rows }}" as="row" hint-placeholder-count="3">
+    <div style="display:flex;flex-wrap:wrap;gap:80px;align-items:flex-start">
+      <sc-for list="{{ row.items }}" as="it" hint-placeholder-count="4">
+        <div id="{{ it.id }}" style="display:flex;flex-direction:column;gap:16px">
+          <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">{{ it.label }}</span>
+          <div style="width:{{ it.w }}px;height:{{ it.h }}px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Nose" lang="{{ it.lang }}" init-view="{{ it.view }}" freeze-at="{{ it.at }}" hint-size="{{ it.hint }}"></dc-import></div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-for>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const mk = (id, label, view, lang, mobile, h) => ({ id, label, view, lang, w: mobile ? 375 : 1440, h, hint: (mobile ? 375 : 1440) + 'px,' + h + 'px', at: view === 'thinking' ? 1.0 : 9 });
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      frames: [
+        { n:'1', view:'thinking', at:0.1, time:'0 ms', title:'Sent', body:'The question lands. A card opens: "Reading your shelf", three steps, all pending.' },
+        { n:'2', view:'thinking', at:1.1, time:'0.55–1.65 s', title:'Reading', body:'Each step lights in turn, then settles with its count: 12 bottles, 11 wears, 3 accords. Hairline fills.' },
+        { n:'3', view:'conversation', at:0.6, time:'+0.25–0.7 s', title:'Answer in', body:'Text rises 8 px and fades in, 350 ms ease-out. Formula card follows, rows 100 ms apart.' },
+        { n:'4', view:'gate', at:9, time:'3rd answer', title:'Pro gate', body:'After the 3rd answer the composer is replaced by the gate. Static, no entrance motion.' },
+      ],
+      spec: [
+        { el:'Thinking card steps', start:'0 ms', dur:'550 ms per step', ease:'step + ease-out', trig:'Question sent' },
+        { el:'Active step marker', start:'0 ms', dur:'2 s loop (ambient)', ease:'sine', trig:'While reading' },
+        { el:'Hairline fill', start:'0 ms', dur:'1.9 s (ambient)', ease:'linear', trig:'While reading' },
+        { el:'Answer text', start:'0 ms', dur:'350 ms', ease:'ease-out', trig:'Reply ready (min 2 s)' },
+        { el:'Formula card and rows', start:'250 ms', dur:'300 ms, 100 ms stagger', ease:'ease-out', trig:'Answer text at 70%' },
+        { el:'Suggestion chip', start:'tap', dur:'150 ms (fast)', ease:'ease-out', trig:'Press' },
+        { el:'Pro gate', start:'—', dur:'None', ease:'none', trig:'Replaces composer after question 3' },
+      ],
+      rows: [
+        { items: [mk('7a','7a · Conversation · Desktop 1440 · EN','conversation','en',false,1320), mk('7b','7b · Conversation · Desktop 1440 · AR','conversation','ar',false,1380), mk('7c','7c · Conversation · Mobile 375 · EN','conversation','en',true,1600), mk('7d','7d · Conversation · Mobile 375 · AR','conversation','ar',true,1520)] },
+        { items: [mk('7g','7g · Thinking · Desktop 1440 · EN','thinking','en',false,1650), mk('7h','7h · Thinking · Desktop 1440 · AR','thinking','ar',false,1760), mk('7i','7i · Thinking · Mobile 375 · EN','thinking','en',true,1850), mk('7j','7j · Thinking · Mobile 375 · AR','thinking','ar',true,1850)] },
+        { items: [mk('7k','7k · Pro gate · Desktop 1440 · EN','gate','en',false,2330), mk('7l','7l · Pro gate · Desktop 1440 · AR','gate','ar',false,2500), mk('7m','7m · Pro gate · Mobile 375 · EN','gate','en',true,2950), mk('7n','7n · Pro gate · Mobile 375 · AR','gate','ar',true,3000)] },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

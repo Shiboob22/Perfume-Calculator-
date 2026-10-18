@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#15120F}a{color:#D4924A}a:hover{color:#EDE4D6}::placeholder{color:#A3968A}</style>
+</helmet>
+<div style="background:#15120F;color:#EDE4D6;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif;font-size:16px;line-height:1.55;container-type:inline-size">
+<div style="max-width:1440px;margin:0 auto;padding:clamp(24px, 4.4cqw, 64px);box-sizing:border-box;display:flex;flex-direction:column;gap:112px">
+
+  <header style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 420px), 1fr));gap:48px;align-items:end;padding-bottom:48px;border-bottom:1px solid #3B332B">
+    <div style="display:flex;align-items:flex-end;gap:32px">
+      <img src="assets/kyphira-mark.svg" alt="" style="height:140px;display:block">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <img src="assets/kyphira-wordmark.svg" alt="Kyphira" style="height:22px;display:block;align-self:flex-start">
+        <h1 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:clamp(44px, 5cqw, 72px);line-height:1.05;letter-spacing:-0.01em">System 1.0</h1>
+        <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">The laboratory room at dusk</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#D4924A">Rationale</span>
+      <p style="margin:0;font-size:17px;line-height:1.65;color:#EDE4D6;text-wrap:pretty">Kyphira reads as a working notebook, not a shop. The ground is warm, near-black stone with two raised surfaces; resin amber is the only accent, so it always means action, progress or heat. Newsreader carries headings because it can be literary without luxury pastiche. Hanken Grotesk runs the UI with tabular figures, so grams line up in columns. Noto Naskh Arabic and IBM Plex Sans Arabic match their Latin partners in weight and stroke, and Arabic gets more line height rather than smaller type. Western numerals throughout keep a formula identical in both languages. Roman numerals, catalogue numbers and 1 px hairlines replace ornament. Motion is quiet everywhere except three places: the homepage hero, Library openers and the Salon profile header.</p>
+    </div>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:40px">
+    <div style="display:flex;align-items:baseline;gap:20px;border-bottom:1px solid #3B332B;padding-bottom:16px"><span style="font-family:'Newsreader',serif;font-size:20px;color:#D4924A">I</span><h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:40px;line-height:1.1">Colour</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:16px">
+      <sc-for list="{{ colors }}" as="c" hint-placeholder-count="11">
+        <div style="display:flex;flex-direction:column;border:1px solid #3B332B;border-radius:2px;overflow:hidden">
+          <div style="height:112px;background:{{ c.hex }};display:flex;align-items:flex-end;padding:12px;color:{{ c.on }};font-family:'Newsreader',serif;font-size:28px">Aa</div>
+          <div style="display:flex;flex-direction:column;gap:2px;padding:12px;background:#1E1A16">
+            <span style="font-size:14px;font-weight:500">{{ c.name }}</span>
+            <span style="font-size:13px;color:#A3968A;font-variant-numeric:tabular-nums">{{ c.hex }}</span>
+            <span style="font-size:13px;color:#A3968A">{{ c.role }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,2fr);gap:16px;padding:10px 0;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#A3968A;border-bottom:1px solid #A3968A"><span>Pair</span><span>Ratio</span><span>WCAG</span><span>Use</span></div>
+      <sc-for list="{{ contrast }}" as="r" hint-placeholder-count="12">
+        <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,2fr);gap:16px;padding:11px 0;border-bottom:1px solid #3B332B;align-items:center;font-variant-numeric:tabular-nums;font-size:15px">
+          <span style="display:flex;align-items:center;gap:10px"><span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:28px;border:1px solid #3B332B;border-radius:2px;background:{{ r.bg }};color:{{ r.fg }};font-family:'Newsreader',serif;font-size:15px">Aa</span>{{ r.pair }}</span>
+          <span>{{ r.ratio }}</span>
+          <span style="color:{{ r.passColor }}">{{ r.pass }}</span>
+          <span style="color:#A3968A">{{ r.use }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:40px">
+    <div style="display:flex;align-items:baseline;gap:20px;border-bottom:1px solid #3B332B;padding-bottom:16px"><span style="font-family:'Newsreader',serif;font-size:20px;color:#D4924A">II</span><h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:40px;line-height:1.1">Type</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr));gap:24px;font-size:14px;color:#A3968A">
+      <div style="display:flex;flex-direction:column;gap:4px;padding:20px;border:1px solid #3B332B;border-radius:2px"><span style="font-family:'Newsreader',serif;font-size:34px;color:#EDE4D6;line-height:1.2">Newsreader</span><span>Headings, Latin. Light 300, Regular 400. Optical size on.</span></div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding:20px;border:1px solid #3B332B;border-radius:2px"><span style="font-family:'Noto Naskh Arabic',serif;font-size:32px;color:#EDE4D6;line-height:1.4">نوتو نسخ</span><span>Headings, Arabic. Regular 400, Medium 500.</span></div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding:20px;border:1px solid #3B332B;border-radius:2px"><span style="font-family:'Hanken Grotesk',sans-serif;font-size:32px;color:#EDE4D6;line-height:1.2">Hanken Grotesk</span><span>UI, Latin. 400, 500, 600. Tabular figures on.</span></div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding:20px;border:1px solid #3B332B;border-radius:2px"><span style="font-family:'IBM Plex Sans Arabic',sans-serif;font-size:30px;color:#EDE4D6;line-height:1.4">بلكس عربي</span><span>UI, Arabic. 400, 500, 600.</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <sc-for list="{{ typeScale }}" as="s" hint-placeholder-count="7">
+        <div style="display:grid;grid-template-columns:150px minmax(0,1fr) minmax(0,1fr);gap:32px;padding:24px 0;border-bottom:1px solid #3B332B;align-items:baseline">
+          <div style="display:flex;flex-direction:column;gap:2px;font-size:13px;color:#A3968A;font-variant-numeric:tabular-nums"><span style="color:#EDE4D6;font-size:14px;font-weight:500">{{ s.name }}</span><span>{{ s.specEn }}</span><span>{{ s.specAr }}</span></div>
+          <div dir="ltr" style="font-family:{{ s.famEn }};font-size:{{ s.size }}px;font-weight:{{ s.wEn }};line-height:{{ s.lhEn }};letter-spacing:{{ s.lsEn }};text-transform:{{ s.tt }};font-variant-numeric:tabular-nums;color:{{ s.color }};text-wrap:pretty">{{ s.en }}</div>
+          <div dir="rtl" lang="ar" style="font-family:{{ s.famAr }};font-size:{{ s.sizeAr }}px;font-weight:{{ s.wAr }};line-height:{{ s.lhAr }};font-variant-numeric:tabular-nums;color:{{ s.color }};text-wrap:pretty">{{ s.ar }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 300px), 1fr));gap:24px">
+      <div style="display:flex;flex-direction:column;gap:16px;padding:24px;border:1px solid #3B332B;border-radius:2px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Roman numerals · rooms, plates, lists</span>
+        <span style="font-family:'Newsreader',serif;font-size:30px;color:#D4924A;letter-spacing:0.06em;line-height:1.3">I II III IV V VI · XIV XV XVI</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;padding:24px;border:1px solid #3B332B;border-radius:2px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Catalogue numbers · always LTR</span>
+        <div style="display:flex;flex-wrap:wrap;gap:20px;font-size:20px;font-variant-numeric:tabular-nums;letter-spacing:0.06em"><span>K·014</span><span>R·0318</span><span>A·12480</span><span style="color:#A3968A">B·0042</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;padding:24px;border:1px solid #3B332B;border-radius:2px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Figures · tabular, Western, units in Latin</span>
+        <div style="display:grid;grid-template-columns:repeat(2, auto);justify-content:start;column-gap:32px;row-gap:4px;font-size:20px;font-variant-numeric:tabular-nums"><span>14.00 g</span><span>20%</span><span>0.25 g</span><span>1 : 9</span><span>112.50 g</span><span>42 days</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:40px">
+    <div style="display:flex;align-items:baseline;gap:20px;border-bottom:1px solid #3B332B;padding-bottom:16px"><span style="font-family:'Newsreader',serif;font-size:20px;color:#D4924A">III</span><h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:40px;line-height:1.1">Space, grid, edges</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 380px), 1fr));gap:48px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ space }}" as="sp" hint-placeholder-count="10">
+          <div style="display:grid;grid-template-columns:72px minmax(0,1fr);gap:16px;align-items:center;font-size:14px;font-variant-numeric:tabular-nums;color:#A3968A"><span>{{ sp.label }}</span><div style="height:8px;width:{{ sp.px }}px;background:#D4924A"></div></div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;font-size:15px;color:#A3968A">
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;padding-bottom:12px;border-bottom:1px solid #3B332B"><span style="color:#EDE4D6">Desktop 1440</span><span>12 columns · 48 margin · 24 gutter</span></div>
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;padding-bottom:12px;border-bottom:1px solid #3B332B"><span style="color:#EDE4D6">Mobile 375</span><span>4 columns · 16 margin · 12 gutter</span></div>
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;padding-bottom:12px;border-bottom:1px solid #3B332B"><span style="color:#EDE4D6">Radius</span><span>2 px everywhere. Circles only for the ember and avatars.</span></div>
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;padding-bottom:12px;border-bottom:1px solid #3B332B"><span style="color:#EDE4D6">Rules</span><span>1 px Hairline #3B332B. 1 px Muted for totals. No shadows on UI.</span></div>
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;padding-bottom:12px;border-bottom:1px solid #3B332B"><span style="color:#EDE4D6">Focus</span><span>2 px Resin outline, 2 px offset. 2 px Text outline on Resin fills.</span></div>
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px"><span style="color:#EDE4D6">Targets</span><span>44 px minimum. 48 px for primary actions and inputs.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:40px">
+    <div style="display:flex;align-items:baseline;gap:20px;border-bottom:1px solid #3B332B;padding-bottom:16px"><span style="font-family:'Newsreader',serif;font-size:20px;color:#D4924A">IV</span><h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:40px;line-height:1.1">Components</h2></div>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Nav</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;height:72px;padding:0 24px;border:1px solid #3B332B;border-radius:2px;flex-wrap:wrap">
+        <img src="assets/kyphira-wordmark.svg" alt="Kyphira" style="height:15px">
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;color:#EDE4D6;box-shadow:inset 0 -1px 0 #D4924A">The Bench</span>
+          <span style="display:flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;color:#A3968A">The Wardrobe</span>
+          <span style="display:flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;color:#A3968A">The Library</span>
+          <span style="display:flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;color:#A3968A">The Atlas</span>
+          <span style="display:flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;color:#A3968A">The Salon</span>
+          <span style="display:flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;color:#A3968A">The Nose</span>
+        </div>
+        <div style="display:flex;gap:8px"><span style="display:flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;border:1px solid #3B332B;border-radius:2px;font-family:'IBM Plex Sans Arabic',sans-serif">ع</span><span style="display:flex;align-items:center;min-height:44px;padding:0 18px;background:#D4924A;color:#15120F;border-radius:2px;font-size:14px;font-weight:600">Pro</span></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 420px), 1fr));gap:40px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Buttons</span>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+          <button style="min-height:48px;padding:0 24px;background:#D4924A;color:#15120F;border:none;border-radius:2px;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#E3A866" style-focus="outline:2px solid #EDE4D6;outline-offset:2px">Save recipe</button>
+          <button style="min-height:48px;padding:0 24px;background:transparent;color:#EDE4D6;border:1px solid #3B332B;border-radius:2px;font:inherit;cursor:pointer" style-hover="border-color:#A3968A" style-focus="outline:2px solid #D4924A;outline-offset:2px">Scale batch</button>
+          <button style="min-height:48px;padding:0 16px;background:transparent;color:#D4924A;border:none;border-radius:2px;font:inherit;cursor:pointer" style-hover="color:#EDE4D6" style-focus="outline:2px solid #D4924A;outline-offset:2px">Add material</button>
+          <button disabled="" style="min-height:48px;padding:0 24px;background:#29231D;color:#A3968A;border:none;border-radius:2px;font:inherit;cursor:not-allowed">Export</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+          <span style="display:flex;align-items:center;min-height:48px;padding:0 24px;background:#D4924A;color:#15120F;border-radius:2px;font-weight:600;outline:2px solid #EDE4D6;outline-offset:2px">Focus</span>
+          <span style="display:flex;align-items:center;min-height:48px;padding:0 24px;border:1px solid #3B332B;border-radius:2px;outline:2px solid #D4924A;outline-offset:2px">Focus</span>
+          <span style="font-size:13px;color:#A3968A">Primary, secondary, text, disabled. Focus shown.</span>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Inputs</span>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:16px">
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:14px">Recipe name
+            <input value="Kyphi No. 3" style="min-height:48px;padding:0 14px;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit" style-focus="outline:2px solid #D4924A;outline-offset:0;border-color:#D4924A">
+            <span style="font-size:13px;color:#A3968A">Shown on your Salon card.</span>
+          </label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:14px">Dilution
+            <input value="140" style="min-height:48px;padding:0 14px;background:#1E1A16;border:1px solid #E07A62;border-radius:2px;color:#EDE4D6;font:inherit;font-variant-numeric:tabular-nums">
+            <span style="font-size:13px;color:#E07A62">Use 0 to 100%.</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 420px), 1fr));gap:40px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Numeric stepper · 0.25 g step · EN and AR</span>
+        <sc-for list="{{ steppers }}" as="st" hint-placeholder-count="2">
+          <div dir="{{ st.dir }}" style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:14px;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif">{{ st.label }}</span>
+            <div style="display:flex;align-items:stretch;border:1px solid #3B332B;border-radius:2px;background:#1E1A16;height:64px">
+              <button onClick="{{ dec }}" aria-label="{{ st.decLabel }}" style="width:64px;background:transparent;border:none;border-inline-end:1px solid #3B332B;color:#EDE4D6;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#29231D" style-focus="outline:2px solid #D4924A;outline-offset:-2px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+              <div dir="ltr" style="flex:1;display:flex;align-items:baseline;justify-content:center;gap:6px;padding-top:12px;font-variant-numeric:tabular-nums"><span style="font-size:32px;font-weight:500">{{ grams }}</span><span style="font-size:16px;color:#A3968A">g</span></div>
+              <button onClick="{{ inc }}" aria-label="{{ st.incLabel }}" style="width:64px;background:transparent;border:none;border-inline-start:1px solid #3B332B;color:#EDE4D6;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:#29231D" style-focus="outline:2px solid #D4924A;outline-offset:-2px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Weight-scale progress · mirrors in RTL</span>
+        <sc-for list="{{ scales }}" as="sc" hint-placeholder-count="2">
+          <div dir="{{ sc.dir }}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ scaleNow }}" style="display:flex;flex-direction:column;gap:10px;padding:20px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16;font-family:'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+              <span style="font-size:13px;color:#A3968A">{{ sc.label }}</span>
+              <span dir="ltr" style="display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums"><span style="font-size:30px;font-weight:500">{{ scaleVal }}</span><span style="font-size:14px;color:#A3968A">/ 100.00 g</span></span>
+            </div>
+            <div style="position:relative;height:16px">
+              <div style="position:absolute;inset-inline:0;top:7px;height:2px;background:#3B332B"></div>
+              <div style="position:absolute;inset-inline-start:0;top:7px;height:2px;width:{{ scalePct }}%;background:#D4924A"></div>
+              <div style="position:absolute;inset:0;display:flex;justify-content:space-between">
+                <sc-for list="{{ ticks }}" as="tk" hint-placeholder-count="11"><span style="width:1px;height:{{ tk.h }}px;margin-top:{{ tk.m }}px;background:#A3968A"></span></sc-for>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#A3968A;gap:12px"><span>{{ sc.next }}</span><span dir="ltr" style="font-variant-numeric:tabular-nums">{{ scaleLeft }}</span></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 300px), 1fr));gap:40px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Card · material plate</span>
+        <div style="display:flex;flex-direction:column;justify-content:space-between;gap:28px;width:220px;padding:16px;border:1px solid #3B332B;border-radius:2px;background:#1E1A16">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:'Newsreader',serif;font-size:16px;color:#D4924A">XI</span><span style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">K·118</span></div>
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-family:'Newsreader',serif;font-size:24px;line-height:1.2">Hedione</span><span style="font-family:'Noto Naskh Arabic',serif;font-size:17px;color:#A3968A">هيديون</span></div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid #3B332B;padding-top:8px;font-size:14px;font-variant-numeric:tabular-nums"><span>9.00 g</span><span style="color:#A3968A">neat</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Chips · notes and filters</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ chips }}" as="ch" hint-placeholder-count="6">
+            <button onClick="{{ ch.toggle }}" aria-pressed="{{ ch.pressed }}" style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:2px;border:1px solid {{ ch.bd }};background:{{ ch.bg }};color:{{ ch.fg }};font:inherit;font-size:14px;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:2px">{{ ch.label }}<span style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums">{{ ch.count }}</span></button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Tabs</span>
+        <div role="tablist" style="display:flex;border-bottom:1px solid #3B332B">
+          <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
+            <button role="tab" aria-selected="{{ tb.sel }}" onClick="{{ tb.pick }}" style="min-height:48px;padding:0 16px;background:transparent;border:none;box-shadow:inset 0 -2px 0 {{ tb.line }};color:{{ tb.fg }};font:inherit;font-size:15px;cursor:pointer" style-focus="outline:2px solid #D4924A;outline-offset:-2px">{{ tb.label }}</button>
+          </sc-for>
+        </div>
+        <span style="font-size:14px;color:#A3968A">{{ tabBody }}</span>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Table · materials</span>
+      <div role="table" style="display:flex;flex-direction:column;font-variant-numeric:tabular-nums;font-size:15px;overflow-x:auto">
+        <div role="row" style="display:grid;grid-template-columns:48px minmax(160px,2fr) minmax(120px,1fr) minmax(100px,1fr) 90px 70px;gap:16px;padding:10px 0;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#A3968A;border-bottom:1px solid #A3968A;min-width:640px"><span>No.</span><span>Material</span><span>CAS</span><span>Dilution</span><span style="text-align:right">g</span><span style="text-align:right">%</span></div>
+        <sc-for list="{{ table }}" as="tr" hint-placeholder-count="5">
+          <div role="row" style="display:grid;grid-template-columns:48px minmax(160px,2fr) minmax(120px,1fr) minmax(100px,1fr) 90px 70px;gap:16px;padding:12px 0;border-bottom:1px solid #3B332B;min-width:640px" style-hover="background:#1E1A16">
+            <span style="font-family:'Newsreader',serif;color:#D4924A">{{ tr.n }}</span><span>{{ tr.name }}</span><span style="color:#A3968A">{{ tr.cas }}</span><span style="color:#A3968A">{{ tr.dil }}</span><span style="text-align:right">{{ tr.g }}</span><span style="text-align:right;color:#A3968A">{{ tr.pct }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 420px), 1fr));gap:40px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Modal</span>
+        <div style="position:relative;padding:40px;background:rgba(10,9,8,0.72);border:1px solid #3B332B;border-radius:2px;display:flex;justify-content:center">
+          <div role="dialog" aria-label="Scale batch" style="width:100%;max-width:400px;background:#1E1A16;border:1px solid #3B332B;border-radius:2px;padding:24px;display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:#A3968A;font-variant-numeric:tabular-nums;letter-spacing:0.06em">R·0318</span><span style="font-family:'Newsreader',serif;font-size:26px">Scale batch</span></div><button aria-label="Close" style="width:44px;height:44px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-variant-numeric:tabular-nums">
+              <div style="display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid #3B332B;border-radius:2px"><span style="font-size:13px;color:#A3968A">From</span><span style="font-size:22px">100.00 g</span></div>
+              <div style="display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid #D4924A;border-radius:2px"><span style="font-size:13px;color:#A3968A">To</span><span style="font-size:22px">250.00 g</span></div>
+            </div>
+            <span style="font-size:14px;color:#A3968A">×2.5. Iso E Super becomes 75.00 g.</span>
+            <div style="display:flex;justify-content:flex-end;gap:8px"><button style="min-height:48px;padding:0 20px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;cursor:pointer">Cancel</button><button style="min-height:48px;padding:0 20px;background:#D4924A;border:none;border-radius:2px;color:#15120F;font:inherit;font-weight:600;cursor:pointer">Scale</button></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Toasts</span>
+        <div role="status" style="display:flex;align-items:center;gap:16px;padding:12px 12px 12px 18px;background:#29231D;border:1px solid #3B332B;border-radius:2px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9DB38A" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+          <span style="flex:1;font-size:15px">Saved to The Bench. <span style="color:#A3968A;font-variant-numeric:tabular-nums">R·0318</span></span>
+          <button style="min-height:44px;padding:0 14px;background:transparent;border:none;color:#D4924A;font:inherit;font-size:14px;font-weight:600;cursor:pointer">Undo</button>
+        </div>
+        <div role="alert" style="display:flex;align-items:center;gap:16px;padding:12px 12px 12px 18px;background:#29231D;border:1px solid #E07A62;border-radius:2px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E07A62" stroke-width="1.25" stroke-linecap="round"><path d="M12 7v6M12 16.5v.5M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path></svg>
+          <span style="flex:1;font-size:15px">Total is 102.50 g. Remove 2.50 g to save.</span>
+        </div>
+        <span style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A;margin-top:12px">Empty and loading</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:20px;border:1px dashed #3B332B;border-radius:2px">
+            <span style="font-family:'Newsreader',serif;font-size:20px">0 bottles</span>
+            <span style="font-size:14px;color:#A3968A">Add one from the Atlas, or by barcode.</span>
+            <button style="min-height:44px;padding:0 16px;background:transparent;border:1px solid #3B332B;border-radius:2px;color:#EDE4D6;font:inherit;font-size:14px;cursor:pointer">Open the Atlas</button>
+          </div>
+          <div aria-busy="true" style="display:flex;flex-direction:column;gap:12px;padding:20px;border:1px solid #3B332B;border-radius:2px">
+            <span style="font-size:13px;color:#A3968A">Weighing 16 materials…</span>
+            <div style="height:12px;width:80%;background:#29231D;border-radius:2px"></div>
+            <div style="height:12px;width:60%;background:#29231D;border-radius:2px"></div>
+            <div style="height:12px;width:70%;background:#29231D;border-radius:2px"></div>
+            <div style="height:2px;background:#3B332B"><div style="height:2px;width:35%;background:#D4924A"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:40px">
+    <div style="display:flex;align-items:baseline;gap:20px;border-bottom:1px solid #3B332B;padding-bottom:16px"><span style="font-family:'Newsreader',serif;font-size:20px;color:#D4924A">V</span><h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:40px;line-height:1.1">Icons</h2></div>
+    <p style="margin:0;color:#A3968A;max-width:640px">24 px grid, 1.25 px stroke, round caps. Directional icons show their Arabic mirror beside them, in resin.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));gap:1px;background:#3B332B;border:1px solid #3B332B">
+      <sc-for list="{{ icons }}" as="ic" hint-placeholder-count="18">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 8px;background:#15120F">
+          <div style="display:flex;gap:16px;align-items:center">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EDE4D6" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ic.d }}"></path></svg>
+            <sc-if value="{{ ic.dir }}" hint-placeholder-val="{{ false }}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4924A" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="transform:scaleX(-1)"><path d="{{ ic.d }}"></path></svg></sc-if>
+          </div>
+          <span style="font-size:12px;color:#A3968A">{{ ic.name }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:40px">
+    <div style="display:flex;align-items:baseline;gap:20px;border-bottom:1px solid #3B332B;padding-bottom:16px"><span style="font-family:'Newsreader',serif;font-size:20px;color:#D4924A">VI</span><h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:40px;line-height:1.1">Motion</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 420px), 1fr));gap:48px">
+      <div style="display:flex;flex-direction:column">
+        <div style="display:grid;grid-template-columns:110px 90px minmax(0,1fr);gap:16px;padding:10px 0;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#A3968A;border-bottom:1px solid #A3968A"><span>Token</span><span>Value</span><span>Use</span></div>
+        <sc-for list="{{ motion }}" as="m" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:110px 90px minmax(0,1fr);gap:16px;padding:12px 0;border-bottom:1px solid #3B332B;font-size:15px;font-variant-numeric:tabular-nums"><span style="color:#D4924A">{{ m.token }}</span><span>{{ m.val }}</span><span style="color:#A3968A">{{ m.use }}</span></div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;font-size:15px;color:#A3968A">
+        <span style="color:#EDE4D6">Character: quiet and precise.</span>
+        <span>Cinematic only in the homepage hero, Library essay openers and the Salon profile header. Elsewhere, motion confirms an action and stops.</span>
+        <span>Reduced motion: every transition becomes an instant state change or a 150 ms fade. Ambient loops stop. The hero opens at rest.</span>
+        <span>RTL: slides and progress run right to left. Easing and duration do not change.</span>
+        <a href="Homepage Board.dc.html" style="color:#D4924A">Hero storyboard and timing →</a>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:40px">
+    <div style="display:flex;align-items:baseline;gap:20px;border-bottom:1px solid #3B332B;padding-bottom:16px"><span style="font-family:'Newsreader',serif;font-size:20px;color:#D4924A">VII</span><h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:40px;line-height:1.1">Voice</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 300px), 1fr));gap:24px">
+      <div style="display:flex;flex-direction:column;gap:8px;padding:20px;border:1px solid #3B332B;border-radius:2px"><span style="color:#9DB38A;font-size:13px">Write</span><span style="font-family:'Newsreader',serif;font-size:22px;line-height:1.35">“Rest 42 days. Open on 28 November.”</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:20px;border:1px solid #3B332B;border-radius:2px"><span style="color:#E07A62;font-size:13px">Not</span><span style="font-family:'Newsreader',serif;font-size:22px;line-height:1.35;color:#A3968A">“Let your masterpiece mature into something truly exceptional.”</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:20px;border:1px solid #3B332B;border-radius:2px"><span style="color:#A3968A;font-size:13px">Banned</span><span style="font-size:17px;line-height:1.6">revolutionary · ultimate · unlock · elevate</span><span style="font-size:14px;color:#A3968A">Short sentences. Numbers before adjectives.</span></div>
+    </div>
+  </section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const C = {
+  ground:'#15120F', s1:'#1E1A16', s2:'#29231D', line:'#3B332B', text:'#EDE4D6', muted:'#A3968A', resin:'#D4924A', resinH:'#E3A866', ok:'#9DB38A', alert:'#E07A62', aft:'#3A2B1E',
+};
+function lum(h){const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(v=>v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4));return .2126*c[0]+.7152*c[1]+.0722*c[2];}
+const ratio=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);};
+const PAIRS = [
+  ['Text on Ground','text','ground','Body, headings'],['Text on Surface 2','text','s2','Toasts, raised panels'],
+  ['Muted on Ground','muted','ground','Secondary copy, captions'],['Muted on Surface 1','muted','s1','Card meta'],['Muted on Surface 2','muted','s2','Disabled labels'],
+  ['Resin on Ground','resin','ground','Links, numerals, active'],['Resin on Surface 2','resin','s2','Toast actions'],['Ground on Resin','ground','resin','Primary button label'],
+  ['Alert on Ground','alert','ground','Errors'],['Ok on Ground','ok','ground','Confirmations'],
+  ['Text on Afternoon','text','aft','Hero, first frames'],['Muted on Afternoon','muted','aft','Hero caption'],
+  ['Hairline on Ground','line','ground','Rules only, never text'],
+];
+const ICONS = [
+  ['Forward','M4 12h16M14 6l6 6-6 6',1],['Chevron','M9 6l6 6-6 6',1],['Back','M20 12H4M10 6l-6 6 6 6',1],['Search','M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.5 15.5L20 20',0],
+  ['Add','M12 5v14M5 12h14',0],['Subtract','M5 12h14',0],['Close','M6 6l12 12M18 6L6 18',0],['Done','M5 12.5l4.5 4.5L19 7.5',0],
+  ['Timer','M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM12 9v4l2.5 2M10 2.5h4',0],['Scale','M4 19h16M6 19l1.5-9h9L18 19M12 10V6M9 6h6',0],
+  ['Bench','M9.5 3h5M10.5 3v6L5 19a1.5 1.5 0 0 0 1.3 2h11.4a1.5 1.5 0 0 0 1.3-2L13.5 9V3M7.5 15h9',0],['Wardrobe','M10 3h4v3h-4zM9 6h6l1.5 3v10.5A1.5 1.5 0 0 1 15 21H9a1.5 1.5 0 0 1-1.5-1.5V9zM7.5 13h9',0],
+  ['Library','M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z',1],
+  ['Atlas','M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z',0],
+  ['Salon','M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20.5c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5',0],
+  ['Nose','M12 21v-3M12 18c-3 0-4-2.2-2.5-4.2C11 12 9.5 10 8 9M12 18c3 0 4-2.2 2.5-4.2C13 12 15 9.5 13.5 6.5 13 5 13.5 4 14 3',0],
+  ['Filter','M4 6h16M7 12h10M10 18h4',0],['Log','M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01',1],
+];
+const CHIPS = [['Resinous',412],['Amber',388],['Smoky',201],['Woody',940],['Balsamic',176],['Spiced',522]];
+const TABS = [['Formula','16 materials, 100.00 g, sorted by weight.'],['Batch','Scale to any size. Grams recalculate to 0.01 g.'],['Notes','Free text, dated. Linked to wear logs.']];
+
+class Component extends DCLogic {
+  state = { g: 14.0, chips: { 'Resinous':true, 'Smoky':true }, tab: 0 };
+  renderVals() {
+    const g = this.state.g;
+    const scale = 71.0;
+    return {
+      colors: [
+        ['Ground',C.ground,'Page','#EDE4D6'],['Surface 1',C.s1,'Cards, inputs','#EDE4D6'],['Surface 2',C.s2,'Toasts, hover','#EDE4D6'],['Hairline',C.line,'Rules, borders','#EDE4D6'],
+        ['Text',C.text,'Primary text','#15120F'],['Muted',C.muted,'Secondary text','#15120F'],['Resin',C.resin,'The one accent','#15120F'],['Resin hover',C.resinH,'Hover on Resin','#15120F'],
+        ['Ok',C.ok,'Confirm','#15120F'],['Alert',C.alert,'Error','#15120F'],['Afternoon',C.aft,'Hero only','#EDE4D6'],
+      ].map(c => ({ name:c[0], hex:c[1], role:c[2], on:c[3] })),
+      contrast: PAIRS.map(p => {
+        const r = ratio(C[p[1]], C[p[2]]); const txt = p[1] !== 'line';
+        const pass = !txt ? 'Decorative' : r >= 7 ? 'AAA' : r >= 4.5 ? 'AA' : 'Fail';
+        return { pair:p[0], ratio:r.toFixed(2) + ' : 1', pass, passColor: pass === 'Fail' ? '#E07A62' : pass === 'Decorative' ? '#A3968A' : '#9DB38A', use:p[3], fg:C[p[1]], bg:C[p[2]] };
+      }),
+      typeScale: [
+        { name:'Display', specEn:'Newsreader 300 · 76/1.05', specAr:'Naskh 400 · 64/1.45', famEn:"'Newsreader',serif", famAr:"'Noto Naskh Arabic',serif", size:76, sizeAr:64, wEn:300, wAr:400, lhEn:1.05, lhAr:1.45, lsEn:'-0.01em', tt:'none', color:'#EDE4D6', en:'16 materials.', ar:'16 مادة.' },
+        { name:'H1', specEn:'Newsreader 300 · 56/1.1', specAr:'Naskh 400 · 48/1.5', famEn:"'Newsreader',serif", famAr:"'Noto Naskh Arabic',serif", size:56, sizeAr:48, wEn:300, wAr:400, lhEn:1.1, lhAr:1.5, lsEn:'-0.01em', tt:'none', color:'#EDE4D6', en:'Each room does one job.', ar:'لكل غرفة عمل واحد.' },
+        { name:'H2', specEn:'Newsreader 300 · 34/1.15', specAr:'Naskh 400 · 30/1.55', famEn:"'Newsreader',serif", famAr:"'Noto Naskh Arabic',serif", size:34, sizeAr:30, wEn:300, wAr:400, lhEn:1.15, lhAr:1.55, lsEn:'0', tt:'none', color:'#EDE4D6', en:'Labdanum, absolute', ar:'لادن، مطلق' },
+        { name:'Body', specEn:'Hanken 400 · 17/1.55', specAr:'Plex Arabic 400 · 17/1.85', famEn:"'Hanken Grotesk',sans-serif", famAr:"'IBM Plex Sans Arabic',sans-serif", size:17, sizeAr:17, wEn:400, wAr:400, lhEn:1.55, lhAr:1.85, lsEn:'0', tt:'none', color:'#EDE4D6', en:'Rest the blend 4 to 6 weeks, cool and dark. Shake once a week.', ar:'أرِح الخلطة من 4 إلى 6 أسابيع، في مكان بارد ومظلم. رُجّها مرة كل أسبوع.' },
+        { name:'UI', specEn:'Hanken 500 · 14/1.4', specAr:'Plex Arabic 500 · 14/1.6', famEn:"'Hanken Grotesk',sans-serif", famAr:"'IBM Plex Sans Arabic',sans-serif", size:14, sizeAr:14, wEn:500, wAr:500, lhEn:1.4, lhAr:1.6, lsEn:'0', tt:'none', color:'#EDE4D6', en:'Scale batch · Save recipe · Sign in', ar:'تكبير الدفعة · حفظ الوصفة · تسجيل الدخول' },
+        { name:'Caption', specEn:'Hanken 400 · 12 caps +0.14em', specAr:'Plex Arabic 400 · 13, no tracking', famEn:"'Hanken Grotesk',sans-serif", famAr:"'IBM Plex Sans Arabic',sans-serif", size:12, sizeAr:13, wEn:400, wAr:400, lhEn:1.4, lhAr:1.6, lsEn:'0.14em', tt:'uppercase', color:'#A3968A', en:'The Compounding', ar:'التركيب' },
+        { name:'Figures', specEn:'Hanken 500 · tnum', specAr:'Same, Western digits', famEn:"'Hanken Grotesk',sans-serif", famAr:"'Hanken Grotesk','IBM Plex Sans Arabic',sans-serif", size:28, sizeAr:28, wEn:500, wAr:500, lhEn:1.3, lhAr:1.5, lsEn:'0', tt:'none', color:'#EDE4D6', en:'14.00 g  9.00 g  112.50 g', ar:'14.00 g  9.00 g  112.50 g' },
+      ],
+      space: [4,8,12,16,24,32,48,64,96,128].map(v => ({ label: v + ' px', px: v * 2 })),
+      steppers: [
+        { dir:'ltr', label:'Frankincense, resinoid', decLabel:'Subtract 0.25 g', incLabel:'Add 0.25 g' },
+        { dir:'rtl', label:'لبان، راتنجي', decLabel:'اطرح 0.25 g', incLabel:'أضف 0.25 g' },
+      ],
+      grams: g.toFixed(2),
+      dec: () => this.setState(s => ({ g: Math.max(0, s.g - 0.25) })),
+      inc: () => this.setState(s => ({ g: s.g + 0.25 })),
+      scales: [
+        { dir:'ltr', label:'Plate X of XVI · Iso E Super', next:'Next: Hedione, 9.00 g' },
+        { dir:'rtl', label:'اللوح X من XVI · إيزو إي سوبر', next:'التالي: هيديون، 9.00 g' },
+      ],
+      scaleVal: scale.toFixed(2), scalePct: scale, scaleNow: scale, scaleLeft: (100 - scale).toFixed(2) + ' g left',
+      ticks: Array.from({ length: 11 }, (_, i) => ({ h: i % 5 === 0 ? 16 : 8, m: i % 5 === 0 ? 0 : 4 })),
+      chips: CHIPS.map(([label, count]) => {
+        const on = !!this.state.chips[label];
+        return { label, count, pressed: on ? 'true' : 'false', bd: on ? '#D4924A' : '#3B332B', bg: on ? '#29231D' : 'transparent', fg: on ? '#EDE4D6' : '#A3968A',
+          toggle: () => this.setState(s => ({ chips: { ...s.chips, [label]: !s.chips[label] } })) };
+      }),
+      tabs: TABS.map((tb, i) => ({ label: tb[0], sel: i === this.state.tab ? 'true' : 'false', line: i === this.state.tab ? '#D4924A' : 'transparent', fg: i === this.state.tab ? '#EDE4D6' : '#A3968A', pick: () => this.setState({ tab: i }) })),
+      tabBody: TABS[this.state.tab][1],
+      table: [
+        ['X','Iso E Super','54464-57-2','neat','30.00','30.0'],['I','Frankincense','89957-98-2','resinoid 50%','22.00','22.0'],
+        ['XVI','Sandalwood','8006-87-9','oil','20.00','20.0'],['III','Labdanum','8016-26-0','absolute','14.00','14.0'],['XI','Hedione','24851-98-7','neat','9.00','9.0'],
+      ].map(r => ({ n:r[0], name:r[1], cas:r[2], dil:r[3], g:r[4], pct:r[5] })),
+      icons: ICONS.map(i => ({ name: i[0], d: i[1], dir: !!i[2] })),
+      motion: [
+        { token:'fast', val:'150 ms', use:'Hover, focus, chip toggle, button press' },
+        { token:'base', val:'250 ms', use:'Tabs, toasts, menus, stepper value change' },
+        { token:'slow', val:'600 ms', use:'Modals, room transitions, headline reveals' },
+        { token:'ambient', val:'≥ 2 s', use:'Light, dusk shift, smoke, ember breath, resting timer' },
+        { token:'ease-out', val:'0.22, 1, 0.36, 1', use:'Anything arriving or responding' },
+        { token:'ease-in-out', val:'0.65, 0, 0.35, 1', use:'Anything changing state in place' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

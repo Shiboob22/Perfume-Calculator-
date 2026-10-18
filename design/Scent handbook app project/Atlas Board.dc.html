@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=Noto+Naskh+Arabic:wght@400..700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#0E0C0A}a{color:#D4924A}a:hover{color:#EDE4D6}</style>
+</helmet>
+
+<section data-screen-label="Atlas motion" style="padding:96px;display:flex;flex-direction:column;gap:48px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 5 · IV · The Atlas</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">Key moment: opening a fragrance</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A;max-width:760px">Quiet. Accord bars fill to their share, notes fade in tier by tier. Filtering has no motion: the list simply changes. Live: <a href="Atlas.dc.html">Atlas</a>.</p>
+  </div>
+  <div id="5e" style="display:flex;flex-direction:column;gap:24px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">5e · Storyboard, desktop EN</span>
+    <div style="display:grid;grid-template-columns:repeat(4, 576px);gap:32px 24px">
+      <sc-for list="{{ frames }}" as="f" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="width:576px;height:360px;overflow:hidden;border:1px solid #3B332B"><div style="width:1440px;zoom:0.4"><dc-import name="Atlas" lang="en" init-view="detail" init-sel="0" freeze-at="{{ f.at }}" hint-size="1440px,900px"></dc-import></div></div>
+          <div style="display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px">
+            <span style="font-family:'Newsreader',serif;font-size:22px;color:#D4924A">{{ f.n }}</span>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline"><span style="font-size:17px;font-weight:500">{{ f.title }}</span><span style="font-size:14px;color:#A3968A;font-variant-numeric:tabular-nums">{{ f.time }}</span></div>
+              <span style="font-size:15px;line-height:1.5;color:#A3968A">{{ f.body }}</span>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div id="5f" style="display:flex;flex-direction:column;gap:16px;width:1100px">
+    <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">5f · Motion spec</span>
+    <div role="table" style="display:flex;flex-direction:column;font-size:15px;font-variant-numeric:tabular-nums;border-top:1px solid #A3968A">
+      <div role="row" style="display:grid;grid-template-columns:300px 100px 190px 120px minmax(0,1fr);gap:16px;padding:12px 0;color:#A3968A;font-size:12px;letter-spacing:0.12em;text-transform:uppercase"><span>Element</span><span>Start</span><span>Duration</span><span>Easing</span><span>Trigger</span></div>
+      <sc-for list="{{ spec }}" as="r" hint-placeholder-count="6">
+        <div role="row" style="display:grid;grid-template-columns:300px 100px 190px 120px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid #3B332B"><span>{{ r.el }}</span><span>{{ r.start }}</span><span>{{ r.dur }}</span><span style="color:#D4924A">{{ r.ease }}</span><span style="color:#A3968A">{{ r.trig }}</span></div>
+      </sc-for>
+    </div>
+    <p style="margin:0;font-size:14px;color:#A3968A;line-height:1.6">Reduced motion: bars and notes appear at their final state. Tokens in <a href="Design System.dc.html">Design System</a>.</p>
+  </div>
+</section>
+
+<section data-screen-label="Atlas screens" style="padding:96px;display:flex;flex-direction:column;gap:64px;color:#EDE4D6;font-family:'Hanken Grotesk',sans-serif;background:#0E0C0A;border-top:1px solid #3B332B">
+  <div style="display:flex;flex-direction:column;gap:12px;max-width:900px">
+    <span style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#A3968A">Turn 5 · Screens</span>
+    <h2 style="margin:0;font-family:'Newsreader',serif;font-weight:300;font-size:56px;line-height:1.1">The Atlas: 1440 and 375, EN and AR</h2>
+    <p style="margin:0;font-size:18px;line-height:1.6;color:#A3968A">Fragrance index with filters, and fragrance detail with notes, accords and house. Frames are live: search, filter, open a row.</p>
+  </div>
+  <sc-for list="{{ rows }}" as="row" hint-placeholder-count="2">
+    <div style="display:flex;flex-wrap:wrap;gap:80px;align-items:flex-start">
+      <sc-for list="{{ row.items }}" as="it" hint-placeholder-count="4">
+        <div id="{{ it.id }}" style="display:flex;flex-direction:column;gap:16px">
+          <span style="align-self:flex-start;font-size:13px;font-weight:600;background:#D4924A;color:#15120F;padding:4px 10px;border-radius:2px">{{ it.label }}</span>
+          <div style="width:{{ it.w }}px;height:{{ it.h }}px;overflow:hidden;border:1px solid #3B332B"><dc-import name="Atlas" lang="{{ it.lang }}" init-view="{{ it.view }}" init-sel="{{ it.sel }}" freeze-at="{{ it.at }}" hint-size="{{ it.hint }}"></dc-import></div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-for>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const mk = (id, label, view, lang, mobile, h, sel) => ({ id, label, view, lang, sel: sel ?? 0, w: mobile ? 375 : 1440, h, hint: (mobile ? 375 : 1440) + 'px,' + h + 'px', at: view === 'detail' ? 3 : null });
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      frames: [
+        { n:'1', at:0.05, time:'0 ms', title:'Opened', body:'Header only. Bars empty, notes hidden.' },
+        { n:'2', at:0.45, time:'150–750 ms', title:'Bars fill', body:'Each accord grows to its share over 600 ms ease-out, 80 ms apart. Percentages are fixed text.' },
+        { n:'3', at:0.85, time:'500–1020 ms', title:'Notes in', body:'Top, heart, base fade in 400 ms ease-out, 120 ms apart.' },
+        { n:'4', at:3, time:'1.0 s', title:'Rest', body:'Everything still. Nothing loops on this page.' },
+      ],
+      spec: [
+        { el:'Header', start:'0 ms', dur:'400 ms', ease:'ease-out', trig:'Fragrance opened' },
+        { el:'Accord bars', start:'150 ms', dur:'600 ms, 80 ms stagger', ease:'ease-out', trig:'Fragrance opened' },
+        { el:'Note tiers', start:'500 ms', dur:'400 ms, 120 ms stagger', ease:'ease-out', trig:'Bars at 60%' },
+        { el:'Filter chip', start:'tap', dur:'150 ms (fast)', ease:'ease-out', trig:'Toggle' },
+        { el:'Result list', start:'tap', dur:'Instant', ease:'none', trig:'Filter or search change. No reflow animation' },
+      ],
+      rows: [
+        { items: [mk('5a','5a · Index · Desktop 1440 · EN','index','en',false,2000), mk('5b','5b · Index · Desktop 1440 · AR','index','ar',false,2100), mk('5c','5c · Index · Mobile 375 · EN','index','en',true,2000), mk('5d','5d · Index · Mobile 375 · AR','index','ar',true,2050)] },
+        { items: [mk('5g','5g · Detail · Desktop 1440 · EN','detail','en',false,1150,1), mk('5h','5h · Detail · Desktop 1440 · AR','detail','ar',false,1200,1), mk('5i','5i · Detail · Mobile 375 · EN','detail','en',true,1600,1), mk('5j','5j · Detail · Mobile 375 · AR','detail','ar',true,1650,1)] },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>
