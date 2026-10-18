@@ -19,6 +19,10 @@ const SCREENS = {
   onboarding: lazy(() => import("../components/Onboarding")),
   account: lazy(() => import("../components/Account")),
   labels: lazy(() => import("../components/Labels")),
+  wardrobe: lazy(() => import("../components/wardrobe/Wardrobe")),
+  atlas: lazy(() => import("../components/atlas/Atlas")),
+  salon: lazy(() => import("../components/salon/Salon")),
+  nose: lazy(() => import("../components/nose/Nose")),
   journal: lazy(() => import("./DevJournal")),
   motion: lazy(() => import("./DevMotion")),
 };

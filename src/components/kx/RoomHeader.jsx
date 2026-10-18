@@ -8,8 +8,9 @@ import { COLORS, TYPE } from "../../lib/theme";
 //     the large line (a count, "12 bottles.");
 //   title given:    a caption names the room, the h1 is the large title;
 //   neither:        the numeral, then the room's name as the large h1.
-export default function RoomHeader({ numeral, name, title, headline, children, className = "" }) {
-  const big = "font-serif font-light text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.1] rtl:leading-[1.5] tracking-[-0.01em] rtl:tracking-normal";
+export default function RoomHeader({ numeral, name, title, headline, children, compact = false, className = "" }) {
+  const size = compact ? "text-[clamp(2.25rem,5vw,3.5rem)] lg:text-[2.5rem]" : "text-[clamp(2.25rem,5vw,3.5rem)]";
+  const big = `font-serif font-light ${size} leading-[1.1] rtl:leading-[1.5] tracking-[-0.01em] rtl:tracking-normal`;
   const cap = "uppercase tracking-[0.14em] rtl:tracking-normal text-xs font-normal";
   const num = (
     <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-lg not-italic font-serif`} style={{ color: COLORS.actionText }}>{numeral}</span>

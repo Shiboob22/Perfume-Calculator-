@@ -9,7 +9,7 @@ import Collection from "./Collection";
 import Stats from "./Stats";
 import Lists from "./Lists";
 import Privacy from "./Privacy";
-import RoomHeader from "../kx/RoomHeader";
+import RoomShell from "../kx/RoomShell";
 
 const SECTIONS = ["today", "collection", "stats", "lists"];
 
@@ -35,19 +35,9 @@ export default function Wardrobe() {
   const go = (s) => setParams(s === "today" ? {} : { section: s }, { replace: true });
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-6">
-      <RoomHeader numeral="II" name={t("wardrobe.title")}
-        headline={state.loading || state.failed ? null : t("wardrobe.headline", { count: bottles.filter((b) => b.status === "owned").length })} />
-      <p className="text-sm max-w-prose" style={{ color: COLORS.inkSoft }}>{t("wardrobe.lead")}</p>
-      <nav aria-label={t("wardrobe.tabsLabel")} className="flex gap-1 border-b overflow-x-auto mt-5 mb-6" style={{ borderColor: COLORS.line }}>
-        {SECTIONS.map((s) => (
-          <button key={s} type="button" onClick={() => go(s)} aria-current={section === s ? "page" : undefined}
-            className="px-4 text-[15px] -mb-px border-b-2 whitespace-nowrap min-h-[48px]"
-            style={{ borderColor: section === s ? COLORS.actionText : "transparent", color: section === s ? COLORS.ink : COLORS.inkSoft }}>
-            {t(`wardrobe.tabs.${s}`)}
-          </button>
-        ))}
-      </nav>
+    <RoomShell numeral="II" name={t("wardrobe.title")} lead={t("wardrobe.lead")} navLabel={t("wardrobe.tabsLabel")}
+      headline={state.loading || state.failed ? null : t("wardrobe.headline", { count: bottles.filter((b) => b.status === "owned").length })}
+      nav={SECTIONS.map((s) => ({ id: s, label: t(`wardrobe.tabs.${s}`), active: section === s, onClick: () => go(s) }))}>
       {state.loading ? (
         <p className="text-xs font-mono" role="status" style={{ color: COLORS.inkSoft }}>{t("wardrobe.loading")}</p>
       ) : state.failed ? (
@@ -61,6 +51,6 @@ export default function Wardrobe() {
           <Privacy />
         </>
       )}
-    </div>
+    </RoomShell>
   );
 }

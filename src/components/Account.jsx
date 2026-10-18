@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import RoomBeam from "./kx/RoomBeam";
 import { COLORS, SHAPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
@@ -57,6 +58,7 @@ export default function Account({ user }) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 sm:px-8 py-6">
+      <RoomBeam />
       <h1 className="font-serif font-light text-4xl sm:text-5xl mb-1 rtl:leading-[1.5]" style={{ color: COLORS.ink }}>{t("account.title")}</h1>
       <p className="text-sm mb-6 font-mono" style={{ color: COLORS.inkSoft }}>{t("account.signedInAs", { email: user.email })}</p>
 

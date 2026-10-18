@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import RoomBeam from "../components/kx/RoomBeam";
 import { Link, Reveal } from "../motion";
 import { COLORS, SHAPE, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
@@ -85,6 +86,7 @@ export default function GuidesIndex() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-10">
+      <RoomBeam at={2} />
       <p className="flex items-baseline gap-3 mb-4 text-xs" style={{ color: COLORS.dim }}>
         <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} not-italic text-lg`} style={{ color: COLORS.actionText }}>III</span>
         <span className="uppercase tracking-[0.14em] rtl:tracking-normal">{t("site.compounding.rooms.library.name")}</span>

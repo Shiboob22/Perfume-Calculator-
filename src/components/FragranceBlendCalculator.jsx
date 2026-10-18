@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import RoomBeam from "./kx/RoomBeam";
 import { useSearchParams } from "react-router-dom";
 import { CountUp, useNavigate } from "../motion";
 import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
 import { enqueue, isOffline } from "../lib/outbox";
-import { calculate, fmt2, gToOz, mlToFlOz, weightShare } from "../lib/calc";
-import { BottleFill, RatioBar } from "./Bottle";
+import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
+import { RatioBar } from "./Bottle";
 import { IconBookmark, IconBookmarkCheck, IconCheck, IconCopy, IconDiamondAlert, IconDrop, IconFlameTriangle } from "./icons";
 import { STRENGTHS } from "../lib/formulation";
 import Stepper from "./kx/Stepper";
@@ -496,7 +497,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
+    <div className="w-full max-w-6xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
+      <RoomBeam at={0} />
       <RoomHeader numeral="I" name={t("site.compounding.rooms.bench.name")} title={t("calc.heading")} />
       <RestingLine />
       {selectedPerfume && (
@@ -546,7 +548,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           {mode === "run" && <Run densities={result.densities} defaultPct={concPct} defaultBasis={result.basis} />}
         </div>
       ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] gap-8 items-start">
         <div className="p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
           <h2 className="text-base font-serif font-semibold mb-5" style={{ color: COLORS.forestDeep }}>{t("calc.benchSheet")}</h2>
 
@@ -779,20 +781,21 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           <QuickResult shown={result.shown} t={t} />
         </div>
 
-        <div id="calc-readout" className="p-6 border scroll-mt-4" style={{ backgroundColor: COLORS.card, borderColor: COLORS.ink }}>
+        <div id="calc-readout" className="p-6 border scroll-mt-4 lg:sticky lg:top-6" style={{ backgroundColor: COLORS.card, borderColor: COLORS.ink }}>
           <h2 className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-5" style={{ color: COLORS.dim }}>{t("calc.readout")}</h2>
-          <div className="flex gap-6 items-end mb-5">
-            <BottleFill oilShare={weightShare(result.shown.oilG, result.shown.ethanolG)} height={190} />
-            <div className="grid gap-4 flex-1 min-w-0" style={{ containerType: "inline-size" }}>
-              {[["calc.oil", result.shown.oilG, COLORS.oil], ["calc.ethanol96", result.shown.ethanolG, COLORS.mist]].map(([k, g, sw]) => (
-                <div key={k}>
-                  <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
-                    <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: sw, border: `1px solid ${COLORS.ink}` }} />{t(k)}
-                  </span>
-                  <span dir="ltr" className="readout block font-mono leading-[1.15] tracking-[-0.03em] whitespace-nowrap" style={{ fontSize: `min(3rem, calc(100cqw / ${(fmt2(g).length * 0.6 + 0.6).toFixed(2)}))` }}><CountUp value={g} format={fmt2} onView />{" "}<span className="text-2xl ms-1">g</span></span>
-                </div>
-              ))}
-            </div>
+          <p className="mb-1 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("calc.total")}</p>
+          <p dir="ltr" className="font-serif font-light leading-none tracking-[-0.02em] tabular-nums mb-5" style={{ fontSize: "clamp(3.5rem, 9vw, 5rem)" }}>
+            <CountUp value={result.shown.totalG} format={fmt2} onView /><span className="text-2xl ms-2" style={{ color: COLORS.dim }}>g</span>
+          </p>
+          <div className="grid grid-cols-2 gap-6 mb-5" style={{ containerType: "inline-size" }}>
+            {[["calc.oil", result.shown.oilG, COLORS.oil], ["calc.ethanol96", result.shown.ethanolG, COLORS.mist]].map(([k, g, sw]) => (
+              <div key={k} className="min-w-0">
+                <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
+                  <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: sw, border: `1px solid ${COLORS.ink}` }} />{t(k)}
+                </span>
+                <span dir="ltr" className="readout block font-mono leading-[1.15] tracking-[-0.03em] whitespace-nowrap" style={{ fontSize: "min(2rem, 8cqw)" }}><CountUp value={g} format={fmt2} onView />{" "}<span className="text-lg ms-1">g</span></span>
+              </div>
+            ))}
           </div>
           <RatioBar oilG={result.shown.oilG} ethanolG={result.shown.ethanolG} caption={t("calc.byWeight")} className="mb-4" />
 

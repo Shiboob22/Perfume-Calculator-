@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import RoomBeam from "./kx/RoomBeam";
 import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listBatches, deleteBatch, listRecipes } from "../lib/fragranceApi";
@@ -360,8 +361,9 @@ export default function Batches() {
 
   return (
     <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 py-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 mb-6">
-        <h2 ref={headingRef} tabIndex={-1} className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>{t("batches.title")}</h2>
+      <RoomBeam at={0} />
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 mb-6">
+        <h2 ref={headingRef} tabIndex={-1} className="font-serif font-light text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.1] rtl:leading-[1.5] tracking-[-0.01em] rtl:tracking-normal" style={{ color: COLORS.ink }}>{t("batches.title")}</h2>
         {batches.length > 0 && (
           <div className="flex items-center gap-3">
             <span className="text-xs" style={{ color: COLORS.inkSoft }}>

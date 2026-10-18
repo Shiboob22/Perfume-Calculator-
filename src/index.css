@@ -281,3 +281,9 @@ summary::-webkit-details-marker { display: none; }
   [data-compounding][data-fallback] .cmp-tickbox { transform: translateY(calc((1 - var(--progress, 0)) * 100%)); }
   [data-compounding][data-fallback] .cmp-read { --cg: calc(var(--progress, 0) * var(--cg-max)); }
 }
+
+/* The beam across the top of a room: twelve ruled ticks, the current room's
+   sixth in brass (RoomShell). Static: it marks place, it does not move. */
+.kx-beam {
+  background: repeating-linear-gradient(90deg, var(--c-ink) 0 1px, transparent 1px calc(100% / 12)) bottom / 100% 5px no-repeat;
+}

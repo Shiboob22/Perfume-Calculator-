@@ -12,7 +12,7 @@ import Compose from "./Compose";
 import MyProfile from "./MyProfile";
 import Profile from "./Profile";
 import Moderation from "./Moderation";
-import RoomHeader from "../kx/RoomHeader";
+import RoomShell from "../kx/RoomShell";
 
 // The Salon room (behind the "salon" flag): recipes and reviews that people
 // choose to share, follows and likes, with reporting and moderation.
@@ -34,19 +34,9 @@ export default function Salon() {
   const tabs = [["feed", "/salon"], ["new", "/salon/new"], ["me", "/salon/me"], ...(admin ? [["moderation", "/salon/moderation"]] : [])];
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-6">
-      <RoomHeader numeral="V" name={t("salon.title")} />
-      <p className="text-sm max-w-prose" style={{ color: COLORS.inkSoft }}>{t("salon.lead")}</p>
-      <Notice tone="warning" className="mt-4">{t("salon.safety")}</Notice>
-      <nav aria-label={t("salon.navLabel")} className="flex gap-2 border-b overflow-x-auto mt-5 mb-6" style={{ borderColor: COLORS.line }}>
-        {tabs.map(([id, to]) => (
-          <Link key={id} to={to} aria-current={active === id ? "page" : undefined}
-            className="px-4 text-[15px] -mb-px border-b-2 whitespace-nowrap min-h-[48px] inline-flex items-center"
-            style={{ borderColor: active === id ? COLORS.actionText : "transparent", color: active === id ? COLORS.ink : COLORS.inkSoft }}>
-            {t(`salon.nav.${id}`)}
-          </Link>
-        ))}
-      </nav>
+    <RoomShell numeral="V" name={t("salon.title")} lead={t("salon.lead")} navLabel={t("salon.navLabel")}
+      notice={<Notice tone="warning" className="mt-4">{t("salon.safety")}</Notice>}
+      nav={tabs.map(([id, to]) => ({ id, to, label: t(`salon.nav.${id}`), active: active === id }))}>
       {route.view === "feed" && mine === null && (
         <p role="status" className="text-sm mb-5" style={{ color: COLORS.inkSoft }}>{t("salon.feed.noProfile")} <Link to="/salon/me" className="underline underline-offset-2" style={{ color: COLORS.forestDeep }}>{t("salon.feed.setUp")}</Link></p>
       )}
@@ -58,6 +48,6 @@ export default function Salon() {
       {route.view === "me" && <MyProfile />}
       {route.view === "profile" && <Profile handle={route.handle} />}
       {route.view === "moderation" && <Moderation admin={admin} />}
-    </div>
+    </RoomShell>
   );
 }

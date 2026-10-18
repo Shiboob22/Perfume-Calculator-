@@ -13,3 +13,5 @@ export { default as Stepper } from "./Stepper";
 export { default as RoomHeader } from "./RoomHeader";
 export { default as WeightScale } from "./WeightScale";
 export { default as Confirm } from "./Confirm";
+export { default as RoomShell } from "./RoomShell";
+export { default as RoomBeam } from "./RoomBeam";

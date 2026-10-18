@@ -7,7 +7,7 @@ import { flagOn } from "../../lib/flags";
 import { fragranceHref } from "../../lib/atlas/entities.js";
 import { Button, Chip, FragranceCard, Notice } from "../kx";
 import { inputClass, inputStyle } from "../wardrobe/ui";
-import RoomHeader from "../kx/RoomHeader";
+import RoomShell from "../kx/RoomShell";
 
 const STARTERS = ["warm", "fresh", "office", "sweet"];
 const MAX = 500;
@@ -42,12 +42,9 @@ export default function Nose() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-6 pb-12">
-      <RoomHeader numeral="VI" name={t("nose.title")} headline={t("nose.headline")} />
-      <p className="text-sm max-w-prose" style={{ color: COLORS.inkSoft }}>{t("nose.lead")}</p>
-      <Notice tone="info" className="mt-4">{t("nose.safety")}</Notice>
-
-      <form onSubmit={(e) => { e.preventDefault(); ask(question); }} noValidate className="mt-6 grid gap-3 max-w-3xl">
+    <RoomShell wide numeral="VI" name={t("nose.title")} headline={t("nose.headline")} lead={t("nose.lead")}
+      notice={<Notice tone="info" className="mt-4">{t("nose.safety")}</Notice>}>
+      <form onSubmit={(e) => { e.preventDefault(); ask(question); }} noValidate className="grid gap-3 max-w-3xl">
         <div>
           <label htmlFor="nose-q" className="block text-sm mb-1.5" style={{ color: COLORS.inkSoft }}>{t("nose.label")}</label>
           <textarea id="nose-q" rows={3} maxLength={MAX} value={question} onChange={(e) => setQuestion(e.target.value)}
@@ -85,12 +82,12 @@ export default function Nose() {
           </Reveal>
         )}
         {/* Picks on the left; on wide screens the shelf sits beside them (the board's shelf panel). */}
-        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-10 lg:items-start">
+        <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_18rem] xl:gap-10 lg:items-start">
           {result?.kind === "picks" ? <Picks result={result} atlasOn={atlasOn} t={t} /> : <span />}
           {result?.shelf?.length > 0 && <Shelf shelf={result.shelf} wardrobeOn={wardrobeOn} t={t} />}
         </div>
       </div>
-    </div>
+    </RoomShell>
   );
 }
 
@@ -115,7 +112,7 @@ function Picks({ result, atlasOn, t }) {
 // Bottles the asker already owns that fit: matched on the server, never by the AI.
 function Shelf({ shelf, wardrobeOn, t }) {
   return (
-    <Reveal as="section" eager aria-labelledby="nose-shelf-h" className="mt-8 lg:mt-0 lg:p-5 lg:rounded lg:border" style={{ borderColor: COLORS.line }}>
+    <Reveal as="section" eager aria-labelledby="nose-shelf-h" className="mt-8 xl:mt-0 xl:p-5 xl:rounded xl:border" style={{ borderColor: COLORS.line }}>
       <h2 id="nose-shelf-h" className="font-serif italic text-2xl mb-1" style={{ color: COLORS.ink }}>{t("nose.shelf.title")}</h2>
       <p className="text-sm mb-4 max-w-prose" style={{ color: COLORS.inkSoft }}>{t("nose.shelf.lead")}</p>
       <ul className="grid gap-2 list-none p-0 m-0">

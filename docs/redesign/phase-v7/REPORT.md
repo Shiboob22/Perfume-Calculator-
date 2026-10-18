@@ -27,7 +27,7 @@ Brief: `docs/Kyphira_Brief_v7.md`. Direction chosen by the owner: **A, "Weighed"
 Scroll check (`scripts/scroll-check.mjs`): native scroll timelines present; beam, pan and gauge scale from 0 to 1 with scroll. Tests: Vitest 697 pass, lint 0 errors, Playwright default-flag build 373 pass / 72 skipped before baselines were regenerated; after regenerating, visual and recipe specs pass.
 
 ## Trade-offs and honest gaps
-- **Not every route is rebuilt.** All rooms take the new colours, type, radius and motion tokens and gain the moments above, but their layouts were not redesigned around the idea (Bench, Wardrobe, Atlas, Salon, Nose, Account, sign-in). The brief's "every route redesigned" is not met; this is the biggest follow-up.
+- **Room layouts (rebuilt after the first report).** Every room now sits under the ruled beam (`kx/RoomBeam`: twelve ticks, a brass pan on the room's place of six). Wardrobe, Atlas, Salon and Nose use `kx/RoomShell`: a sticky rail (numeral, name, lead, sections as a vertical scale) beside the work on wide screens, stacked with a sideways tab row on phones. The Bench is two columns with a sticky readout led by the batch total in grams (bottle graphic removed); Journal, Library, Account and sign-in take the beam and the large title. Screens: `screens/room-*`. Still plain inside: the tab bodies (collection grid, feed cards, Atlas results) keep their earlier layouts.
 - Brief's "results count in" overrides the earlier owner rule "calculator figures never animate". Count is 250 ms, first view and changes only.
 - Parallax and Pin exist but no page uses them; DrawLine only on guide openers.
 - Over budget: first script is 8 KB above the 170 KB budget (was 10.8 KB).
@@ -37,7 +37,7 @@ Scroll check (`scripts/scroll-check.mjs`): native scroll timelines present; beam
 - `localStorage` flags: production has `compounding` and `motion` on, so this scene replaces the shipped Compounding on deploy.
 
 ## Follow-ups
-1. Rebuild room layouts in direction A (owner review first).
+1. Owner review of the room layouts; rebuild the tab bodies (Wardrobe collection, Salon feed, Atlas results) in the same language if wanted.
 2. Split Arabic font CSS or the scene out of the first script.
 3. Lighthouse and WebKit/Firefox pass on a preview deploy; real-device check.
 4. Arabic review; decide figures for Atlas and Nose from live data.
