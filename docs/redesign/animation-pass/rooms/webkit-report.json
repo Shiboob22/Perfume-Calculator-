@@ -1,0 +1,645 @@
+{
+ "engine": "webkit",
+ "theme": "light",
+ "realRows": [
+  "Ariana Grande Cloud",
+  "Initio Oud for Greatness",
+  "Creed Royal Oud",
+  "Tom Ford Tobacco Oud",
+  "Mancera Aoud Lemon Mood",
+  "Swiss Arabian Shaghaf Oud",
+  "Lattafa Oud Mood",
+  "Initio Oud for Happiness",
+  "Lattafa Opulent Oud",
+  "Al Haramain Amber Oud",
+  "Montale Aoud Lavande",
+  "Mancera Roses Vanille"
+ ],
+ "report": [
+  {
+   "tag": "webkit-en-1440",
+   "wardrobeEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -16,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -16,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -51,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -51,
+     "name": "mo-grow"
+    }
+   ],
+   "wardrobeLate": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -6,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -6,
+     "name": "mo-grow"
+    }
+   ],
+   "wardrobeCards": 6,
+   "gaugeScrub": [
+    0,
+    169,
+    169,
+    169,
+    169,
+    0
+   ],
+   "salonEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -29,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -66,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -98,
+     "name": "mo-grow"
+    }
+   ],
+   "inkScrub": [
+    0,
+    664,
+    664,
+    664,
+    664,
+    0
+   ],
+   "noseEmbers": 8,
+   "noseEmberAnim": 8,
+   "atlasEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 6,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 6,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 2,
+     "name": "mo-grow"
+    }
+   ],
+   "atlasLate": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 6,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 6,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 6,
+     "name": "mo-grow"
+    }
+   ],
+   "bandScrub": [
+    207,
+    662,
+    662,
+    662,
+    662,
+    207
+   ],
+   "overflowX": false
+  },
+  {
+   "tag": "webkit-en-375",
+   "wardrobeEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": -17,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -65,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -114,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -163,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -211,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -260,
+     "name": "mo-grow"
+    }
+   ],
+   "wardrobeLate": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -41,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -90,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -138,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -187,
+     "name": "mo-grow"
+    }
+   ],
+   "wardrobeCards": 6,
+   "gaugeScrub": [
+    0,
+    181,
+    181,
+    181,
+    181,
+    0
+   ],
+   "salonEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": -10,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -70,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -123,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -183,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -236,
+     "name": "mo-grow"
+    }
+   ],
+   "inkScrub": [
+    0,
+    343,
+    343,
+    343,
+    343,
+    0
+   ],
+   "noseEmbers": 8,
+   "noseEmberAnim": 8,
+   "atlasEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": -15,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -25,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -44,
+     "name": "mo-grow"
+    }
+   ],
+   "atlasLate": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 8,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 12,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 8,
+     "name": "mo-grow"
+    }
+   ],
+   "bandScrub": [
+    0,
+    236,
+    341,
+    341,
+    236,
+    0
+   ],
+   "overflowX": false
+  },
+  {
+   "tag": "webkit-ar-1440",
+   "wardrobeEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -11,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -11,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -46,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -46,
+     "name": "mo-grow"
+    }
+   ],
+   "wardrobeLate": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -6,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -6,
+     "name": "mo-grow"
+    }
+   ],
+   "wardrobeCards": 6,
+   "gaugeScrub": [
+    0,
+    169,
+    169,
+    169,
+    169,
+    0
+   ],
+   "salonEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -26,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -65,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -97,
+     "name": "mo-grow"
+    }
+   ],
+   "inkScrub": [
+    0,
+    664,
+    664,
+    664,
+    664,
+    0
+   ],
+   "noseEmbers": 8,
+   "noseEmberAnim": 8,
+   "atlasEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 6,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 6,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 5,
+     "name": "mo-grow"
+    }
+   ],
+   "atlasLate": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 6,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 6,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 6,
+     "name": "mo-grow"
+    }
+   ],
+   "bandScrub": [
+    582,
+    662,
+    662,
+    662,
+    662,
+    582
+   ],
+   "overflowX": false
+  },
+  {
+   "tag": "webkit-ar-375",
+   "wardrobeEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": -18,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -66,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -115,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -164,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -212,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -261,
+     "name": "mo-grow"
+    }
+   ],
+   "wardrobeLate": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 0,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -41,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -90,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -139,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -187,
+     "name": "mo-grow"
+    }
+   ],
+   "wardrobeCards": 6,
+   "gaugeScrub": [
+    0,
+    181,
+    181,
+    181,
+    181,
+    0
+   ],
+   "salonEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": -11,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -74,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -128,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -191,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -245,
+     "name": "mo-grow"
+    }
+   ],
+   "inkScrub": [
+    0,
+    343,
+    343,
+    343,
+    343,
+    0
+   ],
+   "noseEmbers": 8,
+   "noseEmberAnim": 8,
+   "atlasEarly": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": -14,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -24,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": -43,
+     "name": "mo-grow"
+    }
+   ],
+   "atlasLate": [
+    {
+     "timeline": "ViewTimeline",
+     "progress": 8,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 12,
+     "name": "mo-grow"
+    },
+    {
+     "timeline": "ViewTimeline",
+     "progress": 8,
+     "name": "mo-grow"
+    }
+   ],
+   "bandScrub": [
+    0,
+    234,
+    341,
+    341,
+    234,
+    0
+   ],
+   "overflowX": false
+  }
+ ],
+ "errors": []
+}

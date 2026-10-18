@@ -12,6 +12,8 @@ import "@fontsource-variable/instrument-sans/wght.css";
 import "./index.css";
 import "./motion/motion.css";
 import { initMotion } from "./motion";
+import { loadCatalog } from "./i18n/catalogs";
+import { initialLocale } from "./i18n/I18nProvider";
 
 // A sign-in link that lands on a public page (Supabase falls back to the
 // Site URL when /app isn't an allowed redirect) carries its tokens in the
@@ -35,8 +37,14 @@ const tree = (
 // Public pages arrive prerendered: hydrate them. The app (/app) arrives as an
 // empty shell: render it.
 const el = document.getElementById("root");
-if (el.hasChildNodes()) hydrateRoot(el, tree);
-else createRoot(el).render(tree);
+// Arabic is a separate chunk: have it before the first render if this page will need it
+// (a failed fetch renders in English rather than not at all).
+loadCatalog(/^\/ar(\/|$)/.test(location.pathname) ? "ar" : initialLocale())
+  .catch(() => {})
+  .then(() => {
+    if (el.hasChildNodes()) hydrateRoot(el, tree);
+    else createRoot(el).render(tree);
+  });
 
 // Offline support (built by scripts/build-sw.mjs; production builds only).
 if (import.meta.env.PROD && "serviceWorker" in navigator) {

@@ -27,11 +27,11 @@ export default function FragranceCard({ name, href, facts = [], accords = [], ma
       {children}
       {accords.length > 0 && (
         <ul className="flex flex-wrap gap-2 mt-3 list-none p-0">
-          {accords.map((a) => (
+          {accords.map((a, n) => (
             <li key={a}>
               {hit.has(a.toLowerCase())
                 ? <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[13px] border" style={{ borderColor: COLORS.actionText, color: COLORS.ink }}>
-                    <span aria-hidden="true" className="w-1.5 h-1.5" style={{ background: COLORS.resin }} />{a}
+                    <span aria-hidden="true" className="mo-ember w-1.5 h-1.5" style={{ "--i": n, background: COLORS.resin }} />{a}
                   </span>
                 : <Chip>{a}</Chip>}
             </li>

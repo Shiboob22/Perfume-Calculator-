@@ -14,10 +14,10 @@ export default function Pyramid({ fragrance, terms = [] }) {
   if (bands.length === 0) return null;
   return (
     <figure aria-label={t("atlas.fragrance.pyramid")} className="grid gap-1.5 m-0">
-      {bands.map((b) => (
-        <div key={b.layer} className="relative px-4 py-3 overflow-hidden" style={{ minHeight: `${Math.round(b.height * 1.1)}px`, border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
+      {bands.map((b, i) => (
+        <div key={b.layer} className="relative px-4 py-3 overflow-clip" style={{ minHeight: `${Math.round(b.height * 1.1)}px`, border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
           {/* The light: as wide as the band's reach, as strong as its weight. Start edge in both directions. */}
-          <span aria-hidden="true" className="absolute inset-y-0 start-0" style={{ width: `${b.width}%`, background: COLORS.resin, opacity: b.opacity * 0.3 }} />
+          <span aria-hidden="true" className="mo-band absolute inset-y-0 start-0 origin-left rtl:origin-right" style={{ "--i": bands.length - 1 - i, width: `${b.width}%`, background: COLORS.resin, opacity: b.opacity * 0.3 }} />
           <div className="relative">
             <h3 className="text-xs uppercase tracking-[0.15em] rtl:tracking-normal mb-1" style={{ color: COLORS.inkSoft }}>{t(`atlas.fragrance.layers.${b.layer}`)}</h3>
             <ul className="flex flex-wrap gap-x-4 gap-y-1 list-none p-0 m-0">

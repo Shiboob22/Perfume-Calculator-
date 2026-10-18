@@ -25,7 +25,7 @@ describe("tokens", () => {
   it("defines every --mo-* variable the stylesheet reads (the rest are set per element)", () => {
     const defined = new Set(Object.keys(motionVars()));
     // Set on elements by the primitives or by a rule in the sheet itself.
-    const local = new Set(["--mo-from", "--mo-par", "--mo-pin-h", "--i"]);
+    const local = new Set(["--mo-from", "--mo-pin-h", "--i"]);
     const used = new Set([...css.matchAll(/var\((--mo-[a-z-]+|--i)/g)].map((m) => m[1]));
     for (const name of used) expect(defined.has(name) || local.has(name), name).toBe(true);
   });

@@ -28,7 +28,6 @@
 @keyframes mo-sheet-out { to { translate: 0 100%; } }
 @keyframes mo-leave { to { opacity: 0; translate: 0 calc(var(--mo-d-xs) * -1); } }
 @keyframes mo-sweep { from { translate: calc(var(--mo-dir) * -100%) 0; } to { translate: calc(var(--mo-dir) * 100%) 0; } }
-@keyframes mo-par { from { translate: 0 calc(var(--mo-par) * -1); } to { translate: 0 var(--mo-par); } }
 
 .mo-line { display: block; height: 1px; background: currentColor; }
 .mo-skel { display: block; position: relative; overflow: clip; background: var(--c-sand); }
@@ -75,11 +74,6 @@
   /* Loading: a slow sweep, stopped while off screen. */
   html[data-motion] .mo-skel::after { display: block; animation: mo-sweep var(--mo-ambient) linear infinite; }
   html[data-motion] .mo-skel[data-mo-off]::after { animation-play-state: paused; }
-
-  /* Parallax and the pin run on scroll timelines where the browser has them. */
-  @supports (animation-timeline: view()) {
-    html[data-motion]:not([data-mo-low]) .mo-parallax { animation: mo-par linear both; animation-timeline: view(); }
-  }
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -169,4 +163,19 @@ html[data-motion] .mo-light.kx-room-light { inset-inline-end: auto; inset-inline
 @media (prefers-reduced-motion: no-preference) {
   html[data-motion] .kx-pan { transform-origin: 0 50%; animation: mo-draw var(--mo-slow) var(--mo-ease-io) 120ms backwards; }
   html[data-motion]:is([dir="rtl"]) .kx-pan { transform-origin: 100% 50%; }
+}
+
+/* ── Room signatures: one quiet idea each, all transform/opacity ──
+   Wardrobe: a bottle's fill gauge fills as its card enters. Salon: the page rule is inked in.
+   Atlas: the pyramid's light grows band by band. Nose: matched accords light up after the card lands.
+   Scrubbed where the browser has view timelines; static and complete everywhere else. */
+@keyframes mo-grow { from { transform: scaleX(0); } }
+@keyframes mo-ember { from { transform: scale(0); opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    html[data-motion]:not([data-mo-low]) .mo-gauge { animation: mo-grow linear both; animation-timeline: view(); animation-range: entry 15% entry 100%; }
+    html[data-motion]:not([data-mo-low]) .mo-ink { animation: mo-grow linear both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
+    html[data-motion]:not([data-mo-low]) .mo-band { animation: mo-grow linear both; animation-timeline: view(); animation-range: entry calc(var(--i, 0) * 12%) entry calc(70% + var(--i, 0) * 12%); }
+  }
+  html[data-motion] .mo-ember { animation: mo-ember var(--mo-slow) var(--mo-ease) backwards; animation-delay: calc(var(--mo-step) * 8 + var(--i, 0) * 90ms); }
 }

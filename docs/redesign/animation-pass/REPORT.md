@@ -15,7 +15,7 @@ Brief: `docs/Kyphira_Brief_v8.md`. Critique and the ranked ten gaps: `critique.m
 | 7 | No ember or smoke | `Smoke.jsx`, lazy chunk (1,207 B gzip), half-resolution canvas, DPR capped at 1.5, driven by pinned progress and scroll velocity (thickens with the alcohol, leans with direction), paused off-screen and in hidden tabs, `fpsGovernor` halves then stops it. Not loaded under reduced motion or low power. |
 | 8 | Orientation local | `Progress`: 2 px scroll hairline on every public and app page (RTL mirrored); the margin gauge ends on 84.50 g as before. |
 | 9 | Hard cuts | The weighing stage's ground interpolates paper, dusk, paper through a registered colour property, timed so no text is on a transitioning ground; ends on the next section's ground. |
-| 10 | Parallax, horizontal, `/dev/motion` | Rooms run sideways once across a pinned stage on wide screens (vertical on phones and under reduced motion, mirrored in Arabic) with a progress meter. `/dev/motion` now shows both pin progresses, beat jump buttons and smoke status beside progress, stage, fps and the reduced-motion, RTL and low-power switches. `Parallax` is still unused: light and the tilting card carry depth instead (decision, see trade-offs). |
+| 10 | Parallax, horizontal, `/dev/motion` | Rooms run sideways once across a pinned stage on wide screens (vertical on phones and under reduced motion, mirrored in Arabic) with a progress meter. `/dev/motion` now shows both pin progresses, beat jump buttons and smoke status beside progress, stage, fps and the reduced-motion, RTL and low-power switches. `Parallax` was unused and has since been removed: light and the tilting card carry depth instead (decision, see trade-offs). |
 
 ## Numbers
 
@@ -23,9 +23,9 @@ Production-flag build, phone profile (375x667 @2x, CPU 4x, 1.6 Mbps / 150 ms), m
 
 | | Base | Now |
 |---|---|---|
-| First script gzip | 178,026 B | 179,486 B (+1,460) |
+| First script gzip | 178,026 B | **150,970 B (-27,056; under the 170 KB budget)** after the Arabic catalog moved to its own 29 KB chunk |
 | CSS gzip | 12,464 B | 15,501 B (+3,037: weigh, rooms, light, grain) |
-| All JS gzip | 314,323 B | 330,700 B (incl. 1,207 B lazy smoke chunk) |
+| All JS gzip | 314,323 B | 331,378 B (incl. 1,207 B lazy smoke chunk and the 29 KB Arabic chunk) |
 | LCP `/` (gzip served, `GZIP=1`) | 1.02 s | 1.09 s |
 | LCP `/ar` | 1.27 s | 1.34 s |
 | LCP `/` uncompressed local | 1.53 s | 1.90 s |
@@ -41,7 +41,7 @@ Tests: Vitest 701 pass; lint 0 errors; Playwright flags-on build 373 pass, 13 fa
 - **Counters animate.** The brief asks for scroll-linked counters; the 0 to 84.50 g counter is on a dark instrument panel and drawn from a registered integer (aria-hidden), with the same numbers as real text beside it. The calculator's own figures are untouched.
 - **Colour interpolation** on the weighing ground (the brief allows colour on scroll timelines). Mid-transition the ground is grey; the text beats are faded out then, only the self-contained dark panel is visible. AA holds at every held state.
 - **Intro veil** is CSS and runs before hydration, so it adds no JS and no LCP cost, but it does cover the first 0.64 s of an already-painted page; skipping is any input.
-- **Parallax primitive left unused.** On a page with a pinned stage, extra layer speeds fought the pin; light and tilt gave the depth. Flagged for removal or reuse.
+- **Parallax primitive removed.** On a page with a pinned stage, extra layer speeds fought the pin; light and tilt give the depth.
 - **Smoke is subtle by design** (amber, 16% peak alpha) so the numbers stay readable.
 
 ## Cross-engine and dark theme (follow-up, 2026-10-18)
@@ -53,10 +53,26 @@ Tests: Vitest 701 pass; lint 0 errors; Playwright flags-on build 373 pass, 13 fa
 - **Accessibility:** axe (WCAG 2 A and AA) on `/` and `/ar`, light and dark, at four held states (top, oil beat, alcohol beat on dusk, total): zero violations in all 16 runs.
 - Frames of the light-only mid-transition grey (ground between beats) are by design: only the dark panel is visible then.
 
+## Finish pass (2026-10-18)
+
+1. **Gap 6, room signatures** (all `transform`/`opacity`, scrubbed by `view()` where the browser has it, static and complete elsewhere, off under reduced motion and low power; rules in `motion.css`, scoped to `html[data-motion]`): Wardrobe bottle fill gauges fill as the card enters (`.mo-gauge`); Salon page rules are inked in over a hairline (`.mo-ink`); Atlas pyramid light grows band by band, deepest last, from the start edge in both directions (`.mo-band`); Nose matched accords ignite one by one after the card lands (`.mo-ember`). Bench and Atlas numbers and text never move.
+2. **Tested with real data, not `/dev` routes.** `scripts/rooms-real.mjs` pulls 12 real catalog rows from the live public search API (names, brands, years, ratings, accords, notes), then drives the four rooms through the real built UI with a fake session. The user-owned tables (bottles, wear log, posts, Nose answer wrapper) are faked, so this is real catalogue data on a fake account: **a staging sign-in was not possible** (no service-role key; see CLAUDE.md). Per room, EN and AR, 1440 and 375, the script measures the rendered width of the signature element at six scroll positions: it grows from 0 to full and returns to 0 on the way back (gauge `0, 169, 169, 169, 169, 0` px; Atlas band `0, 237, 341, 341, 237, 0`), in Chromium, WebKit and in dark; Firefox shows the final state. Zero console errors and no sideways overflow in 24 runs. Real data also caught what the empty `/dev` routes never would: a scroll-timeline bug (below), and the Atlas page printing the year as "2,018".
+3. **Scroll fallback, no scroll timelines (Firefox 155):** the weighing pin and the rooms strip scrubbed forward and back at 1440 EN and 375 AR; the counter climbs 0.00 → 20.94 → 59.14 → 84.50 g and returns to 0.00; no errors (frames in `verification/final/`). The room signatures have no fallback by design: they show their final state.
+4. **Firefox and WebKit suites** (flags-on build): see Numbers.
+5. **Dark theme by eye:** Wardrobe, Salon, Nose (Arabic 375) and Atlas with real rows, plus the earlier home and weighing frames (`rooms/chromium-dark-*`). Fine; no contrast or hairline problems found.
+6. **Lighthouse (mobile, Lighthouse defaults, local gzip server, prod flags):** `/` performance 91 to 96, `/ar` 88 to 92 over four runs; accessibility 100, best practices 100, SEO 100 on both; CLS 0; TBT 30 to 165 ms. **LCP is simulated at 2.5 s on `/` and 3.0 to 3.3 s on `/ar`: `/` is at the 2.5 s limit and `/ar` is over it.** The pre-pass commit measured the same way gave 4.7 to 5.1 s and 5.0 to 5.2 s, so this pass is not the cause. I did not find what holds the `/ar` first paint (render-blocking CSS plus Arabic fonts under the simulated 1.6 Mbps link are the candidates; the intro veil is ruled out by a run without it; observed, unthrottled LCP is 0.2 to 1.3 s). Reports in `lighthouse/`.
+7. **First script under budget:** 179,486 → 150,970 B gzip (-28.5 KB). `ar.js` (93 KB raw) was in the first script for English readers. It is now its own chunk (`src/i18n/catalogs.js`): English stays bundled; `main.jsx` loads Arabic before hydrating an `/ar` page or an app opened in Arabic; the prerender writes a `modulepreload` for it into every `/ar` head; switching language waits for it; a locale reached any other way renders English for one fetch, then re-renders. The first version missed the last case, and the Firefox suite caught it (language link, Arabic rooms at 320 px) before it shipped.
+8. **`Parallax` removed** (component, export, CSS, dev sheet, README, test allowlist).
+
+Bugs found while doing this, all fixed: a scroll-driven element inside an `overflow: hidden` wrapper never moved (the wrapper became its scroll container; `overflow: clip` fixes it; the Wardrobe gauge and Atlas bands had it); the year printed as "2,018" in Arabic and English (a number passed to the translator was grouped; now a string); the lazy-Arabic regression above.
+
 ## Not done or not checked
 
-- Gap 6 only partly: no bespoke scroll scene per room; Wardrobe, Salon, Nose, Atlas bodies keep earlier layouts under the new header treatment.
-- A real phone and real Safari on an iPhone (WebKit emulation stands in). No Lighthouse run this pass.
-- Dark theme not reviewed on Firefox or WebKit (light only there); sign-in not screenshotted on its own.
-- Arabic strings: none added; Arabic layout checked by eye on the home pins and strip only.
-- Recordings are from `vite dev`, rooms through `/dev/<room>` (no data), so room moments are the header and chrome, not live results.
+- **No staging sign-in**, so no real account data: the real catalog rows sit behind a fake session. Bottles, wear log and posts are invented fixtures.
+- **`/ar` LCP over 2.5 s in Lighthouse's simulated mobile profile** (3.0 to 3.3 s), `/` at 2.5 s. Better than before this pass, cause of the remainder not found.
+- A real phone and real Safari on an iPhone (WebKit emulation stands in); Lighthouse was not run on a device or on the Vercel preview, only on a local gzip server.
+- Dark theme by eye in Chromium only; Firefox and WebKit are checked in light.
+- Room recordings (`recordings/`) predate the signatures; no new video was cut, the proof is the width measurements and screenshots in `rooms/`.
+- Firefox visual snapshots do not exist (the `visual` spec has Chromium baselines only), so Firefox ran without it.
+- Sign-in still not screenshotted on its own; Arabic strings: none added.
+- `Smoke` canvas not measured on a real low-end phone.

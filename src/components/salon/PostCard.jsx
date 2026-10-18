@@ -47,7 +47,8 @@ export default function PostCard({ post, onRemoved }) {
   }
 
   return (
-    <article className="pt-4 pb-6" style={{ borderTop: `1px solid ${COLORS.ink}` }} aria-labelledby={`post-${post.id}`}>
+    <article className="relative pt-4 pb-6" style={{ borderTop: `1px solid ${COLORS.line}` }} aria-labelledby={`post-${post.id}`}>
+      <span aria-hidden="true" className="mo-ink absolute top-[-1px] inset-x-0 h-px origin-left rtl:origin-right" style={{ background: COLORS.ink }} />
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-xs" style={{ color: COLORS.dim }}>
         <span className="uppercase tracking-[0.15em] rtl:tracking-normal">{t(`salon.post.${post.kind}`)}</span>
         <time dateTime={post.created_at} className="font-mono tabular-nums">{when}</time>

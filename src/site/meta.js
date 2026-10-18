@@ -1,13 +1,11 @@
 // Public routes and their <head>: one source for the build-time prerender
 // (scripts/prerender.mjs) and for client-side navigation.
 import { createTranslator } from "../i18n/core";
-import en from "../i18n/messages/en";
-import ar from "../i18n/messages/ar";
+import { CATALOGS } from "../i18n/catalogs";
 import { GUIDES, guideBySlug } from "../content/guides";
 import { LEGAL, LEGAL_PAGES } from "../content/legal";
 import { BRAND, brandName } from "../brand.js";
 
-const CATALOGS = { en, ar };
 
 // The canonical origin. Set VITE_SITE_URL once the custom domain exists.
 export const SITE_URL = (import.meta.env?.VITE_SITE_URL || BRAND.defaultSiteUrl).replace(/\/$/, "");

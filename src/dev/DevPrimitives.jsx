@@ -3,7 +3,7 @@
 // motion, right-to-left and low power. See DevMotion.
 import React, { useState } from "react";
 import { TOKENS } from "../motion/config";
-import { CountUp, DrawLine, Parallax, Pin, Reveal, Skeleton, Stagger, TextReveal } from "../motion";
+import { CountUp, DrawLine, Pin, Reveal, Skeleton, Stagger, TextReveal } from "../motion";
 import { useI18n } from "../i18n/I18nProvider";
 import { COLORS } from "../lib/theme";
 
@@ -72,11 +72,6 @@ export default function DevPrimitives() {
       <Spacer label="scroll" />
       <Sheet title="Skeleton">
         <div className="grid gap-3" role="status"><span className="sr-only">Loading</span><Skeleton w="40%" h={28} /><Skeleton w="100%" /><Skeleton w="82%" /><Skeleton w="60%" /></div>
-      </Sheet>
-
-      <Spacer label="scroll" />
-      <Sheet title="Parallax (transform only; still on low power and reduced motion)">
-        <Parallax speed={1.5} className="p-10 text-center" style={{ background: COLORS.sand }}>Drifts against the scroll</Parallax>
       </Sheet>
 
       <Spacer label="scroll" />

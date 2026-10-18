@@ -71,13 +71,6 @@ export function DrawLine({ className, style, ...rest }) {
   return <span ref={ref} aria-hidden="true" className={cx("mo-line", className)} style={style} {...rest} />;
 }
 
-/** Drifts against the scroll by up to `speed` × 32 px. Transform only; still when scroll timelines are missing, on low power, or under reduced motion. */
-export function Parallax({ as: Tag = "div", speed = 1, className, style, children, ...rest }) {
-  return (
-    <Tag className={cx("mo-parallax", className)} style={{ ...style, "--mo-par": `${Math.round(TOKENS.distance.l * speed)}px` }} {...rest}>{children}</Tag>
-  );
-}
-
 /**
  * A stage that stays on screen while the page scrolls through `height`
  * (a CSS length such as "300vh"). Children can read the progress as the named

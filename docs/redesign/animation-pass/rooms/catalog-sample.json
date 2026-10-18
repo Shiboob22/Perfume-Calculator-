@@ -1,0 +1,228 @@
+[
+ {
+  "id": "5725030b-7561-488e-9b7a-b354b3f4ffed",
+  "name": "Ariana Grande Cloud",
+  "brand": "Ariana Grande",
+  "year": 2018,
+  "rating": 3.99,
+  "tier": "gourmand",
+  "accords": [
+   "Sweet",
+   "Lactonic",
+   "Vanilla",
+   "Coconut",
+   "Musky"
+  ]
+ },
+ {
+  "id": "a51cd047-8e2a-460a-8a6c-076966ab7a66",
+  "name": "Initio Oud for Greatness",
+  "brand": "Initio Parfums Prives",
+  "year": 2018,
+  "rating": 4.29,
+  "tier": "oriental",
+  "accords": [
+   "Warm Spicy",
+   "Fresh Spicy",
+   "Oud",
+   "Lavender",
+   "Patchouli",
+   "Metallic",
+   "Musky",
+   "Leather",
+   "Woody",
+   "Earthy"
+  ]
+ },
+ {
+  "id": "494b14a0-da1d-4aff-98ff-3ff06bdb3016",
+  "name": "Creed Royal Oud",
+  "brand": "Creed",
+  "year": 2011,
+  "rating": 4.37,
+  "tier": "oriental",
+  "accords": [
+   "Woody",
+   "Musky",
+   "Powdery",
+   "Citrus",
+   "Aromatic",
+   "Soft Spicy",
+   "Green",
+   "Oud",
+   "Amber"
+  ]
+ },
+ {
+  "id": "6ddb971a-6b7f-4364-9f6d-715702065068",
+  "name": "Tom Ford Tobacco Oud",
+  "brand": "Tom Ford",
+  "year": 2013,
+  "rating": 4.2,
+  "tier": "oriental",
+  "accords": [
+   "Warm Spicy",
+   "Tobacco",
+   "Woody",
+   "Whiskey",
+   "Oud",
+   "Sweet",
+   "Amber",
+   "Balsamic",
+   "Vanilla",
+   "Smoky"
+  ]
+ },
+ {
+  "id": "b5c5f8c6-a584-4b64-af99-57af043d2e90",
+  "name": "Mancera Aoud Lemon Mood",
+  "brand": "Mancera",
+  "year": 2016,
+  "rating": 4.09,
+  "tier": "fresh",
+  "accords": [
+   "Citrus",
+   "Oud",
+   "Almond",
+   "Aromatic",
+   "Vanilla",
+   "Nutty",
+   "Fresh Spicy",
+   "Woody",
+   "Sweet",
+   "Patchouli"
+  ]
+ },
+ {
+  "id": "a20f70d1-d41b-4efb-98eb-b1ea423558e1",
+  "name": "Swiss Arabian Shaghaf Oud",
+  "brand": "Swiss Arabian",
+  "year": null,
+  "rating": 4.1,
+  "tier": "oriental",
+  "accords": [
+   "Sweet",
+   "Oud",
+   "Vanilla",
+   "Rose",
+   "Warm Spicy",
+   "Lactonic",
+   "Nutty",
+   "Metallic",
+   "Powdery"
+  ]
+ },
+ {
+  "id": "22ab6192-df0f-4c62-849b-2d91e46823b9",
+  "name": "Lattafa Oud Mood",
+  "brand": "Lattafa",
+  "year": null,
+  "rating": 4.05,
+  "tier": "oriental",
+  "accords": [
+   "Amber",
+   "Oud",
+   "Woody",
+   "Warm Spicy",
+   "Caramel",
+   "Balsamic",
+   "Rose",
+   "Smoky",
+   "Floral",
+   "Sweet"
+  ]
+ },
+ {
+  "id": "2eb5e16c-a711-4d1c-b11a-78e837194518",
+  "name": "Initio Oud for Happiness",
+  "brand": "Initio Parfums Prives",
+  "year": 2021,
+  "rating": 3.91,
+  "tier": "oriental",
+  "accords": [
+   "Citrus",
+   "Soft Spicy",
+   "Vanilla",
+   "Warm Spicy",
+   "Powdery",
+   "Oud",
+   "Green",
+   "Musky",
+   "Sweet",
+   "Woody"
+  ]
+ },
+ {
+  "id": "5f25ab35-2d89-48a5-82df-5a8f68cf34e0",
+  "name": "Lattafa Opulent Oud",
+  "brand": "Lattafa",
+  "year": 2018,
+  "rating": 4.08,
+  "tier": "oriental",
+  "accords": [
+   "Oud",
+   "Warm Spicy",
+   "Amber",
+   "Metallic",
+   "Rose",
+   "Leather"
+  ]
+ },
+ {
+  "id": "9b161bbb-49ed-44ee-ab16-ae689d5542e0",
+  "name": "Al Haramain Amber Oud",
+  "brand": "Al Haramain",
+  "year": 2018,
+  "rating": 4.07,
+  "tier": "oriental",
+  "accords": [
+   "Amber",
+   "Woody",
+   "Aromatic",
+   "Citrus",
+   "Fresh Spicy",
+   "Powdery",
+   "Musky",
+   "Warm Spicy",
+   "Balsamic"
+  ]
+ },
+ {
+  "id": "e7aa393c-ccd5-47b3-a662-f761c1393ee2",
+  "name": "Montale Aoud Lavande",
+  "brand": "Montale",
+  "year": 2015,
+  "rating": 3.6,
+  "tier": "oriental",
+  "accords": [
+   "Lavender",
+   "Oud",
+   "Powdery",
+   "Warm Spicy",
+   "Fresh Spicy",
+   "Aromatic",
+   "Woody",
+   "Citrus",
+   "Floral",
+   "Musky"
+  ]
+ },
+ {
+  "id": "462962fb-9176-4de0-bde4-9ee7ead724b8",
+  "name": "Mancera Roses Vanille",
+  "brand": "Mancera",
+  "year": 2011,
+  "rating": 4.03,
+  "tier": "gourmand",
+  "accords": [
+   "Rose",
+   "Vanilla",
+   "Powdery",
+   "Musky",
+   "Floral",
+   "Woody",
+   "Sweet",
+   "Citrus"
+  ]
+ }
+]

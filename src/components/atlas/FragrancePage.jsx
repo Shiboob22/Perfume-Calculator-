@@ -60,7 +60,7 @@ export default function FragrancePage({ id, terms }) {
       <h2 id="atlas-fragrance-h" className="font-serif text-3xl sm:text-4xl mt-1" style={{ color: COLORS.ink, viewTransitionName: `frag-${f.id}` }}>{f.name}</h2>
       <p className="mt-2 text-base flex flex-wrap items-center gap-x-4 gap-y-1" style={{ color: COLORS.inkSoft }}>
         {house && <Link to={entityHref("house", house)} className="underline underline-offset-4 inline-flex items-center min-h-[44px]" style={{ color: COLORS.ink }}>{t("atlas.fragrance.by", { house: termName(terms, "house", house.toLowerCase(), locale, house) })}</Link>}
-        {f.year && <span className="font-mono tabular-nums">{t("atlas.fragrance.released", { year: f.year })}</span>}
+        {f.year && <span className="font-mono tabular-nums">{t("atlas.fragrance.released", { year: String(f.year) })}</span>}
       </p>
       <ul className="mt-3 flex flex-wrap gap-2 list-none p-0">
         {f.tier && <li><Chip>{t(`families.${f.tier}.label`)}</Chip></li>}

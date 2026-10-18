@@ -7,7 +7,8 @@ import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const DIST = "dist";
-const { render, publicPaths, headFor, headHtml } = await import(pathToFileURL(join("dist-ssr", "entry-server.js")).href);
+const { render, publicPaths, headFor, headHtml, preload } = await import(pathToFileURL(join("dist-ssr", "entry-server.js")).href);
+await preload();
 const template = readFileSync(join(DIST, "index.html"), "utf8");
 
 for (const marker of ['<html lang="en">', "<title>Kyphira</title>", '<div id="root"></div>']) {
@@ -41,6 +42,8 @@ const arabicOptional = arabicCssFiles.map((f) => readFileSync(join(DIST, "assets
 writeFileSync(join(DIST, "assets", "arabic-public.css"), arabicOptional);
 const arabicHead = [
   '<link rel="stylesheet" href="/assets/arabic-public.css" data-ar-fonts />',
+  // The Arabic catalog is its own chunk; start it with the page, not after the first script.
+  ...assets.filter((f) => /^ar-.*\.js$/.test(f)).map((f) => `<link rel="modulepreload" href="/assets/${f}" crossorigin />`),
   ...assets.filter((f) => /^(readex-pro-arabic-wght|reem-kufi-arabic-wght)-normal-.*\.woff2$/.test(f)).map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`),
 ].join("\n    ");
 

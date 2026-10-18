@@ -1,14 +1,11 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { createTranslator, dirOf, matchLocale, LOCALES, NUMBERING_SYSTEM } from "./core";
 import { loadArabicFonts } from "./arabicFonts";
-import en from "./messages/en";
-import ar from "./messages/ar";
-
-const CATALOGS = { en, ar };
+import { CATALOGS, loadCatalog } from "./catalogs";
 const STORAGE_KEY = "sh-locale";
 
 // A saved choice wins; otherwise the browser's language list decides.
-function initialLocale() {
+export function initialLocale() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (LOCALES.includes(saved)) return saved;
@@ -31,6 +28,16 @@ const I18nContext = createContext(null);
 export function I18nProvider({ children, locale: forced }) {
   const [chosen, setLocaleState] = useState(() => forced || initialLocale());
   const locale = forced || chosen;
+  // A language reached without the main.jsx preload (a client-side link to /ar/…, or a language saved to the
+  // account) renders in English for the moment its catalog is fetched, then re-renders.
+  const [, bump] = useState(0);
+  const loaded = Boolean(CATALOGS[locale]);
+  useEffect(() => {
+    if (loaded) return undefined;
+    let live = true;
+    loadCatalog(locale).then(() => live && bump((n) => n + 1));
+    return () => { live = false; };
+  }, [locale, loaded]);
   // One digit style everywhere, in both languages: Western, as the scale
   // shows them (design brief, 2026-10-16). A digit style saved earlier, on the
   // device or the account, is kept but no longer read.
@@ -50,13 +57,13 @@ export function I18nProvider({ children, locale: forced }) {
     function setLocale(next) {
       if (!LOCALES.includes(next)) return;
       try { localStorage.setItem(STORAGE_KEY, next); } catch {}
-      setLocaleState(next);
+      loadCatalog(next).then(() => setLocaleState(next));
     }
     return {
       locale, dir, setLocale, digits,
       t: createTranslator(locale, CATALOGS, undefined, { numberingSystem: digits }),
     };
-  }, [locale, dir, digits]);
+  }, [locale, dir, digits, loaded]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
