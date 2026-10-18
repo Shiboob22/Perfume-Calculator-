@@ -189,3 +189,36 @@ test.describe("phone app", () => {
     expect(await named()).toEqual([]);
   });
 });
+
+// Smooth wheel scrolling (src/motion/smooth.js): the home page only, and only
+// when the layer is on and motion is allowed. Lenis puts a `lenis` class on <html> while it runs.
+// The override keeps a small CI machine from counting as low-power.
+const roomy = (page) => page.addInitScript(() => { window.__motion = { low: false }; });
+
+test("smooth scroll: runs on the home page, stops when you leave it", async ({ page }) => {
+  await on(page); await roomy(page);
+  await page.goto("/");
+  await expect(page.locator("html.lenis")).toHaveCount(1);
+  await page.locator('a[href="/library"]').first().click();
+  await expect(page).toHaveURL(/\/library/);
+  await expect(page.locator("html.lenis")).toHaveCount(0);
+});
+
+test("smooth scroll: off with the flag off, under reduced motion and on a low-power device", async ({ page }) => {
+  await roomy(page);
+  await page.goto("/");
+  await page.waitForTimeout(600);
+  await expect(page.locator("html.lenis")).toHaveCount(0);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await on(page);
+  await page.goto("/");
+  await page.waitForTimeout(600);
+  await expect(page.locator("html.lenis")).toHaveCount(0);
+
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.addInitScript(() => { window.__motion = { low: true }; });
+  await page.goto("/");
+  await page.waitForTimeout(600);
+  await expect(page.locator("html.lenis")).toHaveCount(0);
+});

@@ -179,3 +179,10 @@ html[data-motion] .mo-light.kx-room-light { inset-inline-end: auto; inset-inline
   }
   html[data-motion] .mo-ember { animation: mo-ember var(--mo-slow) var(--mo-ease) backwards; animation-delay: calc(var(--mo-step) * 8 + var(--i, 0) * 90ms); }
 }
+
+/* Smooth wheel scrolling on the home page (src/motion/smooth.js). Lenis adds
+   these classes to <html> while it runs; they only stop the browser's own
+   smoothing from fighting it. Nothing here applies when Lenis is not running. */
+html[data-motion].lenis, html[data-motion].lenis body { height: auto; }
+html[data-motion].lenis.lenis-smooth { scroll-behavior: auto !important; }
+html[data-motion].lenis.lenis-stopped { overflow: clip; }

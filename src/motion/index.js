@@ -7,6 +7,7 @@ export { Reveal, Stagger, TextReveal, DrawLine, Pin, CountUp, Skeleton, PageTran
 export { useExit } from "./useExit.js";
 export { Light, Magnetic, Tilt, pointerMotion } from "./pointer.jsx";
 export { Progress } from "./Progress.jsx";
+export { useSmoothScroll } from "./useSmoothScroll.js";
 
 /**
  * Turns the layer on or off for this page: <html data-motion> when the

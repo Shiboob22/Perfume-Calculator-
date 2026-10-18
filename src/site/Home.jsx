@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, Reveal } from "../motion";
+import { Link, Reveal, useSmoothScroll } from "../motion";
 import { COLORS, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { localePath } from "./meta";
@@ -25,6 +25,7 @@ export default function Home() {
   const benefits = t.raw("site.home.benefits") || [];
   const faq = t.raw("site.home.faq") || [];
   const compounding = useCompounding();
+  useSmoothScroll(); // wheel smoothing on the home page only; off for reduced motion, low power, or the flag off
 
   return (
     <div>
