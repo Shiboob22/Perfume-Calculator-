@@ -1,6 +1,6 @@
 # Kyphira master brief: handoff
 
-Branch `redesign/kyphira`, reset to `main` (`aa1982b`) on 2026-10-18, then gap-closed. 17 local commits, **not pushed, not merged, not deployed.** Gap audit: `KYPHIRA-MASTER-GAP.md`.
+Branch `redesign/kyphira`, reset to `main` (`aa1982b`) on 2026-10-18, then gap-closed. 11 local commits, **not pushed, not merged, not deployed.** Gap audit: `KYPHIRA-MASTER-GAP.md`.
 
 ## What was done (the gaps, closed)
 
