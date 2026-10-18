@@ -2,6 +2,7 @@
 // folder's index.html; /app/* falls back to the app shell (vercel.json
 // rewrite); anything else is 404.html with status 404. /api is not served
 // here — the e2e tests cover what works without the functions.
+import { gzipSync } from "node:zlib";
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
@@ -22,6 +23,8 @@ function redirectFor(pathname) {
   return null;
 }
 
+// GZIP=1 compresses text like the CDN does, for realistic load timings.
+const GZIP = process.env.GZIP === "1";
 const ROOT = join(process.cwd(), "dist");
 const PORT = Number(process.env.PORT || 4173);
 const TYPES = {
@@ -56,10 +59,15 @@ createServer(async (req, res) => {
   let path = await file(join(ROOT, safe));
   if (!path && (/^\/(app|bench|wardrobe|atlas|salon|nose)(\/|$)/.test(url.pathname))) path = join(ROOT, "app", "index.html");
   if (!path) { status = 404; path = join(ROOT, "404.html"); }
-  const body = await readFile(path);
-  res.writeHead(status, {
+  let body = await readFile(path);
+  const headers = {
     "Content-Type": TYPES[extname(path)] || "application/octet-stream",
     "Cache-Control": path.endsWith("sw.js") ? "no-cache" : "no-store",
-  });
+  };
+  if (GZIP && /\b(html|javascript|css|json|svg|xml|text)/.test(headers["Content-Type"]) && /gzip/.test(req.headers["accept-encoding"] || "")) {
+    body = gzipSync(body);
+    headers["Content-Encoding"] = "gzip";
+  }
+  res.writeHead(status, headers);
   res.end(body);
 }).listen(PORT, () => console.log(`serving dist/ on http://localhost:${PORT}`));
