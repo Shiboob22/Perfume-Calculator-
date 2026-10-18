@@ -18,6 +18,7 @@ const App = lazy(() => import("./App"));
 // builds, so this route and its chunk are dropped there.
 const DevScreens = import.meta.env.DEV ? lazy(() => import("./dev/DevScreens")) : null;
 const Styleguide = import.meta.env.DEV ? lazy(() => import("./dev/Styleguide")) : null;
+const Directions = import.meta.env.DEV ? lazy(() => import("./dev/Directions")) : null;
 
 function AppLoading() {
   return <div className="min-h-screen" style={{ backgroundColor: COLORS.paper }} />;
@@ -65,6 +66,9 @@ export default function Root() {
       <Route path="/nose" element={appElement} />
       {DevScreens && (
         <Route path="/dev/:screen?" element={<I18nProvider><Suspense fallback={<AppLoading />}><DevScreens /></Suspense></I18nProvider>} />
+      )}
+      {Directions && (
+        <Route path="/dev/directions" element={<Suspense fallback={<AppLoading />}><Directions /></Suspense>} />
       )}
       {Styleguide && (
         <>
