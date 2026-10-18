@@ -1,17 +1,15 @@
 // Arabic webfonts, fetched only once someone switches to Arabic, so English
 // pages never download them. Arabic subsets only: Latin text keeps the
 // brand fonts, glyph by glyph.
-//   IBM Plex Sans Arabic — UI text (the role of Hanken Grotesk)
-//   Noto Naskh Arabic    — display and voice (the role of Newsreader)
+//   Readex Pro — UI text and prose (the role of Instrument Sans)
+//   Reem Kufi  — display lines and big numerals (the role of Instrument Serif)
 let loading = null;
 export function loadArabicFonts() {
   // Public pages already carry the faces (prerendered, font-display: optional).
   if (typeof document !== "undefined" && document.querySelector("link[data-ar-fonts]")) return Promise.resolve();
   loading ??= Promise.all([
-    import("@fontsource/ibm-plex-sans-arabic/arabic-400.css"),
-    import("@fontsource/ibm-plex-sans-arabic/arabic-500.css"),
-    import("@fontsource/ibm-plex-sans-arabic/arabic-600.css"),
-    import("./arabic-naskh.css"),
+    import("./arabic-readex.css"),
+    import("./arabic-reem.css"),
   ]).catch(() => { loading = null; }); // system Arabic fonts remain the fallback
   return loading;
 }

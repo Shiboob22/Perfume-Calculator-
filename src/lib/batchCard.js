@@ -26,13 +26,13 @@ const W = 1000;
 const H = 1400;
 const SCALE = 2;
 const PAD = 70; // outer paper margin around the inner frame
-const SERIF = "'Newsreader Variable', Georgia, 'Times New Roman', serif";
+const SERIF = "'Instrument Serif', Georgia, 'Times New Roman', serif";
 const MONO = "'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace";
-// Arabic: the app's faces (arabicFonts.js). Noto Naskh Arabic's subset is Arabic only,
+// Arabic: the app's faces (arabicFonts.js). Reem Kufi's subset is Arabic only,
 // so Latin names fall through to Georgia. Labels use a proportional face:
 // monospaced Arabic stretches badly.
-const SERIF_AR = "'Noto Naskh Arabic Variable', Georgia, 'Geeza Pro', 'Noto Naskh Arabic', serif";
-const LABEL_AR = "'IBM Plex Sans Arabic', 'Geeza Pro', 'Noto Sans Arabic', Tahoma, sans-serif";
+const SERIF_AR = "'Reem Kufi Variable', Georgia, 'Geeza Pro', serif";
+const LABEL_AR = "'Readex Pro Variable', 'Geeza Pro', 'Noto Sans Arabic', Tahoma, sans-serif";
 
 // Unicode isolates. Text from the user or the catalog (a Latin name like
 // "1 Million", notes ending in "."), and ISO dates, would otherwise be
@@ -248,9 +248,9 @@ async function arabicFontsReady() {
   if (!document.fonts?.load) return;
   const sample = "عطر";
   await Promise.all([
-    document.fonts.load("700 52px 'Noto Naskh Arabic Variable'", sample),
-    document.fonts.load("400 24px 'Noto Naskh Arabic Variable'", sample),
-    document.fonts.load("400 26px 'IBM Plex Sans Arabic'", sample),
+    document.fonts.load("700 52px 'Reem Kufi Variable'", sample),
+    document.fonts.load("400 24px 'Reem Kufi Variable'", sample),
+    document.fonts.load("400 26px 'Readex Pro Variable'", sample),
   ]).catch(() => {});
 }
 

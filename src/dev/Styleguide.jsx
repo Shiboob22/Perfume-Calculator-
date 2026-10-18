@@ -2,27 +2,26 @@
 // design system on one page: brand, colour, type, components, both themes,
 // English and Arabic (/styleguide and /ar/styleguide).
 //
-// The new type faces load here, not site-wide: switching the live site to
-// them is the Phase 2 re-skin, together with the font preloads (CLS).
+// v7 direction A, "Weighed": weight is the unit of the interface. Every
+// number is a reading on a balance; every screen settles to a value before
+// you read it. Light is bone, graphite and brass with verdigris for a stable
+// reading; dark is soot with ember.
 import React, { useState } from "react";
-import "@fontsource-variable/newsreader/wght.css";
-import "@fontsource-variable/hanken-grotesk/wght.css";
-import "@fontsource/ibm-plex-mono/latin-400.css";
-import "@fontsource/ibm-plex-sans-arabic/arabic-400.css";
-import "@fontsource/ibm-plex-sans-arabic/arabic-600.css";
-import "../i18n/arabic-naskh.css";
+import "../i18n/arabic-readex.css";
+import "../i18n/arabic-reem.css";
 import { BRAND } from "../brand.js";
 import { COLORS, PALETTES } from "../lib/theme";
 import { contrastRatio, wcagGrade } from "../lib/contrast.js";
 import { useI18n } from "../i18n/I18nProvider";
 import { SiteHeader, SiteFooter } from "../components/SiteChrome";
 import LanguageToggle from "../components/LanguageToggle";
-import { Button, Card, Chip, Field, FragranceCard, KyphiraLogo, Notice, RoomHeader, ScaleReadout, SmokeLine, Stepper } from "../components/kx";
+import { Button, Card, Chip, Field, FragranceCard, KyphiraLogo, Notice, RoomHeader, ScaleReadout, SmokeLine, Stepper, WeightScale } from "../components/kx";
 import { TOKENS } from "../motion/config";
 import { Reveal, Stagger } from "../motion";
 
-const DISPLAY = { fontFamily: "'Newsreader Variable', 'Noto Naskh Arabic Variable', Georgia, serif", fontWeight: 400 };
-const UI = { fontFamily: "'Hanken Grotesk Variable', 'IBM Plex Sans Arabic', system-ui, sans-serif" };
+const DISPLAY = { fontFamily: "'Instrument Serif', 'Instrument Serif Fallback', Georgia, serif", fontWeight: 400 };
+const UI = { fontFamily: "'Instrument Sans Variable', 'Instrument Sans Fallback', 'Readex Pro Variable', system-ui, sans-serif" };
+const UI_AR = { fontFamily: "'Readex Pro Variable', system-ui, sans-serif" };
 
 const TAGLINES = [
   { en: BRAND.tagline.en, ar: BRAND.tagline.ar, chosen: true, why: "Names the three things the six rooms do. Three short imperatives; the Arabic is three imperatives too." },
@@ -71,7 +70,7 @@ function Swatches({ palette, name }) {
 // One specimen set in both languages, side by side; each pane sets its own direction.
 const PAIRS = [
   { dir: "ltr", lang: "en", title: "Weigh it. Pour it.", body: "Oil first, then alcohol, slowly. A measured density always wins.", num: "23.75 g", ui: UI },
-  { dir: "rtl", lang: "ar", title: "زِن. اسكب.", body: "الزيت أولاً ثم الكحول ببطء. الكثافة المقاسة هي الأصل.", num: "23.75 g", ui: { fontFamily: "'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif" } },
+  { dir: "rtl", lang: "ar", title: "زِن. اسكب.", body: "الزيت أولاً ثم الكحول ببطء. الكثافة المقاسة هي الأصل.", num: "23.75 g", ui: UI_AR },
 ];
 
 function Pair() {
@@ -101,7 +100,7 @@ export default function Styleguide() {
   const [vol, setVol] = useState(50);
   const [on, setOn] = useState(["Woody"]);
   const [replay, setReplay] = useState(0);
-  const body = ar ? { fontFamily: "'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif" } : UI;
+  const body = ar ? UI_AR : UI;
 
   return (
     <div className="min-h-screen" style={{ background: COLORS.paper, color: COLORS.ink, ...body }}>
@@ -113,6 +112,17 @@ export default function Styleguide() {
           {BRAND.pronunciation} · {ar ? BRAND.tagline.ar : BRAND.tagline.en}
         </p>
         <SmokeLine className="mt-8" />
+
+        <Section id="sg-idea" title="The idea: weighed">
+          <p className="max-w-[60ch] text-lg" style={{ color: COLORS.inkSoft }}>
+            Weight is the unit of the interface. Every number is a reading on a balance, and every screen settles to a value before you read it.
+          </p>
+          <ul className="mt-4 grid gap-2 max-w-[70ch] list-disc ps-5" style={{ color: COLORS.inkSoft }}>
+            <li>Numbers settle once (a short count-in, {TOKENS.duration.slow} ms), then stay still. Calculator figures never animate while you type.</li>
+            <li>Progress is grams on a beam: the brass pan fills; a verdigris light means a stable, on-target reading.</li>
+            <li>Silence around big numerals. Rooms are pans you load, one weight each.</li>
+          </ul>
+        </Section>
 
         <Section id="sg-name" title="Name and line">
           <p className="max-w-[60ch]" style={{ color: COLORS.inkSoft }}>
@@ -158,17 +168,26 @@ export default function Styleguide() {
 
         <Section id="sg-type" title="Type">
           <div className="grid gap-6 md:grid-cols-2">
-            <Card title="Display: Newsreader" no={1}>
-              <p className="text-5xl leading-tight" style={DISPLAY}>{ar ? "الفرن والميزان" : "Weigh it. Pour it."}</p>
-              <p className="mt-2 text-sm" style={{ color: COLORS.dim }}>Variable serif with an optical-size axis. Large and sparing.</p>
+            <Card title="Display: Instrument Serif" no={1}>
+              <p className="text-5xl leading-tight ar-display" style={DISPLAY}>{ar ? "الفرن والميزان" : "84.50 g."}</p>
+              <p className="mt-2 text-sm" style={{ color: COLORS.dim }}>Condensed editorial serif, regular and italic. Large and sparing: a numeral, a headline, a voice line. Arabic: Reem Kufi, only for short large lines.</p>
             </Card>
-            <Card title="Interface: Hanken Grotesk" no={2}>
-              <p className="text-base">{ar ? "الواجهة والنص: IBM Plex Sans Arabic" : "The quick brown flask pours twelve even grams."}</p>
-              <p className="mt-2 text-sm" style={{ color: COLORS.dim }}>Arabic: IBM Plex Sans Arabic, display Noto Naskh Arabic, fallback Tajawal.</p>
+            <Card title="Interface: Instrument Sans" no={2}>
+              <p className="text-base">{ar ? "الواجهة والنص: Readex Pro" : "The quick brown flask pours twelve even grams."}</p>
+              <p className="mt-2 text-sm" style={{ color: COLORS.dim }}>Quiet grotesque for controls, labels and prose. Arabic: Readex Pro (also all Arabic body text), system Arabic as fallback.</p>
             </Card>
-            <Card title="Measurements: IBM Plex Mono" no={3}>
+            <Card title="Figures: Instrument Sans, tabular" no={3}>
               <p className="font-mono tabular-nums text-2xl" dir="ltr">23.75 g · 60.75 g · 84.50 g</p>
-              <p className="mt-2 text-sm" style={{ color: COLORS.dim }}>Tabular figures. Every gram value uses this.</p>
+              <p className="mt-2 text-sm" style={{ color: COLORS.dim }}>No monospace. Tabular figures keep columns of grams aligned. Western digits in both languages.</p>
+            </Card>
+            <Card title="Scale" no={4}>
+              <ul className="grid gap-1" style={{ color: COLORS.inkSoft }}>
+                <li><span className="text-[clamp(2.75rem,7.5vw,6.5rem)] leading-none" style={DISPLAY}>Display</span></li>
+                <li><span className="text-[clamp(2rem,4.5vw,3.25rem)]" style={DISPLAY}>Title</span></li>
+                <li><span className="text-xl" style={DISPLAY}>Lead, 20 px</span></li>
+                <li><span className="text-base">Body, 16 px</span></li>
+                <li><span className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal">Label, 11 px</span></li>
+              </ul>
             </Card>
           </div>
         </Section>
@@ -200,6 +219,8 @@ export default function Styleguide() {
               <Notice tone="warning" title="Ethanol is highly flammable">Keep away from flame, heat and sparks. Work in a ventilated room.</Notice>
               <Notice tone="info" title="Densities are starting points">A measured density always wins.</Notice>
               <Notice tone="success" title="Rested">Day 28. Ready to wear.</Notice>
+              <WeightScale label="Oil poured" value={grams} max={30} target={23.75} ticks={5} labels={{ under: "below target", ok: "on target", over: "over target" }} />
+              <WeightScale label="Reading progress" value={9} max={30} unit="min" digits={0} ticks={3} />
               <SmokeLine />
               <SmokeLine loading label="Loading" />
             </div>

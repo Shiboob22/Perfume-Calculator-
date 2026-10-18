@@ -1,7 +1,7 @@
 // None of the brand fonts has Arabic glyphs, so Arabic text falls through,
-// glyph by glyph, to IBM Plex Sans Arabic (UI) or Noto Naskh Arabic (display, serif —
-// loaded only in Arabic, see src/i18n/arabicFonts.js — and then to system
-// Arabic fonts.
+// glyph by glyph, to Readex Pro (UI and prose; loaded only in Arabic, see
+// src/i18n/arabicFonts.js) and then to system Arabic fonts. Arabic display
+// lines take Reem Kufi through the `.ar-display` class (src/index.css).
 const ARABIC_SYSTEM = ["'Geeza Pro'", "'Noto Sans Arabic'", "'Segoe UI'", "Tahoma"];
 
 import plugin from "tailwindcss/plugin";
@@ -22,11 +22,11 @@ export default {
       // Kyphira board: 2 px corners everywhere (circles only for the ember and avatars).
       borderRadius: { DEFAULT: "2px" },
       fontFamily: {
-        serif: ["'Newsreader Variable'", "'Newsreader Fallback'", "'Noto Naskh Arabic Variable'", "Georgia", ...ARABIC_SYSTEM, "serif"],
-        sans: ["'Hanken Grotesk Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
-        // The board has no monospace: figures are Hanken Grotesk with tabular numerals
+        serif: ["'Instrument Serif'", "'Instrument Serif Fallback'", "'Readex Pro Variable'", "Georgia", ...ARABIC_SYSTEM, "serif"],
+        sans: ["'Instrument Sans Variable'", "'Instrument Sans Fallback'", "'Readex Pro Variable'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
+        // No monospace: figures are Instrument Sans with tabular numerals
         // (`.font-mono` in index.css switches them on), so columns of grams still line up.
-        mono: ["'Hanken Grotesk Variable'", "'IBM Plex Sans Arabic'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
+        mono: ["'Instrument Sans Variable'", "'Instrument Sans Fallback'", "'Readex Pro Variable'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],
       },
     },
   },

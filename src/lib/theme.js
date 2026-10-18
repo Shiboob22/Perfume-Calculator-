@@ -12,32 +12,32 @@
 // "rested / ready", ember warnings. The legacy keys (forest / forestDeep /
 // brass) stay as aliases so older references still resolve.
 const light = {
-  paper: "#F6F2EA",      // page
-  ink1: "#EEE8DC",       // alternate band (sand)
-  card: "#FBF8F2",       // card surface
-  cardHi: "#FFFDF8",     // inputs, raised surface
-  sand: "#EEE8DC",       // secondary surfaces, hover
+  paper: "#F4F1EA",      // page (bone)
+  ink1: "#EBE6DA",       // alternate band (sand)
+  card: "#FBF9F4",       // card surface
+  cardHi: "#FFFDF9",     // inputs, raised surface
+  sand: "#EBE6DA",       // secondary surfaces, hover
 
-  ink: "#100E0A",        // text, frames
+  ink: "#1B1814",        // text, frames (graphite)
   inkSoft: "#3A352D",    // body
   dim: "#5A544A",        // labels (≥4.5:1 on paper, card and sand)
 
-  amber: "#C8893A",      // primary action fill (resin)
+  amber: "#B8893A",      // primary action fill (brass pan)
   actionText: "#7A581B", // the accent as type, borders, focus (≥4.5:1 on paper)
   amberDeep: "#7A581B",  // oil, text-safe (≥4.5:1 on paper)
   ember: "#B3361A",        // warnings, incl. the ethanol notice
-  onAmber: "#100E0A",    // text on the action fill (ink on resin, 6.5:1)
-  actionHover: "#B47A2F",
+  onAmber: "#1B1814",    // text on the action fill (graphite on brass)
+  actionHover: "#A57A2E",
 
-  oil: "#C99A45",        // the single accent (fills: liquid, bars)
+  oil: "#B8893A",        // the single accent (fills: liquid, bars)
   mist: "#E4EBE5",       // ethanol
-  inkBand: "#100E0A",    // ink surfaces (footer, Pro panel)
-  onInk: "#F6F2EA",
+  inkBand: "#1B1814",    // ink surfaces (footer, Pro panel)
+  onInk: "#F4F1EA",
 
-  line: "#D9D1C2",       // hairlines (decorative)
-  field: "#8C8475",      // form-control borders (≥3:1, WCAG 1.4.11)
+  line: "#D9D3C5",       // hairlines (decorative)
+  field: "#827A6B",      // form-control borders (≥3:1, WCAG 1.4.11)
   focus: "#7A581B",
-  hair: "rgba(16,14,10,0.10)",
+  hair: "rgba(27,24,20,0.10)",
 
   danger: "#9B2C1F",
   dangerBg: "#FBF1EE",
@@ -45,30 +45,30 @@ const light = {
 
   // Kyphira accents. Plain names are fills and marks; the *Text names are the
   // shades safe for type (≥4.5:1 on paper, card and sand).
-  resin: "#C8893A",        // amber resin: the brand accent
+  resin: "#B8893A",        // brass: the brand accent
   resinText: "#7A581B",
   myrrh: "#8C3B2A",        // secondary accent, used sparingly
   myrrhText: "#8C3B2A",
-  verdigris: "#5E8C7A",    // rested / ready (copper patina)
-  verdigrisText: "#2F5E4D",
+  verdigris: "#2F6F62",    // a stable reading, rested / ready (copper patina)
+  verdigrisText: "#2F6F62",
 
   forest: "#7A581B",     // legacy alias: the accent as type
-  forestDeep: "#100E0A",
+  forestDeep: "#1B1814",
   brass: "#7A581B",
 };
 
 const dark = {
-  paper: "#15120F",      // ground
-  ink1: "#1E1A16",       // surface 1: raised
-  card: "#1E1A16",
-  cardHi: "#29231D",     // surface 2: cards, inputs
-  sand: "#29231D",
+  paper: "#14110E",      // ground (soot)
+  ink1: "#1C1713",       // surface 1: raised
+  card: "#1C1713",
+  cardHi: "#26201A",     // surface 2: cards, inputs
+  sand: "#26201A",
 
-  ink: "#EDE4D6",        // text
-  inkSoft: "#A3968A",    // muted
-  dim: "#A3968A",
+  ink: "#EADFCE",        // text (haze)
+  inkSoft: "#A89B8B",    // muted (ash)
+  dim: "#A89B8B",
 
-  amber: "#D4924A",      // resin: primary action
+  amber: "#D4924A",      // ember: primary action
   actionText: "#D4924A",
   amberDeep: "#C9A15A",
   ember: "#E26A4F",      // warnings, incl. the ethanol notice
@@ -77,13 +77,13 @@ const dark = {
 
   oil: "#D4924A",
   mist: "#3A4A42",
-  inkBand: "#0E0C0A",
-  onInk: "#EDE4D6",
+  inkBand: "#0D0B09",
+  onInk: "#EADFCE",
 
   line: "#3B332B",
   field: "#857A60",
   focus: "#D4924A",
-  hair: "rgba(237,228,214,0.12)",
+  hair: "rgba(234,223,206,0.12)",
 
   danger: "#E07A62",
   dangerBg: "#2A140E",
@@ -91,7 +91,7 @@ const dark = {
 
   resin: "#D4924A",
   resinText: "#D4924A",
-  myrrh: "#8C3B2A",
+  myrrh: "#5A3A22",
   myrrhText: "#D98A6A",
   verdigris: "#5E8C7A",
   verdigrisText: "#9DB38A",
@@ -122,12 +122,12 @@ export const SHAPE = {
 
 // The editorial system: class strings, so prerendered HTML carries them.
 export const TYPE = {
-  display: "font-serif font-normal tracking-[-0.03em] leading-[1.02] rtl:leading-[1.5] text-[clamp(2.75rem,7.5vw,6.5rem)]",
-  title: "font-serif font-normal tracking-[-0.02em] leading-tight rtl:leading-[1.3] text-[clamp(2rem,4.5vw,3.25rem)]",
+  display: "ar-display font-serif font-normal tracking-[-0.03em] leading-[1.02] rtl:leading-[1.5] text-[clamp(2.75rem,7.5vw,6.5rem)]",
+  title: "ar-display font-serif font-normal tracking-[-0.02em] leading-tight rtl:leading-[1.3] text-[clamp(2rem,4.5vw,3.25rem)]",
   lead: "font-serif text-lg sm:text-xl leading-relaxed",
   runningHead: "running-head text-[11px] font-sans uppercase",
   label: "text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal",
-  numeral: "font-serif italic leading-none",
+  numeral: "ar-display font-serif italic leading-none",
   voice: "font-serif italic",
 };
 

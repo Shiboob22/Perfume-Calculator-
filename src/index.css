@@ -2,16 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Georgia resized to Newsreader's width and vertical metrics (measured), so the swap
+/* Georgia resized to Instrument Serif's width and vertical metrics, so the swap
    when the webfont arrives does not move lines. */
-@font-face { font-family: "Newsreader Fallback"; src: local("Georgia"); size-adjust: 96.8%; ascent-override: 76.4%; descent-override: 26.9%; line-gap-override: 0%; }
-@font-face { font-family: "Newsreader Fallback"; font-style: italic; src: local("Georgia Italic"), local("Georgia-Italic"); size-adjust: 89.5%; ascent-override: 82.7%; descent-override: 29%; line-gap-override: 0%; }
+@font-face { font-family: "Instrument Serif Fallback"; src: local("Georgia"); size-adjust: 88%; ascent-override: 98%; descent-override: 28%; line-gap-override: 0%; }
+@font-face { font-family: "Instrument Serif Fallback"; font-style: italic; src: local("Georgia Italic"), local("Georgia-Italic"); size-adjust: 84%; ascent-override: 100%; descent-override: 29%; line-gap-override: 0%; }
+@font-face { font-family: "Instrument Sans Fallback"; src: local("Arial"); size-adjust: 101%; ascent-override: 93%; descent-override: 25%; line-gap-override: 0%; }
 
 body {
   margin: 0;
   background: var(--c-paper);
   color: var(--c-ink);
-  font-family: "Hanken Grotesk Variable", "IBM Plex Sans Arabic", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  font-family: "Instrument Sans Variable", "Instrument Sans Fallback", "Readex Pro Variable", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -27,15 +28,19 @@ html[dir="rtl"] body * {
   letter-spacing: normal !important;
 }
 
-/* Figures (board): Hanken Grotesk with tabular numerals, never a monospace. */
+/* Figures: Instrument Sans with tabular numerals, never a monospace. */
 .font-mono { font-variant-numeric: tabular-nums; }
 
 /* The mono labels are a Latin design device. In Arabic they would take their
    word spaces from IBM Plex Mono (fixed-width, so gaps look wide); use the
    proportional UI fonts instead. */
 html[dir="rtl"] .font-mono {
-  font-family: "IBM Plex Sans Arabic", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  font-family: "Readex Pro Variable", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
 }
+
+/* Arabic display (headlines, big numerals): Reem Kufi. Body and prose stay Readex Pro:
+   a Kufic face is for short, large lines, not paragraphs. */
+html[dir="rtl"] .ar-display { font-family: "Reem Kufi Variable", "Readex Pro Variable", "Geeza Pro", "Noto Sans Arabic", Tahoma, sans-serif; font-style: normal; }
 
 /* Guide tables become one card per row on a phone: no sideways scrolling.
    Each cell shows its column name from data-label. */
@@ -51,7 +56,7 @@ html[dir="rtl"] .font-mono {
 
 /* Printable bench cards (/app/cards): readable on screen, clean on paper. */
 .print-card { background: #FBF8F2; color: #100E0A; padding: 2rem; border: 1px solid #100E0A; }
-.print-card h2 { font-family: "Newsreader Variable", "Newsreader Fallback", Georgia, serif; font-weight: 400; letter-spacing: -0.02em; font-size: 1.9rem; font-style: italic; margin-bottom: 1rem; }
+.print-card h2 { font-family: "Instrument Serif", "Instrument Serif Fallback", Georgia, serif; font-weight: 400; letter-spacing: -0.02em; font-size: 1.9rem; font-style: italic; margin-bottom: 1rem; }
 .print-brand { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: #6E5A35; margin-bottom: 0.5rem; }
 .print-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 .print-table th, .print-table td { text-align: start; padding: 0.35rem 0.5rem; border-bottom: 1px solid #CDBF9E; }
@@ -69,7 +74,7 @@ html[dir="rtl"] .font-mono {
 .label-sheet { display: flex; flex-wrap: wrap; gap: 4mm; page: labels; }
 @page labels { size: A4; margin: 10mm; }
 .print-label { background: #FBF8F2; color: #100E0A; border: 0.3mm dashed #A79C82; padding: 2mm 2.5mm; overflow: hidden; display: flex; flex-direction: column; }
-.print-label-name { font-family: "Hanken Grotesk Variable", "IBM Plex Sans Arabic", sans-serif; font-weight: 500; line-height: 1.1; margin-bottom: 1mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.print-label-name { font-family: "Instrument Sans Variable", "Readex Pro Variable", sans-serif; font-weight: 500; line-height: 1.1; margin-bottom: 1mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html[dir="rtl"] .print-label-name { font-style: normal; }
 .print-label-row { display: flex; justify-content: space-between; gap: 2mm; line-height: 1.35; }
 .print-label-row dt { color: #4A3D25; }
@@ -85,7 +90,7 @@ html[dir="rtl"] .print-label-name { font-style: normal; }
 
 /* Drop caps are a Latin book convention; Arabic gets an ornament instead. */
 html[lang="en"] .dropcap::first-letter, html[lang="en"] .guide-body > p:first-of-type::first-letter {
-  float: left; font-family: "Newsreader Variable", "Newsreader Fallback", Georgia, serif;
+  float: left; font-family: "Instrument Serif", "Instrument Serif Fallback", Georgia, serif;
   font-size: 4.2em; line-height: 0.8; padding: 0.06em 0.12em 0 0; color: var(--c-amber);
 }
 html[dir="rtl"] .dropcap::before, html[dir="rtl"] .guide-body > p:first-of-type::before { content: "۞ "; color: var(--c-brass); }
@@ -238,7 +243,7 @@ summary::-webkit-details-marker { display: none; }
 .cmp-fill { position: absolute; inset-block: 0; inset-inline-start: calc(50% - 1px); width: 3px; background: #E3A857; transform-origin: bottom; }
 .cmp-tickbox { position: absolute; inset: 0; }
 .cmp-tick { height: 1px; width: 10px; background: #F6F2EA; }
-.cmp-read { margin-top: 6px; padding: 2px 3px; background: rgb(16 14 10 / .88); color: #F6F2EA; font: 10px/1 "Hanken Grotesk Variable", system-ui, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap;
+.cmp-read { margin-top: 6px; padding: 2px 3px; background: rgb(16 14 10 / .88); color: #F6F2EA; font: 10px/1 "Instrument Sans Variable", system-ui, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap;
   --gw: calc(var(--cg) / 100 - 0.5); --gf: calc(var(--cg) - var(--gw) * 100); counter-reset: cmpw var(--gw) cmpf var(--gf); }
 .cmp-read::before { content: counter(cmpw) "." counter(cmpf, decimal-leading-zero) "\2009g"; }
 
