@@ -1,11 +1,12 @@
-import React from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 import { TYPE } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { fmt2 } from "../../lib/calc";
-import { Light } from "../../motion";
+import { Light, motionOn, reduced, lowPower } from "../../motion";
 import "./weigh.css";
 
 const WRAP = "max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 ps-14 sm:ps-16 lg:ps-20";
+const Smoke = lazy(() => import("./Smoke"));
 const cg = (g) => Math.round(g * 100);
 
 /**
@@ -16,10 +17,18 @@ const cg = (g) => Math.round(g * 100);
  */
 export default function Weigh({ oil, alcohol, total, oilShare }) {
   const { t } = useI18n();
+  // The canvas is an extra for devices that can afford it; it loads after the page is up.
+  const [smoke, setSmoke] = useState(false);
+  useEffect(() => {
+    if (!motionOn() || reduced() || lowPower()) return undefined;
+    const id = setTimeout(() => setSmoke(true), 1200);
+    return () => clearTimeout(id);
+  }, []);
   const nums = { oil: fmt2(oil), alcohol: fmt2(alcohol), total: fmt2(total) };
   return (
     <section data-stage="weigh" data-pin aria-labelledby="st-oil" className="wg relative" style={{ "--wg-oil": cg(oil), "--wg-tot": cg(total) }}>
       <div className="wg-stage mo-grain">
+        {smoke && <Suspense fallback={null}><Smoke /></Suspense>}
         <div className={WRAP}>
           <div className="wg-grid">
             <div className="wg-copy">
