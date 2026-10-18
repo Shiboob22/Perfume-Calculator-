@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import RoomBeam from "./kx/RoomBeam";
 import { useSearchParams } from "react-router-dom";
-import { CountUp, useNavigate } from "../motion";
+import { useNavigate } from "../motion";
 import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
@@ -785,7 +785,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           <h2 className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-5" style={{ color: COLORS.dim }}>{t("calc.readout")}</h2>
           <p className="mb-1 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("calc.total")}</p>
           <p dir="ltr" className="font-serif font-light leading-none tracking-[-0.02em] tabular-nums mb-5" style={{ fontSize: "clamp(3.5rem, 9vw, 5rem)" }}>
-            <CountUp value={result.shown.totalG} format={fmt2} onView /><span className="text-2xl ms-2" style={{ color: COLORS.dim }}>g</span>
+            {fmt2(result.shown.totalG)}<span className="text-2xl ms-2" style={{ color: COLORS.dim }}>g</span>
           </p>
           <div className="grid grid-cols-2 gap-6 mb-5" style={{ containerType: "inline-size" }}>
             {[["calc.oil", result.shown.oilG, COLORS.oil], ["calc.ethanol96", result.shown.ethanolG, COLORS.mist]].map(([k, g, sw]) => (
@@ -793,7 +793,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
                   <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: sw, border: `1px solid ${COLORS.ink}` }} />{t(k)}
                 </span>
-                <span dir="ltr" className="readout block font-mono leading-[1.15] tracking-[-0.03em] whitespace-nowrap" style={{ fontSize: "min(2rem, 8cqw)" }}><CountUp value={g} format={fmt2} onView />{" "}<span className="text-lg ms-1">g</span></span>
+                <span dir="ltr" className="readout block font-mono leading-[1.15] tracking-[-0.03em] whitespace-nowrap" style={{ fontSize: "min(2rem, 8cqw)" }}>{fmt2(g)}{" "}<span className="text-lg ms-1">g</span></span>
               </div>
             ))}
           </div>
