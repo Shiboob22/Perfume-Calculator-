@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Link } from "../../motion";
+import { Link, Light, Magnetic, Tilt, TextReveal } from "../../motion";
 import { TYPE, COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { localePath } from "../meta";
@@ -9,7 +9,9 @@ import { GUIDES } from "../../content/guides";
 import { benchFigures, BENCH_DEFAULT } from "../benchFigures";
 import LiveBench from "../LiveBench";
 import { IconArrow, IconBook } from "../../components/icons";
-import { Beam, Ember, Gauge, LiveGauge } from "./parts";
+import { Gauge, LiveGauge } from "./parts";
+import Weigh from "./Weigh";
+import "./rooms.css";
 import { M, V, sceneVars, useScrollFallback } from "./motion";
 
 const WRAP = "max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14";
@@ -44,6 +46,8 @@ function RoomLink({ room, href, children, ...rest }) {
   return room.lib ? <Link to={href} {...rest}>{children}</Link> : <a href={href} {...rest}>{children}</a>;
 }
 
+const HERO_H1 = "ar-display font-serif font-normal tracking-[-0.035em] leading-[0.95] rtl:leading-[1.35] text-[clamp(3.25rem,10.5vw,10rem)]";
+
 const Step = ({ children }) => (
   <p className={`mb-4 ${TYPE.label}`} style={{ color: COLORS.dim }}>{children}</p>
 );
@@ -70,136 +74,98 @@ export default function Compounding() {
     <div ref={scene} data-compounding role="group" aria-label={t("site.compounding.sceneLabel")} style={{ ...sceneVars(), ...SCENE_VARS }}>
       <LiveGauge />
 
-      {/* I · The reading. The first screen never fades or moves: only the pan behind it fills. */}
-      <Stage id="reading" className="py-14 lg:py-20 min-h-[78svh] flex items-center">
+      {/* I · The reading. The headline never fades or moves (it is the LCP); light and depth sit behind it. */}
+      <Stage id="reading" className="mo-grain pt-10 pb-14 lg:pt-14 lg:pb-20 min-h-[88svh] flex items-center">
         {(h) => (
-          <div className="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-center w-full">
-            <div>
-              <h1 id={h} className={TYPE.display}>
-                {hero.map((line, i) => (
-                  <span key={line} className={`block ${i === hero.length - 1 ? "italic" : ""}`} style={i === hero.length - 1 ? { color: "var(--st-accent)" } : undefined}>{line}</span>
-                ))}
-              </h1>
-              <p className={`mt-7 measure ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{t("site.home.lead")}</p>
-              <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3">
-                <a href="/bench?ref=home" className="inline-flex items-center gap-2 px-6 min-h-[52px] font-medium" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
-                  {t("site.home.ctaApp")} <IconArrow size={18} />
-                </a>
-                <Link to={to("/library")} className="inline-flex items-center gap-2 min-h-[44px] underline underline-offset-4" style={{ color: COLORS.ink }}>
-                  <IconBook size={18} /> {t("site.home.ctaGuides")}
-                </Link>
+          <div className="w-full">
+            <Light />
+            <h1 id={h} className={HERO_H1}>
+              {hero.map((line, i) => (
+                <span key={line} className={`block ${i === hero.length - 1 ? "italic lg:ps-[11vw]" : ""}`} style={i === hero.length - 1 ? { color: "var(--st-accent)" } : undefined}>{line}</span>
+              ))}
+            </h1>
+            <div className="mt-10 lg:mt-14 grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-end">
+              <div>
+                <p className={`measure ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{t("site.home.lead")}</p>
+                <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3">
+                  <Magnetic as="a" href="/bench?ref=home" className="inline-flex items-center gap-2 px-6 min-h-[52px] font-medium" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+                    {t("site.home.ctaApp")} <IconArrow size={18} />
+                  </Magnetic>
+                  <Link to={to("/library")} className="inline-flex items-center gap-2 min-h-[44px] underline underline-offset-4" style={{ color: COLORS.ink }}>
+                    <IconBook size={18} /> {t("site.home.ctaGuides")}
+                  </Link>
+                </div>
+                <p className="mt-6 text-sm" style={{ color: COLORS.dim }}>{t("site.compounding.reading.hint")}</p>
+                <a href="#cmp-rooms" className="mt-1 inline-flex items-center min-h-[44px] text-sm underline underline-offset-4" style={{ color: "var(--st-accent)" }}>{t("site.compounding.reading.skip")}</a>
               </div>
-              <p className="mt-6 text-sm" style={{ color: COLORS.dim }}>{t("site.compounding.reading.hint")}</p>
-              <a href="#cmp-rooms" className="mt-1 inline-flex items-center min-h-[44px] text-sm underline underline-offset-4" style={{ color: "var(--st-accent)" }}>{t("site.compounding.reading.skip")}</a>
-            </div>
-            <figure className="relative overflow-clip p-6 sm:p-8 m-0" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
-              <M kf="pan" aria-hidden="true" className="absolute inset-0" style={{ background: "linear-gradient(to top, color-mix(in srgb, var(--c-amber) 26%, transparent), transparent 70%)" }} />
-              <div className="relative">
-                <p className={TYPE.label} style={{ color: COLORS.dim }}>{t("site.compounding.reading.label")}</p>
-                <div className="mt-3"><Figure value={nums.total} /></div>
-                <p className="mt-3 text-sm" style={{ color: COLORS.dim }}>{t("site.compounding.reading.caption")}</p>
-                <dl className="mt-6 grid grid-cols-2 gap-4" style={{ borderTop: `1px solid ${COLORS.line}`, paddingTop: 16 }}>
-                  <div><dt className="text-sm" style={{ color: COLORS.dim }}>{t("site.compounding.oil.label")}</dt><dd className="font-serif text-2xl" dir="ltr">{nums.oil} g</dd></div>
-                  <div><dt className="text-sm" style={{ color: COLORS.dim }}>{t("site.compounding.alcohol.label")}</dt><dd className="font-serif text-2xl" dir="ltr">{nums.alcohol} g</dd></div>
-                </dl>
-              </div>
-            </figure>
-          </div>
-        )}
-      </Stage>
-
-      {/* II · The oil */}
-      <Stage id="oil" bg={COLORS.card} className="py-16 lg:py-24">
-        {(h) => (
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            <V>
-              <M kf="drift">
-                <Step>{t("site.compounding.oil.step")}</Step>
-                <h2 id={h} className={TYPE.title}>{t("site.compounding.oil.title")}</h2>
-                <p className="mt-4 font-serif text-lg measure" style={{ color: COLORS.inkSoft }}>{t("site.compounding.oil.text", nums)}</p>
-              </M>
-            </V>
-            <div>
-              <Figure value={nums.oil} />
-              <Beam className="mt-6" segments={[{ share: oilShare }]} />
-              <p className="mt-2 text-sm" style={{ color: COLORS.dim }}>{t("site.compounding.oil.share", { pct: Math.round(oilShare * 100) })}</p>
+              <Tilt as="figure" className="mo-raised relative overflow-clip p-6 sm:p-8 m-0" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
+                <M kf="pan" aria-hidden="true" className="absolute inset-0" style={{ background: "linear-gradient(to top, color-mix(in srgb, var(--c-amber) 30%, transparent), transparent 72%)" }} />
+                <div className="relative">
+                  <p className={TYPE.label} style={{ color: COLORS.dim }}>{t("site.compounding.reading.label")}</p>
+                  <div className="mt-3"><Figure value={nums.total} size="text-[clamp(4rem,11vw,9.5rem)]" /></div>
+                  <p className="mt-3 text-sm" style={{ color: COLORS.dim }}>{t("site.compounding.reading.caption")}</p>
+                  <dl className="mt-6 grid grid-cols-2 gap-4" style={{ borderTop: `1px solid ${COLORS.line}`, paddingTop: 16 }}>
+                    <div><dt className="text-sm" style={{ color: COLORS.dim }}>{t("site.compounding.oil.label")}</dt><dd className="font-serif text-2xl" dir="ltr">{nums.oil} g</dd></div>
+                    <div><dt className="text-sm" style={{ color: COLORS.dim }}>{t("site.compounding.alcohol.label")}</dt><dd className="font-serif text-2xl" dir="ltr">{nums.alcohol} g</dd></div>
+                  </dl>
+                </div>
+              </Tilt>
             </div>
           </div>
         )}
       </Stage>
 
-      {/* III · The alcohol */}
-      <Stage id="alcohol" bg={COLORS.sand} className="py-16 lg:py-24">
-        {(h) => (
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            <V>
-              <M kf="drift">
-                <Step>{t("site.compounding.alcohol.step")}</Step>
-                <h2 id={h} className={TYPE.title}>{t("site.compounding.alcohol.title")}</h2>
-                <p className="mt-4 font-serif text-lg measure" style={{ color: COLORS.inkSoft }}>{t("site.compounding.alcohol.text", nums)}</p>
-              </M>
-            </V>
-            <div>
-              <Figure value={nums.alcohol} />
-              <Beam className="mt-6" segments={[{ share: oilShare }, { share: 1 - oilShare, tone: "ink" }]} />
-              <p className="mt-2 text-sm" dir="ltr" style={{ color: COLORS.dim }}>{nums.oil} g + {nums.alcohol} g = {nums.total} g</p>
-            </div>
-          </div>
-        )}
-      </Stage>
+      {/* II to III · The pinned weighing: oil, dusk, alcohol, the total */}
+      <Weigh oil={oil} alcohol={alcohol} total={total} oilShare={oilShare} />
 
-      {/* IV · Six rooms, each known by a number */}
-      <Stage id="rooms" className="py-16 lg:py-24">
-        {(h) => (
-          <>
-            <V>
-              <M kf="drift">
-                <Step>{t("site.compounding.rooms.step")}</Step>
-                <h2 id={h} className={TYPE.title}>{t("site.compounding.rooms.title")}</h2>
-                <p className="mt-4 font-serif text-lg measure" style={{ color: COLORS.inkSoft }}>{t("site.compounding.rooms.text")}</p>
-              </M>
-            </V>
-            <nav id="cmp-rooms" aria-labelledby={h} className="mt-12 scroll-mt-8">
-              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: COLORS.line, border: `1px solid ${COLORS.line}` }}>
-                {ROOMS.map((room, i) => {
-                  const open = !room.flag || flagOn(room.flag);
-                  const body = (
-                    <>
-                      <span className="block font-serif ar-display text-[clamp(2rem,4vw,3rem)] leading-none tabular-nums">{fig(room.id)}</span>
-                      <span className="block mt-4 text-lg font-medium">{t(`site.compounding.rooms.${room.id}.name`)}</span>
-                      <span className="block mt-1 text-sm" style={{ color: COLORS.dim }}>{open ? t(`site.compounding.rooms.${room.id}.line`) : t("site.compounding.closed")}</span>
-                    </>
-                  );
-                  return (
-                    <V as="li" key={room.id} data-room={room.id} style={{ background: COLORS.paper }}>
-                      <M kf="plate" i={i} className="h-full">
-                        {open ? (
-                          <RoomLink room={room} href={roomHref(room)} className="block p-6 min-h-[150px] h-full hover:bg-[var(--c-card)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2" style={{ outlineColor: COLORS.focus }}>{body}</RoomLink>
-                        ) : (
-                          <div className="block p-6 min-h-[150px] h-full opacity-80">{body}</div>
-                        )}
-                      </M>
-                    </V>
-                  );
-                })}
-              </ul>
-            </nav>
-            <div className="mt-14 flex justify-center"><Ember /></div>
-          </>
-        )}
-      </Stage>
+      {/* IV · Six rooms, each known by a number. Sideways across a pinned stage on wide screens (once), a plain grid elsewhere. */}
+      <section data-stage="rooms" data-pin aria-labelledby="st-rooms" className="rs relative overflow-clip" style={{ background: COLORS.paper, color: COLORS.ink }}>
+        <Gauge stage="rooms" />
+        <div className="rs-stage py-16 lg:py-0">
+          <div className={BODY}>
+            <TextReveal as="h2" id="st-rooms" className={TYPE.title} text={t("site.compounding.rooms.title")} />
+            <p className="mt-4 font-serif text-lg measure" style={{ color: COLORS.inkSoft }}>{t("site.compounding.rooms.text")}</p>
+          </div>
+          <nav id="cmp-rooms" aria-labelledby="st-rooms" className="rs-track mt-12 scroll-mt-8">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--c-line)] border border-[var(--c-line)]">
+              {ROOMS.map((room, i) => {
+                const open = !room.flag || flagOn(room.flag);
+                const body = (
+                  <>
+                    <span className="block font-serif ar-display text-[clamp(2rem,4vw,3rem)] leading-none tabular-nums rs-fig">{fig(room.id)}</span>
+                    <span className="block mt-4 text-lg font-medium">{t(`site.compounding.rooms.${room.id}.name`)}</span>
+                    <span className="block mt-1 text-sm" style={{ color: COLORS.dim }}>{open ? t(`site.compounding.rooms.${room.id}.line`) : t("site.compounding.closed")}</span>
+                  </>
+                );
+                return (
+                  <V as="li" key={room.id} data-room={room.id} style={{ background: COLORS.paper }}>
+                    <M kf="plate" i={i} className="h-full">
+                      {open ? (
+                        <RoomLink room={room} href={roomHref(room)} className="block p-6 min-h-[150px] h-full hover:bg-[var(--c-card)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2" style={{ outlineColor: COLORS.focus }}>{body}</RoomLink>
+                      ) : (
+                        <div className="block p-6 min-h-[150px] h-full opacity-80">{body}</div>
+                      )}
+                    </M>
+                  </V>
+                );
+              })}
+            </ul>
+          </nav>
+          <div className={BODY}><div aria-hidden="true" className="rs-meter"><i /></div></div>
+        </div>
+      </section>
 
       {/* V · Handoff: the live Bench */}
       <Stage id="handoff" bg={COLORS.card} className="py-16 lg:py-24">
         {(h) => (
           <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-center">
             <div>
-              <h2 id={h} className={TYPE.title}>{t("site.compounding.handoff.title")}</h2>
+              <TextReveal as="h2" id={h} className={TYPE.title} text={t("site.compounding.handoff.title")} />
               <p className="mt-4 font-serif text-lg measure" style={{ color: COLORS.inkSoft }}>{t("site.compounding.handoff.text", nums)}</p>
               <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3">
-                <a href="/bench?ref=home" className="inline-flex items-center gap-2 px-6 min-h-[52px] font-medium" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+                <Magnetic as="a" href="/bench?ref=home" className="inline-flex items-center gap-2 px-6 min-h-[52px] font-medium" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
                   {t("site.compounding.handoff.cta", nums)} <IconArrow size={18} />
-                </a>
+                </Magnetic>
               </div>
             </div>
             <LiveBench />

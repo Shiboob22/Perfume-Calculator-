@@ -5,6 +5,8 @@ export { TOKENS, motionVars, staggerIndex, splitWords, countValue } from "./conf
 export { motionOn, reduced, lowPower, supportsViewTransitions } from "./env.js";
 export { Reveal, Stagger, TextReveal, DrawLine, Parallax, Pin, CountUp, Skeleton, PageTransition, Link, useNavigate } from "./components.jsx";
 export { useExit } from "./useExit.js";
+export { Light, Magnetic, Tilt, pointerMotion } from "./pointer.jsx";
+export { Progress } from "./Progress.jsx";
 
 /**
  * Turns the layer on or off for this page: <html data-motion> when the

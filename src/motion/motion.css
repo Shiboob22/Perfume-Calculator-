@@ -119,3 +119,47 @@ html[data-motion]::view-transition-group(mo-ind-site), html[data-motion]::view-t
 @media print {
   html[data-motion] [data-mo="hidden"], html[data-motion] [data-mo="hidden"] > .mo-item, html[data-motion] [data-mo="hidden"] .mo-wi { opacity: 1 !important; translate: none !important; transform: none !important; }
 }
+
+/* ── Light, grain, depth ── */
+/* Soft resin light behind a block (Light). Static glow at rest; with the layer on it follows the pointer a few dozen px and lifts with scroll. */
+.mo-light { position: absolute; inset-inline-end: 4%; top: -12%; width: min(72vw, 62rem); aspect-ratio: 1; border-radius: 50%; pointer-events: none; z-index: 0;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--c-oil) 34%, transparent), color-mix(in srgb, var(--c-oil) 12%, transparent) 52%, transparent 72%);
+  transform: translate(calc(var(--lx, 0) * 52px), calc(var(--ly, 0) * 40px)); }
+@keyframes mo-light-scroll { from { opacity: .85; translate: 0 6%; } to { opacity: .12; translate: 0 -26%; } }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-motion] .mo-light { transition: transform 700ms var(--mo-ease); }
+  @supports (animation-timeline: view()) {
+    html[data-motion] .mo-light { animation: mo-light-scroll linear both; animation-timeline: view(); animation-range: cover 0% cover 100%; }
+  }
+}
+/* A fine paper tooth, static, on a few surfaces only (hero ground, the dusk panel). */
+.mo-grain { position: relative; }
+.mo-grain::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: .07; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+:root[data-theme="dark"] .mo-grain::after { mix-blend-mode: screen; opacity: .05; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mo-grain::after { mix-blend-mode: screen; opacity: .05; } }
+
+/* Layered, believable shadow for raised surfaces: a tight contact shadow and a wide soft one. */
+.mo-raised { box-shadow: 0 1px 0 color-mix(in srgb, var(--c-ink) 6%, transparent), 0 2px 4px color-mix(in srgb, var(--c-ink) 8%, transparent), 0 14px 30px -10px color-mix(in srgb, var(--c-ink) 22%, transparent), 0 40px 70px -30px color-mix(in srgb, var(--c-oil) 30%, transparent); }
+
+/* ── Pointer marks (Magnetic, Tilt): fine pointers only; the JS never attaches elsewhere ── */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  html[data-motion] .mo-magnetic { transition: translate 260ms var(--mo-ease), background-color var(--mo-fast) var(--mo-ease), border-color var(--mo-fast) var(--mo-ease), color var(--mo-fast) var(--mo-ease); }
+  html[data-motion] .mo-tilt { transition: transform 360ms var(--mo-ease); will-change: auto; }
+}
+/* Press and release feel the same everywhere: 100 ms down, 150 ms up. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-motion] :is(button, [role="button"], a.mo-press, .mo-magnetic):not(:disabled, [aria-disabled="true"]):active { scale: .985; transition-duration: 90ms; }
+}
+
+/* ── Reading and scroll progress: one hairline under the header, drawn by scroll ── */
+.mo-progress { position: fixed; inset-inline: 0; top: 0; height: 2px; z-index: 60; pointer-events: none; background: var(--c-action-text); transform-origin: 0 50%; transform: scaleX(0); }
+:root[dir="rtl"] .mo-progress { transform-origin: 100% 50%; }
+@keyframes mo-progress { to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    html[data-motion] .mo-progress { animation: mo-progress linear both; animation-timeline: scroll(root block); }
+  }
+}
+html[data-motion] .mo-progress[data-js] { transform: scaleX(var(--sp, 0)); }
+@media (prefers-reduced-motion: reduce) { .mo-progress { display: none; } }

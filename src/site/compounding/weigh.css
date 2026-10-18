@@ -1,0 +1,110 @@
+/* The pinned weighing (home, after the reading). One stage stays on screen for
+   about 3.4 screens of scroll while the batch is weighed: the oil goes in, the
+   ground turns to dusk, the alcohol goes in, the ground comes back and the
+   total settles. Everything is a pure function of the scroll position:
+
+   · where the browser has scroll timelines, each mark runs on the view
+     timeline of .wg, over the pinned stretch only (contain 0% to 100%);
+   · elsewhere, scrollFallback() writes --pp (0 to 1) on .wg and the same
+     keyframes are held paused at that point;
+   · under reduced motion, or before either, nothing is pinned: the beats stack
+     as plain blocks and the panel reads the final weight.
+
+   Only transform, opacity (and colour, on the ground) move. The numbers read
+   from the scene's own constants (--wg-oil, --wg-tot, in centigrams). */
+@property --wgg { syntax: "<integer>"; inherits: true; initial-value: 0; }
+@property --wgw { syntax: "<integer>"; inherits: true; initial-value: 0; }
+@property --wgf { syntax: "<integer>"; inherits: true; initial-value: 0; }
+@property --wg-bg { syntax: "<color>"; inherits: true; initial-value: #F0E8D7; }
+
+.wg { --wg-dusk: #1A120B; --wg-on-dusk: #F2EBDD; --wg-soft-dusk: #CFC3AE; --wg-bg: var(--c-card); background: var(--c-card); color: var(--c-ink); }
+:root[data-theme="dark"] .wg { --wg-dusk: #2B1C0E; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .wg { --wg-dusk: #2B1C0E; } }
+
+/* At rest: stacked blocks, the panel beside them on wide screens. */
+.wg-stage { position: relative; overflow: clip; background: var(--wg-bg); padding-block: 4rem; }
+.wg-grid { display: grid; gap: 3rem; align-items: center; }
+@media (min-width: 1024px) { .wg-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 4rem; } .wg-stage { padding-block: 6rem; } }
+.wg-beat + .wg-beat { margin-top: 3rem; }
+.wg-soft { color: var(--c-ink-soft); }
+.wg-dim { color: var(--c-dim); }
+
+.wg-panel { position: relative; background: #14110E; color: #F6F2EA; padding: 1.5rem; box-shadow: 0 2px 4px rgb(20 14 8 / .2), 0 24px 60px -20px rgb(20 14 8 / .45), 0 60px 90px -40px color-mix(in srgb, var(--c-oil) 38%, transparent); }
+@media (min-width: 640px) { .wg-panel { padding: 2.25rem; } }
+.wg-label { color: #BDB2A1; }
+.wg-fig { display: block; margin-top: .75rem; font-variant-numeric: tabular-nums; line-height: .9; letter-spacing: -.035em; font-size: clamp(4.25rem, 13.5vw, 11.5rem); white-space: nowrap; }
+.wg-fig small { font-size: .26em; letter-spacing: 0; margin-inline-start: .15em; color: #BDB2A1; }
+.wg-read { display: none; }
+.wg-beam { display: flex; height: 6px; margin-top: 1.75rem; background: rgb(246 242 234 / .14); overflow: clip; }
+.wg-seg { height: 100%; transform-origin: 0 50%; }
+:root[dir="rtl"] .wg-seg { transform-origin: 100% 50%; }
+.wg-seg-oil { background: #D4924A; }
+.wg-seg-alc { background: #EADFCE; }
+.wg-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgb(246 242 234 / .16); }
+.wg-rows dt { font-size: .875rem; color: #BDB2A1; }
+.wg-rows dd { margin: .25rem 0 0; font-size: 1.75rem; font-variant-numeric: tabular-nums; }
+.wg-glow { position: absolute; inset: -30% -20% auto auto; width: 90%; aspect-ratio: 1; border-radius: 50%; pointer-events: none; opacity: .6; z-index: 0;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--c-oil) 55%, transparent), color-mix(in srgb, var(--c-oil) 16%, transparent) 55%, transparent 74%);
+  transform: translate(calc(var(--lx, 0) * 40px), calc(var(--ly, 0) * 30px)); }
+.wg-panel > :not(.wg-glow, .sr-only) { position: relative; z-index: 1; }
+
+/* Keyframes: p is progress through the pinned stretch. */
+@keyframes wg-oil { 0%, 26% { opacity: 1; translate: 0 0; } 36%, 100% { opacity: 0; translate: 0 -28px; } }
+@keyframes wg-alc { 0%, 42% { opacity: 0; translate: 0 28px; } 50%, 62% { opacity: 1; translate: 0 0; } 70%, 100% { opacity: 0; translate: 0 -28px; } }
+@keyframes wg-tot { 0%, 86% { opacity: 0; translate: 0 28px; } 93%, 100% { opacity: 1; translate: 0 0; } }
+@keyframes wg-ground { 0%, 32% { --wg-bg: var(--c-card); } 44%, 72% { --wg-bg: var(--wg-dusk); } 84%, 100% { --wg-bg: var(--c-card); } }
+@keyframes wg-count { 0% { --wgg: 0; } 34% { --wgg: var(--wg-oil); } 46% { --wgg: var(--wg-oil); } 70%, 100% { --wgg: var(--wg-tot); } }
+@keyframes wg-seg-oil { 0% { transform: scaleX(0); } 34%, 100% { transform: scaleX(1); } }
+@keyframes wg-seg-alc { 0%, 46% { transform: scaleX(0); } 70%, 100% { transform: scaleX(1); } }
+@keyframes wg-row-oil { 0%, 22% { opacity: 0; translate: 0 10px; } 34%, 100% { opacity: 1; translate: 0 0; } }
+@keyframes wg-row-alc { 0%, 58% { opacity: 0; translate: 0 10px; } 70%, 100% { opacity: 1; translate: 0 0; } }
+@keyframes wg-glow { 0% { opacity: 0; translate: 0 24%; } 30% { opacity: .55; translate: 0 8%; } 60% { opacity: 1; translate: 0 0; } 100% { opacity: .5; translate: 0 -14%; } }
+
+.wg-oil { --wgk: wg-oil; } .wg-alc { --wgk: wg-alc; } .wg-tot { --wgk: wg-tot; }
+.wg-stage { --wgk: wg-ground; }
+.wg-read { --wgk: wg-count; }
+.wg-seg-oil { --wgk: wg-seg-oil; } .wg-seg-alc { --wgk: wg-seg-alc; }
+.wg-row-oil { --wgk: wg-row-oil; } .wg-row-alc { --wgk: wg-row-alc; }
+.wg-glow { --wgk: wg-glow; }
+
+/* The live counter: centigrams as a registered integer, written as 84.50 g by counters. */
+.wg-read::before { --wgw: calc(var(--wgg) / 100 - 0.5); --wgf: calc(var(--wgg) - var(--wgw) * 100); counter-reset: wgw var(--wgw) wgf var(--wgf); content: counter(wgw) "." counter(wgf, decimal-leading-zero); }
+.wg-read::after { content: "\2009g"; font-size: .26em; letter-spacing: 0; color: #BDB2A1; margin-inline-start: .1em; }
+
+/* Pinned: native scroll timelines. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    [data-compounding] .wg { view-timeline: --wg block; height: var(--wg-h, 360svh); }
+    [data-compounding] .wg-stage { position: sticky; top: 0; height: 100svh; padding-block: 0; display: flex; align-items: center; }
+    [data-compounding] .wg-stage > div { width: 100%; }
+    [data-compounding] .wg-copy { position: relative; min-height: 17rem; }
+    [data-compounding] .wg-beat { position: absolute; inset-inline: 0; top: 0; }
+    [data-compounding] .wg-beat + .wg-beat { margin-top: 0; }
+    [data-compounding] .wg-alc { color: var(--wg-on-dusk); }
+    [data-compounding] .wg-alc .wg-soft { color: var(--wg-soft-dusk); }
+    [data-compounding] .wg-alc .wg-dim { color: var(--wg-soft-dusk); }
+    [data-compounding] .wg-fig-static { display: none; }
+    [data-compounding] .wg-read { display: inline; }
+    [data-compounding] :is(.wg-beat, .wg-stage, .wg-read, .wg-seg, .wg-row, .wg-glow) { animation: var(--wgk) linear both; animation-timeline: --wg; animation-range: contain 0% contain 100%; }
+    @media (max-width: 1023px) {
+      [data-compounding] .wg-grid { grid-template-rows: auto auto; gap: 1.5rem; align-content: center; }
+      [data-compounding] .wg-copy { min-height: 15rem; }
+    }
+  }
+  /* Pinned: the script fallback holds the same keyframes at --pp. */
+  [data-compounding][data-fallback] .wg { height: var(--wg-h, 360svh); }
+  [data-compounding][data-fallback] .wg-stage { position: sticky; top: 0; height: 100svh; padding-block: 0; display: flex; align-items: center; }
+  [data-compounding][data-fallback] .wg-stage > div { width: 100%; }
+  [data-compounding][data-fallback] .wg-copy { position: relative; min-height: 17rem; }
+  [data-compounding][data-fallback] .wg-beat { position: absolute; inset-inline: 0; top: 0; }
+  [data-compounding][data-fallback] .wg-beat + .wg-beat { margin-top: 0; }
+  [data-compounding][data-fallback] .wg-alc { color: var(--wg-on-dusk); }
+  [data-compounding][data-fallback] .wg-alc .wg-soft, [data-compounding][data-fallback] .wg-alc .wg-dim { color: var(--wg-soft-dusk); }
+  [data-compounding][data-fallback] .wg-fig-static { display: none; }
+  [data-compounding][data-fallback] .wg-read { display: inline; }
+  [data-compounding][data-fallback] :is(.wg-beat, .wg-stage, .wg-read, .wg-seg, .wg-row, .wg-glow) { animation: var(--wgk) 1s linear both paused; animation-delay: calc(-1s * var(--pp, 0)); }
+  @media (max-width: 1023px) {
+    [data-compounding][data-fallback] .wg-grid { gap: 1.5rem; align-content: center; }
+    [data-compounding][data-fallback] .wg-copy { min-height: 15rem; }
+  }
+}

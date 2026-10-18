@@ -21,7 +21,7 @@ import { flush } from "./lib/outbox";
 import { logBatch, listBatches, saveCheckIn } from "./lib/fragranceApi";
 import { dueNow, JOURNAL_CHANGED } from "./lib/journal";
 import { installGlobalHandlers } from "./lib/reportError";
-import { PageTransition, Skeleton, motionOn } from "./motion";
+import { PageTransition, Progress, Skeleton, motionOn } from "./motion";
 
 // Search ships with the app shell; the other tabs load as separate chunks,
 // fetched while the browser is idle after first paint so a tab switch never
@@ -155,6 +155,7 @@ export default function App() {
         flags={{ wardrobe: wardrobeOn, atlas: atlasOn, salon: salonOn, nose: noseOn }}
         onSignOut={() => signOut()} />
 
+      <Progress />
       <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-4 empty:hidden"><RenameNotice /></div>
       <PageTransition as="main" className="pb-16">
         {/* One h1 per page for screen readers; Selector and Account title themselves. */}

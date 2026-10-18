@@ -36,7 +36,7 @@ describe("stylesheet", () => {
     const rules = css.replace(/\/\*[\s\S]*?\*\//g, "").split("\n").map((l) => l.trim()).filter((l) => l.includes("{") && !l.startsWith("@") && !l.startsWith("}"));
     const bare = rules.filter((l) => !/^(html|:root)/.test(l)).map((l) => l.split("{")[0].trim());
     // Plain building blocks of new elements, with no effect on anything that exists.
-    expect(bare.sort()).toEqual([".mo-line", ".mo-pin__stage", ".mo-skel", ".mo-skel::after"].sort());
+    expect(bare.sort()).toEqual([".mo-grain", ".mo-grain::after", ".mo-light", ".mo-line", ".mo-pin__stage", ".mo-progress", ".mo-raised", ".mo-skel", ".mo-skel::after"].sort());
   });
   it("keeps @media at the top level so /dev/motion can switch reduced motion by rewriting it", () => {
     let depth = 0;
