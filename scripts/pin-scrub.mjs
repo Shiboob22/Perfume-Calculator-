@@ -1,4 +1,4 @@
-/* global document, window, innerHeight, getComputedStyle */
+/* global document, window, innerHeight, getComputedStyle, localStorage */
 // Scrubs a pinned stretch of the home page forwards, then backwards, and saves a frame at each stop.
 //   node scripts/pin-scrub.mjs <outdir> <base> <selector> [lang] [width] [stops]
 import { chromium } from "@playwright/test";
