@@ -102,8 +102,13 @@ html[dir="rtl"] .dropcap::before, html[dir="rtl"] .guide-body > p:first-of-type:
 /* Library: a glossary term shows its definition on hover and keyboard focus.
    The text is the glossary entry's own (data-def); the link still goes to it. */
 .gloss-pop { position: relative; }
-.gloss-pop[data-def]::after { content: attr(data-def); position: absolute; inset-inline-start: 0; top: calc(100% + 6px); z-index: 20; width: max-content; max-width: min(22rem, 80vw); padding: 10px 12px; font: 400 14px/1.5 var(--font-ui, inherit); text-align: start; white-space: normal; color: var(--c-ink); background: var(--c-card); border: 1px solid var(--c-line); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity var(--mo-fast, 150ms) ease-out, visibility 0s linear var(--mo-fast, 150ms); }
-.gloss-pop[data-def]:hover::after, .gloss-pop[data-def]:focus-visible::after { opacity: 1; visibility: visible; transition-delay: 0s; }
+.gloss-pop[data-def]::after { content: attr(data-def); display: none; position: absolute; inset-inline-start: 0; top: calc(100% + 6px); z-index: 20; width: max-content; max-width: min(22rem, 80vw); padding: 10px 12px; font: 400 14px/1.5 var(--font-ui, inherit); text-align: start; white-space: normal; color: var(--c-ink); background: var(--c-card); border: 1px solid var(--c-line); pointer-events: none; }
+/* display:none keeps the hidden tip out of layout: an absolute box near the right edge widened the page on phones. */
+.gloss-pop[data-def]:hover::after, .gloss-pop[data-def]:focus-visible::after { display: block; animation: gloss-in var(--mo-fast, 150ms) ease-out; }
+@keyframes gloss-in { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 640px) {
+  .gloss-pop[data-def]::after { position: fixed; inset-inline: 16px; top: auto; bottom: calc(16px + env(safe-area-inset-bottom)); width: auto; max-width: none; }
+}
 .read-progress { position: fixed; inset-inline: 0; top: 0; height: 2px; background: var(--c-amber); transform: scaleX(0); transform-origin: left; z-index: 50; }
 html[dir="rtl"] .read-progress { transform-origin: right; }
 @supports (animation-timeline: scroll()) {
