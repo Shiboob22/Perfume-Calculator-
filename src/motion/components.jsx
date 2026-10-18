@@ -45,13 +45,15 @@ export function Stagger({ as: Tag = "div", eager = false, max = TOKENS.stagger.m
 /**
  * A heading whose words rise out of a mask, one by one. Whole words only:
  * Arabic letters must keep their joins. The words are the real text in order.
+ * `eager` is for client-rendered headings (rooms): the words rise on mount,
+ * even on the first screen. Never use it in prerendered markup.
  */
-export function TextReveal({ as: Tag = "h2", text, className, ...rest }) {
+export function TextReveal({ as: Tag = "h2", text, eager = false, className, ...rest }) {
   const ref = useRef(null);
-  useEffect(() => watch(ref.current), []);
+  useEffect(() => (eager ? undefined : watch(ref.current)), [eager]);
   const words = splitWords(text);
   return (
-    <Tag ref={ref} className={cx("mo-text", className)} {...rest}>
+    <Tag ref={ref} className={cx("mo-text", className)} data-mo={eager ? "in" : undefined} {...rest}>
       {words.map((w, i) => (
         <React.Fragment key={i}>
           {i > 0 && " "}

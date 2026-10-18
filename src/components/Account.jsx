@@ -9,7 +9,7 @@ import { deleteAccount, fetchExport, joinWaitlist, onWaitlist } from "../lib/acc
 import { EXPORT_TABLES, toCsv, toJson } from "../lib/exportData";
 import { UNIT_LABELS } from "../lib/calcPrefill";
 import { signOut } from "../lib/auth";
-import { Reveal } from "../motion";
+import { Reveal, TextReveal } from "../motion";
 
 function download(name, text, type) {
   const url = URL.createObjectURL(new Blob([text], { type }));
@@ -59,7 +59,7 @@ export default function Account({ user }) {
   return (
     <div className="max-w-3xl mx-auto px-6 sm:px-8 py-6">
       <RoomBeam />
-      <h1 className="font-serif font-light text-4xl sm:text-5xl mb-1 rtl:leading-[1.5]" style={{ color: COLORS.ink }}>{t("account.title")}</h1>
+      <TextReveal as="h1" eager text={t("account.title")} className="font-serif font-light text-4xl sm:text-5xl mb-1 rtl:leading-[1.5]" style={{ color: COLORS.ink }} />
       <p className="text-sm mb-6 font-mono" style={{ color: COLORS.inkSoft }}>{t("account.signedInAs", { email: user.email })}</p>
 
       <Section title={t("account.plan.title")}>

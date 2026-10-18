@@ -30,7 +30,7 @@ export default function Atlas() {
   const tabs = [["search", "/atlas"], ["browse", "/atlas/browse"], ["contribute", "/atlas/contribute"], ...(admin ? [["review", "/atlas/review"]] : [])];
 
   return (
-    <RoomShell numeral="IV" name={t("atlas.title")} lead={t("atlas.lead")} navLabel={t("atlas.navLabel")}
+    <RoomShell light={false} numeral="IV" name={t("atlas.title")} lead={t("atlas.lead")} navLabel={t("atlas.navLabel")}
       nav={tabs.map(([id, to]) => ({ id, to, label: t(`atlas.nav.${id}`), active: active === id }))}>
       {route.view === "search" && <Search />}
       {route.view === "browse" && <Browse terms={terms} />}

@@ -163,3 +163,10 @@ html[data-motion]::view-transition-group(mo-ind-site), html[data-motion]::view-t
 }
 html[data-motion] .mo-progress[data-js] { transform: scaleX(var(--sp, 0)); }
 @media (prefers-reduced-motion: reduce) { .mo-progress { display: none; } }
+
+/* ── Rooms: the beam's pan draws in once; a quiet light sits behind the rail ── */
+html[data-motion] .mo-light.kx-room-light { inset-inline-end: auto; inset-inline-start: -8%; top: -34%; width: min(64vw, 46rem); }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-motion] .kx-pan { transform-origin: 0 50%; animation: mo-draw var(--mo-slow) var(--mo-ease-io) 120ms backwards; }
+  html[data-motion]:is([dir="rtl"]) .kx-pan { transform-origin: 100% 50%; }
+}

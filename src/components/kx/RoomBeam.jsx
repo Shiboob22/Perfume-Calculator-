@@ -8,7 +8,7 @@ import { COLORS } from "../../lib/theme";
 export default function RoomBeam({ at, className = "mb-8" }) {
   return (
     <div aria-hidden="true" className={`kx-beam relative h-3 border-t-2 ${className}`} style={{ borderColor: COLORS.ink }}>
-      {at != null && <span className="absolute top-0 h-[5px] w-1/6" style={{ insetInlineStart: `${(at / 6) * 100}%`, background: COLORS.amber }} />}
+      {at != null && <span className="kx-pan absolute top-0 h-[5px] w-1/6" style={{ insetInlineStart: `${(at / 6) * 100}%`, background: COLORS.amber }} />}
     </div>
   );
 }

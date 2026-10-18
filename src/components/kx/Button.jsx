@@ -1,5 +1,6 @@
 import React from "react";
 import { COLORS } from "../../lib/theme";
+import { Magnetic } from "../../motion";
 
 const VARIANTS = {
   primary: { background: COLORS.amber, color: COLORS.onAmber, border: `1px solid ${COLORS.amber}` },
@@ -11,11 +12,13 @@ const SIZES = { md: "min-h-[48px] px-5 text-sm", lg: "min-h-[52px] px-6 text-bas
 
 // One button for the whole product. 2 px corners, 48 px target (board: 48 for
 // primary actions), focus outline from index.css (text colour on resin fills). `as="a"` renders a link with the same look.
-export default function Button({ variant = "primary", size = "md", as: Tag = "button", loading = false, disabled, className = "", style, children, ...rest }) {
+export default function Button({ variant = "primary", size = "md", as: Tag = "button", magnetic = size === "lg" && variant === "primary", loading = false, disabled, className = "", style, children, ...rest }) {
   const off = disabled || loading;
   const disabledStyle = off ? { background: COLORS.sand, color: COLORS.dim, border: "1px solid transparent" } : null;
+  const Root = magnetic && !off ? Magnetic : Tag;
   return (
-    <Tag
+    <Root
+      {...(magnetic && !off ? { as: Tag } : null)}
       type={Tag === "button" ? rest.type || "button" : undefined}
       disabled={Tag === "button" ? off : undefined}
       aria-disabled={off || undefined}
@@ -25,6 +28,6 @@ export default function Button({ variant = "primary", size = "md", as: Tag = "bu
       {...rest}
     >
       {children}
-    </Tag>
+    </Root>
   );
 }

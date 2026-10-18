@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "../../motion";
+import { Link, Light } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import RoomHeader from "./RoomHeader";
 import RoomBeam from "./RoomBeam";
@@ -12,14 +12,15 @@ const ORDER = ["I", "II", "III", "IV", "V", "VI"];
 // the top with the current room as the brass pan, then, on wide screens, a
 // sticky rail (numeral, name, lead, sections as a vertical scale) beside the
 // work. On phones the rail stacks above the work and the sections scroll
-// sideways as one row. Pure layout: no data, no motion.
+// sideways as one row. No data. The light behind the rail is decorative.
 //
 // `nav` items are { id, label, active, to | onClick }; a `to` renders a link,
 // an `onClick` a button, both with aria-current on the active one.
-export default function RoomShell({ numeral, name, title, headline, lead, notice, nav, navLabel, wide = false, children }) {
+export default function RoomShell({ numeral, name, title, headline, lead, notice, nav, navLabel, wide = false, light = true, children }) {
   const at = Math.max(0, ORDER.indexOf(numeral));
   return (
-    <div className={`mx-auto px-4 sm:px-8 pt-6 pb-12 ${wide ? "max-w-6xl" : "max-w-5xl"}`}>
+    <div className={`relative mx-auto px-4 sm:px-8 pt-6 pb-12 ${wide ? "max-w-6xl" : "max-w-5xl"}`}>
+      {light && <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[60svh] overflow-clip pointer-events-none"><Light className="kx-room-light" /></div>}
       <RoomBeam at={at} />
       <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-14">
         <div className="lg:sticky lg:top-6 lg:self-start">
