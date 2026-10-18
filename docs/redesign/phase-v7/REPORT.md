@@ -42,3 +42,10 @@ Scroll check (`scripts/scroll-check.mjs`): native scroll timelines present; beam
 3. Lighthouse and WebKit/Firefox pass on a preview deploy; real-device check.
 4. Arabic review; decide figures for Atlas and Nose from live data.
 5. Remove `src/content/kyphi.js` use from Wardrobe if the sixteen ingredients are no longer wanted.
+
+## Post-rebuild verification (2026-10-18)
+
+- **Flag-off specs** (wardrobe, atlas, salon, nose, motion) on a default-flags build: 18 of 18 pass, phone and desktop.
+- **Arabic rooms** (Wardrobe, Atlas, Salon, Nose, Bench, Journal, Account at 375 and 1440, `screens/room-*-ar-*`): `dir=rtl`, beam pan, rail and readout mirror, no sideways scroll. Reviewed by eye: Wardrobe and Bench.
+- **Lighthouse mobile on production** (deploy of `d948497`, real compression): Home 91/100/100/100, `/ar` 90/100/100/100, Pricing 92/100/100/100, Library 96/100/100/100 (performance / accessibility / best practices / SEO). LCP 2.4, 2.5, 2.5, 2.3 s (was 2.8–3.9 s); CLS 0; TBT 50–230 ms. Within the brief's 2.5 s.
+- Still open: WebKit and Firefox, a real phone, screen recordings, the 8 KB over the first-script budget, unused `Parallax`/`Pin`.
