@@ -44,12 +44,19 @@ Tests: Vitest 701 pass; lint 0 errors; Playwright flags-on build 373 pass, 13 fa
 - **Parallax primitive left unused.** On a page with a pinned stage, extra layer speeds fought the pin; light and tilt gave the depth. Flagged for removal or reuse.
 - **Smoke is subtle by design** (amber, 16% peak alpha) so the numbers stay readable.
 
+## Cross-engine and dark theme (follow-up, 2026-10-18)
+
+- **Firefox 155 (script fallback) and WebKit iPhone 15 emulation (native scroll timelines, which this WebKit build has).** The weighing pin, the rooms strip (EN and AR at 1440) and the weighing at 375 were scrubbed in both: layout, beats, ground, beam and sideways travel match Chromium. Frames: `verification/`.
+- **One bug found and fixed:** in Firefox the counter stepped (0, 23.75, 84.50) because it does not interpolate a registered integer inside keyframes. The fallback now computes the counter from `--pp` with `calc()`; Firefox reads 13.96 / 46.48 / 84.45 / 84.50 at the same stops as WebKit.
+- **Suites, flags-on build:** WebKit iPhone 167 passed, 0 failed. Firefox 163 passed, 5 failed: four were 30 s timeouts under two parallel workers and pass alone (`a11y /`, Atlas Arabic 320, blend-loop Arabic edit, journal pattern); the fifth is the `?flag=wardrobe` spec that expects flags off. (Flag-off, visual and `Atlas is on` specs excluded as before.) New `pw.firefox.config.js`.
+- **Dark theme, by eye, Chromium:** home hero, weighing (dusk is a warm brown, `#2B1C0E`, against the page's `#1E1A16`), rooms strip, Account, Wardrobe, Nose, Bench in EN and AR. One defect: the dark instrument panel merged with the dark ground; a 10% hairline now frames it in dark.
+- **Accessibility:** axe (WCAG 2 A and AA) on `/` and `/ar`, light and dark, at four held states (top, oil beat, alcohol beat on dusk, total): zero violations in all 16 runs.
+- Frames of the light-only mid-transition grey (ground between beats) are by design: only the dark panel is visible then.
+
 ## Not done or not checked
 
 - Gap 6 only partly: no bespoke scroll scene per room; Wardrobe, Salon, Nose, Atlas bodies keep earlier layouts under the new header treatment.
-- Dark theme not re-reviewed by eye after this pass (tokens defined for dusk in dark; screenshots are light only).
-- Firefox, WebKit and a real phone not run this pass. No scroll timelines there, so they take the script fallback; it was exercised only in code, not in a browser, for the new pins (`--pp`). Treat as unverified.
-- Sign-in screen not screenshotted on its own (onboarding was); Account was.
+- A real phone and real Safari on an iPhone (WebKit emulation stands in). No Lighthouse run this pass.
+- Dark theme not reviewed on Firefox or WebKit (light only there); sign-in not screenshotted on its own.
 - Arabic strings: none added; Arabic layout checked by eye on the home pins and strip only.
 - Recordings are from `vite dev`, rooms through `/dev/<room>` (no data), so room moments are the header and chrome, not live results.
-- Accessibility score from axe only; no Lighthouse number.

@@ -102,7 +102,9 @@
   [data-compounding][data-fallback] .wg-alc .wg-soft, [data-compounding][data-fallback] .wg-alc .wg-dim { color: var(--wg-soft-dusk); }
   [data-compounding][data-fallback] .wg-fig-static { display: none; }
   [data-compounding][data-fallback] .wg-read { display: inline; }
-  [data-compounding][data-fallback] :is(.wg-beat, .wg-stage, .wg-read, .wg-seg, .wg-row, .wg-glow) { animation: var(--wgk) 1s linear both paused; animation-delay: calc(-1s * var(--pp, 0)); }
+  [data-compounding][data-fallback] :is(.wg-beat, .wg-stage, .wg-seg, .wg-row, .wg-glow) { animation: var(--wgk) 1s linear both paused; animation-delay: calc(-1s * var(--pp, 0)); }
+  /* Firefox does not interpolate a registered integer inside keyframes, so the fallback computes the counter from --pp itself (same stops as wg-count). */
+  [data-compounding][data-fallback] .wg-read { --wgg: calc(var(--wg-oil) * clamp(0, var(--pp, 0) / 0.34, 1) + (var(--wg-tot) - var(--wg-oil)) * clamp(0, (var(--pp, 0) - 0.46) / 0.24, 1)); }
   @media (max-width: 1023px) {
     [data-compounding][data-fallback] .wg-grid { gap: 1.5rem; align-content: center; }
     [data-compounding][data-fallback] .wg-copy { min-height: 15rem; }
@@ -111,3 +113,7 @@
 
 /* Smoke canvas: behind everything in the stage, scaled up from half resolution. */
 .wg-smoke { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+
+/* On a dark page the instrument panel sits on a near-black ground: a hairline keeps its edge. */
+:root[data-theme="dark"] .wg-panel { box-shadow: inset 0 0 0 1px rgb(246 242 234 / .1), 0 24px 60px -20px rgb(0 0 0 / .6), 0 60px 90px -40px color-mix(in srgb, var(--c-oil) 38%, transparent); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .wg-panel { box-shadow: inset 0 0 0 1px rgb(246 242 234 / .1), 0 24px 60px -20px rgb(0 0 0 / .6), 0 60px 90px -40px color-mix(in srgb, var(--c-oil) 38%, transparent); } }

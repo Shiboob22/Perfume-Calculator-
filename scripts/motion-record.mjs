@@ -33,11 +33,11 @@ for (const [name, paths] of PAGES) {
   if (want && !want.includes(name)) continue;
   for (const lang of ["en", "ar"]) {
     for (const w of widths.split(",").map(Number)) {
-      const ctx = await browser.newContext({ viewport: { width: w, height: w < 600 ? 812 : 900 }, deviceScaleFactor: 1, reducedMotion: "no-preference", colorScheme: "light" });
+      const ctx = await browser.newContext({ viewport: { width: w, height: w < 600 ? 812 : 900 }, deviceScaleFactor: 1, reducedMotion: "no-preference", colorScheme: process.env.THEME || "light" });
       const page = await ctx.newPage();
       page.on("console", (m) => m.type() === "error" && errors.push(`${name}/${lang}@${w}: ${m.text()}`));
       page.on("pageerror", (e) => errors.push(`${name}/${lang}@${w} pageerror: ${e.message}`));
-      await page.addInitScript((l) => { try { localStorage.setItem("sh-locale", l); localStorage.setItem("theme", "light"); } catch { /* blocked */ } }, lang);
+      await page.addInitScript(([l, theme]) => { try { localStorage.setItem("sh-locale", l); localStorage.setItem("theme", theme); } catch { /* blocked */ } }, [lang, process.env.THEME || "light"]);
       await page.goto(base + paths[lang], { waitUntil: "load" });
       await page.waitForTimeout(1500);
       const total = await page.evaluate(() => document.documentElement.scrollHeight);
@@ -47,7 +47,7 @@ for (const [name, paths] of PAGES) {
       for (let i = 0; i < frames; i++) {
         await page.evaluate((y) => window.scrollTo(0, y), Math.round(step * i));
         await page.waitForTimeout(450);
-        await page.screenshot({ path: `${outdir}/${name}-${lang}-${w}-f${String(i).padStart(2, "0")}.png` });
+        await page.screenshot({ path: `${outdir}/${process.env.THEME === "dark" ? "dark-" : ""}${name}-${lang}-${w}-f${String(i).padStart(2, "0")}.png` });
       }
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
       console.log(`${name} ${lang} ${w}: ${total}px, ${frames} frames${overflow ? " OVERFLOW-X" : ""}`);
