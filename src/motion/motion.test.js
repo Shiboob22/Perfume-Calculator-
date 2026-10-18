@@ -17,6 +17,11 @@ describe("tokens", () => {
     const code = css.replace(/\/\*[\s\S]*?\*\//g, "");
     expect(code.match(/\b\d+(\.\d+)?ms\b/g) ?? []).toEqual([]);
   });
+  it("keeps index.css curves on the tokens (only the :root token line spells one out)", () => {
+    const indexCss = readFileSync(new URL("../index.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    const spelled = indexCss.split("\n").filter((l) => /cubic-bezier/.test(l) && !/--ease-out:/.test(l));
+    expect(spelled).toEqual([]);
+  });
   it("has one standard ease-out and one ease-in-out", () => {
     expect(Object.keys(TOKENS.ease).sort()).toEqual(["inOut", "out"]);
   });

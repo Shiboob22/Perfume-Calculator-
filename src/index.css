@@ -255,9 +255,9 @@ summary::-webkit-details-marker { display: none; }
 @keyframes kPulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
-    .kv { animation: kRise both cubic-bezier(.2,.7,.2,1); animation-timeline: view(); animation-range: entry 0% entry 45%; }
+    .kv { animation: kRise both var(--ease-out); animation-timeline: view(); animation-range: entry 0% entry 45%; }
     /* Rules draw from the reading edge; the quote's credit fades in behind it. */
-    .kv-grow { transform-origin: left center; animation: kGrow both cubic-bezier(.2,.7,.2,1); animation-timeline: view(); animation-range: entry 0% entry 60%; }
+    .kv-grow { transform-origin: left center; animation: kGrow both var(--ease-out); animation-timeline: view(); animation-range: entry 0% entry 60%; }
     [dir="rtl"] .kv-grow { transform-origin: right center; }
     .kv-fade { animation: kFade both linear; animation-timeline: view(); animation-range: entry 20% entry 70%; }
   }
