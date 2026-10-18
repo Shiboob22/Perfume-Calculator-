@@ -1,4 +1,4 @@
-/* global window */
+/* global window, localStorage, document */
 // Screen recordings for the animation pass (webm): the home scroll, then one
 // short capture per room through the dev routes. Needs `vite dev` with the flags on.
 //   node scripts/record-videos.mjs <outdir> [base-url]
