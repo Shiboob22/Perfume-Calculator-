@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Link } from "../../motion";
+import { Link, Stagger } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { getFeed } from "../../lib/salonApi";
@@ -64,11 +64,11 @@ export default function Feed({ handle = null, emptyKey = "salon.feed.empty" }) {
           {!handle && <Link to="/salon/new" className="underline underline-offset-2" style={{ color: COLORS.forestDeep }}>{t("salon.feed.writeFirst")}</Link>}
         </p>
       )}
-      <ul className="grid gap-4 list-none p-0 m-0">
+      <Stagger as="ul" eager key={tab} className="grid gap-4 list-none p-0 m-0">
         {(rows ?? []).map((p) => (
           <li key={p.id}><PostCard post={p} onRemoved={(id) => setRows((r) => r.filter((x) => x.id !== id))} /></li>
         ))}
-      </ul>
+      </Stagger>
       {more && <div className="mt-6"><Button variant="secondary" loading={busy} onClick={loadMore}>{t("salon.more")}</Button></div>}
     </section>
   );

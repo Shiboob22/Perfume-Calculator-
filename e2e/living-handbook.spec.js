@@ -45,6 +45,7 @@ for (const [path, lang] of [["/", "en"], ["/ar", "ar"], ["/library/the-calculati
   test(`axe: ${path}`, async ({ page }) => {
     await page.goto(path);
     await expect(page.locator("html")).toHaveAttribute("lang", lang);
+    await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().filter((a) => a.timeline instanceof DocumentTimeline && a.effect?.getComputedTiming().endTime !== Infinity).map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))])); // entrances settle first: axe must not read a half-faded colour
     const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
     expect(axe.violations).toEqual([]);
   });
