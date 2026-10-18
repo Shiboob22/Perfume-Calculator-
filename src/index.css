@@ -194,43 +194,22 @@ summary::-webkit-details-marker { display: none; }
 [data-compounding] { position: relative; view-timeline: --cmp-scene block; }
 [data-vt] { view-timeline: --v block; }
 
-/* At rest: the mass, no loose grains, no haze, the per-stage scale. */
+/* At rest: the per-stage scale, nothing moving. */
 .cmp-live { display: none; }
-.m-merge { opacity: 0; }
-.cmp-veil { opacity: 0; }
-@media (prefers-reduced-motion: reduce) { .cmp-smoke { display: none; } }
-.cmp-canvas { display: none; }
-.cmp-smoke[data-canvas] .cmp-canvas { display: block; }
-.cmp-smoke[data-canvas] .cmp-strokes { display: none; }
-/* The palette shift: each stage ends in a band that grades its ground into the next. No text sits in it. */
-.cmp-band { position: absolute; inset-inline: 0; bottom: 0; height: var(--band); pointer-events: none; }
-[data-stage][data-next] { padding-bottom: var(--band); }
 
 /* Which mark runs which keyframes. */
-.m-parallax { --kf: cmp-parallax; }
 .m-drift { --kf: cmp-drift; }
 .m-plate { --kf: cmp-plate; }
-.m-grain { --kf: cmp-grain; }
-.m-merge { --kf: cmp-merge; }
-.m-mass { --kf: cmp-mass; transform-box: fill-box; transform-origin: 50% 100%; }
+.m-pan { --kf: cmp-pan; transform-origin: bottom; }
+.m-beam { --kf: cmp-beam; transform-origin: left; }
+[dir="rtl"] .m-beam { transform-origin: right; }
 .m-ember { --kf: cmp-ember; }
-.m-smoke { --kf: cmp-smoke; }
-.m-clear { --kf: cmp-clear; }
-.m-wisp { --kf: cmp-wisp; }
-.m-veil { --kf: cmp-veil; }
-.m-grain, .m-merge { transform-box: fill-box; transform-origin: center; }
 
-@keyframes cmp-parallax { to { transform: translateY(var(--m-parallax)); } }
 @keyframes cmp-drift { from { transform: translateY(var(--m-drift)); } }
 @keyframes cmp-plate { from { opacity: 0; transform: translateY(var(--m-plate)); } }
-@keyframes cmp-grain { from { opacity: 0; transform: translateY(calc(var(--m-grain) * -1)); } }
-@keyframes cmp-merge { from { opacity: 1; } to { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.25); } }
-@keyframes cmp-mass { from { opacity: 0; transform: scale(.55, .3); } }
+@keyframes cmp-pan { from { transform: scaleY(0); } }
+@keyframes cmp-beam { from { transform: scaleX(0); } }
 @keyframes cmp-ember { from { opacity: 0; transform: scale(.15); } }
-@keyframes cmp-smoke { from { opacity: 0; transform: translateY(var(--m-smoke)); } }
-@keyframes cmp-clear { to { opacity: 0; } }
-@keyframes cmp-wisp { from { opacity: 0; transform: translateY(var(--m-wisp)) scale(.94); } }
-@keyframes cmp-veil { from { opacity: 1; } to { opacity: 0; transform: translateY(-100%); } }
 @keyframes cmp-fill { from { transform: scaleY(0); } }
 @keyframes cmp-tick { from { transform: translateY(100%); } }
 @keyframes cmp-grams { from { --cg: 0; } to { --cg: var(--cg-max); } }

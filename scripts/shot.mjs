@@ -1,3 +1,4 @@
+/* global document, localStorage, innerWidth */
 // Full-page screenshots of a few URLs at 375 and 1440, light or dark.
 //   node scripts/shot.mjs <outdir> <base-url> <path[,path…]> [light|dark] [widths]
 // Uses CHROMIUM_PATH if set, else the installed Chrome.

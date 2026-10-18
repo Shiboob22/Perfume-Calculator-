@@ -1,35 +1,22 @@
-// The Compounding: every constant that sets the feel of the home page's scroll
-// scene, in one place. Plain data, no imports from the app, so the prerender,
-// the tests and the debug page read the same numbers.
+// The home page's scroll scene, "Weighed" (v7, direction A): every constant that
+// sets the feel of it, in one place. Plain data, no imports from the app, so the
+// prerender, the tests and the debug page read the same numbers.
 //
-// Scroll is time in the room. Progress runs 0 → 1 over the whole scene and the
-// stages divide it. The stage list and the scale
-// set the static composition; the motion constants set how it moves.
+// Scroll is the pour. Progress runs 0 → 1 over the whole scene and the stages
+// divide it: the batch is read, the oil goes in, the alcohol goes in, the six
+// rooms are weighed, and the Bench takes over. The grams gauge in the margin
+// follows the scroll and ends on the batch weight the Bench starts from.
+// (The file keeps its old name: the `compounding` flag and its build alias
+// still switch the scene.)
 
-/** The six stages, in order. `to` is the progress at which the stage ends. */
+/** The five stages, in order. `to` is the progress at which the stage ends. */
 export const STAGES = Object.freeze([
-  { id: "afternoon", from: 0, to: 0.12 },
-  { id: "sixteen", from: 0.12, to: 0.46 },
-  { id: "pour", from: 0.46, to: 0.62 },
-  { id: "dusk", from: 0.62, to: 0.74 },
-  { id: "burn", from: 0.74, to: 0.9 },
+  { id: "reading", from: 0, to: 0.16 },
+  { id: "oil", from: 0.16, to: 0.38 },
+  { id: "alcohol", from: 0.38, to: 0.62 },
+  { id: "rooms", from: 0.62, to: 0.9 },
   { id: "handoff", from: 0.9, to: 1 },
 ]);
-
-/**
- * The light in each stage. Fixed scenes, independent of the light/dark toggle
- * (the last stage hands back to the page's own theme). Every ink/background
- * pair is held to WCAG AA by compounding.test.js; `accent` is for type and
- * borders on that stage's ground; `resin` is the fill colour for drawn marks
- * (grains, the mass, the ember), with no text on it.
- */
-export const STAGE_LIGHT = Object.freeze({
-  afternoon: { bg: "#EDEAE3", ink: "#100E0A", dim: "#4E4A43", accent: "#7A581B", resin: "#C8893A", line: "#CFC9BC" },
-  sixteen: { bg: "#F0E8D7", ink: "#100E0A", dim: "#4D4636", accent: "#7A581B", resin: "#C8893A", line: "#D2C6AA" },
-  pour: { bg: "#E6D3AA", ink: "#100E0A", dim: "#45391F", accent: "#6B4A12", resin: "#B87A28", line: "#C9B27F" },
-  dusk: { bg: "#3C2815", ink: "#F6F2EA", dim: "#DCCBB0", accent: "#E3A857", resin: "#D79A45", line: "#6A4B2A" },
-  burn: { bg: "#1A120B", ink: "#F6F2EA", dim: "#D3C3AA", accent: "#E3A857", resin: "#E3A857", line: "#4A3622" },
-});
 
 /** The weight scale: a thin vertical gauge, grams, tabular figures. */
 export const SCALE = Object.freeze({
@@ -43,7 +30,7 @@ export const SCALE = Object.freeze({
 /**
  * Motion. Every mark moves on its own view timeline: 0 is the moment it
  * touches the bottom edge of the screen, 1 the moment it leaves the top
- * (CSS `cover`). `RANGES` are [from, to] on that line; `STAGGER` is added per
+ * (CSS `cover`). `ranges` are [from, to] on that line; `stagger` is added per
  * index inside a group. Distances are px, and only transform and opacity move.
  * The gauge follows the whole scene instead: 0 when the scene's top meets the
  * top of the screen, 1 when its foot meets the foot of the screen.
@@ -53,53 +40,19 @@ export const SCALE = Object.freeze({
 export const MOTION_SCENE = Object.freeze({
   ease: "cubic-bezier(.2,0,0,1)",
   ranges: Object.freeze({
-    parallax: [0.5, 1], // the afternoon bowl lags the page
     drift: [0.02, 0.3], // a stage's words settle (movement only, never a fade)
-    plate: [0, 0.3], // a catalogue plate arrives
-    grain: [0.08, 0.32], // a grain drops into the bowl
-    merge: [0.06, 0.42], // grains draw together
-    mass: [0.2, 0.58], // and become one amber mass
+    pan: [0, 0.55], // the brass pan fills behind the reading
+    beam: [0.12, 0.5], // a weight on the beam grows from the reading edge
+    plate: [0, 0.3], // a room's plate arrives
     ember: [0.06, 0.3], // the ember takes
-    smoke: [0.12, 0.6], // smoke rises
-    clear: [0.82, 1], // smoke clears
-    wisp: [0, 0.3], // a room comes out of the smoke
-    veil: [0, 0.4], // the handoff's haze lifts
   }),
-  /** Ambient loops at rest (board: ember breath 3.2 s). */
+  /** Ambient loops at rest (the ember's breath, 3.2 s). */
   ambient: Object.freeze({ emberBreathMs: 3200 }),
-  stagger: Object.freeze({ plate: 0.035, grain: 0.012, merge: 0.006, smoke: 0.05, wisp: 0.035 }),
-  distance: Object.freeze({ plate: 28, drift: 24, parallax: 40, grain: 34, smoke: 70, wisp: 44 }),
-});
-
-/**
- * Smoke on the canvas. A pure function of the burn stage's own progress (0:
- * its top touches the bottom of the screen, 1: its foot leaves the top), so
- * it is drawn only when the page scrolls and costs nothing at rest.
- * `rise` is the share of that line in which the plumes climb, `clear` where
- * they thin out. `lowPlumes` is what a low-power device draws; below
- * `lowPowerCores` logical cores, or with Save-Data, the canvas is skipped
- * and the static strokes stay.
- */
-export const SMOKE = Object.freeze({
-  plumes: 7,
-  lowPlumes: 3,
-  rise: [0.1, 0.62],
-  clear: [0.8, 1],
-  sway: 0.09, // horizontal wander, as a share of the width
-  alpha: 0.3,
-  lineWidth: 1.2,
-  maxDpr: 2,
+  stagger: Object.freeze({ plate: 0.035 }),
+  distance: Object.freeze({ plate: 28, drift: 24 }),
+  /** Below this many logical cores, or with Save-Data, parallax-style marks are dropped. */
   lowPowerCores: 4,
 });
-
-/**
- * The palette shift. Each stage ends in a band that grades its ground into
- * the next one, so the light changes with the scroll position instead of
- * cutting. No text sits in a band (the stage's foot padding is at least as
- * tall), so contrast is held by the stage pairs in STAGE_LIGHT.
- */
-export const BAND = Object.freeze({ min: 96, vh: 22, max: 220 }); // px, vh, px
-export const BAND_NEXT = Object.freeze({ afternoon: "sixteen", sixteen: "pour", pour: "dusk", dusk: "burn" });
 
 /** Progress (0–1) → the stage it falls in. */
 export function stageAt(progress) {

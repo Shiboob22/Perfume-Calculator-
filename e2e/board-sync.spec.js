@@ -22,7 +22,7 @@ async function shoot(page, room, name) {
   await page.screenshot({ path: `${SHOTS}/${room}/${name}.png`, fullPage: true });
 }
 
-test.describe("Homepage (Compounding)", () => {
+test.describe("Homepage (Weighed)", () => {
   // eslint-disable-next-line no-unused-vars -- Playwright needs a destructured first argument
   test.beforeEach(({ page }, testInfo) => { test.skip(testInfo.project.name !== "desktop", "viewport set per test"); });
   for (const [vname, size] of VIEWS) {
@@ -33,11 +33,11 @@ test.describe("Homepage (Compounding)", () => {
         const h1 = page.getByRole("heading", { level: 1 });
         for (const line of m.site.home.hero) await expect(h1).toContainText(line);
         // A way past the scene for anyone who does not want to scroll it.
-        const skip = page.getByRole("link", { name: m.site.compounding.afternoon.skip });
+        const skip = page.getByRole("link", { name: m.site.compounding.reading.skip });
         if (await skip.count()) {
           await expect(skip).toHaveAttribute("href", "#cmp-rooms");
           await expect(page.locator("#cmp-rooms li")).toHaveCount(6);
-          await expect(page.locator("#cmp-rooms li").first()).toContainText("I");
+          await expect(page.locator("#cmp-rooms li").first()).toContainText(m.site.compounding.rooms.bench.name);
         }
         await shoot(page, "homepage", `${vname}-${lang}`);
       });

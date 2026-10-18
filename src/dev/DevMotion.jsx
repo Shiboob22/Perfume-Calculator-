@@ -40,7 +40,7 @@ function Switch({ on, set, children }) {
 
 export default function DevMotion() {
   const { locale, setLocale } = useI18n();
-  const [read, setRead] = useState({ p: 0, stage: "afternoon", fps: 0, native: false });
+  const [read, setRead] = useState({ p: 0, stage: "reading", fps: 0, native: false });
   const [reduce, setReduce] = useState(false);
   const [low, setLow] = useState(false);
   // ?view=scene is the Compounding; the default is the motion layer's primitives.
