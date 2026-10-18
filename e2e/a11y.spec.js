@@ -7,9 +7,14 @@ const PAGES = ["/", "/ar", "/library", "/ar/library", "/library/the-calculation"
 
 // Measure the settled page: short time-based fades (the bench readout's tick)
 // would otherwise be sampled mid-way. Scroll-tied animations never "finish".
-const settled = (page) => page.evaluate(() => Promise.all(document.getAnimations()
-  .filter((a) => a.timeline === document.timeline && Number.isFinite(a.effect?.getComputedTiming().endTime))
-  .map((a) => a.finished.catch(() => {}))));
+// Animations the page holds paused (the home scene, driven by script where
+// scroll timelines are missing, as in Firefox) never finish: wait at most 1 s.
+const settled = (page) => page.evaluate(() => Promise.race([
+  Promise.all(document.getAnimations()
+    .filter((a) => a.timeline === document.timeline && Number.isFinite(a.effect?.getComputedTiming().endTime))
+    .map((a) => a.finished.catch(() => {}))),
+  new Promise((r) => setTimeout(r, 1000)),
+]));
 
 for (const path of PAGES) {
   test(`accessibility: ${path}`, async ({ page }, info) => {
