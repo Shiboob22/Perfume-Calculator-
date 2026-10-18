@@ -209,6 +209,7 @@ test("the Wardrobe opt-in for community counts starts off and saves when turned 
 });
 
 test("Arabic at 320 px: Arabic names, no sideways scroll, no axe violations", async ({ page }) => {
+  test.slow(); // walks several pages with axe and animation settling: 15-35 s on a busy machine, over the 30 s default
   await flags(page, "atlas");
   await signIn(page);
   await fakeApi(page, { locale: "ar", admin: true, terms: [{ kind: "note", key: "lemon", ar: "ليمون" }, { kind: "house", key: "maison test", ar: "ميزون تست" }],
