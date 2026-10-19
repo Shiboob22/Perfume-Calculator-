@@ -186,3 +186,27 @@ html[data-motion] .mo-light.kx-room-light { inset-inline-end: auto; inset-inline
 html[data-motion].lenis, html[data-motion].lenis body { height: auto; }
 html[data-motion].lenis.lenis-smooth { scroll-behavior: auto !important; }
 html[data-motion].lenis.lenis-stopped { overflow: clip; }
+
+/* ── Pass 3 shared effects: tokens only, opacity/transform only, static under reduced motion ── */
+
+/* A slow breath for one small mark (footer ember, a due marker, waiting dots): opacity only,
+   paused while off screen (data-mo-off, set by watchAmbient), and left at rest on low power. */
+@keyframes mo-breath { from { opacity: 1; } to { opacity: .35; } }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-motion]:not([data-mo-low]) .mo-breath { animation: mo-breath var(--mo-ambient) var(--mo-ease-io) infinite alternate; }
+  html[data-motion] .mo-breath[data-mo-off], html[data-motion] .mo-breath[data-still] { animation-play-state: paused; }
+  html[data-motion] .mo-breath[data-still] { opacity: 1; animation: none; }
+}
+
+/* A row title that shifts toward the reading end on hover or focus (mirrors in Arabic). */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  html[data-motion] .mo-nudge .mo-nudge__t { transition: translate var(--mo-fast) var(--mo-ease); }
+  html[data-motion] .mo-nudge:is(:hover, :focus-visible) .mo-nudge__t { translate: calc(var(--mo-dir) * var(--mo-d-s)) 0; }
+}
+
+/* Reveal variants: a step delay (--mo-delay, a multiple of --mo-step) and the travelling ease for images. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-motion] .mo-reveal[data-mo="in"][style*="--mo-delay"],
+  html[data-motion] .mo-reveal[data-mo="enter"][style*="--mo-delay"] { animation-delay: var(--mo-delay); }
+  html[data-motion] .mo-reveal[data-mo-ease="io"][data-mo="in"] { animation-timing-function: var(--mo-ease-io); }
+}
