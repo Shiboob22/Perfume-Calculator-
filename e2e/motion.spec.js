@@ -204,6 +204,17 @@ test("smooth scroll: runs on the home page, stops when you leave it", async ({ p
   await expect(page.locator("html.lenis")).toHaveCount(0);
 });
 
+test("smooth scroll: leaving straight after a wheel scroll leaves no lenis class behind", async ({ page }) => {
+  await on(page); await roomy(page);
+  await page.goto("/");
+  await expect(page.locator("html.lenis")).toHaveCount(1);
+  await page.mouse.move(200, 300);
+  await page.mouse.wheel(0, 600);
+  await page.locator('a[href="/library"]').first().click();
+  await expect(page).toHaveURL(/\/library/);
+  await expect(page.locator("html.lenis")).toHaveCount(0);
+});
+
 test("smooth scroll: off with the flag off, under reduced motion and on a low-power device", async ({ page }) => {
   await roomy(page);
   await page.goto("/");
