@@ -11,6 +11,23 @@ const PAGES = ["/", "/pricing", "/library", "/library/the-calculation", "/privac
 // Phone covers every page and theme; desktop the three entry pages.
 const DESKTOP_ONLY_PAGES = new Set(["/", "/pricing", "/library"]);
 
+// Fonts loaded and the page height equal on two consecutive frames, so a late
+// reflow cannot flip the full-page screenshot between two heights.
+async function settle(page) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+    const height = () => document.documentElement.scrollHeight;
+    let last = height();
+    for (let tries = 0; tries < 120; tries++) {
+      await frame();
+      const now = height();
+      if (now === last) return;
+      last = now;
+    }
+  });
+}
+
 for (const lang of ["en", "ar"]) {
   for (const scheme of ["light", "dark"]) {
     for (const path of PAGES) {
@@ -19,7 +36,7 @@ for (const lang of ["en", "ar"]) {
         test.skip(info.project.name === "desktop" && (!DESKTOP_ONLY_PAGES.has(path) || scheme === "dark"), "phone covers it");
         await page.emulateMedia({ colorScheme: scheme });
         await page.goto(url, { waitUntil: "networkidle" });
-        await page.evaluate(() => document.fonts.ready);
+        await settle(page);
         const name = `${lang}-${scheme}-${path === "/" ? "home" : path.slice(1).replace(/\//g, "-")}.png`;
         await expect(page).toHaveScreenshot(name, { fullPage: true, animations: "disabled", maxDiffPixelRatio: 0.01, mask: [page.locator("canvas")] });
       });
