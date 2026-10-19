@@ -15,3 +15,4 @@ coverage/
 
 # The owner's handbook PDFs: private source material, never committed.
 content-src/
+.claude/
