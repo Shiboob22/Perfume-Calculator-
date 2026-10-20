@@ -29,7 +29,8 @@ jobs:
           expect 200 /
           expect 200 /ar
           expect 200 /pricing
-          expect 200 /guides/the-calculation
+          expect 200 /library/the-calculation
+          expect 301 /guides/the-calculation
           expect 204 "/api/search?warm=1"
           expect 200 /sitemap-recipes.xml
           expect 404 /api/imports.test
