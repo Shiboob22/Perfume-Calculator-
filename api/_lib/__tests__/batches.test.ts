@@ -254,7 +254,7 @@ describe('PATCH /api/batches (edit)', () => {
     expect(db.rows('batches')[0].fragrance_name).toBe('Oud Nights');
   });
   it('refuses a bad value with the field', async () => {
-    for (const edit of [{ fragrance_name: '' }, { blend_date: '2026-13-45' }, { actual_oil_g: -1 }, { lot: 'x'.repeat(61) }, {}, [1]]) {
+    for (const edit of [{ fragrance_name: '' }, { blend_date: '2026-13-45' }, { blend_date: '2999-01-01' }, { actual_oil_g: -1 }, { lot: 'x'.repeat(61) }, {}, [1]]) {
       const res = await call('PATCH', { body: { id: ID, edit } });
       expect(res.statusCode).toBe(400);
       expect(res.body.code).toBe('invalid_edit');
@@ -332,6 +332,7 @@ describe('POST /api/batches validation', () => {
     'long note': { notes: 'x'.repeat(2001) },
     'long name': { fragrance_name: 'x'.repeat(121) },
     'bad date': { blend_date: 'yesterday' },
+    'future date': { blend_date: '2999-01-01' },
     'negative price': { price_per_gram: -2 },
   };
   for (const [label, patch] of Object.entries(bad)) {

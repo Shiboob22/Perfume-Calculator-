@@ -11,6 +11,7 @@ import { RatioBar } from "./Bottle";
 import { IconBookmark, IconBookmarkCheck, IconCheck, IconCopy, IconDiamondAlert, IconDrop, IconFlameTriangle } from "./icons";
 import { STRENGTHS } from "../lib/formulation";
 import Stepper from "./kx/Stepper";
+import Chip from "./kx/Chip";
 import RoomHeader from "./kx/RoomHeader";
 
 // The handbook's four named strengths plus a plain 22% (the owner's own
@@ -47,6 +48,12 @@ import { blendTips } from "../lib/aiApi";
 function todayISO() {
   const d = new Date();
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+function addDays(iso, n) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const x = new Date(y, m - 1, d + n);
+  return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0");
 }
 
 const MODES = ["bottle", "fromOil", "adjust", "run"];
@@ -245,7 +252,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [actualOilG, setActualOilG] = useState(draft?.actualOilG ?? "");
   const [actualEthG, setActualEthG] = useState(draft?.actualEthG ?? "");
   const [blendedBy, setBlendedBy] = useState(draft?.blendedBy ?? "");
-  const [blendDate, setBlendDate] = useState(draft?.blendDate ?? todayISO());
+  const [blendDate, setBlendDate] = useState(draft?.blendDate && draft.blendDate <= todayISO() ? draft.blendDate : todayISO());
+  const [customDate, setCustomDate] = useState(false);
 
   useEffect(() => {
     saveDraft({
@@ -867,9 +875,18 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               <label htmlFor="calc-blended-by" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.blendedBy")}</label>
               <TextInput id="calc-blended-by" value={blendedBy} onChange={(e) => setBlendedBy(e.target.value)} />
             </div>
-            <div>
+            <div className="col-span-2">
               <label htmlFor="calc-date" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.date")}</label>
-              <TextInput id="calc-date" type="date" value={blendDate} onChange={(e) => setBlendDate(e.target.value)} />
+              <div className="flex flex-wrap gap-2 mb-2">
+                <Chip onToggle={() => { setBlendDate(todayISO()); setCustomDate(false); }} pressed={!customDate && blendDate === todayISO()}>{t("calc.dateToday")}</Chip>
+                <Chip onToggle={() => { setBlendDate(addDays(todayISO(), -1)); setCustomDate(false); }} pressed={!customDate && blendDate === addDays(todayISO(), -1)}>{t("calc.dateYesterday")}</Chip>
+                <Chip onToggle={() => setCustomDate(true)} pressed={customDate || (blendDate !== todayISO() && blendDate !== addDays(todayISO(), -1))}>{t("calc.dateCustom")}</Chip>
+              </div>
+              {(customDate || (blendDate !== todayISO() && blendDate !== addDays(todayISO(), -1))) && (
+                <TextInput id="calc-date" type="date" max={todayISO()} value={blendDate}
+                  onChange={(e) => setBlendDate(e.target.value && e.target.value <= todayISO() ? e.target.value : todayISO())} />
+              )}
+              {blendDate < todayISO() && <p className="text-xs mt-1" style={{ color: COLORS.dim }}>{t("calc.datePast", { date: blendDate })}</p>}
             </div>
           </div>
 

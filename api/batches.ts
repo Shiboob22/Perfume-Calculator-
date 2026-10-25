@@ -79,6 +79,13 @@ export async function recipeLink(supabase: any, userId: string, b: any): Promise
 // never the planned recipe (Make again covers a different recipe). Only the
 // fields sent change; an empty value clears an optional field.
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+// A real calendar day, not later than tomorrow UTC (one day of slack for time zones).
+function validBlendDate(d: string, now = Date.now()): boolean {
+  if (!DATE.test(d)) return false;
+  const t = Date.parse(`${d}T00:00:00Z`);
+  return !Number.isNaN(t) && t <= now + 2 * 86_400_000 - 1;
+}
 export function editRow(edit: any): { row: Record<string, unknown> } | { error: string; field: string } {
   if (!edit || typeof edit !== 'object' || Array.isArray(edit)) return { error: 'Nothing to change.', field: 'edit' };
   const row: Record<string, unknown> = {};
@@ -103,7 +110,7 @@ export function editRow(edit: any): { row: Record<string, unknown> } | { error: 
   if (bad) return { error: `Check ${bad}.`, field: bad };
   if ('blend_date' in edit) {
     const d = String(edit.blend_date ?? '');
-    if (!DATE.test(d) || Number.isNaN(Date.parse(`${d}T00:00:00Z`))) return { error: 'Check blend_date.', field: 'blend_date' };
+    if (!validBlendDate(d)) return { error: 'Check blend_date.', field: 'blend_date' };
     row.blend_date = d;
   }
   if (!Object.keys(row).length) return { error: 'Nothing to change.', field: 'edit' };
@@ -144,7 +151,7 @@ export function batchRow(b: any): { row: Record<string, unknown> } | { error: st
     || text('oil_type', 120) || text('notes', 2000) || text('blended_by', 120);
   if (bad) return { error: `Check ${bad}.`, field: bad };
   const d = String(b.blend_date ?? '');
-  if (!DATE.test(d) || Number.isNaN(Date.parse(`${d}T00:00:00Z`))) return { error: 'Check blend_date.', field: 'blend_date' };
+  if (!validBlendDate(d)) return { error: 'Check blend_date.', field: 'blend_date' };
   row.blend_date = d;
   if (Math.abs(Number(row.total_g) - (Number(row.oil_g) + Number(row.ethanol_g))) > TOTAL_SLACK_G) {
     return { error: 'Check total_g.', field: 'total_g' };
