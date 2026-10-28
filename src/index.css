@@ -78,9 +78,10 @@ html[dir="rtl"] .ar-display { font-family: "Reem Kufi Variable", "Readex Pro Var
 html[dir="rtl"] .print-label-name { font-style: normal; }
 .print-label-row { display: flex; justify-content: space-between; gap: 2mm; line-height: 1.35; }
 .print-label-row dt { color: #4A3D25; }
-.print-label-line { display: flex; gap: 2mm; white-space: nowrap; overflow: hidden; line-height: 1.35; }
+.print-label-line { display: flex; justify-content: space-between; gap: 1mm; white-space: nowrap; overflow: hidden; line-height: 1.2; }
 /* Niimbot D30 roll (12 × 40 mm): the page is the label, one per page. */
-.label-roll .print-label { padding: 1mm 1.5mm; }
+.label-roll .print-label { padding: 0.8mm 1.5mm; }
+.label-roll .print-label-name { margin-bottom: 0; line-height: 1.1; }
 @page roll { size: 40mm 12mm; margin: 0; }
 @media print {
   .label-sheet { gap: 4mm; }

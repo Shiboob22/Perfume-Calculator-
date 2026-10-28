@@ -45,12 +45,37 @@ export function typeSizes({ h }, rows) {
   return { name: Math.floor(name * 100) / 100, line: Math.max(1.4, Math.floor(line * 100) / 100) };
 }
 
-// A 12 mm roll label holds the name and one line of key facts, not the full
-// weights list: the type sizes (mm) for that two-line layout.
-export function compactSizes({ h }) {
-  const name = Math.min(4.2, h * 0.36);
-  const line = Math.min(2.8, (h - 2 - name * 1.1 - 0.5) / LINE);
-  return { name: Math.floor(name * 100) / 100, line: Math.max(1.4, Math.floor(line * 100) / 100) };
+// Roll labels (D30, 12 mm high) carry every field on three rows: the name,
+// the facts (concentration, bottle, date, lot) and the weights, each with a
+// short label. Type is fitted to the printable width, so a long name or lot
+// shrinks (down to a floor) instead of overflowing.
+const ROLL_PAD = { x: 1.5, y: 0.8 };
+const ROLL_LINE = 1.2;
+const CHAR_EM = 0.54; // average glyph width in em, tabular figures
+
+function fitMm(chars, width, max, min) {
+  const size = Math.min(max, width / (Math.max(chars, 1) * CHAR_EM));
+  return Math.max(min, Math.floor(size * 100) / 100);
+}
+
+export function compactLayout(batch, { t, lot }, { w, h }) {
+  lot = lot ?? batch.lot ?? "";
+  const inner = w - 2 * ROLL_PAD.x;
+  const weights = labelWeights(Number(batch.oil_g), Number(batch.ethanol_g), Number(batch.actual_oil_g) || null, Number(batch.actual_ethanol_g) || null);
+  const facts = [`${batch.concentration_pct}%`, bottleText(batch), batch.blend_date || ""];
+  if (String(lot).trim()) facts.push(`${t("labels.short.lot")} ${String(lot).trim()}`);
+  const grams = [
+    `${t("labels.short.oil")} ${fmt2(weights.oil)}`,
+    `${t("labels.short.alcohol")} ${fmt2(weights.ethanol)}`,
+    `${t("labels.short.total")} ${fmt2(weights.total)} g`,
+  ].filter(Boolean);
+  const name = batch.fragrance_name || t("bench.untitled");
+  const chars = (segs) => segs.join("").length + (segs.length - 1);
+  // Rows share what is left under the name; none may exceed 2.5 mm.
+  const nameSize = fitMm(name.length, inner, Math.min(3.6, h * 0.3), 2.2);
+  const rowMax = Math.min(2.5, (h - 2 * ROLL_PAD.y - nameSize * 1.1) / (2 * ROLL_LINE));
+  const rows = [facts, grams].map((segments) => ({ segments, size: fitMm(chars(segments), inner, rowMax, 1.6) }));
+  return { name, nameSize, rows };
 }
 
 // The label's lines, translated. Weights are what was poured when the
@@ -72,12 +97,10 @@ export function labelFields(batch, { t, lot }) {
     [t("bench.label.date"), batch.blend_date || ""],
   ];
   if (String(lot).trim()) fields.push([t("bench.label.lot"), String(lot).trim()]);
-  // Compact (roll) labels: the facts above, without the weights.
-  const compact = fields.slice();
   fields.push(
     [t("bench.label.oil"), `${fmt2(weights.oil)} g`],
     [t("bench.label.alcohol"), `${fmt2(weights.ethanol)} g`],
     [t("bench.label.total"), `${fmt2(weights.total)} g`],
   );
-  return { name: batch.fragrance_name || t("bench.untitled"), fields, compact };
+  return { name: batch.fragrance_name || t("bench.untitled"), fields };
 }

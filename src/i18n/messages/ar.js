@@ -1274,6 +1274,7 @@ export default {
     custom: "مخصّص",
     mm: "{w} × {h} مم",
     d30: "D30 · 12 × 40 مم",
+    short: { lot: "دفعة", oil: "زيت", alcohol: "كحول", total: "مجموع" },
     perRoll: "ملصق واحد في كل صفحة، للفة D30.",
     width: "العرض (مم)",
     height: "الارتفاع (مم)",

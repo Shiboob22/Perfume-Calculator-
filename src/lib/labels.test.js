@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LABEL_SIZES, customSize, labelFields, perSheet, typeSizes, compactSizes, bottleText } from "./labels";
+import { LABEL_SIZES, customSize, labelFields, perSheet, typeSizes, compactLayout, bottleText } from "./labels";
 import { createTranslator } from "../i18n/core";
 import en from "../i18n/messages/en";
 import ar from "../i18n/messages/ar";
@@ -62,13 +62,23 @@ describe("sizes", () => {
     expect(perSheet(LABEL_SIZES.large)).toEqual({ cols: 2, rows: 5, total: 10 });
   });
 
-  it("prints the D30 roll as one 40 × 12 mm label per page, name plus one line", () => {
+  it("fits every field on the D30 roll: name, facts and weights in 12 mm", () => {
     expect(LABEL_SIZES.d30).toMatchObject({ w: 40, h: 12, roll: true });
     expect(perSheet(LABEL_SIZES.d30)).toEqual({ cols: 1, rows: 1, total: 1 });
-    const { name, line } = compactSizes(LABEL_SIZES.d30);
-    expect(2 + name * 1.1 + 0.5 + line * 1.35).toBeLessThanOrEqual(12.01);
-    const c = Object.fromEntries(labelFields(batch, { t, lot: "L-1" }).compact);
-    expect(Object.keys(c)).toEqual(["Concentration", "Bottle size", "Date", "Oil lot / batch"]);
+    const l = compactLayout({ ...batch, lot: "L-12" }, { t }, LABEL_SIZES.d30);
+    expect(l.rows[0].segments).toEqual(["25%", "100 mL", "2026-10-02", "Lot L-12"]);
+    expect(l.rows[1].segments).toEqual(["Oil 23.75", "Alc 60.75", "Tot 84.50 g"]);
+    expect(0.8 * 2 + l.nameSize * 1.1 + l.rows.reduce((h, r) => h + r.size * 1.2, 0)).toBeLessThanOrEqual(12.01);
+    for (const r of l.rows) expect(r.size).toBeGreaterThanOrEqual(2.1); // legible when thermally printed
+  });
+
+  it("shrinks a long name or lot instead of overflowing, with a floor", () => {
+    const long = compactLayout({ ...batch, fragrance_name: "Oud Wood Intense Reserve Edition No. 7", lot: "ABCDEFGHIJKLMNOPQRSTUVWXYZ" }, { t }, LABEL_SIZES.d30);
+    const short = compactLayout(batch, { t }, LABEL_SIZES.d30);
+    expect(long.nameSize).toBeLessThan(short.nameSize);
+    expect(long.rows[0].size).toBeLessThan(short.rows[0].size);
+    expect(long.nameSize).toBeGreaterThanOrEqual(2.2);
+    expect(long.rows[0].size).toBeGreaterThanOrEqual(1.6);
   });
 
   it("accepts custom sizes that print on A4 only", () => {

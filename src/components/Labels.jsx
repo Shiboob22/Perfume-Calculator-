@@ -6,7 +6,7 @@ import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import { can } from "../lib/entitlements";
 import { listBatches } from "../lib/fragranceApi";
-import { LABEL_SIZES, LABEL_LIMITS, MAX_COPIES, customSize, labelFields, perSheet, typeSizes, compactSizes } from "../lib/labels";
+import { LABEL_SIZES, LABEL_LIMITS, MAX_COPIES, customSize, labelFields, perSheet, typeSizes, compactLayout } from "../lib/labels";
 import ProLocked from "./ProLocked";
 
 const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` };
@@ -41,8 +41,9 @@ export default function Labels() {
   const sheet = size ? perSheet(size) : null;
   const count = Math.min(Math.max(1, Number(copies) || 1), MAX_COPIES);
   const label = batch ? labelFields(batch, { t, lot }) : null;
+  const roll = batch && size?.roll ? compactLayout(batch, { t, lot }, size) : null;
   // Type scaled so every line fits the label; mm keeps it true to the printout.
-  const type = size && label ? (size.roll ? compactSizes(size) : typeSizes(size, label.fields.length)) : { name: 5, line: 3 };
+  const type = size && label && !size.roll ? typeSizes(size, label.fields.length) : { name: 5, line: 3 };
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -92,17 +93,24 @@ export default function Labels() {
         <div className={`label-sheet${size.roll ? " label-roll" : ""}`} dir={dir}>
           {Array.from({ length: count }, (_, i) => (
             <div key={i} className="print-label" style={{ width: `${size.w}mm`, height: `${size.h}mm` }}>
-              <p className="print-label-name" style={{ fontSize: `${type.name}mm` }}>{label.name}</p>
-              {size.roll ? (
-                <p className="print-label-line" style={{ fontSize: `${type.line}mm` }}>
-                  {label.compact.map(([k, v]) => <span key={k} dir="ltr">{v}</span>)}
-                </p>
+              {roll ? (
+                <>
+                  <p className="print-label-name" style={{ fontSize: `${roll.nameSize}mm` }}>{roll.name}</p>
+                  {roll.rows.map((row, r) => (
+                    <p key={r} className="print-label-line" style={{ fontSize: `${row.size}mm` }}>
+                      {row.segments.map((seg, j) => <span key={j} dir="ltr">{seg}</span>)}
+                    </p>
+                  ))}
+                </>
               ) : (
-              <dl style={{ fontSize: `${type.line}mm` }}>
-                {label.fields.map(([k, v]) => (
-                  <div key={k} className="print-label-row"><dt>{k}</dt><dd dir="ltr">{v}</dd></div>
-                ))}
-              </dl>
+                <>
+                  <p className="print-label-name" style={{ fontSize: `${type.name}mm` }}>{label.name}</p>
+                  <dl style={{ fontSize: `${type.line}mm` }}>
+                    {label.fields.map(([k, v]) => (
+                      <div key={k} className="print-label-row"><dt>{k}</dt><dd dir="ltr">{v}</dd></div>
+                    ))}
+                  </dl>
+                </>
               )}
             </div>
           ))}

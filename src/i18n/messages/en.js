@@ -1273,6 +1273,7 @@ export default {
     custom: "Custom",
     mm: "{w} × {h} mm",
     d30: "D30 · 12 × 40 mm",
+    short: { lot: "Lot", oil: "Oil", alcohol: "Alc", total: "Tot" },
     perRoll: "One label per page, for the D30 roll.",
     width: "Width (mm)",
     height: "Height (mm)",
