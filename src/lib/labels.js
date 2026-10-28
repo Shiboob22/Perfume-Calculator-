@@ -45,22 +45,50 @@ export function typeSizes({ h }, rows) {
   return { name: Math.floor(name * 100) / 100, line: Math.max(1.4, Math.floor(line * 100) / 100) };
 }
 
-// Roll labels (D30, 12 mm high) carry every field on three rows: the name,
-// the facts (concentration, bottle, date, lot) and the weights, each with a
-// short label. Type is fitted to the printable width, so a long name or lot
-// shrinks (down to a floor) instead of overflowing.
-const ROLL_PAD = { x: 1.5, y: 0.8 };
-const ROLL_LINE = 1.2;
-const CHAR_EM = 0.54; // average glyph width in em, tabular figures
+// Roll labels (D30, 12 mm high) carry every field on three blocks: the name
+// (one line, or two when it is long), the facts (concentration, bottle, date,
+// lot) and the weights, each with a short label. Type is fitted to the
+// printable width from measured text widths; what still cannot fit at the
+// smallest legible size is cut with an ellipsis, never left to overflow.
+const ROLL = { padX: 1.5, padY: 0.8, nameLine: 1.1, rowLine: 1.2, gap: 1, safety: 0.97,
+  nameMax: 3.6, name2Max: 2.5, rowMax: 2.5, nameMin: 2.2, rowMin: 2.0, rowFloor: 1.6 };
+const CHAR_EM = 0.54; // fallback estimate: average glyph width in em
 
-function fitMm(chars, width, max, min) {
-  const size = Math.min(max, width / (Math.max(chars, 1) * CHAR_EM));
-  return Math.max(min, Math.floor(size * 100) / 100);
+// Width of `text` in mm at a 1 mm font size. The browser passes a measured
+// one (canvas, real font); tests and SSR use the estimate.
+export const estimateEm = (text) => Array.from(String(text)).length * CHAR_EM;
+
+const floor2 = (n) => Math.floor(n * 100) / 100;
+
+function clip(text, avail, size, em) {
+  if (em(text) * size <= avail) return text;
+  const chars = Array.from(text);
+  while (chars.length > 1 && em(chars.join("").trimEnd() + "…") * size > avail) chars.pop();
+  return chars.join("").trimEnd() + "…";
 }
 
-export function compactLayout(batch, { t, lot }, { w, h }) {
+// One line: the largest size ≤ max (floored at min) at which `text` fits.
+function fitLine(text, avail, max, min, em) {
+  const size = Math.max(min, floor2(Math.min(max, avail / Math.max(em(text), 0.01))));
+  return { size, text: clip(text, avail, size, em) };
+}
+
+// Two lines for a long name: words split where the longer line is shortest.
+function splitName(name, em) {
+  const words = name.split(/\s+/).filter(Boolean);
+  let best = null;
+  for (let i = 1; i < words.length; i++) {
+    const lines = [words.slice(0, i).join(" "), words.slice(i).join(" ")];
+    const widest = Math.max(em(lines[0]), em(lines[1]));
+    if (!best || widest < best.widest) best = { lines, widest };
+  }
+  return best;
+}
+
+export function compactLayout(batch, { t, lot }, { w, h }, em = estimateEm) {
   lot = lot ?? batch.lot ?? "";
-  const inner = w - 2 * ROLL_PAD.x;
+  const avail = (w - 2 * ROLL.padX) * ROLL.safety;
+  const box = h - 2 * ROLL.padY;
   const weights = labelWeights(Number(batch.oil_g), Number(batch.ethanol_g), Number(batch.actual_oil_g) || null, Number(batch.actual_ethanol_g) || null);
   const facts = [`${batch.concentration_pct}%`, bottleText(batch), batch.blend_date || ""];
   if (String(lot).trim()) facts.push(`${t("labels.short.lot")} ${String(lot).trim()}`);
@@ -68,14 +96,42 @@ export function compactLayout(batch, { t, lot }, { w, h }) {
     `${t("labels.short.oil")} ${fmt2(weights.oil)}`,
     `${t("labels.short.alcohol")} ${fmt2(weights.ethanol)}`,
     `${t("labels.short.total")} ${fmt2(weights.total)} g`,
-  ].filter(Boolean);
-  const name = batch.fragrance_name || t("bench.untitled");
-  const chars = (segs) => segs.join("").length + (segs.length - 1);
-  // Rows share what is left under the name; none may exceed 2.5 mm.
-  const nameSize = fitMm(name.length, inner, Math.min(3.6, h * 0.3), 2.2);
-  const rowMax = Math.min(2.5, (h - 2 * ROLL_PAD.y - nameSize * 1.1) / (2 * ROLL_LINE));
-  const rows = [facts, grams].map((segments) => ({ segments, size: fitMm(chars(segments), inner, rowMax, 1.6) }));
-  return { name, nameSize, rows };
+  ];
+  const name = (batch.fragrance_name || t("bench.untitled")).trim();
+
+  // Name: one line when it fits at a good size, else two smaller lines.
+  const one = fitLine(name, avail, ROLL.nameMax, ROLL.nameMin, em);
+  let nameLines = [one.text], nameSize = one.size;
+  const split = one.size < 2.8 ? splitName(name, em) : null;
+  if (split) {
+    const fits = split.lines.map((l) => fitLine(l, avail, ROLL.name2Max, ROLL.rowMin, em));
+    nameSize = Math.min(...fits.map((f) => f.size));
+    nameLines = fits.map((f, i) => clip(split.lines[i], avail, nameSize, em));
+  }
+  // The two rows below keep at least rowMin; the name gives way first.
+  const nameH = () => nameLines.length * nameSize * ROLL.nameLine;
+  const roomFor = 2 * ROLL.rowMin * ROLL.rowLine;
+  if (nameH() > box - roomFor) {
+    nameSize = floor2((box - roomFor) / (nameLines.length * ROLL.nameLine));
+    nameLines = nameLines.map((l) => clip(l, avail, nameSize, em));
+  }
+  const rowMax = Math.min(ROLL.rowMax, (box - nameH()) / (2 * ROLL.rowLine));
+
+  // A row of segments spread across the width, with a minimum gap between.
+  const row = (segments) => {
+    const gaps = (segments.length - 1) * ROLL.gap;
+    // Only the last segment (the lot, free text) is ever clipped, and before
+    // the row shrinks: at the smallest legible size it gets what is left.
+    const head = segments.slice(0, -1);
+    const headEm = head.reduce((n, sg) => n + em(sg), 0);
+    const left = Math.max(avail - gaps - headEm * ROLL.rowMin, 0);
+    const last = clip(segments[segments.length - 1], left, ROLL.rowMin, em);
+    const all = [...head, last];
+    const total = all.reduce((n, sg) => n + em(sg), 0);
+    const size = Math.max(ROLL.rowFloor, floor2(Math.min(rowMax, (avail - gaps) / Math.max(total, 0.01))));
+    return { segments: all, size };
+  };
+  return { name: nameLines.join(" "), nameLines, nameSize, rows: [row(facts), row(grams)] };
 }
 
 // The label's lines, translated. Weights are what was poured when the

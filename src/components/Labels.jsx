@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
@@ -6,7 +6,7 @@ import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import { can } from "../lib/entitlements";
 import { listBatches } from "../lib/fragranceApi";
-import { LABEL_SIZES, LABEL_LIMITS, MAX_COPIES, customSize, labelFields, perSheet, typeSizes, compactLayout } from "../lib/labels";
+import { LABEL_SIZES, LABEL_LIMITS, MAX_COPIES, customSize, labelFields, perSheet, typeSizes, compactLayout, estimateEm } from "../lib/labels";
 import ProLocked from "./ProLocked";
 
 const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` };
@@ -27,6 +27,21 @@ export default function Labels() {
   const [lot, setLot] = useState(null); // null: the batch's stored lot
   const [copies, setCopies] = useState(1);
 
+  // Real text widths for the roll label: canvas measurement in the page's
+  // font, re-run once the fonts have loaded; the estimate if there is no canvas.
+  const [fontsReady, setFontsReady] = useState(0);
+  useEffect(() => { document.fonts?.ready?.then(() => setFontsReady((n) => n + 1)).catch(() => {}); }, []);
+  const em = useMemo(() => {
+    try {
+      const ctx = document.createElement("canvas").getContext("2d");
+      const family = getComputedStyle(document.body).fontFamily;
+      ctx.font = `500 100px ${family}`;
+      if (!ctx.measureText("0").width) return estimateEm;
+      return (text) => ctx.measureText(text).width / 100;
+    } catch { return estimateEm; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fontsReady]);
+
   useEffect(() => {
     if (batch || !id) return;
     listBatches(1, { id })
@@ -41,7 +56,7 @@ export default function Labels() {
   const sheet = size ? perSheet(size) : null;
   const count = Math.min(Math.max(1, Number(copies) || 1), MAX_COPIES);
   const label = batch ? labelFields(batch, { t, lot }) : null;
-  const roll = batch && size?.roll ? compactLayout(batch, { t, lot }, size) : null;
+  const roll = batch && size?.roll ? compactLayout(batch, { t, lot }, size, em) : null;
   // Type scaled so every line fits the label; mm keeps it true to the printout.
   const type = size && label && !size.roll ? typeSizes(size, label.fields.length) : { name: 5, line: 3 };
 
@@ -95,7 +110,9 @@ export default function Labels() {
             <div key={i} className="print-label" style={{ width: `${size.w}mm`, height: `${size.h}mm` }}>
               {roll ? (
                 <>
-                  <p className="print-label-name" style={{ fontSize: `${roll.nameSize}mm` }}>{roll.name}</p>
+                  {roll.nameLines.map((line, n) => (
+                    <p key={n} className="print-label-name" style={{ fontSize: `${roll.nameSize}mm` }}>{line}</p>
+                  ))}
                   {roll.rows.map((row, r) => (
                     <p key={r} className="print-label-line" style={{ fontSize: `${row.size}mm` }}>
                       {row.segments.map((seg, j) => <span key={j} dir="ltr">{seg}</span>)}
