@@ -78,9 +78,16 @@ html[dir="rtl"] .ar-display { font-family: "Reem Kufi Variable", "Readex Pro Var
 html[dir="rtl"] .print-label-name { font-style: normal; }
 .print-label-row { display: flex; justify-content: space-between; gap: 2mm; line-height: 1.35; }
 .print-label-row dt { color: #4A3D25; }
+.print-label-line { display: flex; gap: 2mm; white-space: nowrap; overflow: hidden; line-height: 1.35; }
+/* Niimbot D30 roll (12 × 40 mm): the page is the label, one per page. */
+.label-roll .print-label { padding: 1mm 1.5mm; }
+@page roll { size: 40mm 12mm; margin: 0; }
 @media print {
   .label-sheet { gap: 4mm; }
   .print-label { border-color: #CDBF9E; break-inside: avoid; }
+  .label-roll { page: roll; display: block; }
+  .label-roll .print-label { border: 0; background: #fff; break-after: page; }
+  .label-roll .print-label:last-child { break-after: auto; }
 }
 
 /* ── The living handbook (Phase 9): the public site set like the book ── */

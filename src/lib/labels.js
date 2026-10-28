@@ -10,6 +10,9 @@ export const LABEL_SIZES = {
   small: { w: 50, h: 30 },   // 10–30 mL bottles
   medium: { w: 70, h: 40 },  // 50 mL
   large: { w: 90, h: 50 },   // 100 mL
+  // Niimbot D30 thermal roll: 12 mm × 40 mm, printed one label per page with
+  // the 40 mm side along the feed (landscape), so the page is the label.
+  d30: { w: 40, h: 12, roll: true },
 };
 export const LABEL_LIMITS = { min: 25, maxW: 190, maxH: 130 };
 export const MAX_COPIES = 40;
@@ -25,7 +28,8 @@ export function customSize(w, h) {
 }
 
 // How many labels of this size fit on one A4 sheet (columns × rows).
-export function perSheet({ w, h }) {
+export function perSheet({ w, h, roll }) {
+  if (roll) return { cols: 1, rows: 1, total: 1 };
   const cols = Math.max(1, Math.floor((A4.w - 2 * A4.margin + A4.gap) / (w + A4.gap)));
   const rows = Math.max(1, Math.floor((A4.h - 2 * A4.margin + A4.gap) / (h + A4.gap)));
   return { cols, rows, total: cols * rows };
@@ -38,6 +42,14 @@ const LINE = 1.35;
 export function typeSizes({ h }, rows) {
   const name = Math.min(6, h / 7);
   const line = Math.min(3.2, (h - PAD_MM - name * 1.1 - 1) / (rows * LINE));
+  return { name: Math.floor(name * 100) / 100, line: Math.max(1.4, Math.floor(line * 100) / 100) };
+}
+
+// A 12 mm roll label holds the name and one line of key facts, not the full
+// weights list: the type sizes (mm) for that two-line layout.
+export function compactSizes({ h }) {
+  const name = Math.min(4.2, h * 0.36);
+  const line = Math.min(2.8, (h - 2 - name * 1.1 - 0.5) / LINE);
   return { name: Math.floor(name * 100) / 100, line: Math.max(1.4, Math.floor(line * 100) / 100) };
 }
 
@@ -60,10 +72,12 @@ export function labelFields(batch, { t, lot }) {
     [t("bench.label.date"), batch.blend_date || ""],
   ];
   if (String(lot).trim()) fields.push([t("bench.label.lot"), String(lot).trim()]);
+  // Compact (roll) labels: the facts above, without the weights.
+  const compact = fields.slice();
   fields.push(
     [t("bench.label.oil"), `${fmt2(weights.oil)} g`],
     [t("bench.label.alcohol"), `${fmt2(weights.ethanol)} g`],
     [t("bench.label.total"), `${fmt2(weights.total)} g`],
   );
-  return { name: batch.fragrance_name || t("bench.untitled"), fields };
+  return { name: batch.fragrance_name || t("bench.untitled"), fields, compact };
 }

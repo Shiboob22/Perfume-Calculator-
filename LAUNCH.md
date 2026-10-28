@@ -95,7 +95,7 @@ not on the list fall back to the home page.
 | 9 | Review of every Arabic string, the Arabic guide drafts, and the Arabic byline | `src/i18n/messages/ar.js`, `src/content/` | open |
 | 10 | Landing copy approval | `src/i18n/messages/*.js` → `site.home` | open |
 | 11 | Neutral examples for the Choosing (Wardrobe) guides | Phase 3 | open |
-| 12 | Label sizes: built with defaults 50×30, 70×40, 90×50 mm + custom | `LABEL_SIZES` in `src/lib/labels.js` | confirm or replace |
+| 12 | Label sizes: built with defaults 50×30, 70×40, 90×50 mm, D30 roll 12×40 mm + custom | `LABEL_SIZES` in `src/lib/labels.js` | confirm or replace |
 | 13 | Resting Journal: cadence (day 1 · rest start · rest end · end + 14), check-ins Free and outside the cap, patterns Pro | Phase 6 | **approved 2026-10-02** |
 | 14 | Per-batch "peak day" rule for patterns: the earliest day a batch reached its best rating | `peakDay()` in `src/lib/calc/journal.ts` | review |
 | 15 | Shared recipe names may name designer perfumes (trademark): with the lawyer, alongside `/terms` | Phase 6 | open, not blocking |

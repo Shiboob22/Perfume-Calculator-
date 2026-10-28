@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LABEL_SIZES, customSize, labelFields, perSheet, typeSizes, bottleText } from "./labels";
+import { LABEL_SIZES, customSize, labelFields, perSheet, typeSizes, compactSizes, bottleText } from "./labels";
 import { createTranslator } from "../i18n/core";
 import en from "../i18n/messages/en";
 import ar from "../i18n/messages/ar";
@@ -47,7 +47,7 @@ describe("labelFields", () => {
 
 describe("typeSizes", () => {
   it("fits the name and every line inside the label height", () => {
-    for (const size of Object.values(LABEL_SIZES)) {
+    for (const size of Object.values(LABEL_SIZES).filter((s) => !s.roll)) {
       const { name, line } = typeSizes(size, 7);
       expect(4 + name * 1.1 + 1 + 7 * line * 1.35).toBeLessThanOrEqual(size.h + 0.01);
     }
@@ -60,6 +60,15 @@ describe("sizes", () => {
     expect(perSheet(LABEL_SIZES.small)).toEqual({ cols: 3, rows: 8, total: 24 });
     expect(perSheet(LABEL_SIZES.medium)).toEqual({ cols: 2, rows: 6, total: 12 });
     expect(perSheet(LABEL_SIZES.large)).toEqual({ cols: 2, rows: 5, total: 10 });
+  });
+
+  it("prints the D30 roll as one 40 × 12 mm label per page, name plus one line", () => {
+    expect(LABEL_SIZES.d30).toMatchObject({ w: 40, h: 12, roll: true });
+    expect(perSheet(LABEL_SIZES.d30)).toEqual({ cols: 1, rows: 1, total: 1 });
+    const { name, line } = compactSizes(LABEL_SIZES.d30);
+    expect(2 + name * 1.1 + 0.5 + line * 1.35).toBeLessThanOrEqual(12.01);
+    const c = Object.fromEntries(labelFields(batch, { t, lot: "L-1" }).compact);
+    expect(Object.keys(c)).toEqual(["Concentration", "Bottle size", "Date", "Oil lot / batch"]);
   });
 
   it("accepts custom sizes that print on A4 only", () => {

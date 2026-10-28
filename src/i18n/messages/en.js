@@ -1272,6 +1272,8 @@ export default {
     size: "Label size",
     custom: "Custom",
     mm: "{w} × {h} mm",
+    d30: "D30 · 12 × 40 mm",
+    perRoll: "One label per page, for the D30 roll.",
     width: "Width (mm)",
     height: "Height (mm)",
     perSheet: { one: "{count} label per A4 sheet", other: "{count} labels per A4 sheet" },

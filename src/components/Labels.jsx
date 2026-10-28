@@ -6,7 +6,7 @@ import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import { can } from "../lib/entitlements";
 import { listBatches } from "../lib/fragranceApi";
-import { LABEL_SIZES, LABEL_LIMITS, MAX_COPIES, customSize, labelFields, perSheet, typeSizes } from "../lib/labels";
+import { LABEL_SIZES, LABEL_LIMITS, MAX_COPIES, customSize, labelFields, perSheet, typeSizes, compactSizes } from "../lib/labels";
 import ProLocked from "./ProLocked";
 
 const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` };
@@ -42,7 +42,7 @@ export default function Labels() {
   const count = Math.min(Math.max(1, Number(copies) || 1), MAX_COPIES);
   const label = batch ? labelFields(batch, { t, lot }) : null;
   // Type scaled so every line fits the label; mm keeps it true to the printout.
-  const type = size && label ? typeSizes(size, label.fields.length) : { name: 5, line: 3 };
+  const type = size && label ? (size.roll ? compactSizes(size) : typeSizes(size, label.fields.length)) : { name: 5, line: 3 };
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -59,7 +59,7 @@ export default function Labels() {
                 <button key={k} type="button" aria-pressed={sizeKey === k} onClick={() => setSizeKey(k)}
                   className="px-3 py-1.5 text-xs rounded border min-h-[28px]"
                   style={{ borderColor: sizeKey === k ? COLORS.actionText : COLORS.field, color: sizeKey === k ? COLORS.actionText : COLORS.ink }}>
-                  {k === "custom" ? t("labels.custom") : t("labels.mm", { w: LABEL_SIZES[k].w, h: LABEL_SIZES[k].h })}
+                  {k === "custom" ? t("labels.custom") : LABEL_SIZES[k].roll ? t("labels.d30") : t("labels.mm", { w: LABEL_SIZES[k].w, h: LABEL_SIZES[k].h })}
                 </button>
               ))}
             </div>
@@ -72,7 +72,7 @@ export default function Labels() {
               </div>
             )}
             <p role="status" className="text-xs mt-2" style={{ color: size ? COLORS.inkSoft : COLORS.danger }}>
-              {size ? t("labels.perSheet", { count: sheet.total }) : t("labels.badSize", { min: LABEL_LIMITS.min, maxW: LABEL_LIMITS.maxW, maxH: LABEL_LIMITS.maxH })}
+              {size ? (size.roll ? t("labels.perRoll") : t("labels.perSheet", { count: sheet.total })) : t("labels.badSize", { min: LABEL_LIMITS.min, maxW: LABEL_LIMITS.maxW, maxH: LABEL_LIMITS.maxH })}
             </p>
           </fieldset>
           <div className="grid gap-3 content-start">
@@ -89,15 +89,21 @@ export default function Labels() {
       </div>
 
       {label && size && (
-        <div className="label-sheet" dir={dir}>
+        <div className={`label-sheet${size.roll ? " label-roll" : ""}`} dir={dir}>
           {Array.from({ length: count }, (_, i) => (
             <div key={i} className="print-label" style={{ width: `${size.w}mm`, height: `${size.h}mm` }}>
               <p className="print-label-name" style={{ fontSize: `${type.name}mm` }}>{label.name}</p>
+              {size.roll ? (
+                <p className="print-label-line" style={{ fontSize: `${type.line}mm` }}>
+                  {label.compact.map(([k, v]) => <span key={k} dir="ltr">{v}</span>)}
+                </p>
+              ) : (
               <dl style={{ fontSize: `${type.line}mm` }}>
                 {label.fields.map(([k, v]) => (
                   <div key={k} className="print-label-row"><dt>{k}</dt><dd dir="ltr">{v}</dd></div>
                 ))}
               </dl>
+              )}
             </div>
           ))}
         </div>
