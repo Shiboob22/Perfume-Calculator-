@@ -21,7 +21,7 @@ const WOODY = "11111111-1111-4111-8111-111111111111";
 const localDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 function fixtures(now) {
-  const started = new Date(now - 22 * DAY - 3600000);
+  const started = new Date(now - 91 * DAY - 3600000);
   return [{
     id: WOODY, user_id: USER.id, fragrance_name: "Oud Nights", tier: "woody", concentration_pct: 25,
     blend_date: localDate(started), created_at: started.toISOString(),
@@ -84,7 +84,7 @@ test("journal: a due check-in is saved from the Batches tab", async ({ page }) =
   await expect(tab).toContainText("1 check-in due");
   const due = page.getByRole("region", { name: "1 batch is due for a check-in" });
   await expect(due).toBeVisible();
-  await expect(due).toContainText("Woody, day 22 of rest");
+  await expect(due).toContainText("Woody, day 91 of rest");
 
   await due.getByLabel(/How does .*Oud Nights.* smell today\?/).fill("Softer, the oud is coming forward");
   // Tap the star the user sees (the label); the radio itself is a visually hidden 1px input.
@@ -97,7 +97,7 @@ test("journal: a due check-in is saved from the Batches tab", async ({ page }) =
   await expect(due).toBeHidden();
   await expect(tab).not.toContainText("check-in due");
   expect(sent.checkins).toHaveLength(1);
-  expect(sent.checkins[0]).toMatchObject({ batch_id: WOODY, day: 22, scheduled_day: 21, rating: 4, note: "Softer, the oud is coming forward" });
+  expect(sent.checkins[0]).toMatchObject({ batch_id: WOODY, day: 91, scheduled_day: 90, rating: 4, note: "Softer, the oud is coming forward" });
   await expect(page.getByText("Softer, the oud is coming forward")).toBeVisible();
 });
 
@@ -130,7 +130,7 @@ test("journal: a check-in made offline waits on the device", async ({ page }) =>
   await expect(page.getByRole("status").filter({ hasText: en.journal.queued })).toBeAttached();
   const queued = await page.evaluate(() => JSON.parse(localStorage.getItem("sh-outbox") || "[]"));
   expect(queued).toHaveLength(1);
-  expect(queued[0].checkin).toMatchObject({ batch_id: WOODY, scheduled_day: 21, note: "Offline note" });
+  expect(queued[0].checkin).toMatchObject({ batch_id: WOODY, scheduled_day: 90, note: "Offline note" });
   expect(sent.checkins).toHaveLength(0);
 });
 
