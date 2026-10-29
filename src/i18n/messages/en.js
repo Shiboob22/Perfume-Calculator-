@@ -83,11 +83,11 @@ export default {
     thresholdFailed: "Could not save the low-stock threshold.",
   },
   families: {
-    fresh: { label: "Fresh", sub: "Aromatic · Citrus · Water · Green · Fruity", note: "Rest 1–2 weeks in a cool, dark place — light citrus and aromatic tops settle fastest." },
-    floral: { label: "Floral", sub: "Floral · Soft Floral · Floral Amber", note: "Rest 2–3 weeks in a cool, dark place before wearing — the classic all-purpose strength." },
-    woody: { label: "Woody", sub: "Woods · Mossy Woods · Dry Woods", note: "Rest 3–4 weeks in a cool, dark place — dry woods and mosses need time to round out." },
-    oriental: { label: "Amber (Oriental)", sub: "Soft Amber · Amber · Woody Amber", note: "Rest 4–6 weeks in a cool, dark place — dense resins need the longest maceration." },
-    gourmand: { label: "Gourmand", sub: "Vanilla · Praline · Tobacco-Honey — practical addition, not part of the classic wheel", note: "Rest 3–4 weeks — sweet resinous bases round out and lose the raw alcohol edge." },
+    fresh: { label: "Fresh", sub: "Aromatic · Citrus · Water · Green · Fruity", note: "Rest 3 months in a cool, dark place — even light citrus and aromatic tops round out with time." },
+    floral: { label: "Floral", sub: "Floral · Soft Floral · Floral Amber", note: "Rest 3 months in a cool, dark place before wearing — the classic all-purpose strength." },
+    woody: { label: "Woody", sub: "Woods · Mossy Woods · Dry Woods", note: "Rest 3 months in a cool, dark place — dry woods and mosses need time to round out." },
+    oriental: { label: "Amber (Oriental)", sub: "Soft Amber · Amber · Woody Amber", note: "Rest 3 months in a cool, dark place — dense resins need a long maceration." },
+    gourmand: { label: "Gourmand", sub: "Vanilla · Praline · Tobacco-Honey — practical addition, not part of the classic wheel", note: "Rest 3 months — sweet resinous bases round out and lose the raw alcohol edge." },
   },
   wardrobe: {
     title: "The Wardrobe",

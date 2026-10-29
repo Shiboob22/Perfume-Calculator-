@@ -68,8 +68,8 @@ export const FAMILIES: Record<TierKey, Family> = {
     key: "fresh",
     label: "Fresh",
     sub: "Aromatic · Citrus · Water · Green · Fruity",
-    note: "Rest 1–2 weeks in a cool, dark place — light citrus and aromatic tops settle fastest.",
-    active: { density: 0.87, defaultConc: 20, restDays: [7, 14], range: null },
+    note: "Rest 3 months in a cool, dark place — even light citrus and aromatic tops round out with time.",
+    active: { density: 0.87, defaultConc: 20, restDays: [90, 90], range: null },
     sources: {
       handbook: handbookOil,
       htmlTool: { density: 0.87, defaultConc: 20, restDays: [7, 14] },
@@ -80,8 +80,8 @@ export const FAMILIES: Record<TierKey, Family> = {
     key: "floral",
     label: "Floral",
     sub: "Floral · Soft Floral · Floral Amber",
-    note: "Rest 2–3 weeks in a cool, dark place before wearing — the classic all-purpose strength.",
-    active: { density: 0.95, defaultConc: 25, restDays: [14, 21], range: null },
+    note: "Rest 3 months in a cool, dark place before wearing — the classic all-purpose strength.",
+    active: { density: 0.95, defaultConc: 25, restDays: [90, 90], range: null },
     sources: {
       handbook: handbookOil,
       htmlTool: { density: 0.95, defaultConc: 25, restDays: [14, 21] },
@@ -93,8 +93,8 @@ export const FAMILIES: Record<TierKey, Family> = {
     key: "woody",
     label: "Woody",
     sub: "Woods · Mossy Woods · Dry Woods",
-    note: "Rest 3–4 weeks in a cool, dark place — dry woods and mosses need time to round out.",
-    active: { density: 0.93, defaultConc: 22, restDays: [21, 28], range: null },
+    note: "Rest 3 months in a cool, dark place — dry woods and mosses need time to round out.",
+    active: { density: 0.93, defaultConc: 22, restDays: [90, 90], range: null },
     sources: {
       handbook: handbookOil,
       htmlTool: { density: 0.93, defaultConc: 22, restDays: [21, 28] },
@@ -105,8 +105,8 @@ export const FAMILIES: Record<TierKey, Family> = {
     key: "oriental",
     label: "Amber (Oriental)",
     sub: "Soft Amber · Amber · Woody Amber",
-    note: "Rest 4–6 weeks in a cool, dark place — dense resins need the longest maceration.",
-    active: { density: 1.02, defaultConc: 30, restDays: [28, 42], range: null },
+    note: "Rest 3 months in a cool, dark place — dense resins need a long maceration.",
+    active: { density: 1.02, defaultConc: 30, restDays: [90, 90], range: null },
     sources: {
       handbook: handbookOil,
       htmlTool: { density: 1.02, defaultConc: 30, restDays: [28, 42] },
@@ -117,8 +117,8 @@ export const FAMILIES: Record<TierKey, Family> = {
     key: "gourmand",
     label: "Gourmand",
     sub: "Vanilla · Praline · Tobacco-Honey — practical addition, not part of the classic wheel",
-    note: "Rest 3–4 weeks — sweet resinous bases round out and lose the raw alcohol edge.",
-    active: { density: 1.0, defaultConc: 25, restDays: [21, 28], range: null },
+    note: "Rest 3 months — sweet resinous bases round out and lose the raw alcohol edge.",
+    active: { density: 1.0, defaultConc: 25, restDays: [90, 90], range: null },
     sources: {
       handbook: handbookOil,
       htmlTool: { density: 1.0, defaultConc: 25, restDays: [21, 28] },
@@ -166,7 +166,7 @@ export function familyGuide(): string {
   return Object.values(FAMILIES)
     .map((f) => {
       const a = f.active;
-      return `${f.key} — ${f.label} (${f.sub.split(" — ")[0].replace(/ · /g, ", ")}). Oil density ${a.density} g/mL, default ${a.defaultConc}%, rest ${a.restDays[0] / 7}–${a.restDays[1] / 7} weeks.`;
+      return `${f.key} — ${f.label} (${f.sub.split(" — ")[0].replace(/ · /g, ", ")}). Oil density ${a.density} g/mL, default ${a.defaultConc}%, rest ${a.restDays[0] === a.restDays[1] ? `${a.restDays[0]} days (3 months)` : `${a.restDays[0]}–${a.restDays[1]} days`}.`;
     })
     .join("\n");
 }

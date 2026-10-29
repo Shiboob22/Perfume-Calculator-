@@ -74,9 +74,9 @@ test("export includes the profile", async ({ page }) => {
 });
 
 test("journal and sharing work against the real API and database", async ({ page }) => {
-  // A batch made 22 days ago (written as the service role, as /api would),
-  // so its rest-start check-in (Woody: day 21) is due now.
-  const started = new Date(Date.now() - 22 * 86400000 - 3600000);
+  // A batch made 91 days ago (written as the service role, as /api would),
+  // so its rest-start check-in (Woody: day 90) is due now.
+  const started = new Date(Date.now() - 91 * 86400000 - 3600000);
   const local = `${started.getFullYear()}-${String(started.getMonth() + 1).padStart(2, "0")}-${String(started.getDate()).padStart(2, "0")}`;
   const { data: batch, error } = await admin.from("batches").insert({
     user_id: user.id, fragrance_name: "E2E Oud", tier: "woody", blend_date: local, created_at: started.toISOString(),
@@ -92,7 +92,7 @@ test("journal and sharing work against the real API and database", async ({ page
   await due.getByRole("button", { name: en.journal.save }).click();
   await expect(due).toBeHidden();
   const { data: checkins } = await admin.from("batch_checkins").select("*").eq("batch_id", batch.id);
-  expect(checkins).toMatchObject([{ user_id: user.id, scheduled_day: 21, rating: 4, note: "Softer now" }]);
+  expect(checkins).toMatchObject([{ user_id: user.id, scheduled_day: 90, rating: 4, note: "Softer now" }]);
 
   // The check-in comes back with the batch list (the embed) after a reload.
   await page.reload();
