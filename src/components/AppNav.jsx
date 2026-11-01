@@ -7,7 +7,7 @@ import { tabPath } from "../routes";
 import LanguageToggle from "./LanguageToggle";
 import ThemeToggle from "./ThemeToggle";
 import {
-  IconBalance, IconBook, IconBookmark, IconChat, IconClose, IconCompass, IconCrosshair, IconDrop,
+  IconBalance, IconBook, IconBookmark, IconCart, IconChat, IconClose, IconCompass, IconCrosshair, IconDrop,
   IconExit, IconFlacon, IconMore, IconNotebook, IconPerson, IconSeal, IconSearch, IconShelf,
 } from "./icons";
 
@@ -31,6 +31,7 @@ function destinations({ t, locale, flags }) {
     flags.wardrobe && { id: "wardrobe", label: t("site.nav.wardrobe"), icon: IconFlacon },
     flags.atlas && { id: "atlas", label: t("site.nav.atlas"), icon: IconCrosshair },
     flags.salon && { id: "salon", label: t("site.nav.salon"), icon: IconBookmark },
+    flags.shop && { id: "shop", label: t("site.nav.shop"), icon: IconCart, href: site(locale, "/shop") },
     { id: "guides", label: t("site.nav.guides"), icon: IconBook, href: site(locale, "/library") },
     { id: "pricing", label: t("site.nav.pricing"), icon: IconSeal, href: site(locale, "/pricing") },
     { id: "account", label: t("account.link"), icon: IconPerson, path: "/app/account" },

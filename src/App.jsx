@@ -70,6 +70,7 @@ export default function App() {
   const atlasOn = flagOn("atlas");
   const salonOn = flagOn("salon");
   const noseOn = flagOn("nose");
+  const shopOn = flagOn("shop");
   const setActiveTab = (id) => navigate(`${tabPath(id)}${id === "calculator" ? window.location.search : ""}`);
 
   // Start the search tab's popular shelf and wake the catalog functions
@@ -138,7 +139,7 @@ export default function App() {
         ) : (
         <div className="min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0" style={{ backgroundColor: COLORS.paper }}>
       <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "batches" ? "journal" : tab === "wardrobe" ? "wardrobe" : tab === "atlas" ? "atlas" : tab === "salon" ? "salon" : tab === "nose" ? "nose" : undefined}
-        wardrobe={wardrobeOn} atlas={atlasOn} salon={salonOn} nose={noseOn}
+        wardrobe={wardrobeOn} atlas={atlasOn} salon={salonOn} nose={noseOn} shop={shopOn}
         language={<LanguageToggle />}
         extra={<>
           <button type="button" onClick={() => navigate("/app/account")}
@@ -152,7 +153,7 @@ export default function App() {
           </button>
         </>} />
       <AppNav active={activeTab ?? tab ?? null} tabs={TABS} dueCount={dueCount}
-        flags={{ wardrobe: wardrobeOn, atlas: atlasOn, salon: salonOn, nose: noseOn }}
+        flags={{ wardrobe: wardrobeOn, atlas: atlasOn, salon: salonOn, nose: noseOn, shop: shopOn }}
         onSignOut={() => signOut()} />
 
       <Progress />
