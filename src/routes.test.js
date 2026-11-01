@@ -46,6 +46,12 @@ describe("routes", () => {
     expect(to("/nose")).toBe("/app/index.html");
   });
 
+  it("serves the public Shop pages from the shell, in both languages", () => {
+    const { rewrites } = JSON.parse(readFileSync("vercel.json", "utf8"));
+    const to = (source) => rewrites.find((r) => r.source === source)?.destination;
+    for (const source of ["/shop", "/shop/:path*", "/ar/shop", "/ar/shop/:path*"]) expect(to(source), source).toBe("/app/index.html");
+  });
+
   it("leaves no link to a retired address in the source", () => {
     const retired = [/["'`]\/(ar\/)?guides(["'`/?#])/, /\/app\/(calculator|batches)\b/];
     const hits = [];
