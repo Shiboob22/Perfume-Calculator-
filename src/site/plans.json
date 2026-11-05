@@ -1,4 +1,4 @@
 [
-  { "id": "free", "name": "Free", "features": ["cards.download"], "batch_cap": 25, "sort": 0 },
-  { "id": "pro", "name": "Pro", "features": ["batches.unlimited", "inventory", "ai.ask", "export.labels", "calculator.advanced", "cards.download", "journal.insights", "journal.checkins"], "batch_cap": null, "sort": 1 }
+  { "id": "free", "name": "Free", "features": ["cards.download"], "batch_cap": 25, "formula_cap": 5, "ingredient_cap": 3, "journal_window": 3, "sort": 0 },
+  { "id": "pro", "name": "Pro", "features": ["batches.unlimited", "inventory", "ai.ask", "export.labels", "calculator.advanced", "cards.download", "journal.insights", "journal.checkins", "journal.reminders"], "batch_cap": null, "formula_cap": null, "ingredient_cap": null, "journal_window": null, "sort": 1 }
 ]
