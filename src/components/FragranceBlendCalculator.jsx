@@ -980,7 +980,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
           <div className="mt-5 grid grid-cols-2 gap-2">
             {logStatus === "saved" ? (
-              <button type="button" onClick={() => navigate("/bench/journal")}
+              <button type="button" onClick={() => navigate("/journal")}
                 className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium"
                 style={{ backgroundColor: COLORS.mist, color: COLORS.forest, border: `1px solid ${COLORS.forest}` }}>
                 <IconBookmarkCheck size={18} /> {t("calc.savedOpen")}

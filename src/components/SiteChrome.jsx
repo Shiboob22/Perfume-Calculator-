@@ -3,7 +3,7 @@ import { Link } from "../motion";
 import { BrandMark } from "./FlaconMark";
 import FlaconMark from "./FlaconMark";
 import ThemeToggle from "./ThemeToggle";
-import { IconBalance, IconBook, IconBookmark, IconCart, IconCrosshair, IconDrop, IconFlacon, IconFlameTriangle, IconNotebook, IconSeal } from "./icons";
+import { IconBalance, IconBook, IconBookmark, IconCart, IconCrosshair, IconDrop, IconFlacon, IconFlameTriangle, IconHourglass, IconNotebook, IconSeal } from "./icons";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { cartCount } from "../lib/shop/cart";
@@ -43,7 +43,7 @@ export function SiteHeader({ zone, active, language, extra, badge, wardrobe = fa
         <nav aria-label={t("site.nav.main")} className={`${inApp ? "hidden md:flex" : "flex"} items-center gap-x-6 gap-y-1 flex-wrap -mx-1 px-1`}>
           <NavLink to={site(locale, "/library")} cross={inApp} active={active === "guides"} icon={IconBook}>{t("site.nav.guides")}</NavLink>
           <NavLink to="/bench" cross={!inApp} active={active === "calculator"} icon={IconBalance}>{t("site.nav.calculator")}</NavLink>
-          <NavLink to="/bench/journal" cross={!inApp} active={active === "journal"} icon={IconNotebook}>{t("site.nav.journal")}</NavLink>
+          <NavLink to={locale === "ar" ? "/ar/journal" : "/journal"} cross={!inApp} active={active === "journal"} icon={IconHourglass}>{t("site.nav.journal")}</NavLink>
           {atlas && <NavLink to="/atlas" cross={!inApp} active={active === "atlas"} icon={IconCrosshair}>{t("site.nav.atlas")}</NavLink>}
           {salon && <NavLink to="/salon" cross={!inApp} active={active === "salon"} icon={IconBookmark}>{t("site.nav.salon")}</NavLink>}
           {nose && <NavLink to="/nose" cross={!inApp} active={active === "nose"} icon={IconDrop}>{t("site.nav.nose")}</NavLink>}

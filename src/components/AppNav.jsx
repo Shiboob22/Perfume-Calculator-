@@ -8,7 +8,7 @@ import LanguageToggle from "./LanguageToggle";
 import ThemeToggle from "./ThemeToggle";
 import {
   IconBalance, IconBook, IconBookmark, IconCart, IconChat, IconClose, IconCompass, IconCrosshair, IconDrop,
-  IconExit, IconFlacon, IconMore, IconNotebook, IconPerson, IconSeal, IconSearch, IconShelf,
+  IconExit, IconFlacon, IconMore, IconNotebook, IconPerson, IconSeal, IconSearch, IconShelf, IconHourglass,
 } from "./icons";
 
 // The app's own navigation. Phones get one bar at the bottom, in reach of
@@ -24,6 +24,7 @@ function destinations({ t, locale, flags }) {
     { id: "search", label: t("app.tabs.search"), icon: IconSearch },
     { id: "calculator", label: t("app.tabs.calculator"), icon: IconBalance },
     flags.nose && { id: "nose", label: t("site.nav.nose"), icon: IconDrop },
+    { id: "journal", label: t("app.tabs.journal"), icon: IconHourglass },
     { id: "batches", label: t("app.tabs.batches"), icon: IconNotebook },
     { id: "selector", label: t("app.tabs.selector"), icon: IconCompass },
     { id: "inventory", label: t("app.tabs.inventory"), icon: IconShelf },
@@ -41,7 +42,7 @@ function destinations({ t, locale, flags }) {
 
 // Four on the bar: the bench's daily rooms. The Nose takes the third place
 // when it is on; otherwise the Selector does.
-const PRIMARY = (flags) => ["search", "calculator", flags.nose ? "nose" : "selector", "batches"];
+const PRIMARY = (flags) => ["search", "calculator", flags.nose ? "nose" : "selector", "journal"];
 
 function DueBadge({ count, t }) {
   if (!count) return null;
@@ -94,7 +95,7 @@ export default function AppNav({ active, tabs, dueCount, flags, onSignOut }) {
                     <span aria-hidden="true" data-mo-ind="tab" data-on={on ? "" : undefined} className="absolute inset-0" style={{ background: on ? COLORS.ink : "transparent" }} />
                     <I size={18} accent={on ? COLORS.oil : undefined} className="relative" />
                     <span className="relative">{d.label}</span>
-                    {id === "batches" && <span className="relative"><DueBadge count={dueCount} t={t} /></span>}
+                    {id === "journal" && <span className="relative"><DueBadge count={dueCount} t={t} /></span>}
                   </Dest>
                 </li>
               );
@@ -110,7 +111,7 @@ export default function AppNav({ active, tabs, dueCount, flags, onSignOut }) {
           {primary.map((d) => (
             <li key={d.id}>
               <BarButton d={d} to={to(d)} on={active === d.id}
-                badge={d.id === "batches" ? <DueBadge count={dueCount} t={t} /> : null} />
+                badge={d.id === "journal" ? <DueBadge count={dueCount} t={t} /> : null} />
             </li>
           ))}
           <li>

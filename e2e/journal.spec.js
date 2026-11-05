@@ -74,13 +74,13 @@ async function fakeApi(page, { plan = "pro", offline = false } = {}) {
   return sent;
 }
 
-test("journal: a due check-in is saved from the Batches tab", async ({ page }) => {
+test("journal: a due check-in is saved from the batch records, with the badge on the Journal tab", async ({ page }) => {
   await signIn(page);
   const sent = await fakeApi(page);
   await page.goto("/bench/journal");
 
   // The app tabs: the framed row on wide screens, the bottom bar on phones.
-  const tab = page.getByRole("navigation", { name: new RegExp(`^(${en.app.tabsLabel}|${en.app.barLabel})$`) }).getByRole("link", { name: new RegExp(en.app.tabs.batches) });
+  const tab = page.getByRole("navigation", { name: new RegExp(`^(${en.app.tabsLabel}|${en.app.barLabel})$`) }).getByRole("link", { name: new RegExp(en.app.tabs.journal) });
   await expect(tab).toContainText("1 check-in due");
   const due = page.getByRole("region", { name: "1 batch is due for a check-in" });
   await expect(due).toBeVisible();

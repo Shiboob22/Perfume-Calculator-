@@ -55,6 +55,10 @@ function PublicRoutes() {
 const appElement = (
   <I18nProvider><ErrorBoundary><Suspense fallback={<AppLoading />}><App /></Suspense></ErrorBoundary></I18nProvider>
 );
+// The Journal has an Arabic address of its own (/ar/journal), like the public pages.
+const arAppElement = (
+  <I18nProvider locale="ar"><ErrorBoundary><Suspense fallback={<AppLoading />}><App /></Suspense></ErrorBoundary></I18nProvider>
+);
 
 export default function Root() {
   return (
@@ -62,6 +66,8 @@ export default function Root() {
       <Route path="/app/:tab?" element={appElement} />
       <Route path="/bench" element={appElement} />
       <Route path="/bench/journal" element={appElement} />
+      <Route path="/journal" element={appElement} />
+      <Route path="/ar/journal" element={arAppElement} />
       <Route path="/wardrobe" element={appElement} />
       <Route path="/atlas/*" element={appElement} />
       <Route path="/atlas" element={appElement} />

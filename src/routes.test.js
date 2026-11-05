@@ -5,7 +5,7 @@ import { REDIRECTS, isAppPath, tabPath, tabFromPath } from "./routes.js";
 
 describe("routes", () => {
   it("serves /app and /bench as the app", () => {
-    expect(["/app", "/app/search", "/bench", "/bench/journal", "/wardrobe", "/atlas", "/atlas/fragrance/x", "/salon", "/salon/u/ada", "/nose"].every(isAppPath)).toBe(true);
+    expect(["/app", "/app/search", "/bench", "/bench/journal", "/journal", "/ar/journal", "/wardrobe", "/atlas", "/atlas/fragrance/x", "/salon", "/salon/u/ada", "/nose"].every(isAppPath)).toBe(true);
     expect(["/", "/benchmark", "/library", "/ar/bench"].some(isAppPath)).toBe(false);
   });
 
@@ -15,6 +15,9 @@ describe("routes", () => {
     expect(tabPath("search")).toBe("/app/search");
     expect(tabFromPath("/bench", undefined)).toBe("calculator");
     expect(tabFromPath("/bench/journal", undefined)).toBe("batches");
+    expect(tabFromPath("/journal", undefined)).toBe("journal");
+    expect(tabFromPath("/ar/journal", undefined)).toBe("journal");
+    expect(tabPath("journal")).toBe("/journal");
     expect(tabFromPath("/app/inventory", "inventory")).toBe("inventory");
     expect(tabFromPath("/app", undefined)).toBeUndefined();
     expect(tabPath("wardrobe")).toBe("/wardrobe");
@@ -44,6 +47,8 @@ describe("routes", () => {
     expect(to("/salon")).toBe("/app/index.html");
     expect(to("/salon/:path*")).toBe("/app/index.html");
     expect(to("/nose")).toBe("/app/index.html");
+    expect(to("/journal")).toBe("/app/index.html");
+    expect(to("/ar/journal")).toBe("/app/index.html");
   });
 
   it("serves the public Shop pages from the shell, in both languages", () => {

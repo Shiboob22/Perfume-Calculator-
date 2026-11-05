@@ -151,7 +151,7 @@ export function recipePageHtml(r, { lang = "en", site, stylesheet, reportEmail =
           <nav class="flex items-center gap-x-6 flex-wrap text-sm">
             <a href="${to("/library")}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.guides"))}</a>
             <a href="/bench" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.calculator"))}</a>
-            <a href="/bench/journal" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.journal"))}</a>
+            <a href="${to("/journal")}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.journal"))}</a>
             <a href="${to("/pricing")}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.pricing"))}</a>
             <a href="${recipePath(other, r.slug)}" lang="${other}" hreflang="${other}" title="${esc(t("site.nav.languageLabel"))}" class="min-h-[44px] inline-flex items-center hover:underline underline-offset-4">${esc(t("site.nav.language"))}</a>
           </nav>

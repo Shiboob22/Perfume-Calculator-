@@ -31,12 +31,14 @@ const loaders = {
   selector: () => import("./components/Selector"),
   calculator: () => import("./components/FragranceBlendCalculator"),
   batches: () => import("./components/Batches"),
+  journal: () => import("./components/journal/JournalRoom"),
   inventory: () => import("./components/Inventory"),
   ask: () => import("./components/PerfumerChat"),
 };
 const Selector = lazy(loaders.selector);
 const FragranceBlendCalculator = lazy(loaders.calculator);
 const Batches = lazy(loaders.batches);
+const JournalRoom = lazy(loaders.journal);
 const Inventory = lazy(loaders.inventory);
 const PerfumerChat = lazy(loaders.ask);
 const BenchMode = lazy(() => import("./components/BenchMode"));
@@ -55,10 +57,12 @@ function prefetchTabs() {
   else setTimeout(run, 1500);
 }
 
-const TABS = ["search", "selector", "calculator", "batches", "inventory", "ask"];
+// The tabs of the app menu. The batch records (/bench/journal) are a page of
+// their own now, reached from the Journal and the More sheet.
+const TABS = ["search", "selector", "calculator", "journal", "inventory", "ask"];
 const DEFAULT_TAB = "calculator";
 
-// The signed-in app: /bench (calculator), /bench/journal (batches), /app/<tab>.
+// The signed-in app: /bench (calculator), /journal (rest tracker), /bench/journal (batches), /app/<tab>.
 export default function App() {
   const { t } = useI18n();
   const navigate = useNavigate();
@@ -66,7 +70,7 @@ export default function App() {
   const { pathname } = useLocation();
   const tab = tabFromPath(pathname, param);
   // cards and account are pages of their own, reached from links, not tabs.
-  const activeTab = TABS.includes(tab) ? tab : tab === "cards" || tab === "account" || tab === "labels" || tab === "wardrobe" || tab === "atlas" || tab === "salon" || tab === "nose" ? null : DEFAULT_TAB;
+  const activeTab = TABS.includes(tab) ? tab : tab === "batches" || tab === "cards" || tab === "account" || tab === "labels" || tab === "wardrobe" || tab === "atlas" || tab === "salon" || tab === "nose" ? null : DEFAULT_TAB;
   const wardrobeOn = flagOn("wardrobe");
   const atlasOn = flagOn("atlas");
   const salonOn = flagOn("salon");
@@ -81,10 +85,10 @@ export default function App() {
 
   // Each tab is its own page to screen readers and the tab switcher.
   const page = activeTab ?? tab;
-  const pageHeading = page === "calculator" || page === "selector" || page === "account" || page === "wardrobe" || page === "atlas" || page === "salon" || page === "nose" ? null
-    : TABS.includes(page) ? t(`app.tabs.${page}`) : page === "labels" ? t("labels.title") : page === "cards" ? t("cards.open") : null;
+  const pageHeading = page === "calculator" || page === "journal" || page === "selector" || page === "account" || page === "wardrobe" || page === "atlas" || page === "salon" || page === "nose" ? null
+    : TABS.includes(page) || page === "batches" ? t(`app.tabs.${page}`) : page === "labels" ? t("labels.title") : page === "cards" ? t("cards.open") : null;
   useEffect(() => {
-    const name = TABS.includes(page) ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : page === "labels" ? t("labels.title") : page === "wardrobe" ? t("wardrobe.title") : page === "atlas" ? t("atlas.title") : page === "salon" ? t("salon.title") : page === "nose" ? t("nose.title") : null;
+    const name = TABS.includes(page) || page === "batches" ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : page === "labels" ? t("labels.title") : page === "wardrobe" ? t("wardrobe.title") : page === "atlas" ? t("atlas.title") : page === "salon" ? t("salon.title") : page === "nose" ? t("nose.title") : null;
     document.title = name ? `${name} — ${t("brand")}` : t("brand");
   }, [page, t]);
 
@@ -140,7 +144,7 @@ export default function App() {
           <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
         ) : (
         <div className="min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0" style={{ backgroundColor: COLORS.paper }}>
-      <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "batches" ? "journal" : tab === "wardrobe" ? "wardrobe" : tab === "atlas" ? "atlas" : tab === "salon" ? "salon" : tab === "nose" ? "nose" : undefined}
+      <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "journal" || tab === "batches" ? "journal" : tab === "wardrobe" ? "wardrobe" : tab === "atlas" ? "atlas" : tab === "salon" ? "salon" : tab === "nose" ? "nose" : undefined}
         wardrobe={wardrobeOn} atlas={atlasOn} salon={salonOn} nose={noseOn} shop={shopOn}
         language={<LanguageToggle />}
         badge={<PlanBadge />}
@@ -180,7 +184,8 @@ export default function App() {
             onClearSelection={() => setSelectedPerfume(null)}
           />
         )}
-        {activeTab === "batches" && <Batches />}
+        {activeTab === "journal" && <JournalRoom />}
+        {tab === "batches" && <Batches />}
         {activeTab === "inventory" && <Gate feature="inventory"><Inventory /></Gate>}
         {/* Kept mounted so the conversation survives switching tabs. */}
         {(chatOpened || activeTab === "ask") && (
