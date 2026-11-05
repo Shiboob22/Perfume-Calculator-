@@ -299,3 +299,12 @@ summary::-webkit-details-marker { display: none; }
 /* kx/Sheet: the modal's backdrop (Bench SaaS). */
 .kx-sheet::backdrop { background: rgb(0 0 0 / 0.45); }
 .kx-sheet { max-height: 100dvh; }
+
+/* Paper and surfaces (Bench SaaS Phase 6): the textures are custom properties
+   from src/lib/surfaces.js, written by the app shell. Unset (public pages):
+   nothing is drawn. */
+.kx-bench-top { background-image: var(--kx-benchtop, none); }
+.kx-grain { background-image: var(--kx-grain, none); }
+.kx-rule { height: 4px; background-image: var(--kx-rule, none); background-repeat: repeat-x; background-size: 240px 4px; }
+/* Reduced motion: the bottle jumps to its size, the cap never lifts. */
+@media (prefers-reduced-motion: reduce) { .kx-flacon, .kx-cap { transition: none !important; } }

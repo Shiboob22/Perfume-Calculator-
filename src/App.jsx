@@ -8,6 +8,7 @@ import { SiteFooter, SiteHeader } from "./components/SiteChrome";
 import AppNav from "./components/AppNav";
 import PerfumeSearch from "./components/PerfumeSearch";
 import { COLORS } from "./lib/theme";
+import { surfaceCss } from "./lib/surfaces";
 import AuthGate from "./components/AuthGate";
 import { signOut } from "./lib/auth";
 import { useI18n, hasLocalChoice } from "./i18n/I18nProvider";
@@ -23,6 +24,8 @@ import { logBatch, listBatches, saveCheckIn } from "./lib/fragranceApi";
 import { dueNow, JOURNAL_CHANGED } from "./lib/journal";
 import { installGlobalHandlers } from "./lib/reportError";
 import { PageTransition, Progress, Skeleton, motionOn } from "./motion";
+
+const SURFACE_CSS = surfaceCss();
 
 // Search ships with the app shell; the other tabs load as separate chunks,
 // fetched while the browser is idle after first paint so a tab switch never
@@ -139,11 +142,13 @@ export default function App() {
         <ProfileProvider>
         <OnboardingGate>
         <CountDueCheckIns />
+        {/* Paper, bench-top and rule textures for the app (see lib/surfaces.js). */}
+        <style>{SURFACE_CSS}</style>
         {tab === "bench" ? (
           // Bench mode is full screen: no header or tabs at the scale.
           <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
         ) : (
-        <div className="min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0" style={{ backgroundColor: COLORS.paper }}>
+        <div className="kx-bench-top min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0" style={{ backgroundColor: COLORS.paper }}>
       <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "journal" || tab === "batches" ? "journal" : tab === "wardrobe" ? "wardrobe" : tab === "atlas" ? "atlas" : tab === "salon" ? "salon" : tab === "nose" ? "nose" : undefined}
         wardrobe={wardrobeOn} atlas={atlasOn} salon={salonOn} nose={noseOn} shop={shopOn}
         language={<LanguageToggle />}
