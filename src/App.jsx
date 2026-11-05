@@ -15,7 +15,7 @@ import LanguageToggle from "./components/LanguageToggle";
 import ProLocked from "./components/ProLocked";
 import { EntitlementsProvider, useEntitlements } from "./lib/useEntitlements";
 import { ProfileProvider, useProfile, needsOnboarding } from "./lib/useProfile";
-import { can } from "./lib/entitlements";
+import { can, journalOpen } from "./lib/entitlements";
 import { fetchPopular, warmUp } from "./lib/searchApi";
 import { flush } from "./lib/outbox";
 import { logBatch, listBatches, saveCheckIn } from "./lib/fragranceApi";
@@ -229,14 +229,19 @@ function Gate({ feature, children }) {
 // Inside AuthGate on purpose: asking for batches before sign-in would make
 // the auth client read, and clear, a sign-in link's #access_token first.
 function CountDueCheckIns() {
-  // Check-ins are Pro: on Free nothing is ever "due".
-  const allowed = can(useEntitlements(), "journal.checkins");
+  // Free keeps notes on its newest 3 batches, Pro on all: only those can be due.
+  const entitlements = useEntitlements();
+  const { loaded } = entitlements;
   useEffect(() => {
-    if (!allowed) return;
+    if (!loaded) return;
     listBatches(100)
-      .then((b) => window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: dueNow(b).length } })))
+      .then((b) => {
+        const open = journalOpen(entitlements, b);
+        window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: dueNow(b.filter((x) => open.has(x.id))).length } }));
+      })
       .catch(() => {});
-  }, [allowed]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recount when the plan loads or changes
+  }, [loaded, entitlements.plan]);
   return null;
 }
 

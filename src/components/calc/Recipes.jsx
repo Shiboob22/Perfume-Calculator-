@@ -3,6 +3,8 @@ import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { listRecipes, createRecipe, addRecipeVersion, deleteRecipe } from "../../lib/fragranceApi";
 import { UNIT_LABELS } from "../../lib/calcPrefill";
+import { useEntitlements } from "../../lib/useEntitlements";
+import { canAddFormula, limit as planLimit } from "../../lib/entitlements";
 import { latestVersion, matchesVersion, recipeLabel, recipeLimit, recipeName, versionIndex, versionRow, versionSettings } from "../../lib/recipes";
 
 // Saved recipes with versions: open one to fill the calculator, save the
@@ -11,6 +13,7 @@ import { latestVersion, matchesVersion, recipeLabel, recipeLimit, recipeName, ve
 // holds exactly its settings (`onLink` is told which version, or null).
 export default function Recipes({ current, family, onApply, onLink, initialVersionId }) {
   const { t } = useI18n();
+  const entitlements = useEntitlements();
   const [recipes, setRecipes] = useState([]);
   const [active, setActive] = useState(null); // { recipeId, versionId }
   const [mode, setMode] = useState(null); // "new" | "version"
@@ -53,8 +56,12 @@ export default function Recipes({ current, family, onApply, onLink, initialVersi
 
   const settings = () => versionRow({ ...current, note });
 
+  const formulaCapText = () => t("plan.limit.formulas", { cap: planLimit(entitlements, "formulas") });
+
   function failure(e, fallback) {
     if (e?.code === "23505") return t("calc.recipes.exists");
+    // The database's plan cap (0031), when the app's own check was skipped.
+    if (e?.code === "54000" && /^formula_cap/.test(e?.message ?? "")) return formulaCapText();
     if (e?.code === "54000") return t(mode === "version" ? "calc.recipes.limitVersions" : "calc.recipes.limitRecipes");
     return t(fallback);
   }
@@ -63,6 +70,9 @@ export default function Recipes({ current, family, onApply, onLink, initialVersi
     setError(""); setSaved("");
     const limit = recipeLimit(recipes, mode === "version" ? activeRecipe : null);
     if (limit) return setError(t(limit === "recipes" ? "calc.recipes.limitRecipes" : "calc.recipes.limitVersions"));
+    // The plan's formula cap (Free 5). Versions of a saved formula are not capped by plan.
+    // Only once the plan is known: an unknown plan is left to the database.
+    if (mode !== "version" && entitlements.loaded && !entitlements.failed && !canAddFormula(entitlements, recipes.length)) return setError(formulaCapText());
     setBusy(true);
     try {
       let recipe;
