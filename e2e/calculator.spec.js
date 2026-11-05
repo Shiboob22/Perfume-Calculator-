@@ -67,7 +67,8 @@ test("a batch-size preset recomputes the readout", async ({ page }) => {
   await fakeApi(page);
   await page.goto("/bench?size=100&unit=ml&conc=20&family=woody");
   await useHandbookDensity(page);
-  await page.getByRole("button", { name: "50 mL" }).click();
+  // The batch-size chip (the cost card has a 50 mL bottle chip too).
+  await page.getByRole("button", { name: "50 mL" }).first().click();
   // 50 mL at 20%: 9.5 g oil + 32.4 g ethanol = 41.9 g.
   await expect(readout(page)).toContainText("9.50");
   await expect(readout(page)).toContainText("32.40");
