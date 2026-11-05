@@ -319,7 +319,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // and its shared recipe if it was ever shared (0013).
       let query = supabase
         .from('batches')
-        .select('*, batch_checkins ( id, day, scheduled_day, note, rating, skipped, created_at ), shared_recipes ( slug, published, public_note, rest_days, indexable, updated_at )')
+        .select('*, batch_checkins ( id, day, scheduled_day, note, rating, skipped, tags, created_at ), shared_recipes ( slug, published, public_note, rest_days, indexable, updated_at )')
         .eq('user_id', userId);
       // One batch (labels), or the batches of one oil (its history): by
       // catalog id, or by name for batches logged without one.
@@ -355,6 +355,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // PATCH /api/batches { id, remind: true | false } — rest reminders are
       // Pro (journal.reminders). Turning one off is always allowed, so a
       // user whose trial ended can still silence a batch.
+      // Only the preference is stored (Bench SaaS Phase 5).
+      // TODO(reminders): a scheduled job (Vercel cron or Supabase pg_cron)
+      // that finds batches with remind = true reaching REST_DAYS
+      // (src/lib/calc/restTracker.ts) today and emails or pushes their
+      // owners once; needs SMTP/Resend and a sent-at column so a reminder
+      // goes out only once. Nothing is sent yet.
       if (b.remind !== undefined) {
         if (typeof b.remind !== 'boolean') return fail(res, 400, 'invalid_edit', 'remind must be true or false.', { field: 'remind' });
         if (b.remind && !can(await loadEntitlements(supabase, userId), 'reminders')) {

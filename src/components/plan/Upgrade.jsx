@@ -49,12 +49,37 @@ export function PlanBadge() {
 
 const HEADLINES = { blend: "upgrade.why.blend", formulas: "upgrade.why.formulas", cost: "upgrade.why.cost", reminders: "upgrade.why.reminders" };
 
+/**
+ * Starts the 14-day Pro trial and refreshes the plan. `start()` resolves to
+ * true once Pro is on; `message` says why not (used, already Pro, failed).
+ * Shared by the upgrade sheet and the Journal's locked card.
+ */
+export function useStartTrial() {
+  const { t } = useI18n();
+  const entitlements = useEntitlements();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  async function start() {
+    setBusy(true); setMessage("");
+    try {
+      await startTrial();
+      await entitlements.refresh();
+      setMessage(t("plan.trial.startedNow"));
+      return true;
+    } catch (e) {
+      setMessage(e.code === "trial_used" ? t("plan.trial.used") : e.code === "already_pro" ? t("plan.trial.alreadyPro") : t("upgrade.trialFailed"));
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+  return { start, busy, message };
+}
+
 function UpgradeSheet({ open, reason, onClose }) {
   const { t, locale } = useI18n();
   const entitlements = useEntitlements();
   const [billing, setBilling] = useState("yearly");
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
   const pro = isPro(entitlements);
   const yearly = billing === "yearly";
 
@@ -62,19 +87,8 @@ function UpgradeSheet({ open, reason, onClose }) {
   const freeLimits = { n: limit(undefined, "journalBatches") };
   const cell = (v) => (v && typeof v === "object" ? String(limit(undefined, v.limit)) : t(`upgrade.cells.${v}`, freeLimits));
 
-  async function trial() {
-    setBusy(true); setMessage("");
-    try {
-      await startTrial();
-      await entitlements.refresh();
-      setMessage(t("plan.trial.startedNow"));
-      onClose();
-    } catch (e) {
-      setMessage(e.code === "trial_used" ? t("plan.trial.used") : e.code === "already_pro" ? t("plan.trial.alreadyPro") : t("upgrade.trialFailed"));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const { start, busy, message } = useStartTrial();
+  const trial = () => start().then((ok) => ok && onClose());
 
   const headline = reason && HEADLINES[reason] ? t(HEADLINES[reason]) : t("upgrade.lead");
   const yearlyText = t("upgrade.billedYearly", { price: priceText(yearlyPerMonth(), locale) });
