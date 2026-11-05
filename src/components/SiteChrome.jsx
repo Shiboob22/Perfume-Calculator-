@@ -25,9 +25,9 @@ function NavLink({ to, cross, active, icon: I, children }) {
 }
 
 /**
- * @param {{ zone: "site" | "app", active?: "guides"|"calculator"|"journal"|"pricing"|"wardrobe"|"atlas"|"salon"|"nose"|"shop", wardrobe?: boolean, atlas?: boolean, salon?: boolean, nose?: boolean, shop?: boolean, language: React.ReactNode, extra?: React.ReactNode }} p
+ * @param {{ zone: "site" | "app", active?: "guides"|"calculator"|"journal"|"pricing"|"wardrobe"|"atlas"|"salon"|"nose"|"shop", wardrobe?: boolean, atlas?: boolean, salon?: boolean, nose?: boolean, shop?: boolean, language: React.ReactNode, extra?: React.ReactNode, badge?: React.ReactNode }} p
  */
-export function SiteHeader({ zone, active, language, extra, wardrobe = false, atlas = false, salon = false, nose = false, shop = false }) {
+export function SiteHeader({ zone, active, language, extra, badge, wardrobe = false, atlas = false, salon = false, nose = false, shop = false }) {
   const { t, locale } = useI18n();
   const cart = useCart();
   const inCart = shop ? cartCount(cart) : 0;
@@ -38,6 +38,8 @@ export function SiteHeader({ zone, active, language, extra, wardrobe = false, at
         {inApp
           ? <a href={site(locale, "/")} aria-label={t("site.nav.home")} className="me-auto"><BrandMark brand={t("brand")} sub={t("brandTagline")} signature={t("brandSignature")} /></a>
           : <Link to={site(locale, "/")} aria-label={t("site.nav.home")} className="me-auto"><BrandMark brand={t("brand")} sub={t("brandTagline")} signature={t("brandSignature")} /></Link>}
+        {/* The plan badge stays visible on phones, where the menu is in the bottom bar. */}
+        {badge && <div className="md:order-last">{badge}</div>}
         <nav aria-label={t("site.nav.main")} className={`${inApp ? "hidden md:flex" : "flex"} items-center gap-x-6 gap-y-1 flex-wrap -mx-1 px-1`}>
           <NavLink to={site(locale, "/library")} cross={inApp} active={active === "guides"} icon={IconBook}>{t("site.nav.guides")}</NavLink>
           <NavLink to="/bench" cross={!inApp} active={active === "calculator"} icon={IconBalance}>{t("site.nav.calculator")}</NavLink>

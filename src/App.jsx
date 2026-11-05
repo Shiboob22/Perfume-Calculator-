@@ -16,6 +16,7 @@ import ProLocked from "./components/ProLocked";
 import { EntitlementsProvider, useEntitlements } from "./lib/useEntitlements";
 import { ProfileProvider, useProfile, needsOnboarding } from "./lib/useProfile";
 import { can, journalOpen } from "./lib/entitlements";
+import { UpgradeProvider, PlanBadge } from "./components/plan/Upgrade";
 import { fetchPopular, warmUp } from "./lib/searchApi";
 import { flush } from "./lib/outbox";
 import { logBatch, listBatches, saveCheckIn } from "./lib/fragranceApi";
@@ -130,6 +131,7 @@ export default function App() {
     <AuthGate>
       {(user) => (
         <EntitlementsProvider>
+        <UpgradeProvider>
         <ProfileProvider>
         <OnboardingGate>
         <CountDueCheckIns />
@@ -141,6 +143,7 @@ export default function App() {
       <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "batches" ? "journal" : tab === "wardrobe" ? "wardrobe" : tab === "atlas" ? "atlas" : tab === "salon" ? "salon" : tab === "nose" ? "nose" : undefined}
         wardrobe={wardrobeOn} atlas={atlasOn} salon={salonOn} nose={noseOn} shop={shopOn}
         language={<LanguageToggle />}
+        badge={<PlanBadge />}
         extra={<>
           <button type="button" onClick={() => navigate("/app/account")}
             className="text-sm hover:underline underline-offset-4 min-h-[44px]"
@@ -192,6 +195,7 @@ export default function App() {
         )}
         </OnboardingGate>
         </ProfileProvider>
+        </UpgradeProvider>
         </EntitlementsProvider>
       )}
     </AuthGate>
