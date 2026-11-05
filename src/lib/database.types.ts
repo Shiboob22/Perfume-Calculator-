@@ -185,6 +185,7 @@ export type Database = {
           oil_ml: number
           oil_type: string | null
           packaging_cost: number | null
+          pours: Json | null
           price_per_gram: number | null
           recipe_version_id: string | null
           remind: boolean
@@ -226,6 +227,7 @@ export type Database = {
           oil_ml: number
           oil_type?: string | null
           packaging_cost?: number | null
+          pours?: Json | null
           price_per_gram?: number | null
           recipe_version_id?: string | null
           remind?: boolean
@@ -267,6 +269,7 @@ export type Database = {
           oil_ml?: number
           oil_type?: string | null
           packaging_cost?: number | null
+          pours?: Json | null
           price_per_gram?: number | null
           recipe_version_id?: string | null
           remind?: boolean

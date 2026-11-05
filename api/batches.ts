@@ -35,6 +35,35 @@ export function batchRecord(b: any) {
   return Object.fromEntries(Object.entries(rec).filter(([, v]) => v != null));
 }
 
+// What was poured of each material of a blend (0032), one entry per
+// material in pour order. Like the record fields, a malformed entry is
+// dropped rather than refusing the log; nothing usable leaves it out.
+const POUR_TYPES = ['eo', 'aroma', 'absolute', 'fixative', 'dpg'];
+const grams = (v: unknown) => {
+  if (v == null || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 && n <= 100000 ? Math.round(n * 100) / 100 : undefined;
+};
+export function batchPours(b: any): { pours?: unknown[] } {
+  if (!Array.isArray(b.pours)) return {};
+  const pours = b.pours.slice(0, 30).flatMap((p: any) => {
+    if (!p || typeof p !== 'object') return [];
+    const target = grams(p.target_g);
+    const actual = grams(p.actual_g);
+    if (target == null || actual === undefined) return [];
+    const pct = Number(p.pct);
+    const name = typeof p.name === 'string' ? p.name.trim().slice(0, 120) : '';
+    return [{
+      name: name || null,
+      type: POUR_TYPES.includes(p.type) ? p.type : null,
+      pct: p.pct != null && pct > 0 && pct <= 100 ? pct : null,
+      target_g: target,
+      actual_g: actual,
+    }];
+  });
+  return pours.length ? { pours } : {};
+}
+
 // What the batch cost to make and what it sells for (0022). Pro only
 // (calculator.advanced): a plan without it stores none of these, and a
 // malformed value is dropped rather than refusing the log. Limits match the
@@ -254,6 +283,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         oil_density: Number(b.oil_density) > 0 ? Number(b.oil_density) : null,
         ethanol_density: Number(b.ethanol_density) > 0 ? Number(b.ethanol_density) : null,
         ...batchRecord(b),
+        ...batchPours(b),
         ...sellerCosts(b, entitlements),
         ...(await recipeLink(supabase, userId, b)),
         created_at: new Date().toISOString(),
