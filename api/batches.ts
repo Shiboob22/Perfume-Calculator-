@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { loadEntitlements, canLogBatch, can } from './_lib/entitlements.js';
+import { loadEntitlements, canLogBatch, can, lockedFeature } from './_lib/entitlements.js';
 import { overLimit } from './_lib/rateLimit.js';
 import { randomBytes } from 'node:crypto';
 import { shareRow } from './_lib/share.js';
@@ -320,7 +320,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const b = req.body || {};
       const id = typeof b.id === 'string' ? b.id : '';
-      if (!UUID.test(id) || (b.share === undefined && b.edit === undefined)) return fail(res, 400, 'invalid_id', 'Missing batch ID, share or edit.');
+      if (!UUID.test(id) || (b.share === undefined && b.edit === undefined && b.remind === undefined)) return fail(res, 400, 'invalid_id', 'Missing batch ID, share, edit or remind.');
+
+      // PATCH /api/batches { id, remind: true | false } — rest reminders are
+      // Pro (journal.reminders). Turning one off is always allowed, so a
+      // user whose trial ended can still silence a batch.
+      if (b.remind !== undefined) {
+        if (typeof b.remind !== 'boolean') return fail(res, 400, 'invalid_edit', 'remind must be true or false.', { field: 'remind' });
+        if (b.remind && !can(await loadEntitlements(supabase, userId), 'reminders')) {
+          return res.status(403).json(lockedFeature('journal.reminders'));
+        }
+        if (await overLimit(supabase, res, 'batch', userId)) return;
+        const { data, error } = await supabase
+          .from('batches').update({ remind: b.remind }).eq('id', id).eq('user_id', userId).select('*').maybeSingle();
+        if (error) throw error;
+        if (!data) return fail(res, 404, 'not_found', 'Batch not found.');
+        return res.status(200).json({ batch: data });
+      }
 
       if (b.edit !== undefined) {
         const edited = editRow(b.edit);

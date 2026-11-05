@@ -29,6 +29,19 @@ describe('loadEntitlements', () => {
     expect(e.batchCap).toBe(25);
   });
 
+  it('is Pro during a trial and Free once it has ended, with the trial reported', async () => {
+    const day = 86_400_000;
+    const running = { plans: PRO, plan_id: 'pro', source: 'trial', trial_started_at: new Date(Date.now() - day).toISOString(), trial_ends_at: new Date(Date.now() + 13 * day).toISOString() };
+    const on = await loadEntitlements(client({ user_plans: { data: running, error: null } }), 'u');
+    expect(on.plan).toBe('pro');
+    expect(on.trial).toMatchObject({ active: true, used: true, daysLeft: 13 });
+
+    const ended = { ...running, trial_ends_at: new Date(Date.now() - 1000).toISOString() };
+    const off = await loadEntitlements(client({ user_plans: { data: ended, error: null }, plans: { data: FREE, error: null } }), 'u');
+    expect(off.plan).toBe('free');
+    expect(off.trial).toMatchObject({ active: false, used: true });
+  });
+
   it('throws when the plan read fails, instead of treating the user as Free', async () => {
     const err = new Error('canceling statement due to statement timeout');
     await expect(loadEntitlements(client({ user_plans: { data: null, error: err } }), 'u')).rejects.toBe(err);

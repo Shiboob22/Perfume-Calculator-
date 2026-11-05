@@ -7,14 +7,14 @@ const base = { id, batch_id, day: 21, scheduled_day: 21 };
 
 describe('parseCheckIn', () => {
   it('accepts a line, a rating or both', () => {
-    expect(parseCheckIn({ ...base, note: ' Softer now ' })).toEqual({ row: { ...base, note: 'Softer now', rating: null, skipped: false } });
-    expect(parseCheckIn({ ...base, rating: 4 })).toEqual({ row: { ...base, note: null, rating: 4, skipped: false } });
+    expect(parseCheckIn({ ...base, note: ' Softer now ' })).toEqual({ row: { ...base, note: 'Softer now', rating: null, skipped: false, tags: [] } });
+    expect(parseCheckIn({ ...base, rating: 4 })).toEqual({ row: { ...base, note: null, rating: 4, skipped: false, tags: [] } });
     expect(parseCheckIn({ ...base, scheduled_day: undefined, note: 'ad hoc', rating: 5 })).toEqual({
-      row: { ...base, scheduled_day: null, note: 'ad hoc', rating: 5, skipped: false },
+      row: { ...base, scheduled_day: null, note: 'ad hoc', rating: 5, skipped: false, tags: [] },
     });
   });
   it('a skip keeps nothing but the point it skips', () => {
-    expect(parseCheckIn({ ...base, skipped: true, note: 'x', rating: 3 })).toEqual({ row: { ...base, note: null, rating: null, skipped: true } });
+    expect(parseCheckIn({ ...base, skipped: true, note: 'x', rating: 3 })).toEqual({ row: { ...base, note: null, rating: null, skipped: true, tags: [] } });
     expect(parseCheckIn({ ...base, scheduled_day: null, skipped: true })).toEqual({ error: 'Only a scheduled check-in can be skipped.' });
   });
   it('cleans the note and caps it at 280 characters', () => {
@@ -23,6 +23,12 @@ describe('parseCheckIn', () => {
   });
   it('refuses an empty check-in', () => {
     expect(parseCheckIn({ ...base, note: '  <i></i> ' })).toEqual({ error: 'Write a line or give a rating.' });
+  });
+  it('keeps known tags once, in a fixed order, and refuses others', () => {
+    expect((parseCheckIn({ ...base, note: 'Loud', tags: ['sharp', 'harsh', 'sharp'] }) as any).row.tags).toEqual(['harsh', 'sharp']);
+    expect((parseCheckIn({ ...base, skipped: true, tags: ['ready'] }) as any).row.tags).toEqual([]);
+    expect(parseCheckIn({ ...base, note: 'x', tags: ['smoky'] })).toHaveProperty('error');
+    expect(parseCheckIn({ ...base, note: 'x', tags: 'harsh' })).toHaveProperty('error');
   });
   it('refuses bad ids, days and ratings', () => {
     expect(parseCheckIn(null)).toHaveProperty('error');

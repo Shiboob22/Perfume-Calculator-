@@ -10,7 +10,11 @@ export interface CheckInRow {
   note: string | null;
   rating: number | null;
   skipped: boolean;
+  tags: string[];
 }
+
+// The note tags the table allows (0031), in display order.
+export const NOTE_TAGS = ['harsh', 'sharp', 'rounder', 'sweeter', 'woodier', 'fading', 'ready'] as const;
 
 const isDay = (v: unknown) => Number.isInteger(v) && (v as number) >= 0 && (v as number) <= 730;
 
@@ -32,7 +36,13 @@ export function parseCheckIn(body: any): { row: CheckInRow } | { error: string }
   if (rating !== null && !(Number.isInteger(rating) && rating >= 1 && rating <= 5)) {
     return { error: 'The rating must be a whole number from 1 to 5.' };
   }
+  const rawTags = b.tags ?? [];
+  if (!Array.isArray(rawTags) || rawTags.some((t: unknown) => !(NOTE_TAGS as readonly unknown[]).includes(t))) {
+    return { error: `Tags must be from: ${NOTE_TAGS.join(', ')}.` };
+  }
+  // Each tag once, in the fixed order; a skip has none.
+  const tags = skipped ? [] : NOTE_TAGS.filter((t) => rawTags.includes(t));
   if (skipped && scheduled === null) return { error: 'Only a scheduled check-in can be skipped.' };
   if (!skipped && note === null && rating === null) return { error: 'Write a line or give a rating.' };
-  return { row: { id: b.id, batch_id: b.batch_id, day: b.day, scheduled_day: scheduled, note, rating, skipped } };
+  return { row: { id: b.id, batch_id: b.batch_id, day: b.day, scheduled_day: scheduled, note, rating, skipped, tags } };
 }
