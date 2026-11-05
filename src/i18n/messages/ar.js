@@ -723,7 +723,10 @@ export default {
     // Pour along (Bench SaaS Phase 4). Drafts for review.
     tabs: { label: "الخطوات", prepare: "التحضير", tare: "التصفير", oil: "الزيت", ethanol: "الإيثانول", mix: "الخلط", qc: "الفحص", done: "التسجيل" },
     pour: {
+      target: "الهدف",
       title: "اسكب {name}",
+      poured: "المسكوب",
+      ingredient: "المكوّن",
       unnamed: "المكوّن {n}",
       tareFirst: "صفّر الميزان وما في الزجاجة عليه، ثم اسكب.",
       scaled: "زدت في مكوّن سابق، فعُدّلت البقية ×{x} للحفاظ على نسب الخلطة.",

@@ -137,10 +137,11 @@ function Scale({ label, value, target, onChange, overText }) {
 }
 
 // The steps as tabs, numbered: the count follows the formula. On a phone only
-// the current step shows its name; long names are cut with an ellipsis.
+// the current step shows its name, in a wider column; long names are cut
+// with an ellipsis.
 function StepTabs({ steps, at, name, t }) {
   return (
-    <ol aria-label={t("bench.tabs.label")} className="grid gap-1 px-4 sm:gap-2" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))`, borderBottom: `1px solid ${COLORS.line}` }}>
+    <ol aria-label={t("bench.tabs.label")} className="grid gap-1 px-4 sm:gap-2" style={{ gridTemplateColumns: steps.map((_, n) => (n === at ? "minmax(0, 3fr)" : "minmax(0, 1fr)")).join(" "), borderBottom: `1px solid ${COLORS.line}` }}>
       {steps.map((s, n) => {
         const label = name(s);
         const here = n === at;
@@ -347,7 +348,7 @@ export default function BenchMode() {
 
         {step.key === "pour" && (
           <>
-            <Big label={t("bench.oil.target")} grams={fmt2(ps.targets[step.index])} />
+            <Big label={isBlend ? t("bench.pour.target") : t("bench.oil.target")} grams={fmt2(ps.targets[step.index])} />
             {ps.scales[step.index] > 1.0005 && (
               <p role="note" className="mb-3 px-3 py-2.5 text-[13px]" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card, color: COLORS.verdigrisText ?? COLORS.verdigris }}>
                 {t("bench.pour.scaled", { x: ps.scales[step.index].toFixed(3) })}
@@ -446,12 +447,19 @@ export default function BenchMode() {
             {isBlend && (
               <table className="mt-4 w-full text-sm">
                 <caption className="sr-only">{t("bench.pour.summary")}</caption>
+                <thead>
+                  <tr className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
+                    <th scope="col" className="pb-2 text-start font-normal"><span className="sr-only">{t("bench.pour.ingredient")}</span></th>
+                    <th scope="col" className="pb-2 text-end font-normal">{t("bench.pour.target")}</th>
+                    <th scope="col" className="pb-2 text-end font-normal">{t("bench.pour.poured")}</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {items.map((it, n) => (
                     <tr key={n} style={{ borderTop: `1px solid ${COLORS.line}` }}>
                       <th scope="row" className="py-2 text-start font-normal truncate max-w-0 w-1/2">{nameOf(n)}</th>
-                      <td dir="ltr" className="py-2 text-end tabular-nums" style={{ color: COLORS.inkSoft }}>{fmt2(ps.targets[n])} g</td>
-                      <td dir="ltr" className="py-2 text-end tabular-nums">{fmt2(Number(poured[n]) || 0)} g</td>
+                      <td className="py-2 text-end tabular-nums" style={{ color: COLORS.inkSoft }}><span dir="ltr">{fmt2(ps.targets[n])} g</span></td>
+                      <td className="py-2 text-end tabular-nums"><span dir="ltr">{fmt2(Number(poured[n]) || 0)} g</span></td>
                     </tr>
                   ))}
                 </tbody>

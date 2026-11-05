@@ -722,7 +722,10 @@ export default {
     // Pour along (Bench SaaS Phase 4).
     tabs: { label: "Steps", prepare: "Prepare", tare: "Tare", oil: "Oil", ethanol: "Ethanol", mix: "Mix", qc: "Check", done: "Log" },
     pour: {
+      target: "Target",
       title: "Pour the {name}",
+      poured: "Poured",
+      ingredient: "Material",
       unnamed: "material {n}",
       tareFirst: "Tare with what is already in the bottle, then pour.",
       scaled: "You went over on an earlier ingredient, so the rest are scaled ×{x} to keep the blend's ratio.",

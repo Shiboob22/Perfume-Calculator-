@@ -188,7 +188,7 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     await expect(practice.locator("p[aria-live]")).toHaveAttribute("aria-label", /: 0\.00 /);
     await next.click();
 
-    const big = () => page.getByText(m.bench.oil.target, { exact: true }).locator("xpath=following-sibling::p[1]");
+    const big = () => page.getByText(m.bench.pour.target, { exact: true }).locator("xpath=following-sibling::p[1]");
     const actual = page.getByLabel(m.bench.oil.actual);
     const bodyOf = (name) => page.getByRole("group", { name: m.bench.pour.material.replace("{name}", name) });
 
