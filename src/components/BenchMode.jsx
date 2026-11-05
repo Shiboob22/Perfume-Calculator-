@@ -493,6 +493,11 @@ export default function BenchMode() {
               <nav aria-label={t("bench.after.title")} className="mt-6 grid gap-2">
                 <h2 className="font-serif italic text-xl" style={{ color: COLORS.amberDeep }}>{t("bench.after.title")}</h2>
                 {status === "saved" && (
+                  <button type="button" onClick={() => navigate(`/journal?batch=${logId.current}`)} className="py-3 rounded border text-start px-4" style={{ borderColor: COLORS.actionText, color: COLORS.actionText }}>
+                    {t("bench.after.journal")}
+                  </button>
+                )}
+                {status === "saved" && (
                   <button type="button" onClick={() => navigate("/bench/journal")} className="py-3 rounded border text-start px-4" style={{ borderColor: COLORS.field, color: COLORS.ink }}>
                     {t("bench.after.batches")}
                   </button>
