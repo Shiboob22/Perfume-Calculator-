@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 import en from "../src/i18n/messages/en.js";
 import ar from "../src/i18n/messages/ar.js";
 import { USER, json, signIn } from "./helpers.js";
@@ -143,5 +144,118 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     await page.getByRole("button", { name: m.calc.log }).click();
     await expect(page.getByText(m.calc.loggedNo.replace("{no}", "042"))).toBeVisible();
     expect(sent.logs[0]).toMatchObject({ fragrance_name: "Neroli Eau", concentration_pct: 30 });
+  });
+}
+
+// Phase 4, pour along: a three-material blend goes to bench mode, one step
+// per material. Bergamot is deliberately over-poured by 10 %, so Hedione and
+// Ambroxan are scaled ×1.100 and the ethanol follows what was poured; the
+// batch stores each material's actual grams.
+const num = async (loc) => Number((await loc.textContent()).replace(/[^\d.]/g, ""));
+const r2 = (x) => Math.round(x * 100) / 100;
+
+for (const [locale, m] of [["en", en], ["ar", ar]]) {
+  test(`${locale}: pour along a three-material blend with an over-pour on the first`, async ({ page }) => {
+    await signIn(page);
+    const sent = await fakeApi(page, locale);
+    await page.goto("/bench?size=100&unit=ml&conc=20&family=fresh&name=Neroli%20Eau");
+    const b = m.calc.blend;
+    await page.getByRole("button", { name: b.blend, exact: true }).click();
+    const add = page.getByRole("button", { name: new RegExp(b.add) });
+    const rows = [["Bergamot", "50"], ["Hedione", "30"], ["Ambroxan", "20"]];
+    for (const [n, [name, share]] of rows.entries()) {
+      if (n) await add.click();
+      await page.getByRole("textbox", { name: b.nameN.replace("{n}", String(n + 1)) }).fill(name);
+      await page.getByRole("spinbutton", { name: b.shareN.replace("{n}", String(n + 1)) }).fill(share);
+    }
+    await page.getByRole("button", { name: m.bench.start }).click();
+
+    // The tabs follow the formula: prepare, tare, three materials, ethanol, mix, check, log.
+    const tabs = page.getByRole("list", { name: m.bench.tabs.label }).getByRole("listitem");
+    await expect(tabs).toHaveCount(9);
+    await expect(tabs.nth(2)).toHaveAttribute("title", "Bergamot");
+    await expect(tabs.nth(4)).toHaveAttribute("title", "Ambroxan");
+    await expect(tabs.nth(5)).toHaveAttribute("title", m.bench.tabs.ethanol);
+    await expect(tabs.nth(0)).toHaveAttribute("aria-current", "step");
+
+    const next = page.getByRole("button", { name: m.bench.next, exact: true });
+    await page.getByRole("checkbox").check();
+    await next.click();
+    // The practice scale: the empty bottle, then tare.
+    const practice = page.getByRole("group", { name: m.bench.pour.sim }).first();
+    await expect(practice.locator("p[aria-live]")).toHaveAttribute("aria-label", /38\.42/);
+    await practice.getByRole("button", { name: m.bench.pour.tare }).click();
+    await expect(practice.locator("p[aria-live]")).toHaveAttribute("aria-label", /: 0\.00 /);
+    await next.click();
+
+    const big = () => page.getByText(m.bench.oil.target, { exact: true }).locator("xpath=following-sibling::p[1]");
+    const actual = page.getByLabel(m.bench.oil.actual);
+    const bodyOf = (name) => page.getByRole("group", { name: m.bench.pour.material.replace("{name}", name) });
+
+    // 1. Bergamot, 10 % over: the bar turns "over", nothing to take out.
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(m.bench.pour.title.replace("{name}", "Bergamot"));
+    await expect(tabs.nth(2)).toHaveAttribute("aria-current", "step");
+    const t1 = await num(big());
+    const p1 = r2(t1 * 1.1);
+    await actual.fill(String(p1));
+    await expect(bodyOf("Bergamot").getByText(m.bench.pour.overBlend)).toBeVisible();
+    await expect(next).toBeEnabled();
+    await next.click();
+
+    // 2. Hedione: scaled by Bergamot's overshoot.
+    const k = (p1 / t1).toFixed(3);
+    await expect(page.getByText(m.bench.pour.scaled.replace("{x}", k))).toBeVisible();
+    const t2 = await num(big());
+    // Under the 1 % band: can't move on. The practice buttons pour into the same reading.
+    const hedione = bodyOf("Hedione");
+    await hedione.getByRole("button", { name: m.bench.pour.coarse }).click();
+    await expect(actual).toHaveValue("1");
+    await hedione.getByRole("button", { name: m.bench.pour.fine }).click();
+    await expect(actual).toHaveValue("1.1");
+    await expect(next).toBeDisabled();
+    await expect(page.getByText(m.bench.pour.needTarget)).toBeVisible();
+    // The scale, the note and the practice controls pass axe.
+    await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().filter((a) => a.timeline instanceof DocumentTimeline && a.effect?.getComputedTiming().endTime !== Infinity).map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))]));
+    expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze()).violations).toEqual([]);
+    await hedione.getByRole("button", { name: m.bench.pour.reset }).click();
+    await expect(actual).toHaveValue("");
+    await actual.fill(String(t2));
+    await expect(hedione.getByText(m.bench.pour.ok, { exact: true })).toBeVisible();
+    await next.click();
+
+    // 3. Ambroxan: the same scale, poured exactly.
+    await expect(page.getByText(m.bench.pour.scaled.replace("{x}", k))).toBeVisible();
+    const t3 = await num(big());
+    await actual.fill(String(t3));
+    await next.click();
+
+    // Ethanol, for the concentrate actually poured.
+    const conc = r2(p1 + t2 + t3);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(m.bench.alcohol.title);
+    await expect(page.getByText(m.bench.pour.adjustedBlend.replace("{g}", conc.toFixed(2)).replace("{pct}", "20"))).toBeVisible();
+    const te = await num(page.getByText(m.bench.alcohol.target, { exact: true }).locator("xpath=following-sibling::p[1]"));
+    await page.getByLabel(m.bench.alcohol.actual).fill(String(te));
+    await next.click(); // → mix
+    await next.click(); // → check
+    await next.click(); // → log
+
+    // The summary: concentrate, ethanol, total, and the strength made.
+    const summary = page.locator("[data-pour-summary]");
+    await expect(summary.locator('[data-summary="concentrate"] dt')).toHaveText(m.bench.pour.concentrate);
+    await expect(summary.locator('[data-summary="concentrate"] dd')).toHaveText(`${conc.toFixed(2)} g`);
+    await expect(summary.locator('[data-summary="ethanol"] dd')).toHaveText(`${te.toFixed(2)} g`);
+    await expect(summary.locator('[data-summary="total"] dd')).toHaveText(`${r2(conc + te).toFixed(2)} g`);
+    await expect(page.getByText(new RegExp(m.bench.pour.made.volume.split("{pct}")[0].trim() + ".*20\\.0"))).toBeVisible();
+
+    await page.getByRole("button", { name: m.bench.label.log }).click();
+    await expect(page.getByText(m.calc.loggedNo.replace("{no}", "042"))).toBeVisible();
+    const log = sent.logs[0];
+    expect(log.actual_oil_g).toBeCloseTo(conc, 2);
+    expect(log.actual_ethanol_g).toBeCloseTo(te, 2);
+    expect(log.pours.map((p) => p.name)).toEqual(["Bergamot", "Hedione", "Ambroxan"]);
+    expect(log.pours.map((p) => p.actual_g)).toEqual([p1, t2, t3]);
+    expect(log.pours[0].target_g).toBeCloseTo(t1, 2);
+    expect(log.pours[1].target_g).toBeCloseTo(t2, 2);
+    expect(log.pours.map((p) => p.pct)).toEqual([50, 30, 20]);
   });
 }

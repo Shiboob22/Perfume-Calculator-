@@ -958,6 +958,9 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               unit: batchUnit,
               concPct: Number(concPct),
               densities: result.densities,
+              // A blend pours one material at a time (bench pour along); the
+              // density above is already the blend's.
+              blend: blendOn ? blend.map(({ name, type, pct }) => ({ name, type, pct })) : null,
               // The rest of the record, so a bench log is as full as one from here.
               oilType, pricePerGram, blendedBy,
               // A new start, even of the same blend, starts a new bench run.

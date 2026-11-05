@@ -167,9 +167,9 @@ test("bench mode logs the full record and offers next steps", async ({ page }) =
   await next.click(); // prepare → tare
   await next.click(); // tare → oil
   await page.getByLabel(en.bench.oil.actual).fill("11.9");
-  await next.click(); // oil → tare again
-  await next.click(); // → alcohol
-  await page.getByLabel(en.bench.alcohol.actual).fill("30.4");
+  await next.click(); // oil → ethanol (tared at the top of the step)
+  // 31.09 g for the 11.9 g poured: within 1 %, so the run moves on.
+  await page.getByLabel(en.bench.alcohol.actual).fill("31.1");
   await next.click(); // → mix
   await next.click(); // → qc
   await next.click(); // → label
@@ -178,8 +178,9 @@ test("bench mode logs the full record and offers next steps", async ({ page }) =
   await page.getByLabel(en.bench.label.lot).fill("L-0412");
   await page.getByRole("button", { name: en.bench.label.log }).click();
   await expect(page.getByRole("navigation", { name: en.bench.after.title })).toBeVisible();
-  expect(sent.logs[0]).toMatchObject({ lot: "L-0412", amount: 50, unit: "ml", actual_oil_g: 11.9, actual_ethanol_g: 30.4 });
+  expect(sent.logs[0]).toMatchObject({ lot: "L-0412", amount: 50, unit: "ml", actual_oil_g: 11.9, actual_ethanol_g: 31.1 });
   expect(sent.logs[0].notes).toBeNull();
+  expect(sent.logs[0]).not.toHaveProperty("pours"); // a simple formula: its one pour is actual_oil_g
 
   await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().filter((a) => a.timeline instanceof DocumentTimeline && a.effect?.getComputedTiming().endTime !== Infinity).map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))])); // entrances settle first: axe must not read a half-faded colour
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

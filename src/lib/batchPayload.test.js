@@ -26,6 +26,12 @@ describe("buildBatch", () => {
   it("carries the lot and the bottle as entered", () => {
     expect(buildBatch({ ...base, lot: " L1 ", amount: "50", unit: "g" })).toMatchObject({ lot: "L1", amount: 50, unit: "g" });
   });
+  it("carries a blend's per-material pours, none for a simple formula", () => {
+    const pours = [{ name: "Bergamot", type: "eo", pct: 100, target_g: 23.75, actual_g: 24 }];
+    expect(buildBatch({ ...base, pours }).pours).toEqual(pours);
+    expect(buildBatch({ ...base, pours: null })).not.toHaveProperty("pours");
+    expect(buildBatch({ ...base, pours: [] })).not.toHaveProperty("pours");
+  });
   it("links the recipe version only when given", () => {
     expect(buildBatch(base)).not.toHaveProperty("recipe_version_id");
     expect(buildBatch({ ...base, recipeVersionId: "" })).not.toHaveProperty("recipe_version_id");

@@ -33,7 +33,7 @@ function sellerFields(seller) {
  */
 export function buildBatch({
   id, fragranceId, name, tier, blendDate, concPct, target, densities,
-  actualOilG, actualEthG, oilType, pricePerGram, oilCost, notes, blendedBy, lot, amount, unit, seller, recipeVersionId,
+  actualOilG, actualEthG, oilType, pricePerGram, oilCost, notes, blendedBy, lot, amount, unit, seller, recipeVersionId, pours,
 }) {
   const e = target.exact;
   // A density left blank was replaced by a fallback to compute; the batch
@@ -65,6 +65,8 @@ export function buildBatch({
     amount: pos(amount),
     unit: unit || null,
     ...sellerFields(seller),
+    // A blend's per-material pours (0032); a simple formula sends none.
+    ...(Array.isArray(pours) && pours.length ? { pours } : {}),
     // The API keeps it only if the version is the caller's (0023).
     ...(recipeVersionId ? { recipe_version_id: recipeVersionId } : {}),
   };
