@@ -14,6 +14,7 @@ export const LIMITS = {
   inventory: [120, 600],   // stock writes (track, set, restock, remove): 120 per 10 minutes
   remove: [60, 600],       // deleting a batch or a check-in: 60 per 10 minutes
   shop: [8, 3600],         // shop orders per IP: 8 an hour (each one carries a screenshot)
+  trial: [5, 3600],        // "Start 14-day free trial" presses: 5 an hour (one trial per user anyway)
 } as const satisfies Record<string, readonly [number, number]>;
 
 export type LimitName = keyof typeof LIMITS;

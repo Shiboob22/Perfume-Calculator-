@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { overLimit } from './_lib/rateLimit.js';
+import { startTrial } from './_lib/trial.js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -17,8 +18,20 @@ function timedFetch(input: Parameters<typeof fetch>[0], init: RequestInit = {}) 
 // Catalog rows they added keep existing with added_by set to null.
 // Admins cannot delete themselves here: losing the only admin would leave
 // nobody able to approve catalog entries.
+//
+// POST /api/account  { action: "start_trial" }
+// Starts the 14-day Pro trial: plan = pro, trial_ends_at = now + 14 days,
+// once per user (start_pro_trial() in 0031 decides, atomically). Answers
+//   201 { status: "started", trial_ends_at }
+//   409 { code: "trial_used" | "already_pro" }
+// An ended trial reads as Free everywhere (effective_plan()); nothing has
+// to flip it back.
+// TODO(payments): this is where a payment provider plugs in. When one is
+// connected, start its checkout here (or after the trial) and let its
+// webhook set user_plans.source = 'provider' (see docs/billing.md and
+// api/_lib/billing.ts). No provider is connected; no card is asked for.
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'DELETE') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'DELETE' && req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   res.setHeader('Cache-Control', 'private, no-store');
 
   const authHeader = req.headers.authorization;
@@ -35,6 +48,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!user) return res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey, { global: { fetch: timedFetch } });
+
+    if (req.method === 'POST') {
+      if (req.body?.action !== 'start_trial') return res.status(400).json({ error: 'Unknown action.', code: 'invalid_action' });
+      if (await overLimit(supabase, res, 'trial', user.id)) return;
+      const result = await startTrial(supabase, user.id);
+      return res.status(result.status).json(result.body);
+    }
+
     if (await overLimit(supabase, res, 'deleteAccount', user.id)) return;
 
     // The user types their email to confirm: a stray request can't delete.
