@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap"><script src="./kyphira.js"></script></helmet>
+<div role="dialog" aria-modal="true" aria-label="{{ t.title }}" style="width:100%;max-width:560px;background:var(--c-paper, #F4F1EA);border:1px solid var(--c-ink, #1B1814);border-radius:2px;color:var(--c-ink, #1B1814);font-family:var(--f-sans, 'Instrument Sans', sans-serif);box-shadow:0 40px 70px -30px rgba(0,0,0,.45);">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--c-line, #D9D3C5);">
+    <div style="display:flex;align-items:baseline;gap:12px;">
+      <span style="font-family:var(--f-serif, 'Instrument Serif', serif);font-style:italic;font-size:24px;">{{ t.title }}</span>
+      <span style="font-size:13px;color:var(--c-dim, #5A544A);">{{ name }}</span>
+    </div>
+    <button type="button" onClick="{{ close }}" aria-label="{{ t.close }}" style="width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--c-ink, #1B1814);cursor:pointer;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+    </button>
+  </div>
+  <ol style="{{ olStyle }}">
+    <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+      <li style="{{ s.style }}" title="{{ s.label }}">
+        <span dir="ltr" style="font-variant-numeric:tabular-nums;flex:none;">{{ s.n }}</span>
+        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.label }}</span>
+      </li>
+    </sc-for>
+  </ol>
+  <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+    <div>
+      <p style="margin:0;font-family:var(--f-serif, 'Instrument Serif', serif);font-size:30px;line-height:1.15;">{{ stepTitle }}</p>
+      <p style="margin:6px 0 0;font-size:14px;color:var(--c-ink-soft, #3A352D);text-wrap:pretty;">{{ stepHelp }}</p>
+    </div>
+    <sc-if value="{{ showScale }}" hint-placeholder-val="{{ true }}">
+      <div role="group" aria-label="{{ t.sim }}" style="padding:20px;border-radius:2px;background:var(--c-ink-band, #1B1814);color:var(--c-on-ink, #F4F1EA);border:1px solid var(--c-line, #D9D3C5);">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
+          <span style="font-size:12px;text-transform:uppercase;letter-spacing:.15em;opacity:.8;">{{ t.sim }}</span>
+          <span dir="ltr" style="font-size:13px;opacity:.8;font-variant-numeric:tabular-nums;">{{ targetText }}</span>
+        </div>
+        <!-- Jeweller's scale display, matching the bench readout -->
+        <div dir="ltr" style="margin-top:12px;padding:6px;border-radius:5px;background:linear-gradient(180deg,#4A443B,#1B1814);box-shadow:inset 0 1px 0 rgba(255,255,255,.10);">
+          <div style="padding:10px 14px 12px;border-radius:2px;background:#100E0B;box-shadow:inset 0 2px 8px rgba(0,0,0,.75);font-family:'Share Tech Mono', ui-monospace, monospace;">
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;letter-spacing:.12em;">
+              <span style="{{ stableMark }}">○ STABLE</span>
+              <span style="padding:0 5px;border:1px solid rgba(246,203,134,.5);border-radius:2px;color:#F6CB86;text-shadow:0 0 6px rgba(242,170,80,.6);">g</span>
+            </div>
+            <p aria-live="polite" style="margin:8px 0 0;position:relative;text-align:right;font-size:64px;line-height:1;">
+              <span aria-hidden="true" style="position:absolute;right:0;top:0;color:#F2C27A;opacity:.07;">{{ ghostText }}</span>
+              <span style="position:relative;color:#F6CB86;text-shadow:0 0 10px rgba(242,170,80,.55);">{{ readingText }}</span>
+            </p>
+          </div>
+        </div>
+        <div dir="ltr" style="margin-top:16px;height:8px;position:relative;background:var(--c-line, #D9D3C5);">
+          <div style="{{ barStyle }}"></div>
+          <span style="position:absolute;top:-3px;bottom:-3px;right:0;width:1px;background:var(--c-on-ink, #F4F1EA);"></span>
+        </div>
+        <p style="{{ stateStyle }}">{{ stateText }}</p>
+      </div>
+    </sc-if>
+    <sc-if value="{{ adjustedNote }}" hint-placeholder-val="{{ false }}">
+      <p style="margin:0;padding:10px 12px;font-size:13px;border:1px solid var(--c-line, #D9D3C5);background:var(--c-card, #FBF9F4);color:var(--c-verdigris-text, #2F6F62);">{{ adjustedNote }}</p>
+    </sc-if>
+    <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+      <dl style="margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--c-ink, #1B1814);">
+        <sc-for list="{{ summary }}" as="row" hint-placeholder-count="3">
+          <div style="padding:14px;border-inline-end:1px solid var(--c-line, #D9D3C5);">
+            <dt style="font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--c-dim, #5A544A);">{{ row.label }}</dt>
+            <dd dir="ltr" style="margin:6px 0 0;font-size:24px;font-variant-numeric:tabular-nums;">{{ row.value }}</dd>
+          </div>
+        </sc-for>
+      </dl>
+      <p style="margin:0;font-family:var(--f-serif, 'Instrument Serif', serif);font-style:italic;font-size:18px;color:var(--c-verdigris-text, #2F6F62);">{{ madeText }}</p>
+    </sc-if>
+    <sc-if value="{{ showPourControls }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button type="button" onPointerDown="{{ holdStart }}" onPointerUp="{{ holdStop }}" onPointerLeave="{{ holdStop }}" onPointerCancel="{{ holdStop }}" style="flex:1 1 200px;min-height:56px;padding:0 20px;font:inherit;font-size:16px;font-weight:500;border-radius:2px;background:var(--c-amber, #B8893A);color:var(--c-on-amber, #1B1814);border:1px solid var(--c-amber, #B8893A);cursor:pointer;touch-action:none;user-select:none;">{{ t.hold }}</button>
+        <button type="button" onClick="{{ addCoarse }}" dir="ltr" style="min-height:56px;padding:0 16px;font:inherit;font-size:14px;border-radius:2px;background:transparent;color:var(--c-ink, #1B1814);border:1px solid var(--c-ink, #1B1814);cursor:pointer;">+1 g</button>
+        <button type="button" onClick="{{ addFine }}" dir="ltr" style="min-height:56px;padding:0 16px;font:inherit;font-size:14px;border-radius:2px;background:transparent;color:var(--c-ink, #1B1814);border:1px solid var(--c-ink, #1B1814);cursor:pointer;">+0.1 g</button>
+        <button type="button" onClick="{{ resetReading }}" style="min-height:56px;padding:0 16px;font:inherit;font-size:14px;border-radius:2px;background:transparent;color:var(--c-ink, #1B1814);border:1px solid transparent;cursor:pointer;text-decoration:underline;text-underline-offset:4px;">{{ t.reset }}</button>
+      </div>
+    </sc-if>
+    <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;border-top:1px solid var(--c-line, #D9D3C5);padding-top:16px;">
+      <button type="button" onClick="{{ back }}" disabled="{{ backDisabled }}" style="min-height:48px;padding:0 16px;font:inherit;font-size:14px;background:transparent;border:1px solid transparent;color:var(--c-ink, #1B1814);cursor:pointer;">{{ backLabel }}</button>
+      <button type="button" onClick="{{ primary }}" disabled="{{ primaryDisabled }}" style="{{ primaryStyle }}">{{ primaryLabel }}</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:560,&quot;height&quot;:620},&quot;oilG&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:17.4,&quot;tsType&quot;:&quot;number&quot;},&quot;pct&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:20,&quot;tsType&quot;:&quot;number&quot;},&quot;densOil&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:0.87,&quot;tsType&quot;:&quot;number&quot;},&quot;name&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Neroli Eau&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;blend&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Array&lt;{ name: string; g: number }&gt;&quot;},&quot;onClose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onLog&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(r) =&gt; void&quot;}}">
+const S = (str) => Object.fromEntries(str.split(";").filter((x) => x.trim()).map((d) => { const i = d.indexOf(":"); const k = d.slice(0, i).trim().replace(/-([a-z])/g, (_, c) => c.toUpperCase()); return [k, d.slice(i + 1).trim()]; }));
+class Component extends DCLogic {
+  // Steps: 0 tare · 1..n each ingredient (one "oil" step in a simple formula) · n+1 ethanol · n+2 done.
+  state = { step: 0, reading: 38.42, poured: [], logged: false };
+  componentDidMount() { if (!window.Kx) { this._r = () => this.forceUpdate(); window.addEventListener("kx-ready", this._r); } }
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.to); if (this._r) window.removeEventListener("kx-ready", this._r); }
+  items() {
+    const K = window.Kx, p = this.props, L = K.strings(p.lang === "ar" ? "ar" : "en");
+    const b = Array.isArray(p.blend) ? p.blend.filter((x) => Number(x.g) > 0) : [];
+    return b.length ? b.map((x) => ({ name: x.name, base: Number(x.g), blend: true })) : [{ name: L.oil, base: Number(p.oilG) || 0, blend: false }];
+  }
+  // Over-pour on an ingredient scales the ones after it, so the blend keeps its ratio.
+  scaleAt(i) { const it = this.items(), P = this.state.poured; let k = 1; for (let j = 0; j < i; j++) if (P[j] != null && it[j].base > 0) k = Math.max(k, P[j] / it[j].base); return k; }
+  pouredSum() { const n = this.items().length; return this.state.poured.slice(0, n).reduce((a, v) => a + (Number(v) || 0), 0); }
+  target() {
+    const K = window.Kx, p = this.props, it = this.items(), n = it.length, st = this.state.step;
+    if (st >= 1 && st <= n) return K.round2(it[st - 1].base * this.scaleAt(st - 1));
+    if (st === n + 1) return K.round2(K.alcoholForOil(this.pouredSum(), Number(p.pct), "volume", { oil: Number(p.densOil) || 1, ethanol: K.ETHANOL }));
+    return 0;
+  }
+  add(g) { this.setState((s) => ({ reading: Math.max(0, Math.round((s.reading + g) * 100) / 100) })); }
+  renderVals() {
+    const K = window.Kx; if (!K) return {};
+    const p = this.props, s = this.state, lang = p.lang === "ar" ? "ar" : "en";
+    const L = K.strings(lang), t = L.pour;
+    const it = this.items(), n = it.length, isBlend = it[0].blend;
+    const ethStep = n + 1, doneStep = n + 2;
+    const target = this.target();
+    const pp = K.pourProgress(s.reading, target, 0.01);
+    const pouring = s.step >= 1 && s.step <= ethStep;
+    const col = pp.state === "ok" ? "var(--c-verdigris, #2F6F62)" : pp.state === "over" ? "var(--c-ember, #B3361A)" : "var(--c-amber, #B8893A)";
+    const labels = [t.tareBtn, ...it.map((x) => x.name), L.ethanol, t.finish];
+    const steps = labels.map((label, i) => ({
+      n: String(i + 1).padStart(2, "0"), label,
+      style: S(`display:flex;gap:8px;align-items:baseline;min-width:0;padding:12px 0;font-size:13px;margin-bottom:-1px;border-bottom:2px solid ${i === s.step ? "var(--c-amber, #B8893A)" : "transparent"};color:${i <= s.step ? "var(--c-ink, #1B1814)" : "var(--c-dim, #5A544A)"};font-weight:${i === s.step ? 600 : 400};`),
+    }));
+    const stepTitle = s.step === 0 ? t.tareBtn : s.step <= n ? (isBlend ? K.fill(t.pourIng, { name: it[s.step - 1].name }) : t.pourOil) : s.step === ethStep ? t.pourEth : t.doneTitle;
+    const stepHelp = s.step === 0 ? t.tare : pouring ? K.fill(t.target, { g: K.fmt2(target) }) : "";
+    const canNext = s.step === 0 ? s.reading === 0 : pouring ? pp.state !== "under" : true;
+    const d = { oil: Number(p.densOil) || 1, ethanol: K.ETHANOL };
+    const conc = this.pouredSum(), eth = Number(s.poured[n]) || 0;
+    const madePct = conc && eth ? ((conc / d.oil) / (conc / d.oil + eth / d.ethanol)) * 100 : 0;
+    const planned = it.reduce((a, x) => a + x.base, 0);
+    const k = s.step >= 1 && s.step <= n ? this.scaleAt(s.step - 1) : 1;
+    const primaryOn = s.step === 0 ? true : canNext;
+    const primaryLabel = s.step === 0 ? (s.reading === 0 ? L.next : t.tareBtn) : s.step === doneStep ? (s.logged ? K.fill(L.logged, { no: 42 }) : t.log) : s.step === ethStep ? t.finish : L.next;
+    return {
+      t, name: p.name || "", steps, stepTitle, stepHelp,
+      olStyle: S(`list-style:none;margin:0;padding:0 20px;display:grid;gap:8px;grid-template-columns:repeat(${labels.length},minmax(0,1fr));border-bottom:1px solid var(--c-line, #D9D3C5);`),
+      showScale: s.step < doneStep, isDone: s.step === doneStep, showPourControls: pouring,
+      targetText: pouring ? `${K.fmt2(target)} g` : "",
+      readingText: K.fmt2(s.reading), ghostText: K.fmt2(s.reading).replace(/\d/g, "8"),
+      stableMark: S(`color:#F6CB86;opacity:${pouring && pp.state === "ok" || s.step === 0 && s.reading === 0 ? 1 : 0.12};text-shadow:0 0 6px rgba(242,170,80,.6);transition:opacity 120ms;`),
+      barStyle: S(`height:100%;width:${(pouring ? pp.fraction : 0) * 100}%;background:${col};transition:width 120ms linear, background 150ms;`),
+      stateText: !pouring ? "" : pp.state === "ok" ? t.ok : pp.state === "over" ? t.over : t.under,
+      stateStyle: S(`margin:10px 0 0;font-size:14px;color:${pp.state === "ok" ? "var(--c-verdigris-text, #9DB38A)" : pp.state === "over" ? "#F0A08A" : "var(--c-on-ink, #F4F1EA)"};opacity:${pouring ? 1 : 0};`),
+      adjustedNote: s.step === ethStep && Math.abs(conc - planned) > 0.004 ? K.fill(t.adjusted, { g: K.fmt2(conc) }) : k > 1.0005 ? K.fill(t.scaled, { x: k.toFixed(3) }) : "",
+      summary: [
+        { label: isBlend ? t.concentrate : L.oil, value: `${K.fmt2(conc)} g` },
+        { label: L.ethanol, value: `${K.fmt2(eth)} g` },
+        { label: L.total, value: `${K.fmt2(conc + eth)} g` },
+      ],
+      madeText: K.fill(t.made, { pct: K.fmt2(madePct) }),
+      holdStart: (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        clearInterval(this.iv);
+        const tg = this.target() || 10; let n = 0;
+        this.iv = setInterval(() => { n++; const left = tg - this.state.reading; const rate = left > tg * 0.15 ? tg * 0.018 : Math.max(0.02, tg * 0.004); this.add(rate * (n < 4 ? 0.5 : 1)); }, 60);
+      },
+      holdStop: () => clearInterval(this.iv),
+      addCoarse: () => this.add(1), addFine: () => this.add(0.1),
+      resetReading: () => this.setState({ reading: 0 }),
+      close: () => { clearInterval(this.iv); p.onClose && p.onClose(); },
+      back: () => this.setState((st) => ({ step: Math.max(0, st.step - 1), reading: 0 })),
+      backDisabled: s.step === 0, backOpacity: s.step === 0 ? 0.4 : 1, backLabel: L.back,
+      primaryDisabled: !primaryOn, primaryLabel,
+      primaryStyle: S(`min-height:48px;padding:0 24px;font:inherit;font-size:15px;font-weight:500;border-radius:2px;cursor:${primaryOn ? "pointer" : "not-allowed"};background:${primaryOn ? "var(--c-ink, #1B1814)" : "var(--c-sand, #EBE6DA)"};color:${primaryOn ? "var(--c-paper, #F4F1EA)" : "var(--c-dim, #5A544A)"};border:1px solid ${primaryOn ? "var(--c-ink, #1B1814)" : "transparent"};`),
+      primary: () => {
+        const st = this.state;
+        if (st.step === 0) { if (st.reading !== 0) this.setState({ reading: 0 }); else this.setState({ step: 1 }); return; }
+        if (st.step >= 1 && st.step <= ethStep) {
+          const P = st.poured.slice(); P[st.step - 1] = st.reading;
+          this.setState({ poured: P, step: st.step + 1, reading: 0 }); return;
+        }
+        if (st.step === doneStep && !st.logged) { this.setState({ logged: true }); p.onLog && p.onLog({ oilG: conc, ethG: eth, poured: st.poured.slice(0, n) }); }
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>
