@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import RoomBeam from "./kx/RoomBeam";
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "../motion";
@@ -6,20 +6,20 @@ import { UNIT_LABELS, prefillFromQuery, startingBottle, shareQuery } from "../li
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
 import { enqueue, isOffline } from "../lib/outbox";
-import { calculate, fmt2, gToOz, mlToFlOz } from "../lib/calc";
+import { calculate, fmt2, gToOz, mlToFlOz, blendMix } from "../lib/calc";
 import { RatioBar } from "./Bottle";
 import { IconBookmark, IconBookmarkCheck, IconCheck, IconCopy, IconDiamondAlert, IconDrop, IconFlameTriangle } from "./icons";
-import { STRENGTHS } from "../lib/formulation";
 import Stepper from "./kx/Stepper";
 import Chip from "./kx/Chip";
 import RoomHeader from "./kx/RoomHeader";
 
-// The handbook's four named strengths plus a plain 22% (the owner's own
-// preset, not a handbook strength: it stays out of STRENGTHS and the bench).
-const CALC_STRENGTHS = [...STRENGTHS.filter((s) => s.pct < 22), { pct: 22, name: "" }, ...STRENGTHS.filter((s) => s.pct > 22)];
 import MeasuredDensity from "./calc/MeasuredDensity";
 import Presets from "./calc/Presets";
-import Recipes from "./calc/Recipes";
+import StrengthTiers from "./calc/StrengthTiers";
+import BlendEditor, { BlendBreakdown, newIngredient } from "./calc/BlendEditor";
+import CostCard from "./calc/CostCard";
+import { useFormulas, FormulaLibrary, FormulasButton, FormulaLink } from "./calc/Formulas";
+import { useUpgrade } from "./plan/Upgrade";
 import OilHistory from "./calc/OilHistory";
 import WaitlistButton from "./WaitlistButton";
 import Source from "./calc/Source";
@@ -42,7 +42,7 @@ import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import { useProfile } from "../lib/useProfile";
 import { CURRENCIES } from "../lib/currencies";
-import { can } from "../lib/entitlements";
+import { can, limit, canAddIngredient } from "../lib/entitlements";
 import { blendTips } from "../lib/aiApi";
 
 function todayISO() {
@@ -234,6 +234,13 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   // the family's reference density (the handbook: a measured density wins).
   const [measuredDensityValue, setMeasuredDensity] = useState(draft?.measuredDensity ?? null);
   const [mode, setMode] = useState(MODES.includes(draft?.mode) ? draft.mode : "bottle"); // bottle | fromOil | adjust | run
+  // Simple (one oil) or a blend of several materials (Bench SaaS). A blend's
+  // density and price come from its ingredients (lib/calc/mixture).
+  const [formulaType, setFormulaType] = useState(draft?.formulaType === "blend" && Array.isArray(draft?.blend) && draft.blend.length ? "blend" : "simple");
+  const [blend, setBlend] = useState(() => (Array.isArray(draft?.blend) && draft.blend.length ? draft.blend : null));
+  const blendOn = formulaType === "blend" && Array.isArray(blend) && blend.length > 0;
+  const mix = useMemo(() => (blendOn ? blendMix(blend) : null), [blendOn, blend]);
+  const { open: openUpgrade } = useUpgrade();
   const [ethanolPricePerL, setEthanolPricePerL] = useState(draft?.ethanolPricePerL ?? "");
   const [bottleCost, setBottleCost] = useState(draft?.bottleCost ?? "");
   const [bottles, setBottles] = useState(draft?.bottles ?? "1");
@@ -262,10 +269,11 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities,
       measuredDensity: measuredDensityValue ?? undefined,
       chosenFamily: chosen.current.family, chosenConc: chosen.current.conc,
+      formulaType, blend: blend ?? undefined,
     });
   }, [fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles,
     packagingCost, labourMinutes, labourRate, salePrice, currency,
-    oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities, measuredDensityValue]);
+    oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities, measuredDensityValue, formulaType, blend]);
 
   const [logStatus, setLogStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
   const [copied, setCopied] = useState(false);
@@ -285,6 +293,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     return () => { cancelled = true; };
   }, []);
   const [logError, setLogError] = useState("");
+  // The new batch's number (0031), for "Logged as No. 042".
+  const [loggedNo, setLoggedNo] = useState(null);
   const [capHit, setCapHit] = useState(false);
   // Shown under "Saved" when the batch saved but the stock step needs a word.
   const [logNote, setLogNote] = useState("");
@@ -349,17 +359,21 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedName]);
 
+  // In a blend the concentrate's density and price per gram are the blend's;
+  // a measured density belongs to a single oil, so it is not used there.
+  const oilDensity = mix?.density ?? measuredDensityValue ?? densities[tierKey];
+  const priceUsed = mix ? (mix.avgPrice > 0 ? Math.round(mix.avgPrice * 10000) / 10000 : "") : pricePerGram;
   const result = useMemo(() => calculate({
     amount: batchSize,
     unit: batchUnit,
     concPct,
-    oilDensity: measuredDensityValue ?? densities[tierKey],
+    oilDensity,
     ethanolDensity: densities.ethanol || ETHANOL_DENSITY_DEFAULT,
     actualOilG,
     actualEthanolG: actualEthG,
-    pricePerGram,
+    pricePerGram: priceUsed,
     ...(sellerOn ? { ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice } : {}),
-  }), [batchSize, batchUnit, concPct, densities, tierKey, measuredDensityValue, pricePerGram, actualOilG, actualEthG, sellerOn,
+  }), [batchSize, batchUnit, concPct, densities, oilDensity, priceUsed, actualOilG, actualEthG, sellerOn,
     ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice]);
   const money = (v, digits = 2) => `${v.toFixed(digits)} ${currency}`;
   const seller = sellerOn ? { ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice, currency } : undefined;
@@ -375,18 +389,45 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     if (st.unit) setBatchUnit(st.unit);
   }
 
-  // Opening a recipe version: its size, unit, strength, family and densities.
-  function applyRecipe(st) {
+  // Opening a saved formula version: its name, size, unit, strength, family,
+  // densities and, for a blend, its ingredients.
+  const applyRecipe = useCallback((st) => {
     chosen.current.family = true;
     chosen.current.conc = true;
     const family = st.family && TIERS[st.family] ? st.family : tierKey;
     if (family !== tierKey) setTierKey(family);
+    if (st.name) { pickedName.current = st.name; setFragName(st.name); }
     setConcPct(st.conc);
     setBatchSize(st.size);
     setBatchUnit(st.unit);
-    if (st.oilDensity != null || st.ethanolDensity != null) {
-      setDensities((d) => ({ ...d, ...(st.oilDensity != null ? { [family]: st.oilDensity } : {}), ...(st.ethanolDensity != null ? { ethanol: st.ethanolDensity } : {}) }));
+    if (st.ingredients?.length) {
+      setBlend(st.ingredients);
+      setFormulaType("blend");
+    } else {
+      setFormulaType("simple");
+      // A blend's stored density is the blend's: only a simple formula's goes on the family.
+      if (st.oilDensity != null) setDensities((d) => ({ ...d, [family]: st.oilDensity }));
     }
+    if (st.ethanolDensity != null) setDensities((d) => ({ ...d, ethanol: st.ethanolDensity }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tierKey is read once, as the fallback family
+  }, [tierKey]);
+
+  const formulas = useFormulas({
+    current: { amount: batchSize, unit: batchUnit, concPct, oilDensity: result.densities.oil, ethanolDensity: result.densities.ethanol },
+    blend: blendOn ? blend : null,
+    entitlements, initialVersionId: prefill.recipe, onApply: applyRecipe, onLocked: openUpgrade, t,
+  });
+  useEffect(() => { setRecipeVersionId(formulas.linked ? formulas.activeVersion.id : null); }, [formulas.linked, formulas.activeVersion]);
+
+  // Blend materials allowed on this plan (Free 3); the database refuses more on save.
+  const ingredientCap = limit(entitlements, "ingredients");
+  const canAddMaterial = canAddIngredient(entitlements, blend?.length ?? 0);
+  function switchType(next) {
+    if (next === "blend" && !(blend?.length)) {
+      // A new blend starts with the oil on the sheet as its one material.
+      setBlend([newIngredient({ name: fragName.trim(), pct: "100", price: pricePerGram === "" ? "" : String(pricePerGram) })]);
+    }
+    setFormulaType(next);
   }
 
   // One id per batch the user means to log, kept across retries: if a
@@ -401,7 +442,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     const row = (fragranceId) => buildBatch({
       id: logId.current, fragranceId, name: fragName.trim(), tier: tierKey, blendDate, concPct,
       target: result, densities: result.densities, actualOilG, actualEthG,
-      oilType, pricePerGram, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit, seller, recipeVersionId,
+      oilType, pricePerGram: priceUsed, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit, seller, recipeVersionId,
     });
     try {
       let fragrance = matched;
@@ -419,6 +460,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       // Actual pours belong to this batch only — clear them so the next
       // log doesn't silently reuse them.
       setActualOilG(""); setActualEthG("");
+      setLoggedNo(Number(saved.batch_no) > 0 ? Number(saved.batch_no) : null);
       setLogStatus("saved");
       entitlements.refresh();
     } catch (e) {
@@ -496,7 +538,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     setLogStatus((s) => (s === "saving" ? s : null));
     setCopied(false);
     setLinkCopied(false);
-  }, [fragName, batchSize, batchUnit, concPct, tierKey, densities, measuredDensityValue]);
+  }, [fragName, batchSize, batchUnit, concPct, tierKey, densities, measuredDensityValue, blend, formulaType]);
 
   const copyRecipe = async () => {
     const text = t("calc.recipeText", {
@@ -515,10 +557,17 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
+    <div className="w-full max-w-6xl xl:max-w-7xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <RoomBeam at={0} />
       <RoomHeader numeral="I" name={t("site.compounding.rooms.bench.name")} title={t("calc.heading")} />
       <RestingLine />
+      <div className="xl:grid xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-10 xl:items-start">
+      {/* Saved formulas: in the rail on wide screens, a bottom sheet below that. */}
+      <aside className="hidden xl:block xl:sticky xl:top-6">
+        <FormulaLibrary f={formulas} entitlements={entitlements} t={t} />
+      </aside>
+      <div className="min-w-0">
+      <div className="xl:hidden"><FormulasButton f={formulas} entitlements={entitlements} t={t} /></div>
       {selectedPerfume && (
         <div className="mb-6 px-4 py-3 border flex items-center justify-between" style={{ borderColor: COLORS.line, backgroundColor: COLORS.card }}>
           <div>
@@ -568,7 +617,16 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       ) : (
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] gap-8 items-start">
         <div className="p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
-          <h2 className="text-base font-serif font-semibold mb-5" style={{ color: COLORS.forestDeep }}>{t("calc.benchSheet")}</h2>
+          <h2 className="text-base font-serif font-semibold mb-3" style={{ color: COLORS.forestDeep }}>{t("calc.benchSheet")}</h2>
+          <div role="group" aria-label={t("calc.blend.mode")} className="inline-flex mb-5 rounded" style={{ border: `1px solid ${COLORS.ink}` }}>
+            {["simple", "blend"].map((k) => (
+              <button key={k} type="button" aria-pressed={(k === "blend") === blendOn} onClick={() => switchType(k)}
+                className="min-h-[44px] px-4 text-sm"
+                style={{ background: (k === "blend") === blendOn ? COLORS.ink : "transparent", color: (k === "blend") === blendOn ? COLORS.paper : COLORS.ink }}>
+                {t(`calc.blend.${k}`)}
+              </button>
+            ))}
+          </div>
 
           <Field label={t("calc.name")} htmlFor="calc-name">
             <div className="relative">
@@ -642,17 +700,14 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             </select>
           </Field>
 
+          {blendOn && (
+            <BlendEditor rows={blend} onChange={(rows) => setBlend(rows.length ? rows : [newIngredient()])} concentrateG={result.shown.oilG}
+              canAdd={canAddMaterial} cap={ingredientCap} onLocked={() => openUpgrade("blend")} currency={currency} t={t} />
+          )}
+
           <Presets
             current={{ amount: batchSize, unit: batchUnit, concPct }}
             onApply={({ amount, unit, concPct: c }) => { chosen.current.conc = true; setBatchSize(amount); setBatchUnit(unit); setConcPct(c); }}
-          />
-
-          <Recipes
-            current={{ amount: batchSize, unit: batchUnit, concPct, oilDensity: result.densities.oil, ethanolDensity: result.densities.ethanol }}
-            family={tierKey}
-            onApply={applyRecipe}
-            onLink={setRecipeVersionId}
-            initialVersionId={prefill.recipe}
           />
 
           <Field label={t("calc.batchSize")} htmlFor="calc-size">
@@ -682,23 +737,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           </Field>
 
           <Field label={t("calc.concentration", { pct: concPct })} extra={<Source id="strengths" />} hint={t("calc.familyDefault", { pct: tier.defaultConc })}>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {CALC_STRENGTHS.map(({ pct: c, name }) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => { chosen.current.conc = true; setConcPct(c); }}
-                  aria-pressed={Number(concPct) === c}
-                  className="px-3 min-h-[44px] text-sm font-mono border"
-                  style={{ 
-                    borderColor: Number(concPct) === c ? COLORS.actionText : COLORS.line,
-                    color: Number(concPct) === c ? COLORS.onAmber : COLORS.ink,
-                    backgroundColor: Number(concPct) === c ? COLORS.amber : COLORS.cardHi
-                  }}
-                >
-                  {c}% {name}
-                </button>
-              ))}
+            <div className="mb-3">
+              <StrengthTiers pct={concPct} label={t("calc.tiers.label")} t={t} onPick={(c) => { chosen.current.conc = true; setConcPct(c); }} />
             </div>
             <Stepper label={t("calc.concentration", { pct: concPct })} hideLabel value={concPct} unit="%"
               decLabel={t("calc.stepper.concLess")} incLabel={t("calc.stepper.concMore")}
@@ -706,7 +746,12 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               onStep={(dir) => { chosen.current.conc = true; setConcPct(String(Math.min(99, Math.max(1, Math.round((Number(concPct) + dir) * 100) / 100)))); }} />
           </Field>
 
-          <details className="mt-2 mb-5">
+          <p data-density-line className="mt-2 mb-2 text-sm" style={{ color: COLORS.ink }}>
+            {blendOn && mix?.density
+              ? t("calc.blend.density", { d: fmt2(mix.density) })
+              : t(measuredDensityValue != null ? "calc.densityLineMeasured" : "calc.densityLineFamily", { d: fmt2(oilDensity) })}
+          </p>
+          <details className="mb-5">
             <summary className="text-xs font-semibold cursor-pointer" style={{ color: COLORS.forestDeep }}>{t("calc.densities")}</summary>
             <div className="grid grid-cols-2 gap-3 items-end mt-3">
               {Object.keys(TIERS).map((key) => (
@@ -722,7 +767,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                   onChange={(e) => setDensities({ ...densities, ethanol: parseFloat(e.target.value) || 0 })} />
               </div>
             </div>
-            <MeasuredDensity value={measuredDensityValue} onChange={setMeasuredDensity} referenceDensity={densities[tierKey]} />
+            {/* Measuring a density is for a single oil; a blend's comes from its ingredients. */}
+            {!blendOn && <MeasuredDensity value={measuredDensityValue} onChange={setMeasuredDensity} referenceDensity={densities[tierKey]} />}
           </details>
 
           <div className="pt-1 border-t" style={{ borderColor: COLORS.line }}>
@@ -740,7 +786,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               </div>
               <div>
                 <label htmlFor="calc-price" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.pricePerGram")}</label>
-                <TextInput id="calc-price" type="number" step="0.01" min="0" value={pricePerGram} onChange={(e) => setPricePerGram(e.target.value)} placeholder="0.00" />
+                <TextInput id="calc-price" type="number" step="0.01" min="0" value={blendOn ? fmt2(Number(priceUsed) || 0) : pricePerGram} readOnly={blendOn}
+                  onChange={(e) => setPricePerGram(e.target.value)} placeholder="0.00" />
               </div>
             </div>
             {sellerOn && (
@@ -806,7 +853,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             {fmt2(result.shown.totalG)}<span className="text-2xl ms-2" style={{ color: COLORS.dim }}>g</span>
           </p>
           <div className="grid grid-cols-2 gap-6 mb-5" style={{ containerType: "inline-size" }}>
-            {[["calc.oil", result.shown.oilG, COLORS.oil], ["calc.ethanol96", result.shown.ethanolG, COLORS.mist]].map(([k, g, sw]) => (
+            {[[blendOn ? "calc.blend.concentrate" : "calc.oil", result.shown.oilG, COLORS.oil], ["calc.ethanol96", result.shown.ethanolG, COLORS.mist]].map(([k, g, sw]) => (
               <div key={k} className="min-w-0">
                 <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
                   <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: sw, border: `1px solid ${COLORS.ink}` }} />{t(k)}
@@ -822,9 +869,10 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             {" · "}
             {t(result.basis === "volume" ? "calc.otherBasisWeight" : "calc.otherBasisVolume", { pct: fmt2(result.otherBasisPct) })}
           </p>
-          <ReadoutRow label={<>{t("calc.oil")}<Source id="oil" /></>} weight={result.shown.oilG} volume={result.shown.oilMl} />
+          <ReadoutRow label={<>{t(blendOn ? "calc.blend.concentrate" : "calc.oil")}<Source id="oil" /></>} weight={result.shown.oilG} volume={result.shown.oilMl} />
           <ReadoutRow label={<>{t("calc.ethanol96")}<Source id="ethanol" /></>} weight={result.shown.ethanolG} volume={result.shown.ethanolMl} />
           <ReadoutRow label={<>{t("calc.total")}<Source id="total" /></>} weight={result.shown.totalG} volume={result.shown.totalMl} bold />
+          {blendOn && <BlendBreakdown rows={blend} concentrateG={result.shown.oilG} t={t} />}
           {/* Always mounted, so screen readers announce warnings as they appear. */}
           <ul role="status" className={result.warnings.length ? "mt-3 space-y-1" : ""}>
             {result.warnings.map((w) => (
@@ -840,7 +888,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           {result.oilCost !== null && (
             <div className="flex items-center justify-between py-2 mt-2 text-sm font-mono">
               <span style={{ color: COLORS.ink }}>{t("calc.oilCost")}</span>
-              <span style={{ color: COLORS.ink }}>{t("calc.oilCostValue", { cost: fmt2(result.oilCost), price: fmt2(Number(pricePerGram)) })}</span>
+              <span style={{ color: COLORS.ink }}>{t("calc.oilCostValue", { cost: fmt2(result.oilCost), price: fmt2(Number(priceUsed)) })}</span>
             </div>
           )}
 
@@ -927,7 +975,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             </button>
           )}
 
-          <div className="mt-5 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-2">
+          <div className="mt-5 grid grid-cols-2 gap-2">
             {logStatus === "saved" ? (
               <button type="button" onClick={() => navigate("/bench/journal")}
                 className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium"
@@ -947,13 +995,20 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 <IconBookmark size={18} /> {logStatus === "saving" ? t("calc.saving") : t("calc.log")}
               </button>
             )}
-            <button type="button" onClick={copyRecipe}
-              className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm" style={{ border: `1px solid ${COLORS.ink}`, color: COLORS.ink }}>
-              {copied ? <IconCheck size={18} /> : <IconCopy size={18} />} <span>{t(copied ? "calc.copied" : "calc.copy")}</span>
+            <button type="button" onClick={() => formulas.save({ name: fragName, family: tierKey })} disabled={formulas.busy}
+              className="inline-flex items-center justify-center gap-2 px-3 min-h-[52px] text-sm font-medium disabled:opacity-50" style={{ border: `1px solid ${COLORS.ink}`, color: COLORS.ink }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4Z" /></svg>
+              {formulas.busy ? t("calc.saving") : t("calc.formulas.save")}
             </button>
-            {/* Outside the button: a status child would drop out of the button's accessible name. */}
-            <span role="status" className="sr-only">{copied ? t("calc.copied") : ""}</span>
           </div>
+          <FormulaLink f={formulas} onPickVersion={formulas.load} t={t} />
+          <p role="status" className="text-xs mt-2 empty:hidden" style={{ color: formulas.status.kind === "error" ? COLORS.danger : COLORS.forest }}>{formulas.status.text}</p>
+          <button type="button" onClick={copyRecipe}
+            className="mt-2 inline-flex items-center gap-2 px-1 min-h-[44px] text-sm underline underline-offset-4" style={{ color: COLORS.actionText }}>
+            {copied ? <IconCheck size={18} /> : <IconCopy size={18} />} <span>{t(copied ? "calc.copied" : "calc.copy")}</span>
+          </button>
+          {/* Outside the button: a status child would drop out of the button's accessible name. */}
+          <span role="status" className="sr-only">{copied ? t("calc.copied") : ""}</span>
           <button type="button" onClick={copyShareLink} disabled={!(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
             className="mt-2 inline-flex items-center gap-2 px-1 min-h-[44px] text-sm underline underline-offset-4 disabled:opacity-50" style={{ color: COLORS.actionText }}>
             {linkCopied ? <IconCheck size={18} /> : <IconCopy size={18} />} <span>{t(linkCopied ? "calc.shareCopied" : "calc.shareLink")}</span>
@@ -964,7 +1019,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           <div role="status">
             {logStatus === "saved" && (
               <p className="text-xs mt-2" style={{ color: COLORS.forest }}>
-                {t(matched ? "calc.saved" : "calc.savedNew")}
+                {loggedNo != null ? t("calc.loggedNo", { no: String(loggedNo).padStart(3, "0") }) : t(matched ? "calc.saved" : "calc.savedNew")}
               </p>
             )}
             {logStatus === "saved" && logNote && (
@@ -984,6 +1039,14 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         </div>
       </div>
       )}
+      {mode === "bottle" && (
+        <CostCard unlocked={sellerOn} onUnlock={() => openUpgrade("cost")} t={t} currency={currency}
+          oilG={result.shown.oilG} ethMl={result.shown.ethanolMl} totMl={result.shown.totalMl}
+          oilPrice={blendOn ? Number(priceUsed) || 0 : pricePerGram} onOilPrice={setPricePerGram} oilReadOnly={blendOn}
+          ethPrice={ethanolPricePerL} onEthPrice={setEthanolPricePerL} pack={packagingCost} onPack={setPackagingCost} />
+      )}
+      </div>
+      </div>
     </div>
   );
 }
