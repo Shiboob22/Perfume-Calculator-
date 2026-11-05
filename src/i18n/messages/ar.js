@@ -797,7 +797,7 @@ export default {
   calc: {
     heading: "زِن تركيبة.",
     stepper: { batchLess: "اطرح {step} {unit}", batchMore: "أضف {step} {unit}", concLess: "اطرح 1%", concMore: "أضف 1%" },
-    byWeight: "by weight", savedOpen: "Saved — open journal", retry: "Couldn't save — retry", copy: "Copy recipe", copied: "Copied", recipeText: "{name}\n{size} at {pct}%\nOil {oil} g\nEthanol 96% {ethanol} g\nTotal {total} g",
+    byWeight: "by weight", savedOpen: "Saved — open journal", retry: "Couldn't save — retry", copy: "Copy recipe", copied: "Copied", shareLink: "انسخ رابط هذه الزجاجة", shareCopied: "نُسخ الرابط", recipeText: "{name}\n{size} at {pct}%\nOil {oil} g\nEthanol 96% {ethanol} g\nTotal {total} g",
         basisVolume: "{pct}% حجمًا (الدفعة محددة بالمليلتر / الأونصة السائلة)",
     basisWeight: "{pct}% وزنًا (الدفعة محددة بالغرام / الأونصة)",
     otherBasisWeight: "= {pct}% وزنًا",

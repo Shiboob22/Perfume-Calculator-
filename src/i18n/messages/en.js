@@ -796,7 +796,7 @@ export default {
   calc: {
     heading: "Weigh a formula.",
     stepper: { batchLess: "Subtract {step} {unit}", batchMore: "Add {step} {unit}", concLess: "Subtract 1%", concMore: "Add 1%" },
-    byWeight: "by weight", savedOpen: "Saved — open journal", retry: "Couldn't save — retry", copy: "Copy recipe", copied: "Copied", recipeText: "{name}\n{size} at {pct}%\nOil {oil} g\nEthanol 96% {ethanol} g\nTotal {total} g",
+    byWeight: "by weight", savedOpen: "Saved — open journal", retry: "Couldn't save — retry", copy: "Copy recipe", copied: "Copied", shareLink: "Copy link to this bottle", shareCopied: "Link copied", recipeText: "{name}\n{size} at {pct}%\nOil {oil} g\nEthanol 96% {ethanol} g\nTotal {total} g",
         basisVolume: "{pct}% by volume (batch sized in mL / fl oz)",
     basisWeight: "{pct}% by weight (batch sized in g / oz)",
     otherBasisWeight: "= {pct}% by weight",

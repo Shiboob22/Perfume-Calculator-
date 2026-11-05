@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import RoomBeam from "./kx/RoomBeam";
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "../motion";
-import { UNIT_LABELS, prefillFromQuery, startingBottle } from "../lib/calcPrefill";
+import { UNIT_LABELS, prefillFromQuery, startingBottle, shareQuery } from "../lib/calcPrefill";
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
 import { enqueue, isOffline } from "../lib/outbox";
@@ -269,6 +269,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
   const [logStatus, setLogStatus] = useState(null); // null | 'saving' | 'saved' | 'error'
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   // Suppliers this user has typed before, newest first, as input suggestions.
   const [oilTypeOptions, setOilTypeOptions] = useState([]);
 
@@ -494,6 +495,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   useEffect(() => {
     setLogStatus((s) => (s === "saving" ? s : null));
     setCopied(false);
+    setLinkCopied(false);
   }, [fragName, batchSize, batchUnit, concPct, tierKey, densities, measuredDensityValue]);
 
   const copyRecipe = async () => {
@@ -502,6 +504,14 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       oil: fmt2(result.shown.oilG), ethanol: fmt2(result.shown.ethanolG), total: fmt2(result.shown.totalG),
     });
     try { await navigator.clipboard.writeText(text); setCopied(true); } catch { setCopied(false); }
+  };
+
+  // A link that reopens this exact bottle: same form the guides and shared
+  // recipes use, so the Bench reads it back through prefillFromQuery.
+  const copyShareLink = async () => {
+    const q = shareQuery({ name: fragName, family: tierKey, size: batchSize, unit: batchUnit, conc: concPct });
+    const url = `${window.location.origin}/bench${q ? `?${q}` : ""}`;
+    try { await navigator.clipboard.writeText(url); setLinkCopied(true); } catch { setLinkCopied(false); }
   };
 
   return (
@@ -944,6 +954,11 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             {/* Outside the button: a status child would drop out of the button's accessible name. */}
             <span role="status" className="sr-only">{copied ? t("calc.copied") : ""}</span>
           </div>
+          <button type="button" onClick={copyShareLink} disabled={!(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
+            className="mt-2 inline-flex items-center gap-2 px-1 min-h-[44px] text-sm underline underline-offset-4 disabled:opacity-50" style={{ color: COLORS.actionText }}>
+            {linkCopied ? <IconCheck size={18} /> : <IconCopy size={18} />} <span>{t(linkCopied ? "calc.shareCopied" : "calc.shareLink")}</span>
+          </button>
+          <span role="status" className="sr-only">{linkCopied ? t("calc.shareCopied") : ""}</span>
           {/* One live region, always mounted: "saved" and "could not save"
               are announced, so nobody logs the same batch twice. */}
           <div role="status">
