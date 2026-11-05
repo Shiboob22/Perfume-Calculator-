@@ -1,19 +1,12 @@
-// Bench SaaS Phase 4 (pour along) screenshots: light/dark × EN/AR × desktop/phone, against the
-// served production build with a fake session and API (no real project).
+// Bench SaaS Phase 6: frame timings on a mid-range Android profile (Pixel 7, 4x CPU throttle) and the
+// recording, against the served production build with a fake session and API (no real project).
+// Run: node perf-script.mjs <outdir>, with `PORT=4174 node scripts/serve-dist.mjs` serving dist/.
+/* global process, Storage, URL, window, PerformanceObserver, requestAnimationFrame, console, setInterval, clearInterval */
 import { createRequire } from "node:module";
 const { chromium, devices } = createRequire(import.meta.url)("playwright");
 import fs from "node:fs";
 const USER = { id: "00000000-0000-4000-8000-000000000001", email: "e2e@example.test", aud: "authenticated", role: "authenticated" };
-const RID = "55555555-5555-4555-8555-555555555555";
-const formula = (id, name, family, amount, pct, ings = []) => ({ id, user_id: USER.id, name, family, created_at: "2026-10-01T00:00:00Z", updated_at: "2026-10-01T00:00:00Z",
-  recipe_versions: [{ id: id + "v", recipe_id: id, user_id: USER.id, version: 1, amount, unit: "ml", concentration_pct: pct, oil_density: null, ethanol_density: null, note: null, created_at: "2026-10-01T00:00:00Z",
-    recipe_ingredients: ings.map(([name, type, p, price], i) => ({ id: `${id}i${i}`, version_id: id + "v", user_id: USER.id, position: i, name, type, pct: p, price_per_g: price, created_at: "2026-10-01T00:00:00Z" })) }] });
-const FORMULAS = [
-  formula(RID, "Neroli Eau", "fresh", 100, 20, [["Bergamot", "eo", 40, 6], ["Hedione", "aroma", 40, 3], ["Ambroxan", "aroma", 20, 9]]),
-  formula("a1", "Amber Room", "oriental", 50, 30), formula("a2", "Tuberose Soir", "floral", 50, 18), formula("a3", "Santal Dry", "woody", 30, 22),
-];
 const FREE = { plan: "free", name: "Free", features: ["cards.download"], batchCap: 25, formulaCap: 5, ingredientCap: 3, journalWindow: 3, trial: null, batchesUsed: 2 };
-const PRO = { plan: "pro", name: "Pro", features: ["batches.unlimited", "inventory", "ai.ask", "export.labels", "calculator.advanced", "cards.download", "journal.insights", "journal.checkins", "journal.reminders"], batchCap: null, formulaCap: null, ingredientCap: null, journalWindow: null, trial: { active: true, used: true, daysLeft: 14 }, batchesUsed: 2 };
 const json = (route, body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
 
 const OUT = process.argv[2]; fs.mkdirSync(OUT, { recursive: true });
