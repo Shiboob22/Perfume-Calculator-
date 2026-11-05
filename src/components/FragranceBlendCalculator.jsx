@@ -6,10 +6,13 @@ import { UNIT_LABELS, prefillFromQuery, startingBottle, shareQuery } from "../li
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
 import { enqueue, isOffline } from "../lib/outbox";
-import { calculate, fmt2, gToOz, mlToFlOz, blendMix } from "../lib/calc";
+import { calculate, fmt2, gToOz, mlToFlOz, blendMix, blendLayers } from "../lib/calc";
 import { RatioBar } from "./Bottle";
 import { IconBookmark, IconBookmarkCheck, IconCheck, IconCopy, IconDiamondAlert, IconDrop, IconFlameTriangle } from "./icons";
 import Stepper from "./kx/Stepper";
+import ScaleDisplay from "./kx/ScaleDisplay";
+import Flacon from "./kx/Flacon";
+import { createBenchClock, useBenchFrame, useThemeName } from "./kx/benchClock";
 import Chip from "./kx/Chip";
 import RoomHeader from "./kx/RoomHeader";
 
@@ -126,17 +129,45 @@ function AmountWithUnit({ id, label, unitLabel, value, onChange, unit, onUnitCha
 // the inputs, so it is hidden there. A display only, not a control (nothing
 // to tap over the fields it passes), and hidden from screen readers, who have
 // the full readout and its live region.
-function QuickResult({ shown, t }) {
+function QuickResult({ clock, shown, t }) {
+  const f = useBenchFrame(clock, benchTarget(shown));
   return (
     <div aria-hidden="true"
-      className="md:hidden sticky z-30 -mx-6 -mb-6 mt-6 grid grid-cols-3 gap-2 px-6 py-3"
+      className="md:hidden sticky z-30 -mx-6 -mb-6 mt-6 flex px-4 py-2.5"
       style={{ bottom: "calc(60px + env(safe-area-inset-bottom))", background: COLORS.inkBand, color: COLORS.onInk }}>
-      {[["calc.quick.oil", shown.oilG], ["calc.quick.ethanol", shown.ethanolG], ["calc.total", shown.totalG]].map(([k, g]) => (
-        <span key={k} className="min-w-0">
-          <span className="block text-xs" style={{ color: COLORS.onInk, opacity: 0.85 }}>{t(k)}</span>
-          <span dir="ltr" className="block font-mono tabular-nums text-xl leading-tight whitespace-nowrap text-start rtl:text-end">{fmt2(g)}<span className="text-sm ms-0.5">g</span></span>
-        </span>
-      ))}
+      <ScaleDisplay variant="bar" decorative rows={[
+        { key: "oil", label: t("calc.quick.oil"), grams: f.values[0] },
+        { key: "ethanol", label: t("calc.quick.ethanol"), grams: f.values[1] },
+        { key: "total", label: t("calc.total"), grams: f.values[0] + f.values[1] },
+      ]} />
+    </div>
+  );
+}
+
+// What the bench clock rolls to: oil and ethanol grams, and the oil's share
+// of the volume (how full of oil the flacon is).
+function benchTarget(shown) {
+  const ml = shown.oilMl + shown.ethanolMl;
+  return [shown.oilG, shown.ethanolG, ml > 0 ? shown.oilMl / ml : 0];
+}
+
+// The bench readout's instrument: the flacon on its pan beside the scale's
+// window, both drawn from the same frame. Decoration: the figures are in the
+// readout rows below, which screen readers read.
+function BenchInstrument({ clock, shown, label, pct, blend, t }) {
+  const f = useBenchFrame(clock, benchTarget(shown));
+  const theme = useThemeName();
+  const [oil, eth, share] = f.values;
+  return (
+    <div className="flex items-end gap-5 flex-wrap mb-5" data-instrument>
+      <Flacon share={share} flow={f.flow} wobble={f.wobble} pct={pct} totalMl={shown.totalMl} theme={theme}
+        layers={blend ? blendLayers(blend, share) : []} />
+      <div className="flex-[1_1_190px] min-w-0">
+        <ScaleDisplay decorative stable={f.settled} rows={[
+          { key: "oil", label, grams: oil },
+          { key: "ethanol", label: t("calc.ethanol96"), grams: eth },
+        ]} />
+      </div>
     </div>
   );
 }
@@ -375,6 +406,10 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     ...(sellerOn ? { ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice } : {}),
   }), [batchSize, batchUnit, concPct, densities, oilDensity, priceUsed, actualOilG, actualEthG, sellerOn,
     ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice]);
+  // One animation clock for the readout's scale, the flacon and the phone's pinned bar.
+  const [clock] = useState(createBenchClock);
+  useEffect(() => clock.retarget(benchTarget(result.shown)), [clock, result.shown]);
+  useEffect(() => () => clock.stop(), [clock]);
   const money = (v, digits = 2) => `${v.toFixed(digits)} ${currency}`;
   const seller = sellerOn ? { ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice, currency } : undefined;
 
@@ -616,7 +651,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         </div>
       ) : (
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] gap-8 items-start">
-        <div className="p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
+        <div className="kx-grain p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
           <h2 className="text-base font-serif font-semibold mb-3" style={{ color: COLORS.forestDeep }}>{t("calc.benchSheet")}</h2>
           <div role="group" aria-label={t("calc.blend.mode")} className="inline-flex mb-5 rounded" style={{ border: `1px solid ${COLORS.ink}` }}>
             {["simple", "blend"].map((k) => (
@@ -843,25 +878,17 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
             />
           </div>
-          <QuickResult shown={result.shown} t={t} />
+          <QuickResult clock={clock} shown={result.shown} t={t} />
         </div>
 
-        <div id="calc-readout" className="p-6 border scroll-mt-4 lg:sticky lg:top-6" style={{ backgroundColor: COLORS.card, borderColor: COLORS.ink }}>
+        <div id="calc-readout" className="kx-grain p-6 border scroll-mt-4 lg:sticky lg:top-6" style={{ backgroundColor: COLORS.card, borderColor: COLORS.ink }}>
           <h2 className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-5" style={{ color: COLORS.dim }}>{t("calc.readout")}</h2>
           <p className="mb-1 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("calc.total")}</p>
           <p dir="ltr" className="font-serif font-light leading-none tracking-[-0.02em] tabular-nums mb-5" style={{ fontSize: "clamp(3.5rem, 9vw, 5rem)" }}>
             {fmt2(result.shown.totalG)}<span className="text-2xl ms-2" style={{ color: COLORS.dim }}>g</span>
           </p>
-          <div className="grid grid-cols-2 gap-6 mb-5" style={{ containerType: "inline-size" }}>
-            {[[blendOn ? "calc.blend.concentrate" : "calc.oil", result.shown.oilG, COLORS.oil], ["calc.ethanol96", result.shown.ethanolG, COLORS.mist]].map(([k, g, sw]) => (
-              <div key={k} className="min-w-0">
-                <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
-                  <span aria-hidden="true" className="w-2.5 h-2.5" style={{ background: sw, border: `1px solid ${COLORS.ink}` }} />{t(k)}
-                </span>
-                <span dir="ltr" className="readout block font-mono leading-[1.15] tracking-[-0.03em] whitespace-nowrap" style={{ fontSize: "min(2rem, 8cqw)" }}>{fmt2(g)}{" "}<span className="text-lg ms-1">g</span></span>
-              </div>
-            ))}
-          </div>
+          <BenchInstrument clock={clock} shown={result.shown} pct={concPct} blend={blendOn ? blend : null} t={t}
+            label={t(blendOn ? "calc.blend.concentrate" : "calc.oil")} />
           <RatioBar oilG={result.shown.oilG} ethanolG={result.shown.ethanolG} caption={t("calc.byWeight")} className="mb-4" />
 
           <p className="text-xs font-mono mb-2" style={{ color: COLORS.inkSoft }}>
