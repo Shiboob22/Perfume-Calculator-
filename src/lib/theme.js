@@ -144,3 +144,13 @@ export const MOTION = { fast: 150, base: 250, slow: 600, ambient: 2000, easeOut:
 export const FRAME = { border: `1px solid ${COLORS.ink}` };
 // Light edition only: the board's dark edition has no shadows on UI.
 export const OFFSET_SHADOW = "var(--offset-shadow)";
+
+// Blend materials (Bench SaaS): one swatch per material type, the same in
+// both editions (decorative, never text; the type is also written out).
+export const INGREDIENT_SWATCH = Object.freeze({
+  eo: "#9DB07A",
+  aroma: "#C9A157",
+  absolute: "#8C5426",
+  fixative: "#6E6248",
+  dpg: "#BFC7C0",
+});
