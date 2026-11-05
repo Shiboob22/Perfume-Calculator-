@@ -1,7 +1,22 @@
 import { describe, it, expect } from "vitest";
-import { prefillFromQuery, startingBottle, afterOnboardingPath, cleanName, refFrom } from "./calcPrefill";
+import { prefillFromQuery, startingBottle, afterOnboardingPath, cleanName, refFrom, shareQuery } from "./calcPrefill";
 
 const q = (s) => prefillFromQuery(new URLSearchParams(s));
+
+describe("shareQuery", () => {
+  it("round-trips through prefillFromQuery", () => {
+    const state = { name: "Neroli Eau", family: "fresh", size: 100, unit: "ml", conc: 20 };
+    expect(q(shareQuery(state))).toEqual({ ...state, recipe: null });
+  });
+  it("keeps decimals and other units", () => {
+    expect(q(shareQuery({ name: "", family: "woody", size: 1.5, unit: "oz", conc: 22.5 }))).toEqual({ size: 1.5, unit: "oz", conc: 22.5, family: "woody", name: null, recipe: null });
+  });
+  it("leaves out anything blank or invalid", () => {
+    expect(shareQuery({})).toBe("");
+    expect(shareQuery({ name: "  ", family: "citrus", size: -5, unit: "gallon", conc: 150 })).toBe("");
+    expect(shareQuery({ size: "abc", conc: 0, family: "__proto__", unit: "__proto__" })).toBe("");
+  });
+});
 
 describe("prefillFromQuery recipe", () => {
   const V = "33333333-3333-4333-8333-333333333333";
