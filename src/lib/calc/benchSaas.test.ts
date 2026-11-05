@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   blendMix, ingredientAmounts, balanceShares, densityOf, INGREDIENT_TYPES, INGREDIENT_KEYS,
   costFor, MAX_MARGIN_PCT, pourScaleAt, ingredientTarget, blendEthanolTarget, POUR_BAND,
-  byVolume, byWeight, alcoholForOil, round2,
+  byVolume, byWeight, alcoholForOil, round2, STRENGTH_TIERS, tierFor,
 } from "./index";
 import { ETHANOL_DENSITY } from "../formulation";
 import { pourProgress } from "../pourProgress.js";
@@ -204,5 +204,30 @@ describe("the 1 % pour band", () => {
     expect(pourProgress(5.04, 5, POUR_BAND).state).toBe("ok");
     expect(pourProgress(4.94, 5, POUR_BAND).state).toBe("under");
     expect(pourProgress(5.06, 5, POUR_BAND).state).toBe("over");
+  });
+});
+
+describe("strength tiers (handbook strengths)", () => {
+  it("is the four handbook strengths, each up to and including its own", () => {
+    expect(STRENGTH_TIERS).toEqual([
+      { name: "EDT", min: 0, max: 15, pct: 15 },
+      { name: "EDP", min: 15, max: 20, pct: 20 },
+      { name: "EDP Intense", min: 20, max: 25, pct: 25 },
+      { name: "Extrait", min: 25, max: 30, pct: 30 },
+    ]);
+  });
+  it("puts each strength in its own tier and the next point in the next", () => {
+    expect([1, 15, 15.01, 20, 20.5, 25, 25.01, 30].map((p) => tierFor(p).name))
+      .toEqual(["EDT", "EDT", "EDP", "EDP", "EDP Intense", "EDP Intense", "Extrait", "Extrait"]);
+  });
+  it("tapping a tier sets a concentration that reads back as that tier", () => {
+    for (const t of STRENGTH_TIERS) expect(tierFor(t.pct)).toBe(t);
+  });
+  it("reads above 30 % and non-numbers as Extrait, zero and below as EDT", () => {
+    expect(tierFor(40).name).toBe("Extrait");
+    expect(tierFor("abc").name).toBe("Extrait");
+    expect(tierFor(0).name).toBe("EDT");
+    expect(tierFor(-5).name).toBe("EDT");
+    expect(tierFor("22").name).toBe("EDP Intense");
   });
 });

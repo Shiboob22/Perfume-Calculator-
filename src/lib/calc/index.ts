@@ -11,3 +11,4 @@ export * from "./calculator";
 export * from "./history";
 export * from "./journal";
 export * from "./mixture";
+export * from "./strength";
