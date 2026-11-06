@@ -95,8 +95,8 @@ export function can(entitlements, what) {
 export function limit(entitlements, name) {
   const key = LIMITS[name];
   if (!key) throw new Error(`Unknown limit: ${name}`);
-  const value = entitlements ? entitlements[key] : FALLBACK[key];
-  if (value === undefined) return FALLBACK[key];
+  const given = entitlements ? entitlements[key] : undefined;
+  const value = given === undefined ? FALLBACK[key] : given;
   return value === null ? Infinity : value;
 }
 

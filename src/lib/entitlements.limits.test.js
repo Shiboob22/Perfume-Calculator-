@@ -45,6 +45,9 @@ describe("limit()", () => {
     expect(limit(undefined, "formulas")).toBe(Infinity); // Free has no formula limit
     expect(limit(FALLBACK, "ingredients")).toBe(3);
     expect(limit({ features: [] }, "journalBatches")).toBe(3);
+    // An old /api/me answer without formulaCap reads Free's (none), never as null.
+    expect(limit({ features: [] }, "formulas")).toBe(Infinity);
+    expect(canAddFormula({ features: [] }, 0)).toBe(true);
   });
   it("refuses an unknown limit name", () => {
     expect(() => limit(free, "bottles")).toThrow(/Unknown limit/);
