@@ -20,6 +20,10 @@ export function priceText(amount, locale = "en", currency = PRICES.currency) {
 export const COST_BOTTLES = Object.freeze([10, 30, 50, 100]);
 export const COST_MARGINS = Object.freeze([40, 50, 60, 70]);
 export const COST_DEFAULTS = Object.freeze({ bottleMl: 50, margin: 60 });
+// The prices the Bench tour's Pro preview shows where the user typed none
+// (prototype's example state: oil per g, ethanol per L, packaging per bottle).
+// Examples only, in the user's currency; never saved.
+export const COST_SAMPLE = Object.freeze({ oilPrice: 8, ethPrice: 150, pack: 45 });
 
 // The upgrade sheet's comparison, row by row (prototype plan.rows). Values
 // are message keys under plan.compare, or numbers/limits read from the

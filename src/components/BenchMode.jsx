@@ -168,13 +168,21 @@ function Grams({ id, label, value, onChange }) {
   );
 }
 
-export default function BenchMode() {
+// The tare step's place in pourSteps(): where the Bench tour opens a demo.
+const TARE_STEP = 1;
+
+// `demo` (the Bench tour): { plan, onExit } shows this run inside the Bench
+// page, opened on its tare step, as a preview: nothing is kept in
+// sessionStorage (a real run in progress is untouched), the screen is not
+// held awake, nothing can be logged and the title is an h2 (the page has
+// its h1).
+export default function BenchMode({ demo = null }) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
-  const [plan] = useState(() => loadPlan(location.state));
-  const [saved] = useState(() => (plan ? loadProgress(plan) : null));
-  const [i, setI] = useState(saved?.i ?? 0);
+  const [plan] = useState(() => (demo ? demo.plan : loadPlan(location.state)));
+  const [saved] = useState(() => (plan && !demo ? loadProgress(plan) : null));
+  const [i, setI] = useState(saved?.i ?? (demo ? TARE_STEP : 0));
   // A new step replaces the whole screen: move focus to its title so screen
   // readers read the new instruction (not on the first render).
   const titleRef = useRef(null);
@@ -201,13 +209,13 @@ export default function BenchMode() {
   const logId = useRef(saved?.logId ?? null);
 
   useEffect(() => {
-    if (!plan) return;
+    if (!plan || demo) return;
     try {
       sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({
         run: runOf(plan), i, cautionRead, poured, alcoholG, practiceTare, lot, qc: [...qc], status, batchNo, logId: logId.current,
       }));
     } catch { /* full or blocked: progress just isn't kept */ }
-  }, [plan, i, cautionRead, poured, alcoholG, practiceTare, lot, qc, status, batchNo]);
+  }, [plan, demo, i, cautionRead, poured, alcoholG, practiceTare, lot, qc, status, batchNo]);
 
   function startAnother() {
     try { sessionStorage.removeItem(PROGRESS_KEY); } catch {}
@@ -215,7 +223,7 @@ export default function BenchMode() {
     setI(0); setCautionRead(false); setPoured([]); setAlcoholG(""); setPracticeTare(String(PRACTICE_BOTTLE_G)); setLot(""); setQc(new Set());
     setStatus(null); setBatchNo(null); setError(""); setStockNote("");
   }
-  const { supported, held } = useWakeLock(true);
+  const { supported, held } = useWakeLock(!demo);
 
   useEffect(() => {
     if (timer === null || timer <= 0) return undefined;
@@ -257,6 +265,7 @@ export default function BenchMode() {
   const last = at === steps.length - 1;
 
   async function handleLog() {
+    if (demo) return;
     setStatus("saving");
     setError("");
     logId.current ??= crypto.randomUUID();
@@ -296,10 +305,11 @@ export default function BenchMode() {
   const title = step.key === "pour"
     ? (isBlend ? t("bench.pour.title", { name: nameOf(step.index) }) : t("bench.oil.title"))
     : step.key === "ethanol" ? t("bench.alcohol.title") : step.key === "done" ? t("bench.label.title") : t(`bench.${step.key}.title`);
+  const Title = demo ? "h2" : "h1";
   const rulesAt = step.key === "pour" ? (step.index === 0 ? "pour" : "pourNext") : step.key === "ethanol" ? "pourNext" : step.key;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: COLORS.paper, color: COLORS.ink }}>
+    <div data-bench-demo={demo ? "" : undefined} className={`${demo ? "" : "min-h-screen "}flex flex-col`} style={{ background: COLORS.paper, color: COLORS.ink, ...(demo ? { border: `1px solid ${COLORS.ink}`, borderRadius: 2 } : {}) }}>
       <header className="px-4 pt-4 pb-3 flex items-center gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-sm" style={{ color: COLORS.amberDeep }}>
@@ -309,14 +319,14 @@ export default function BenchMode() {
             {t("bench.batch", { name: plan.name || t("bench.untitled"), size: plan.amount, unit, pct })}
           </p>
         </div>
-        <button type="button" onClick={() => navigate("/bench")} className="text-xs underline" style={{ color: COLORS.inkSoft }}>
+        <button type="button" onClick={() => (demo ? demo.onExit?.() : navigate("/bench"))} className="text-xs underline" style={{ color: COLORS.inkSoft }}>
           {t("bench.exit")}
         </button>
       </header>
       <StepTabs steps={steps} at={at} name={tabName} t={t} />
 
       <main className="flex-1 w-full max-w-xl mx-auto px-5 py-6">
-        <h1 ref={titleRef} tabIndex={-1} className="font-serif italic text-4xl break-words" style={{ color: COLORS.forestDeep }}>{title}</h1>
+        <Title ref={titleRef} tabIndex={-1} className="font-serif italic text-4xl break-words" style={{ color: COLORS.forestDeep }}>{title}</Title>
 
         {step.key === "prepare" && (
           <>
@@ -479,7 +489,7 @@ export default function BenchMode() {
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.total")}</dt>
               <dd dir="ltr" className="text-start font-mono">{fmt2(labelled.total)} g</dd>
             </dl>
-            <button type="button" onClick={handleLog} disabled={status === "saving" || status === "saved" || status === "queued"}
+            <button type="button" onClick={handleLog} disabled={Boolean(demo) || status === "saving" || status === "saved" || status === "queued"}
               className="mt-6 w-full py-4 rounded text-lg font-semibold disabled:opacity-60" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
               {status === "saving" ? t("bench.label.saving") : t("bench.label.log")}
             </button>
@@ -519,7 +529,7 @@ export default function BenchMode() {
         )}
 
         <Rules at={rulesAt} />
-        <p className="mt-6 text-[11px]" style={{ color: COLORS.dim }}>{supported && held ? t("bench.awake") : t("bench.awakeUnsupported")}</p>
+        {!demo && <p className="mt-6 text-[11px]" style={{ color: COLORS.dim }}>{supported && held ? t("bench.awake") : t("bench.awakeUnsupported")}</p>}
       </main>
 
       <footer className="sticky bottom-0 px-4 py-3 flex gap-3" style={{ background: COLORS.paper, borderTop: `1px solid ${COLORS.line}` }}>

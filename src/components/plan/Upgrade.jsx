@@ -10,8 +10,8 @@ import Sheet from "../kx/Sheet";
 // The upgrade sheet (Bench SaaS): Free vs Pro, monthly or yearly, and the
 // 14-day trial. Any screen opens it with useUpgrade().open(reason), where
 // reason ("blend" | "formulas" | "cost" | "reminders" | null) picks the
-// headline. No payment is taken: the trial is the only way in for now.
-const UpgradeContext = createContext({ open: () => {}, close: () => {} });
+// headline (`state` is what is open, for the Bench tour to put back). No payment is taken: the trial is the only way in for now.
+const UpgradeContext = createContext({ open: () => {}, close: () => {}, state: { open: false, reason: null } });
 
 export const useUpgrade = () => useContext(UpgradeContext);
 
@@ -20,7 +20,7 @@ export function UpgradeProvider({ children }) {
   const open = useCallback((reason = null) => setState({ open: true, reason }), []);
   const close = useCallback(() => setState((s) => ({ ...s, open: false })), []);
   return (
-    <UpgradeContext.Provider value={{ open, close }}>
+    <UpgradeContext.Provider value={{ open, close, state }}>
       {children}
       <UpgradeSheet open={state.open} reason={state.reason} onClose={close} />
     </UpgradeContext.Provider>
@@ -97,7 +97,7 @@ function UpgradeSheet({ open, reason, onClose }) {
   });
 
   return (
-    <Sheet open={open} onClose={onClose} title={t("upgrade.title")} closeLabel={t("upgrade.close")} wide>
+    <Sheet open={open} onClose={onClose} title={t("upgrade.title")} closeLabel={t("upgrade.close")} wide tourKey="upgrade">
       <div className="flex flex-col gap-5">
         <div>
           <p className="font-serif text-[28px] leading-tight" style={{ textWrap: "balance" }}>{headline}</p>

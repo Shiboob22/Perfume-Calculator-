@@ -308,3 +308,7 @@ summary::-webkit-details-marker { display: none; }
 .kx-rule { height: 4px; background-image: var(--kx-rule, none); background-repeat: repeat-x; background-size: 240px 4px; }
 /* Reduced motion: the bottle jumps to its size, the cap never lifts. */
 @media (prefers-reduced-motion: reduce) { .kx-flacon, .kx-cap { transition: none !important; } }
+
+/* Bench tour (Phase 7): the cost card's Pro preview unblurs. */
+.kx-cost-body { transition: filter 600ms var(--ease-out, ease-out), opacity 600ms var(--ease-out, ease-out); }
+@media (prefers-reduced-motion: reduce) { .kx-cost-body, .kx-tour-spot, .kx-tour-card { transition: none !important; } }

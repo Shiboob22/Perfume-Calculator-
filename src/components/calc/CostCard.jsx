@@ -1,24 +1,35 @@
 import React, { useState } from "react";
 import { COLORS } from "../../lib/theme";
 import { costFor, fmt2 } from "../../lib/calc";
-import { COST_BOTTLES, COST_DEFAULTS, COST_MARGINS } from "../../lib/plansConfig";
+import { COST_BOTTLES, COST_DEFAULTS, COST_MARGINS, COST_SAMPLE } from "../../lib/plansConfig";
 
 // Cost per bottle (Bench SaaS, Pro: calculator.advanced). Three prices, a
 // bottle size and a margin give the batch cost, the cost of one bottle and a
 // suggested retail price (lib/calc/cost.ts costFor). On Free the card is
 // shown blurred behind an "Unlock with Pro" panel and takes no input. In a
 // blend the oil price is the blend's weighted price and can't be typed.
-export default function CostCard({ unlocked, onUnlock, oilG, ethMl, totMl, oilPrice, onOilPrice, oilReadOnly, ethPrice, onEthPrice, pack, onPack, currency, t }) {
+//
+// `preview` (the Bench tour's Pro preview, Free only): the blur clears and
+// the three results count up, `countK` of the way (0 → 1; null = final).
+// Blank prices show the sample prices (COST_SAMPLE), and nothing can be
+// typed: the plan is not changed, only shown.
+export default function CostCard({ unlocked, preview = false, countK = null, onUnlock, oilG, ethMl, totMl, oilPrice, onOilPrice, oilReadOnly, ethPrice, onEthPrice, pack, onPack, currency, t }) {
   const [bottleMl, setBottleMl] = useState(COST_DEFAULTS.bottleMl);
   const [margin, setMargin] = useState(COST_DEFAULTS.margin);
+  const shown = unlocked || preview;
+  const sample = (v, k) => (preview && !unlocked && !(Number(v) > 0) ? COST_SAMPLE[k] : v);
+  oilPrice = sample(oilPrice, "oilPrice");
+  ethPrice = sample(ethPrice, "ethPrice");
+  pack = sample(pack, "pack");
   const c = costFor({ oilG, ethMl, totMl, bottleMl, oilPrice: Number(oilPrice) || 0, ethPrice: Number(ethPrice) || 0, pack: Number(pack) || 0, margin });
+  const k = countK == null ? 1 : countK;
 
   const chip = (on) => ({ borderColor: on ? COLORS.actionText : COLORS.line, background: on ? COLORS.amber : COLORS.cardHi, color: on ? COLORS.onAmber : COLORS.ink });
   const price = (id, label, value, onChange, unit, readOnly, hint) => (
     <label htmlFor={id} className="flex flex-col gap-1.5 text-[13px]" style={{ color: COLORS.inkSoft }}>
       {label}
       <span className="flex items-center min-h-[48px] rounded border" style={{ borderColor: COLORS.field, background: readOnly ? COLORS.sand : COLORS.cardHi }}>
-        <input id={id} type="number" inputMode="decimal" min="0" step="0.01" dir="ltr" value={value} readOnly={readOnly} tabIndex={unlocked ? undefined : -1}
+        <input id={id} type="number" inputMode="decimal" min="0" step="0.01" dir="ltr" value={value} readOnly={readOnly || !unlocked} tabIndex={unlocked ? undefined : -1}
           onChange={(e) => onChange?.(e.target.value)} placeholder="0" title={hint}
           className="flex-1 min-w-0 px-3 text-lg bg-transparent tabular-nums outline-none" style={{ color: COLORS.ink }} />
         <span className="px-3 text-xs whitespace-nowrap" style={{ color: COLORS.dim }}>{unit}</span>
@@ -27,20 +38,20 @@ export default function CostCard({ unlocked, onUnlock, oilG, ethMl, totMl, oilPr
     </label>
   );
   const results = [
-    ["batch", c.batch, false],
-    ["perBottle", c.perBottle, false],
-    ["retail", c.retail, true],
+    ["batch", c.batch * k, false],
+    ["perBottle", c.perBottle * k, false],
+    ["retail", c.retail * k, true],
   ];
 
   return (
-    <section aria-labelledby="calc-cost-title" className="relative mt-8 p-6 rounded overflow-hidden" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
+    <section aria-labelledby="calc-cost-title" data-preview={preview && !unlocked ? "" : undefined} className="relative mt-8 p-6 rounded overflow-hidden" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
       <div className="flex flex-wrap items-center gap-3">
         <h2 id="calc-cost-title" className="font-serif text-[22px]">{t("calc.costCard.title")}</h2>
         <span className="px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] rtl:tracking-normal" style={{ border: `1px solid ${COLORS.amber}`, color: COLORS.actionText }}>{t("plan.names.pro")}</span>
-        {unlocked && <span dir="ltr" className="ms-auto text-[13px]" style={{ color: COLORS.dim }}>{bottleMl} mL · {margin}%</span>}
+        {shown && <span dir="ltr" className="ms-auto text-[13px]" style={{ color: COLORS.dim }}>{bottleMl} mL · {margin}%</span>}
       </div>
-      <div data-cost-body inert={unlocked ? undefined : ""} aria-hidden={unlocked ? undefined : "true"}
-        className="mt-5 flex flex-col gap-5" style={unlocked ? undefined : { filter: "blur(5px)", opacity: 0.55, pointerEvents: "none", userSelect: "none" }}>
+      <div data-cost-body inert={shown ? undefined : ""} aria-hidden={shown ? undefined : "true"}
+        className="kx-cost-body mt-5 flex flex-col gap-5" style={shown ? { pointerEvents: unlocked ? undefined : "none" } : { filter: "blur(5px)", opacity: 0.55, pointerEvents: "none", userSelect: "none" }}>
         <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(170px,1fr))]">
           {price("cost-oil", t(oilReadOnly ? "calc.costCard.blendPrice" : "calc.costCard.oilPrice"), oilReadOnly ? fmt2(oilPrice) : oilPrice, onOilPrice, t("calc.costCard.perG", { cur: currency }), oilReadOnly, oilReadOnly ? t("calc.costCard.blendHint") : undefined)}
           {price("cost-eth", t("calc.costCard.ethPrice"), ethPrice, onEthPrice, t("calc.costCard.perL", { cur: currency }), false)}
@@ -81,7 +92,7 @@ export default function CostCard({ unlocked, onUnlock, oilG, ethMl, totMl, oilPr
           {c.bottles > 0 ? t("calc.costCard.bottles", { count: c.bottles, size: bottleMl }) : t("calc.costCard.fewer", { size: bottleMl })}
         </p>
       </div>
-      {!unlocked && (
+      {!shown && (
         <div className="absolute inset-x-0 bottom-0 top-14 flex items-center justify-center p-6">
           <div className="max-w-[380px] p-6 text-center rounded flex flex-col items-center gap-2.5" style={{ background: COLORS.paper, border: `1px solid ${COLORS.ink}` }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={COLORS.actionText} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="1.5" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" /></svg>

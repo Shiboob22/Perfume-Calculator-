@@ -5,7 +5,8 @@ import { COLORS } from "../../lib/theme";
 // Built on <dialog>.showModal(), so the browser keeps focus inside it, Escape
 // closes it and the page behind is inert; focus goes back to whatever opened
 // it. `title` names the dialog; `closeLabel` names the close button.
-export default function Sheet({ open, onClose, title, closeLabel, wide = false, children, headerExtra }) {
+// `tourKey` marks it as a stop of the Bench tour ([data-tour]).
+export default function Sheet({ open, onClose, title, closeLabel, wide = false, children, headerExtra, tourKey }) {
   const ref = useRef(null);
   const opener = useRef(null);
 
@@ -23,7 +24,7 @@ export default function Sheet({ open, onClose, title, closeLabel, wide = false, 
   }, [open]);
 
   return (
-    <dialog ref={ref} aria-label={title} onCancel={(e) => { e.preventDefault(); onClose(); }}
+    <dialog ref={ref} aria-label={title} data-tour={tourKey} onCancel={(e) => { e.preventDefault(); onClose(); }}
       onClick={(e) => { if (e.target === ref.current) onClose(); }}
       className={`kx-sheet p-0 mx-0 mt-auto mb-0 md:m-auto w-full max-w-none ${wide ? "md:max-w-[44rem]" : "md:max-w-[32rem]"} md:w-[calc(100%-2rem)]`}
       style={{ background: COLORS.paper, color: COLORS.ink, border: `1px solid ${COLORS.ink}`, borderRadius: 2 }}>
