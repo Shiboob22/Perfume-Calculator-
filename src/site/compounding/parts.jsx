@@ -6,9 +6,10 @@ import { M } from "./motion";
 
 // The weight scale in the margin: a thin vertical gauge and its readout, in
 // grams, tabular. Decoration (aria-hidden); the scene's text never depends on it.
-export function Gauge({ stage }) {
-  const g = STAGE_SHOWN_GRAMS[stage] ?? 0;
-  const pct = (g / SCALE_FULL_G) * 100;
+// `grams` overrides the stage's reading (the handoff reads the bench card).
+export function Gauge({ stage, grams }) {
+  const g = grams ?? STAGE_SHOWN_GRAMS[stage] ?? 0;
+  const pct = Math.min(100, (g / SCALE_FULL_G) * 100);
   return (
     <div aria-hidden="true" className="cmp-static absolute top-6 bottom-6 flex flex-col items-start" style={{ insetInlineStart: 6 }} data-gauge>
       <div className="relative flex-1 w-px" style={{ background: "var(--st-line)" }}>
@@ -30,7 +31,10 @@ export function Ember() {
 
 // The live scale: one sticky gauge for the whole scene, filled by scroll. Its
 // readout is a CSS counter, so no script writes numbers. A dark strip keeps it
-// legible on every stage's ground. Decoration (aria-hidden).
+// legible on every stage's ground. Decoration (aria-hidden). While the bench
+// card at the foot of the scene is in view, the card sets data-sync and
+// --cg-sync on it and the gauge reads the card's rolling total instead
+// (index.css).
 export function LiveGauge() {
   return (
     <div aria-hidden="true" data-gauge-live className="cmp-live" style={{ "--cg-max": Math.round(SCALE_FULL_G * 100) }}>

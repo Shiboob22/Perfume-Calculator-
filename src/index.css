@@ -198,6 +198,10 @@ summary::-webkit-details-marker { display: none; }
 @property --cg { syntax: "<integer>"; inherits: true; initial-value: 0; }
 @property --gw { syntax: "<integer>"; inherits: true; initial-value: 0; }
 @property --gf { syntax: "<integer>"; inherits: true; initial-value: 0; }
+@property --gt { syntax: "<integer>"; inherits: true; initial-value: 0; }
+@property --go { syntax: "<integer>"; inherits: true; initial-value: 0; }
+/* The gauge's tens digit: blank under 10 g (a scale shows no leading zero). */
+@counter-style cmp-tens { system: fixed 0; symbols: "" "1" "2" "3" "4" "5" "6" "7" "8" "9"; }
 
 [data-compounding] { position: relative; view-timeline: --cmp-scene block; }
 [data-vt] { view-timeline: --v block; }
@@ -231,8 +235,28 @@ summary::-webkit-details-marker { display: none; }
 .cmp-tickbox { position: absolute; inset: 0; }
 .cmp-tick { height: 1px; width: 10px; background: #F6F2EA; }
 .cmp-read { margin-top: 6px; padding: 2px 3px; background: rgb(16 14 10 / .88); color: #F6F2EA; font: 10px/1 "Instrument Sans Variable", system-ui, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap;
-  --gw: calc(var(--cg) / 100 - 0.5); --gf: calc(var(--cg) - var(--gw) * 100); counter-reset: cmpw var(--gw) cmpf var(--gf); }
-.cmp-read::before { content: counter(cmpw) "." counter(cmpf, decimal-leading-zero) "\2009g"; }
+  --gw: calc(var(--cg) / 100 - 0.5); --gf: calc(var(--cg) - var(--gw) * 100);
+  --gt: calc(var(--gw) / 10 - 0.5); --go: calc(var(--gw) - var(--gt) * 10);
+  counter-reset: cmpt var(--gt) cmpo var(--go) cmpf var(--gf); }
+/* A fixed-width readout whose tens digit has its own one-digit cell, so the
+   figures after it never move as the reading changes (no layout shift). */
+.cmp-read { box-sizing: border-box; width: 46px; text-align: left; }
+.cmp-read::before { content: counter(cmpt, cmp-tens); display: inline-block; width: 0.73em; text-align: right; vertical-align: top; }
+.cmp-read::after { content: counter(cmpo) "." counter(cmpf, decimal-leading-zero) "\2009g"; }
+/* While the home bench card is in view it sets data-sync and --cg-sync (its
+   rolling total, in hundredths of a gram) on the live gauge: the reading and
+   the fill follow the card instead of the scroll. */
+[data-compounding] .cmp-live[data-sync] .cmp-read { animation: none; --cg: var(--cg-sync, 0); }
+[data-compounding] .cmp-live[data-sync] .cmp-fill { animation: none; transform: scaleY(min(1, var(--cg-sync, 0) / var(--cg-max))); }
+[data-compounding] .cmp-live[data-sync] .cmp-tickbox { animation: none; transform: translateY(calc((1 - min(1, var(--cg-sync, 0) / var(--cg-max))) * 100%)); }
+/* Phones: the reading sits at the top of the strip and the strip stays clear
+   of the browser's bottom bar and the screen's rounded corners (on an iPhone
+   the reading at the foot was covered). */
+@media (max-width: 639px) {
+  .cmp-stick { top: calc(16px + env(safe-area-inset-top, 0px)); height: calc(100svh - 104px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+  .cmp-read { order: -1; margin: 0 0 6px; }
+}
+
 
 /* The ember breathes at rest: ambient, 3.2 s, ease-in-out, off under reduced motion. */
 @media (prefers-reduced-motion: no-preference) { .cmp-breath { animation: cmp-breath var(--dur-ambient) var(--ease-in-out) infinite alternate; } }
