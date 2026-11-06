@@ -13,7 +13,7 @@ import { TIER_COLORS, TIERS } from "../../lib/tiers";
 import { UNIT_LABELS } from "../../lib/calcPrefill";
 import {
   MILESTONES, DOT_GLYPH, notesByMilestone, milestoneDots, milestoneIndex, restProgress, trackPosition, isFresh, tierFor,
-  JOURNAL_SORTS, journalSort, journalSortKey, needsNote,
+  JOURNAL_SORTS, journalSort, journalSortKey, journalSortDir, needsNote,
 } from "../../lib/calc";
 import { useStartTrial } from "../plan/Upgrade";
 import { IconBell } from "../icons";
@@ -32,8 +32,17 @@ const TAGS = ["harsh", "sharp", "rounder", "sweeter", "woodier", "fading", "read
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const SORT_KEY = "kyphira.journalSort";
-const storedSort = () => { try { return localStorage.getItem(SORT_KEY); } catch { return null; } };
-const storeSort = (k) => { try { localStorage.setItem(SORT_KEY, k); } catch { /* private window */ } };
+const DIR_KEY = "kyphira.journalSortDir";
+const stored = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
+const store = (key, v) => { try { if (v == null) localStorage.removeItem(key); else localStorage.setItem(key, v); } catch { /* private window */ } };
+
+function SwapIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7 4v16M3.5 16.5 7 20l3.5-3.5M17 20V4M13.5 7.5 17 4l3.5 3.5" />
+    </svg>
+  );
+}
 
 const noOf = (b) => String(b.batch_no ?? 0).padStart(3, "0");
 const swatchOf = (b) => TIER_COLORS[b.tier] ?? COLORS.dim;
@@ -88,14 +97,24 @@ export default function JournalRoom() {
   const lockedN = all.length - visible.length;
 
   // One list in the chosen order (URL, then this device, then "needs a note").
-  const sort = journalSortKey(params.get("sort") ?? storedSort());
+  // Each sort but "needs a note" runs either way (?dir=asc|desc); a new
+  // sort starts in its own default direction.
+  const sort = journalSortKey(params.get("sort") ?? stored(SORT_KEY));
+  const dir = journalSortDir(sort, params.get("dir") ?? stored(DIR_KEY));
   const sorted = useMemo(() => journalSort(visible.map((x) => ({
     b: x, day: todayFor(x, now), no: Number(x.batch_no) || 0, ml: Number(x.total_ml),
     start: batchStartedAt(x)?.getTime() ?? NaN, checkins: x.batch_checkins,
-  })), sort).map((r) => r.b), [visible, sort, now]);
+  })), sort, dir).map((r) => r.b), [visible, sort, dir, now]);
   const pickSort = (k) => {
-    storeSort(k);
-    setParams((p) => { const q = new URLSearchParams(p); q.set("sort", k); return q; }, { replace: true });
+    store(SORT_KEY, k);
+    store(DIR_KEY, null);
+    setParams((p) => { const q = new URLSearchParams(p); q.set("sort", k); q.delete("dir"); return q; }, { replace: true });
+  };
+  const flipDir = () => {
+    const next = dir === "asc" ? "desc" : "asc";
+    store(SORT_KEY, sort);
+    store(DIR_KEY, next);
+    setParams((p) => { const q = new URLSearchParams(p); q.set("sort", sort); q.set("dir", next); return q; }, { replace: true });
   };
 
   // The header's "due" badge follows the notes made here.
@@ -155,6 +174,13 @@ export default function JournalRoom() {
                   <Chip key={k} pressed={sort === k} onToggle={() => pickSort(k)} className="whitespace-nowrap">{t(`journal.page.sort.${k}`)}</Chip>
                 ))}
               </div>
+              {dir && (
+                <button type="button" data-sort-dir={dir} onClick={flipDir}
+                  className="mt-2 inline-flex items-center gap-2 min-h-[44px] px-3 text-sm rounded border"
+                  style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+                  <SwapIcon />{t(`journal.page.dir.${sort}.${dir}`)}
+                </button>
+              )}
               <ul aria-labelledby="journal-batches" className="mt-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
                 {sorted.map((x) => {
                   const on = x.id === b.id;

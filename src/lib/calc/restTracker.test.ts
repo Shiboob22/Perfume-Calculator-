@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  MILESTONES, REST_DAYS, milestoneIndex, notesByMilestone, milestoneDots, restProgress, trackPosition, readySoonOrder, isFresh, DOT_GLYPH, needsNote, JOURNAL_SORTS, journalSortKey, journalSort,
+  MILESTONES, REST_DAYS, milestoneIndex, notesByMilestone, milestoneDots, restProgress, trackPosition, readySoonOrder, isFresh, DOT_GLYPH, needsNote, JOURNAL_SORTS, journalSortKey, journalSort, journalSortDir, SORT_DEFAULT_DIR,
 } from "./index";
 
 const n = (id: string, day: number, extra = {}) => ({ id, day, note: "x", ...extra });
@@ -125,4 +125,26 @@ describe("journal sort", () => {
     expect(journalSort(two, "note").map((x) => x.no)).toEqual([2, 1]);
     expect(journalSort([{ no: 1, day: 0, ml: NaN, start: 1 }, { no: 2, day: 0, ml: 5, start: 1 }], "size").map((x) => x.no)).toEqual([2, 1]);
   });
+  it("directions: each sort's default, flipped, none for needs a note", () => {
+    expect(SORT_DEFAULT_DIR).toEqual({ new: "desc", rest: "asc", size: "desc" });
+    expect(journalSortDir("note", "asc")).toBeNull();
+    expect(journalSortDir("bogus", "asc")).toBeNull();
+    expect(journalSortDir("size", undefined)).toBe("desc");
+    expect(journalSortDir("rest", "sideways")).toBe("asc");
+    expect(journalSortDir("new", "asc")).toBe("asc");
+    const ids2 = (k: unknown, d?: unknown) => journalSort(rows, k, d).map((x) => x.id);
+    // Defaults equal the orders without a direction.
+    expect(ids2("new", "desc")).toEqual(ids("new"));
+    expect(ids2("rest", "asc")).toEqual(ids("rest"));
+    expect(ids2("size", "desc")).toEqual(ids("size"));
+    // Flipped: oldest first; just started first (unknown start still last); smallest first (ties newest first).
+    expect(ids2("new", "asc")).toEqual(["a", "b", "c", "d", "e"]);
+    expect(ids2("rest", "desc")).toEqual(["d", "c", "b", "a", "e"]);
+    expect(ids2("size", "asc")).toEqual(["e", "c", "a", "d", "b"]);
+    // Needs a note ignores a direction.
+    expect(ids2("note", "asc")).toEqual(ids("note"));
+    const odd = [{ no: 1, day: 0, ml: NaN, start: 1 }, { no: 2, day: 0, ml: 5, start: 1 }, { no: 3, day: 0, ml: NaN, start: 1 }];
+    expect(journalSort(odd, "size", "asc").map((x) => x.no)).toEqual([2, 3, 1]);
+  });
 });
+

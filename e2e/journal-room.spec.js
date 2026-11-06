@@ -227,7 +227,52 @@ test("the list sorts: needs a note (default), newest, maceration, size; kept on 
   await expect(sorts.getByRole("button", { name: p.sort.note })).toHaveAttribute("aria-pressed", "true");
 });
 
-test("ar: the sort chips at 320 px", async ({ page }) => {
+test("each sort but needs a note runs either way; the direction is kept", async ({ page }) => {
+  await signIn(page);
+  const batches = fixtures();
+  [30, 100, 10, 50, 100].forEach((ml, i) => { batches[i].total_ml = ml; });
+  await fakeApi(page, { batches });
+  await page.goto("/journal");
+  const p = en.journal.page;
+  const sorts = page.getByRole("group", { name: p.sort.label });
+  const dir = page.locator("[data-sort-dir]");
+  // Needs a note has no direction.
+  await expect(dir).toHaveCount(0);
+
+  await sorts.getByRole("button", { name: p.sort.new }).click();
+  await expect(dir).toHaveText(p.dir.new.desc);
+  await dir.click();
+  await expect(dir).toHaveText(p.dir.new.asc);
+  await expect(dir).toBeFocused();
+  await expect.poll(() => order(page)).toEqual([id(1), id(2), id(3), id(4), id(5)]);
+  await expect(page).toHaveURL(/[?&]dir=asc/);
+
+  // A new sort starts in its own default direction.
+  await sorts.getByRole("button", { name: p.sort.rest }).click();
+  await expect(dir).toHaveText(p.dir.rest.asc);
+  await expect.poll(() => order(page)).toEqual([id(1), id(2), id(3), id(4), id(5)]);
+  await dir.click();
+  await expect(dir).toHaveText(p.dir.rest.desc);
+  await expect.poll(() => order(page)).toEqual([id(5), id(4), id(3), id(2), id(1)]);
+
+  await sorts.getByRole("button", { name: p.sort.size }).click();
+  await expect(dir).toHaveText(p.dir.size.desc);
+  await dir.click();
+  // Smallest first; the two at 100 mL still newest first.
+  await expect.poll(() => order(page)).toEqual([id(3), id(5), id(2), id(4), id(1)]);
+
+  // Kept on reload and on this device.
+  await page.reload();
+  await expect(dir).toHaveText(p.dir.size.asc);
+  await page.goto("/journal");
+  await expect(dir).toHaveText(p.dir.size.asc);
+  await expect.poll(() => order(page)).toEqual([id(3), id(5), id(2), id(4), id(1)]);
+  // Back to needs a note: no direction.
+  await sorts.getByRole("button", { name: p.sort.note }).click();
+  await expect(dir).toHaveCount(0);
+});
+
+test("ar: the sort chips and direction at 320 px", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 700 });
   await signIn(page);
   await fakeApi(page, { locale: "ar" });
@@ -237,6 +282,9 @@ test("ar: the sort chips at 320 px", async ({ page }) => {
   await expect(sorts.getByRole("button")).toHaveCount(4);
   await sorts.getByRole("button", { name: p.sort.rest }).click();
   await expect.poll(() => order(page)).toEqual([id(1), id(2), id(3), id(4), id(5)]);
+  await page.locator("[data-sort-dir]").click();
+  await expect(page.locator("[data-sort-dir]")).toHaveText(p.dir.rest.desc);
+  await expect.poll(() => order(page)).toEqual([id(5), id(4), id(3), id(2), id(1)]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await settle(page);
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

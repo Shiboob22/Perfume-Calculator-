@@ -628,6 +628,11 @@ export default {
       // Draft (journal sort): for the owner's review.
       sort: { label: "ترتيب الدفعات", note: "تحتاج ملاحظة", new: "الأحدث", rest: "التعتيق", size: "الحجم" },
       noteDue: "ملاحظة مستحقة: {milestone}",
+      dir: {
+        new: { desc: "الأحدث أولًا", asc: "الأقدم أولًا" },
+        rest: { asc: "الأقرب للجاهزية أولًا", desc: "الأحدث تعتيقًا أولًا" },
+        size: { desc: "الأكبر أولًا", asc: "الأصغر أولًا" },
+      },
       readyIn: { zero: "جاهز اليوم", one: "جاهز غدًا", two: "جاهز بعد يومين", few: "جاهز بعد {count} أيام", many: "جاهز بعد {count} يومًا", other: "جاهز بعد {count} يوم" },
       ready: "جاهز",
       progress: "اليوم {n} من 90",
