@@ -912,6 +912,19 @@ export default {
     current: "Your current plan", starting: "Starting…", trialFailed: "The trial could not start. Please try again.",
     fine: "No card needed for the trial. Cancel anytime.",
   },
+  // The Bench's guided tour (Bench SaaS Phase 7): [title, line] per stop.
+  tour: {
+    take: "Take the tour", next: "Next", back: "Back", skip: "Skip tour", done: "Finish", count: "{n} / {m}", journal: "Open the Journal",
+    label: "Bench tour",
+    steps: [
+      ["Weigh a formula", "Pick a size and a strength. {name} does the weighing."],
+      ["Blend like a perfumer", "Real perfumes have more than one oil. Add each one as a share of the concentrate."],
+      ["Read it like a scale", "Two numbers for the scale, exact to 0.01 g."],
+      ["Pour along", "Then pour along, step by step: tare, each ingredient, then ethanol."],
+      ["Price every bottle", "Know your cost and retail price before you pour."],
+      ["Let it rest, then sell it", "Every batch is logged, and the Journal tracks it as it rests. Pro unlocks all of it."],
+    ],
+  },
   calc: {
     tiers: {
       label: "Strength",
