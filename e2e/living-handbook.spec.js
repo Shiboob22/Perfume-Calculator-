@@ -38,7 +38,7 @@ test("reduced motion turns the reading hairline and pours off", async ({ page })
   await page.goto("/library/the-calculation");
   await expect(page.locator(".read-progress")).toBeHidden();
   await page.goto("/");
-  expect(await page.locator(".pour").first().evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0s");
+  expect(await page.locator("[data-home-bench] svg.kx-flacon").evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0s");
 });
 
 for (const [path, lang] of [["/", "en"], ["/ar", "ar"], ["/library/the-calculation", "en"], ["/ar/library/the-calculation", "ar"], ["/pricing", "en"], ["/ar/library", "ar"]]) {
