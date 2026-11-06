@@ -624,6 +624,8 @@ export default {
       title: "Let it rest.",
       lead: "A batch keeps changing in the bottle. Note it as it does.",
       soon: "Ready soon",
+      sort: { label: "Sort batches", note: "Needs a note", new: "Newest", rest: "Maceration", size: "Size" },
+      noteDue: "Note due: {milestone}",
       readyIn: { one: "Ready tomorrow", other: "Ready in {count} days" },
       ready: "Ready",
       progress: "Day {n} of 90",

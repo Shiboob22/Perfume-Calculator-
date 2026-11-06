@@ -625,6 +625,9 @@ export default {
       title: "دعه يرتاح.",
       lead: "الدفعة تتغيّر في الزجاجة. دوّن تغيّرها.",
       soon: "جاهز قريبًا",
+      // Draft (journal sort): for the owner's review.
+      sort: { label: "ترتيب الدفعات", note: "تحتاج ملاحظة", new: "الأحدث", rest: "التعتيق", size: "الحجم" },
+      noteDue: "ملاحظة مستحقة: {milestone}",
       readyIn: { zero: "جاهز اليوم", one: "جاهز غدًا", two: "جاهز بعد يومين", few: "جاهز بعد {count} أيام", many: "جاهز بعد {count} يومًا", other: "جاهز بعد {count} يوم" },
       ready: "جاهز",
       progress: "اليوم {n} من 90",
