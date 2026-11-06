@@ -36,6 +36,8 @@ async function recordFigures(page) {
         const fig = el?.closest?.("[data-fig='exampleTotal']");
         if (fig && window.__figs.at(-1) !== fig.textContent) window.__figs.push(fig.textContent);
         if (m.type === "attributes" && m.attributeName === "data-cap") window.__caps.push(m.target.getAttribute("data-cap"));
+        // The flacon is drawn after hydration: note its cap as it appears too.
+        for (const n of m.addedNodes ?? []) n.querySelectorAll?.("[data-cap]").forEach((c) => window.__caps.push(c.getAttribute("data-cap")));
       }
     }).observe(document, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["data-cap"] });
   });
@@ -130,4 +132,21 @@ test("390 px phone: strengths two by two, and the side gauge fully on screen rea
   await expect.poll(reading).toBe("845"); // in step with the card's total
 
   await info.attach("home-bench-390", { body: await page.screenshot(), contentType: "image/png" });
+});
+
+test.describe("without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+  test("the figures stand alone, and the bottle's box is already held at its size", async ({ page }) => {
+    await page.goto("/");
+    await expect(figs(page)).toHaveText(["23.75 g", "60.75 g", "84.50 g"]);
+    const box = await card(page).locator("[data-flacon-box]").boundingBox();
+    expect([box.width, box.height]).toEqual([112, 140]); // BENCH_FLACON_BOX: the drawn flacon takes the same box
+  });
+});
+
+test("the drawn flacon fills the box the page held for it", async ({ page }) => {
+  await page.goto("/");
+  await expect(card(page).locator("[data-flacon]")).toBeVisible();
+  const box = await card(page).locator("[data-flacon]").boundingBox();
+  expect([box.width, box.height]).toEqual([112, 140]);
 });

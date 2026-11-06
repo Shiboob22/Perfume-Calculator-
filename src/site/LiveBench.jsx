@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { COLORS, OFFSET_SHADOW, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { fmt2 } from "../lib/calc";
 import { Segmented } from "../components/Bottle";
-import Flacon from "../components/kx/Flacon";
 import { createBenchClock, useBenchFrame, useThemeName } from "../components/kx/benchClock";
 import { reduced } from "../motion/env.js";
 import { IconArrow, IconBalance, IconFlameTriangle } from "../components/icons";
@@ -68,11 +67,28 @@ function Rolling({ clock, target, t }) {
   );
 }
 
+// The flacon is drawn in the browser, after hydration, into a box of its
+// final size, from its own small chunk. Its SVG would take the home page's
+// HTML past what fits in the first round trip (about 14 KB compressed),
+// costing a mobile visitor a round trip before the first paint, and its code
+// would weigh on the entry bundle every public page loads. The prerender
+// holds the empty box, so nothing moves when the bottle appears; without
+// JavaScript the figures stand alone.
+const Flacon = lazy(() => import("../components/kx/Flacon"));
+const EmptyBox = () => <div aria-hidden="true" data-flacon-box className="flex-none" style={{ width: BENCH_FLACON_BOX[0], height: BENCH_FLACON_BOX[1] }} />;
+
 /** The flacon, drawn from the same frame. */
 function Bottle({ clock, target, pct, size }) {
   const f = useBenchFrame(clock, target);
   const theme = useThemeName({ prerendered: true });
-  return <Flacon stand={false} box={BENCH_FLACON_BOX} share={f.values[3]} flow={f.flow} wobble={f.wobble} pct={pct} totalMl={size} theme={theme} />;
+  const [drawn, setDrawn] = useState(false);
+  useEffect(() => setDrawn(true), []);
+  if (!drawn) return <EmptyBox />;
+  return (
+    <Suspense fallback={<EmptyBox />}>
+      <Flacon stand={false} box={BENCH_FLACON_BOX} share={f.values[3]} flow={f.flow} wobble={f.wobble} pct={pct} totalMl={size} theme={theme} />
+    </Suspense>
+  );
 }
 
 export default function LiveBench({ onTotal }) {
