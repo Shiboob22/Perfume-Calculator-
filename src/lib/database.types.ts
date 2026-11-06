@@ -597,6 +597,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bench_tour_at: string | null
           currency: string | null
           default_bottle: number | null
           default_unit: string | null
@@ -611,6 +612,7 @@ export type Database = {
           wear_stats_opt_in: boolean
         }
         Insert: {
+          bench_tour_at?: string | null
           currency?: string | null
           default_bottle?: number | null
           default_unit?: string | null
@@ -625,6 +627,7 @@ export type Database = {
           wear_stats_opt_in?: boolean
         }
         Update: {
+          bench_tour_at?: string | null
           currency?: string | null
           default_bottle?: number | null
           default_unit?: string | null
