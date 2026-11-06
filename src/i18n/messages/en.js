@@ -626,6 +626,11 @@ export default {
       soon: "Ready soon",
       sort: { label: "Sort batches", note: "Needs a note", new: "Newest", rest: "Maceration", size: "Size" },
       noteDue: "Note due: {milestone}",
+      dir: {
+        new: { desc: "Newest first", asc: "Oldest first" },
+        rest: { asc: "Closest to ready first", desc: "Just started first" },
+        size: { desc: "Largest first", asc: "Smallest first" },
+      },
       readyIn: { one: "Ready tomorrow", other: "Ready in {count} days" },
       ready: "Ready",
       progress: "Day {n} of 90",
