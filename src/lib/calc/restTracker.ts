@@ -102,3 +102,57 @@ export function isFresh(createdAt: string | null | undefined, checkins: readonly
   const age = now.getTime() - t;
   return age >= 0 && age < FRESH_HOURS * 3600 * 1000 && !(checkins ?? []).some((c) => !c.skipped);
 }
+
+/**
+ * The milestone a batch owes a note for, or null: the one it has reached
+ * (older missed milestones don't count) when that milestone has no note.
+ * `left` is the days until the next milestone closes its window
+ * (Infinity at the last one, which never closes).
+ */
+export function needsNote(checkins: readonly JournalNote[] | null | undefined, day: number): { k: MilestoneKey; left: number } | null {
+  const i = milestoneIndex(Math.max(0, day));
+  const m = MILESTONES[i];
+  if (notesByMilestone(checkins)[m.k]) return null;
+  const next = MILESTONES[i + 1];
+  return { k: m.k, left: next ? next.days - Math.max(0, day) : Infinity };
+}
+
+/** The Journal list's sorts (journal sort brief v1). The first is the default. */
+export const JOURNAL_SORTS = Object.freeze(["note", "new", "rest", "size"] as const);
+export type JournalSort = (typeof JOURNAL_SORTS)[number];
+
+/** A known sort key, else the default. */
+export function journalSortKey(v: unknown): JournalSort {
+  return (JOURNAL_SORTS as readonly unknown[]).includes(v) ? (v as JournalSort) : JOURNAL_SORTS[0];
+}
+
+export interface SortItem {
+  /** Rest day today. */ day: number;
+  /** Batch number. */ no: number;
+  /** Total volume in mL, as logged. */ ml: number;
+  /** When the rest started, ms since the epoch. */ start: number;
+  checkins?: readonly JournalNote[] | null;
+}
+
+/**
+ * The Journal list in one of its four orders. Every order ends on batch
+ * number, newest first, so it is stable.
+ * - note: batches owing a note first, the window closing soonest leading;
+ *   then the rest.
+ * - new: newest first.
+ * - rest: started earliest first (closest to ready, ready ones on top).
+ * - size: largest total volume first.
+ */
+export function journalSort<T extends SortItem>(items: readonly T[], key: unknown): T[] {
+  const k = journalSortKey(key);
+  const rows = items.map((x) => ({ x, due: k === "note" ? needsNote(x.checkins, x.day) : null }));
+  const byNo = (a: T, b: T) => b.no - a.no;
+  const num = (v: number, fallback: number) => (Number.isFinite(v) ? v : fallback);
+  const cmp: Record<JournalSort, (a: (typeof rows)[number], b: (typeof rows)[number]) => number> = {
+    note: (a, b) => Number(!a.due) - Number(!b.due) || (a.due && b.due ? a.due.left - b.due.left || 0 : 0),
+    new: () => 0,
+    rest: (a, b) => num(a.x.start, Infinity) - num(b.x.start, Infinity),
+    size: (a, b) => num(b.x.ml, -Infinity) - num(a.x.ml, -Infinity),
+  };
+  return rows.sort((a, b) => cmp[k](a, b) || byNo(a.x, b.x)).map((r) => r.x);
+}

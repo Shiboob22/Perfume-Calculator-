@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  MILESTONES, REST_DAYS, milestoneIndex, notesByMilestone, milestoneDots, restProgress, trackPosition, readySoonOrder, isFresh, DOT_GLYPH,
+  MILESTONES, REST_DAYS, milestoneIndex, notesByMilestone, milestoneDots, restProgress, trackPosition, readySoonOrder, isFresh, DOT_GLYPH, needsNote, JOURNAL_SORTS, journalSortKey, journalSort,
 } from "./index";
 
 const n = (id: string, day: number, extra = {}) => ({ id, day, note: "x", ...extra });
@@ -77,5 +77,52 @@ describe("ready soon and new", () => {
     expect(isFresh("nope", [], now)).toBe(false);
     expect(isFresh("2026-11-06T12:00:00Z", undefined, now)).toBe(false);
     expect(isFresh("2026-11-05T11:00:00Z", undefined, now)).toBe(true);
+  });
+});
+
+describe("journal sort", () => {
+  const note = (scheduled_day: number, extra = {}) => ({ id: `n${scheduled_day}`, day: scheduled_day, scheduled_day, note: "x", ...extra });
+  it("needs a note: the reached milestone, if it has none", () => {
+    expect(needsNote([], 0)).toEqual({ k: "d1", left: 7 });
+    expect(needsNote([note(0)], 3)).toBeNull();
+    // Week 1 missed; at day 16 only Week 2 counts.
+    expect(needsNote([note(0)], 16)).toEqual({ k: "w2", left: 14 });
+    expect(needsNote([note(14)], 16)).toBeNull();
+    // A skip is not a note.
+    expect(needsNote([note(7, { skipped: true })], 8)).toEqual({ k: "w1", left: 6 });
+    // Month 3 never closes.
+    expect(needsNote(null, 120)).toEqual({ k: "m3", left: Infinity });
+    expect(needsNote(undefined, -2)).toEqual({ k: "d1", left: 7 });
+  });
+  it("keys: known, else the default", () => {
+    expect(JOURNAL_SORTS[0]).toBe("note");
+    expect(journalSortKey("size")).toBe("size");
+    expect(journalSortKey("bogus")).toBe("note");
+    expect(journalSortKey(undefined)).toBe("note");
+  });
+  const rows = [
+    { id: "a", no: 1, day: 120, ml: 50, start: 1000, checkins: [note(90)] },
+    { id: "b", no: 2, day: 95, ml: 100, start: 2000, checkins: [] },
+    { id: "c", no: 3, day: 12, ml: 30, start: 3000, checkins: [note(7)] },
+    { id: "d", no: 4, day: 9, ml: 100, start: 4000, checkins: [] },
+    { id: "e", no: 5, day: 0, ml: 10, start: NaN, checkins: null },
+  ];
+  const ids = (k: unknown) => journalSort(rows, k).map((x) => x.id);
+  it("needs a note: closing soonest first, Month 3 last of the due, then newest", () => {
+    // d owes Week 1 (5 days left), e Day 1 (7 left), b Month 3 (never closes); a and c are noted.
+    expect(ids("note")).toEqual(["d", "e", "b", "c", "a"]);
+    expect(ids("nonsense")).toEqual(ids("note"));
+  });
+  it("newest, maceration, size", () => {
+    expect(ids("new")).toEqual(["e", "d", "c", "b", "a"]);
+    // An unknown start sorts last.
+    expect(ids("rest")).toEqual(["a", "b", "c", "d", "e"]);
+    // Ties on size fall back to newest.
+    expect(ids("size")).toEqual(["d", "b", "a", "c", "e"]);
+  });
+  it("two never-closing due batches tie on number", () => {
+    const two = [{ no: 1, day: 100, ml: 1, start: 1 }, { no: 2, day: 91, ml: 1, start: 2 }];
+    expect(journalSort(two, "note").map((x) => x.no)).toEqual([2, 1]);
+    expect(journalSort([{ no: 1, day: 0, ml: NaN, start: 1 }, { no: 2, day: 0, ml: 5, start: 1 }], "size").map((x) => x.no)).toEqual([2, 1]);
   });
 });
