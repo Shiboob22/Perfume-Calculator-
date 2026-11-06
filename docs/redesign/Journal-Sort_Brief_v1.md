@@ -1,6 +1,6 @@
 # Journal sort: brief v1
 
-Kyphira · The Journal room (`/journal`, `/ar/journal`) · 2026-11-06 · status: for the owner's approval
+Kyphira · The Journal room (`/journal`, `/ar/journal`) · 2026-11-06 · status: approved 2026-11-06, built on `claude/journal-sort`
 
 ## The problem
 
@@ -42,7 +42,7 @@ The list rows keep everything they show today: swatch, name, New badge, "No. NNN
 - one line of text: "Ready in 12 days" / "Ready", plus "Day 78 of 90" at the trailing edge (existing strings `readyIn`, `ready`, `progress`)
 - when the sort is **Needs a note**, the due rows also carry "Note due: Week 2", using the milestone's existing label, so the reason for the order is visible
 
-Sort control: a toggle-chip row (`kx/Chip`, `aria-pressed`) above the list, under the "Batches" heading, with the group labelled "Sort batches". It is 44 px tall, scrolls sideways on a 320 px screen, and is mirrored in RTL. Changing the sort keeps the selected batch selected, and focus stays on the chip.
+Sort control: a toggle-chip row (`kx/Chip`, `aria-pressed`) above the list, under the "Batches" heading, with the group labelled "Sort batches". It is 44 px tall and mirrored in RTL. The chips wrap onto a second line when the column is narrow (the 300 px desktop column, 375 px phones), so none is hidden; the first draft scrolled them sideways, which cut "Size" off. Changing the sort keeps the selected batch selected, and focus stays on the chip.
 
 On desktop (lg) the list keeps its 300 px column. With the rail gone, the list and the detail start at the top of the room.
 
@@ -81,7 +81,7 @@ No migration, no API change, no new flag.
 - (a) leave it for now; this brief sorts only the list
 - (b) a follow-up that moves the badge onto the room's milestones as well, so the two always agree
 
-Recommendation: (b), as its own small change after this one, since the badge is shared with `/bench/journal`.
+Recommendation: (b), as its own small change after this one, since the badge is shared with `/bench/journal`. Shipped with (a); the owner has not picked yet.
 
 ## Parked
 
