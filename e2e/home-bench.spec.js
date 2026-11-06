@@ -120,11 +120,17 @@ test("390 px phone: strengths two by two, and the side gauge fully on screen rea
   const live = page.locator("[data-gauge-live]");
   const read = live.locator(".cmp-read");
   await expect(live).toHaveAttribute("data-sync", "");
-  const box = await read.boundingBox();
-  expect(box.x).toBeGreaterThanOrEqual(0);
-  expect(box.y).toBeGreaterThanOrEqual(0);
-  expect(box.x + box.width).toBeLessThanOrEqual(390);
-  expect(box.y + box.height).toBeLessThanOrEqual(844);
+  // Fully on screen, clear of a phone browser's bottom bar, wherever the card sits in view.
+  for (const block of ["start", "center", "end"]) {
+    await card(page).evaluate((el, b) => el.scrollIntoView({ block: b }), block);
+    await page.waitForTimeout(100);
+    const box = await read.boundingBox();
+    expect(box.x, block).toBeGreaterThanOrEqual(0);
+    expect(box.y, block).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, block).toBeLessThanOrEqual(390);
+    expect(box.y + box.height, block).toBeLessThanOrEqual(844 - 72);
+  }
+  await card(page).evaluate((el) => el.scrollIntoView({ block: "center" }));
   const reading = () => read.evaluate((el) => getComputedStyle(el).getPropertyValue("--cg").trim());
   await expect.poll(reading).toBe("8450");
   await choose(page, "10 mL");

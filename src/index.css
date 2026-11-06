@@ -249,12 +249,13 @@ summary::-webkit-details-marker { display: none; }
 [data-compounding] .cmp-live[data-sync] .cmp-read { animation: none; --cg: var(--cg-sync, 0); }
 [data-compounding] .cmp-live[data-sync] .cmp-fill { animation: none; transform: scaleY(min(1, var(--cg-sync, 0) / var(--cg-max))); }
 [data-compounding] .cmp-live[data-sync] .cmp-tickbox { animation: none; transform: translateY(calc((1 - min(1, var(--cg-sync, 0) / var(--cg-max))) * 100%)); }
-/* Phones: the reading sits at the top of the strip and the strip stays clear
-   of the browser's bottom bar and the screen's rounded corners (on an iPhone
-   the reading at the foot was covered). */
+/* Phones: the strip ends 88 px above the foot of the screen (and inside the
+   safe area), so its reading clears the browser's bottom bar and the
+   screen's rounded corners: on an iPhone the reading, 24 px from the foot,
+   was covered. The reading stays at the strip's foot, which leaves the
+   screen last as the scene ends, so it is in view whenever the card is. */
 @media (max-width: 639px) {
   .cmp-stick { top: calc(16px + env(safe-area-inset-top, 0px)); height: calc(100svh - 104px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
-  .cmp-read { order: -1; margin: 0 0 6px; }
 }
 
 /* The home page's bench card (section I). Its body is a size container, so
