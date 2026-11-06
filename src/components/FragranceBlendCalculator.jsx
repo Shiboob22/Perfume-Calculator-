@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import RoomBeam from "./kx/RoomBeam";
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "../motion";
@@ -27,6 +27,9 @@ import OilHistory from "./calc/OilHistory";
 import WaitlistButton from "./WaitlistButton";
 import Source from "./calc/Source";
 import RestingLine from "./journal/RestingLine";
+import { useBenchTour, TourLayer, TakeTour } from "./tour/BenchTour";
+import { COUNT_UP_MS, countUp, tourStrength } from "../lib/tour";
+import { reduced } from "../motion/env.js";
 import { FromOil, Adjust, Run } from "./calc/Modes";
 import { COLORS } from "../lib/theme";
 import { TIERS, ETHANOL_DENSITY_DEFAULT } from "../lib/tiers";
@@ -159,7 +162,7 @@ function BenchInstrument({ clock, shown, label, pct, blend, t }) {
   const theme = useThemeName();
   const [oil, eth, share] = f.values;
   return (
-    <div className="flex items-end gap-5 flex-wrap mb-5" data-instrument>
+    <div className="flex items-end gap-5 flex-wrap mb-5" data-instrument data-tour="scale">
       <Flacon share={share} flow={f.flow} wobble={f.wobble} pct={pct} totalMl={shown.totalMl} theme={theme}
         layers={blend ? blendLayers(blend, share) : []} />
       <div className="flex-[1_1_190px] min-w-0">
@@ -223,11 +226,14 @@ export default function FragranceBlendCalculator(props) {
   return <Calculator key={run} {...props} fresh={run > 0} onStartOver={startOver} />;
 }
 
+// Pour along inside the Bench, for the tour's fourth stop (BenchMode's demo).
+const BenchModeDemo = lazy(() => import("./BenchMode"));
+
 function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const navigate = useNavigate();
   const entitlements = useEntitlements();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [prefill] = useState(() => prefillFromQuery(fresh ? new URLSearchParams() : searchParams));
   // What this tab last had in the calculator, unless a link brought values.
   const [draft] = useState(() => (fresh || linkCarriesValues(prefill) ? null : loadDraft()));
@@ -247,7 +253,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [matched, setMatched] = useState(null); // resolved { id, name, tier } or null
   const debouncedName = useDebouncedValue(fragName, 200);
 
-  const { profile } = useProfile();
+  const profileState = useProfile();
+  const { profile } = profileState;
   const [start] = useState(() => startingBottle(prefill, profile));
   const [tierKey, setTierKey] = useState(TIERS[draft?.tierKey] ? draft.tierKey : prefill.family ?? "fresh");
   const [batchSize, setBatchSize] = useState(draft?.batchSize ?? start.size);
@@ -271,7 +278,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [blend, setBlend] = useState(() => (Array.isArray(draft?.blend) && draft.blend.length ? draft.blend : null));
   const blendOn = formulaType === "blend" && Array.isArray(blend) && blend.length > 0;
   const mix = useMemo(() => (blendOn ? blendMix(blend) : null), [blendOn, blend]);
-  const { open: openUpgrade } = useUpgrade();
+  const { open: openUpgrade, close: closeUpgrade, state: upgradeState } = useUpgrade();
   const [ethanolPricePerL, setEthanolPricePerL] = useState(draft?.ethanolPricePerL ?? "");
   const [bottleCost, setBottleCost] = useState(draft?.bottleCost ?? "");
   const [bottles, setBottles] = useState(draft?.bottles ?? "1");
@@ -410,6 +417,80 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [clock] = useState(createBenchClock);
   useEffect(() => clock.retarget(benchTarget(result.shown)), [clock, result.shown]);
   useEffect(() => () => clock.stop(), [clock]);
+  // What bench mode pours: the batch on this sheet (also the tour's demo).
+  const benchPlan = () => ({
+    name: fragName.trim(),
+    fragranceId: matched?.id || null,
+    tier: tierKey,
+    amount: Number(batchSize),
+    unit: batchUnit,
+    concPct: Number(concPct),
+    densities: result.densities,
+    // A blend pours one material at a time (bench pour along); the
+    // density above is already the blend's.
+    blend: blendOn ? blend.map(({ name, type, pct }) => ({ name, type, pct })) : null,
+    // The rest of the record, so a bench log is as full as one from here.
+    oilType, pricePerGram, blendedBy,
+    // A new start, even of the same blend, starts a new bench run.
+    startedAt: Date.now(),
+  });
+
+  // The guided tour (Phase 7): six stops. Each sets the page up here; at the
+  // end everything it changed is put back from the snapshot. It never
+  // changes the plan: the cost stop is a preview drawn in the browser.
+  const [tourPour, setTourPour] = useState(null); // the demo run while the tour shows Pour along
+  const [costPreview, setCostPreview] = useState(false);
+  const [costK, setCostK] = useState(null); // the preview's count-up, 0 → 1; null = final
+  const countRaf = useRef(0);
+  const [toJournal, setToJournal] = useState(false);
+  const clearTourBits = () => { cancelAnimationFrame(countRaf.current); setTourPour(null); setCostPreview(false); setCostK(null); };
+  const tour = useBenchTour({
+    profile: profileState,
+    capture: () => ({ concPct, mode, formulaType, blend, measured: measuredDensityValue, chosenConc: chosen.current.conc, upgrade: upgradeState }),
+    show: (key, snap) => {
+      clearTourBits();
+      closeUpgrade();
+      setMode("bottle");
+      if (key === "sheet") { setFormulaType("simple"); setConcPct(tourStrength(snap.concPct)); }
+      else if (key === "blend" || key === "scale") switchType("blend");
+      else if (key === "pour") setTourPour(benchPlan());
+      else if (key === "cost" && !sellerOn) {
+        setCostPreview(true);
+        if (!reduced()) {
+          const t0 = performance.now();
+          const tick = (now) => {
+            const p = (now - t0) / COUNT_UP_MS;
+            setCostK(p < 1 ? countUp(p) : null);
+            if (p < 1) countRaf.current = requestAnimationFrame(tick);
+          };
+          setCostK(0);
+          countRaf.current = requestAnimationFrame(tick);
+        }
+      } else if (key === "upgrade") openUpgrade(null);
+    },
+    restore: (snap) => {
+      clearTourBits();
+      setConcPct(snap.concPct); setMode(snap.mode); setFormulaType(snap.formulaType); setBlend(snap.blend); setMeasuredDensity(snap.measured);
+      chosen.current.conc = snap.chosenConc;
+      if (snap.upgrade?.open) openUpgrade(snap.upgrade.reason); else closeUpgrade();
+    },
+  });
+  useEffect(() => () => cancelAnimationFrame(countRaf.current), []);
+  // First visit (per user, or per browser signed out), or ?tour=1: start by itself.
+  const tourAsked = useRef(searchParams.get("tour") === "1");
+  const tourTried = useRef(false);
+  useEffect(() => {
+    if (!tour.ready || tourTried.current || !(tourAsked.current || !tour.seen)) return undefined;
+    const id = setTimeout(() => {
+      tourTried.current = true;
+      if (tourAsked.current) setSearchParams((q) => { q.delete("tour"); return q; }, { replace: true });
+      tour.start();
+    }, 700);
+    return () => clearTimeout(id);
+  }, [tour.ready, tour.seen]); // eslint-disable-line react-hooks/exhaustive-deps
+  // "Open the Journal" on the last stop: leave once the page is put back (and its draft saved).
+  useEffect(() => { if (toJournal && !tour.tour) navigate("/journal"); }, [toJournal, tour.tour, navigate]);
+
   const money = (v, digits = 2) => `${v.toFixed(digits)} ${currency}`;
   const seller = sellerOn ? { ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice, currency } : undefined;
 
@@ -594,7 +675,9 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   return (
     <div className="w-full max-w-6xl xl:max-w-7xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <RoomBeam at={0} />
-      <RoomHeader numeral="I" name={t("site.compounding.rooms.bench.name")} title={t("calc.heading")} />
+      <RoomHeader numeral="I" name={t("site.compounding.rooms.bench.name")} title={t("calc.heading")}>
+        <TakeTour onStart={tour.start} t={t} />
+      </RoomHeader>
       <RestingLine />
       <div className="xl:grid xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-10 xl:items-start">
       {/* Saved formulas: in the rail on wide screens, a bottom sheet below that. */}
@@ -651,7 +734,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         </div>
       ) : (
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] gap-8 items-start">
-        <div className="kx-grain p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
+        <div data-tour="sheet" className="kx-grain p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
           <h2 className="text-base font-serif font-semibold mb-3" style={{ color: COLORS.forestDeep }}>{t("calc.benchSheet")}</h2>
           <div role="group" aria-label={t("calc.blend.mode")} className="inline-flex mb-5 rounded" style={{ border: `1px solid ${COLORS.ink}` }}>
             {["simple", "blend"].map((k) => (
@@ -736,8 +819,10 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           </Field>
 
           {blendOn && (
-            <BlendEditor rows={blend} onChange={(rows) => setBlend(rows.length ? rows : [newIngredient()])} concentrateG={result.shown.oilG}
-              canAdd={canAddMaterial} cap={ingredientCap} onLocked={() => openUpgrade("blend")} currency={currency} t={t} />
+            <div data-tour="blend">
+              <BlendEditor rows={blend} onChange={(rows) => setBlend(rows.length ? rows : [newIngredient()])} concentrateG={result.shown.oilG}
+                canAdd={canAddMaterial} cap={ingredientCap} onLocked={() => openUpgrade("blend")} currency={currency} t={t} />
+            </div>
           )}
 
           <Presets
@@ -977,22 +1062,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
           <button
             type="button"
-            onClick={() => navigate("/app/bench", { state: { plan: {
-              name: fragName.trim(),
-              fragranceId: matched?.id || null,
-              tier: tierKey,
-              amount: Number(batchSize),
-              unit: batchUnit,
-              concPct: Number(concPct),
-              densities: result.densities,
-              // A blend pours one material at a time (bench pour along); the
-              // density above is already the blend's.
-              blend: blendOn ? blend.map(({ name, type, pct }) => ({ name, type, pct })) : null,
-              // The rest of the record, so a bench log is as full as one from here.
-              oilType, pricePerGram, blendedBy,
-              // A new start, even of the same blend, starts a new bench run.
-              startedAt: Date.now(),
-            } } })}
+            onClick={() => navigate("/app/bench", { state: { plan: benchPlan() } })}
             disabled={!(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
             className="w-full mt-5 px-4 py-3 text-sm font-semibold border disabled:opacity-50"
             style={{ borderColor: COLORS.actionText, color: COLORS.actionText }}
@@ -1070,11 +1140,22 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       </div>
       )}
       {mode === "bottle" && (
-        <CostCard unlocked={sellerOn} onUnlock={() => openUpgrade("cost")} t={t} currency={currency}
+        <div data-tour="cost">
+        <CostCard unlocked={sellerOn} preview={costPreview} countK={costK} onUnlock={() => openUpgrade("cost")} t={t} currency={currency}
           oilG={result.shown.oilG} ethMl={result.shown.ethanolMl} totMl={result.shown.totalMl}
           oilPrice={blendOn ? Number(priceUsed) || 0 : pricePerGram} onOilPrice={setPricePerGram} oilReadOnly={blendOn}
           ethPrice={ethanolPricePerL} onEthPrice={setEthanolPricePerL} pack={packagingCost} onPack={setPackagingCost} />
+        </div>
       )}
+      {tourPour && (
+        <div className="fixed inset-0 overflow-y-auto px-3 pt-6 pb-80 md:p-6" style={{ zIndex: 70, background: "rgba(16,14,11,.3)" }}>
+          <div data-tour="pour" className="max-w-2xl mx-auto lg:ms-[max(1.5rem,calc(50%-34rem))]">
+            <Suspense fallback={null}><BenchModeDemo demo={{ plan: tourPour, onExit: tour.end }} /></Suspense>
+          </div>
+        </div>
+      )}
+      {tour.tour && <TourLayer i={tour.tour.i} t={t} rtl={locale === "ar"} onGo={tour.go} onEnd={tour.end}
+        onJournal={() => { tour.end(); setToJournal(true); }} />}
       </div>
       </div>
     </div>
