@@ -16,6 +16,7 @@ PNG and share links Free; inventory Pro; pour steps in `BenchMode.jsx`).
 | Journal room (rest tracker) | `/journal` (`/ar/journal`) | `journal/JournalRoom.jsx`, `journal/RestingLine.jsx` | `calc/restTracker.ts`, `journal.js` | `e2e/journal-room.spec.js` | `screens/journal/`, `qa/screens/journal-*` |
 | Batches (records) | `/bench/journal` | `components/Batches.jsx` | `calc/journal.ts` | `e2e/journal.spec.js` | — |
 | Guided tour | `/bench` (link, first visit, `?tour=1`) | `tour/BenchTour.jsx` | `tour.js` | `e2e/bench-tour.spec.js` | `screens/tour/`, `qa/screens/tour-*` |
+| Home page bench card (section I) | `/`, `/ar` (hero; the scroll scene's handoff) | `site/LiveBench.jsx`, `kx/Flacon.jsx` (`stand={false}`), `kx/benchClock.js`, `Bottle.jsx` (`Segmented`), `site/compounding/parts.jsx` (side gauge) | `site/benchFigures.js`, `calc/flacon.ts` | `e2e/home-bench.spec.js`, `src/site/benchFigures.test.js`, `src/components/kx/benchClock.test.js` | `screens/home/` |
 
 Accessibility of all of the above (EN/AR × light/dark): `e2e/a11y-bench-saas.spec.js`.
 
