@@ -11,9 +11,11 @@ const FIELDS = {
   oilType: "string", pricePerGram: "any", notes: "string",
   actualOilG: "any", actualEthG: "any", blendedBy: "string", blendDate: "string",
   measuredDensity: "number", densities: "object", chosenFamily: "boolean", chosenConc: "boolean",
+  formulaType: "string", blend: "array",
 };
 
 const ok = (type, v) => (type === "any" ? typeof v === "string" || typeof v === "number"
+  : type === "array" ? Array.isArray(v) && v.every((x) => x !== null && typeof x === "object")
   : type === "object" ? v !== null && typeof v === "object" && !Array.isArray(v)
   : typeof v === type);
 
