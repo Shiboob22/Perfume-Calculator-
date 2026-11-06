@@ -46,6 +46,18 @@ Sort control: a toggle-chip row (`kx/Chip`, `aria-pressed`) above the list, unde
 
 On desktop (lg) the list keeps its 300 px column. With the rail gone, the list and the detail start at the top of the room.
 
+## Directions (owner, 2026-11-06)
+
+Newest, Maceration and Size each run either way; **Needs a note has no direction** (owner's call). A button under the chips names the current order in words and flips it:
+
+| Sort | Default | Flipped |
+|---|---|---|
+| Newest | Newest first (`desc`) | Oldest first (`asc`) |
+| Maceration | Closest to ready first (`asc`, by start) | Just started first (`desc`) |
+| Size | Largest first (`desc`) | Smallest first (`asc`) |
+
+Choosing another sort starts it in its default direction. Batch number still breaks ties newest first, and an unknown start or size stays last, in either direction. Kept in `?dir=` and localStorage `kyphira.journalSortDir`. Pure: `journalSortDir()`, `SORT_DEFAULT_DIR`, `journalSort(items, key, dir)`.
+
 ## State
 
 - `?sort=` in the URL, written with `replace` next to `?batch=`. An unknown value reads as `note`.
