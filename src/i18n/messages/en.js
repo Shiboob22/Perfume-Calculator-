@@ -44,7 +44,6 @@ export default {
       },
     },
     limit: {
-      formulas: "Your Free plan saves up to {cap} formulas. Delete one, or every formula is part of Pro.",
       ingredients: "Your Free plan allows up to {cap} materials in a blend. More are part of Pro.",
     },
     trial: {
@@ -897,7 +896,6 @@ export default {
     lead: "For makers who sell what they pour.",
     why: {
       blend: "Free blends hold 3 ingredients. Pro has no limit.",
-      formulas: "Free keeps 5 formulas. Pro keeps every one.",
       cost: "Price every bottle before you pour.",
       reminders: "Reminders are a Pro tool.",
     },
@@ -947,7 +945,7 @@ export default {
       title: "Formulas", open: "Your formulas", search: "Search formulas", families: "Filter by family", all: "All",
       load: "Load", loaded: "Loaded", loadName: "Load {name}", loadedName: "{name} is loaded",
       save: "Save formula", saved: "Saved to Formulas as {label}", needName: "Give the formula a name first (the fragrance name above).",
-      count: "{n} of {max} on Free", countPro: "{n} saved", empty: "No formulas match.", none: "No formulas yet. Save one from the Bench.", close: "Close",
+      count: "{n} of {max} on Free", countAll: "{n} saved", full: "You can keep up to {cap} formulas. Delete one to save another.", empty: "No formulas match.", none: "No formulas yet. Save one from the Bench.", close: "Close",
       materials: { one: "{count} material", other: "{count} materials" },
     },
     costCard: {

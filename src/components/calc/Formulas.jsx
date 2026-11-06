@@ -66,9 +66,9 @@ export function useFormulas({ current, blend, entitlements, initialVersionId, on
     if (!clean) return setStatus({ kind: "error", text: t("calc.formulas.needName") });
     // The loaded formula under the same name gets a new version; anything else is a new formula.
     const asVersion = activeRecipe && activeRecipe.name.trim().toLowerCase() === clean.toLowerCase();
+    // No plan limits formulas (0034); a plan row with a cap would still be honoured here.
     if (!asVersion && entitlements.loaded && !entitlements.failed && !canAddFormula(entitlements, formulas.length)) {
-      onLocked("formulas");
-      return setStatus({ kind: "error", text: t("plan.limit.formulas", { cap: limit(entitlements, "formulas") }) });
+      return setStatus({ kind: "error", text: t("calc.formulas.full", { cap: limit(entitlements, "formulas") }) });
     }
     setBusy(true); setStatus({ kind: null, text: "" });
     try {
@@ -88,9 +88,12 @@ export function useFormulas({ current, blend, entitlements, initialVersionId, on
       setActive({ recipeId: saved.id, versionId: v.id });
       setStatus({ kind: "saved", text: t("calc.formulas.saved", { label: recipeLabel({ name: saved.name, version: v.version }) }) });
     } catch (e) {
-      if (e instanceof LimitError) {
-        onLocked(e.code === "ingredient_cap" ? "blend" : "formulas");
-        setStatus({ kind: "error", text: t(e.code === "ingredient_cap" ? "plan.limit.ingredients" : "plan.limit.formulas", { cap: e.cap }) });
+      if (e instanceof LimitError && e.code === "ingredient_cap") {
+        onLocked("blend");
+        setStatus({ kind: "error", text: t("plan.limit.ingredients", { cap: e.cap }) });
+      } else if (e instanceof LimitError) {
+        // The database's 50-per-user guard, the same on every plan: Pro would not lift it.
+        setStatus({ kind: "error", text: t("calc.formulas.full", { cap: e.cap }) });
       } else {
         setStatus({ kind: "error", text: e?.code === "23505" ? t("calc.recipes.exists") : t("calc.recipes.saveFailed") });
       }
@@ -125,7 +128,7 @@ function Count({ count, entitlements, t }) {
   const cap = limit(entitlements, "formulas");
   return (
     <span data-formula-count className="text-xs tabular-nums whitespace-nowrap" style={{ color: count >= cap ? COLORS.actionText : COLORS.dim, fontWeight: count >= cap ? 600 : 400 }}>
-      {cap === Infinity ? t("calc.formulas.countPro", { n: count }) : t("calc.formulas.count", { n: count, max: cap })}
+      {cap === Infinity ? t("calc.formulas.countAll", { n: count }) : t("calc.formulas.count", { n: count, max: cap })}
     </span>
   );
 }

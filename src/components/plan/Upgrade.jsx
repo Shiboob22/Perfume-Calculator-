@@ -9,7 +9,7 @@ import Sheet from "../kx/Sheet";
 
 // The upgrade sheet (Bench SaaS): Free vs Pro, monthly or yearly, and the
 // 14-day trial. Any screen opens it with useUpgrade().open(reason), where
-// reason ("blend" | "formulas" | "cost" | "reminders" | null) picks the
+// reason ("blend" | "cost" | "reminders" | null) picks the
 // headline (`state` is what is open, for the Bench tour to put back). No payment is taken: the trial is the only way in for now.
 const UpgradeContext = createContext({ open: () => {}, close: () => {}, state: { open: false, reason: null } });
 
@@ -47,7 +47,7 @@ export function PlanBadge() {
   );
 }
 
-const HEADLINES = { blend: "upgrade.why.blend", formulas: "upgrade.why.formulas", cost: "upgrade.why.cost", reminders: "upgrade.why.reminders" };
+const HEADLINES = { blend: "upgrade.why.blend", cost: "upgrade.why.cost", reminders: "upgrade.why.reminders" };
 
 /**
  * Starts the 14-day Pro trial and refreshes the plan. `start()` resolves to

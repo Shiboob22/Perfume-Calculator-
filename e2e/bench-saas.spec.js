@@ -13,7 +13,7 @@ test.use({ serviceWorkers: "block" });
 
 const RECIPE_ID = "55555555-5555-4555-8555-555555555555";
 const V1 = "66666666-6666-4666-8666-666666666661";
-const FREE = { plan: "free", name: "Free", features: ["cards.download"], batchCap: 25, formulaCap: 5, ingredientCap: 3, journalWindow: 3, trial: null, batchesUsed: 2 };
+const FREE = { plan: "free", name: "Free", features: ["cards.download"], batchCap: 25, formulaCap: null, ingredientCap: 3, journalWindow: 3, trial: null, batchesUsed: 2 };
 const PRO = { plan: "pro", name: "Pro", features: ["batches.unlimited", "inventory", "ai.ask", "export.labels", "calculator.advanced", "cards.download", "journal.insights", "journal.checkins", "journal.reminders"], batchCap: null, formulaCap: null, ingredientCap: null, journalWindow: null, trial: { active: true, used: true, daysLeft: 14 }, batchesUsed: 2 };
 
 const savedFormula = {
@@ -75,12 +75,13 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
       await page.getByRole("button", { name: new RegExp(f.open) }).click();
       const sheet = page.getByRole("dialog", { name: f.title });
       await expect(sheet).toBeVisible();
-      await expect(sheet.getByText(f.count.replace("{n}", "1").replace("{max}", "5"))).toBeVisible();
+      // Free has no formula limit (0034): a plain count, no "of 5".
+      await expect(sheet.getByText(f.countAll.replace("{n}", "1"), { exact: true })).toBeVisible();
       await sheet.getByRole("button", { name: f.loadName.replace("{name}", "Neroli Eau") }).click();
       await expect(sheet).toBeHidden();
     } else {
       const rail = page.getByRole("region", { name: f.title });
-      await expect(rail.getByText(f.count.replace("{n}", "1").replace("{max}", "5"))).toBeVisible();
+      await expect(rail.getByText(f.countAll.replace("{n}", "1"), { exact: true })).toBeVisible();
       await rail.getByRole("button", { name: f.loadName.replace("{name}", "Neroli Eau") }).click();
       await expect(rail.getByRole("button", { name: f.loadedName.replace("{name}", "Neroli Eau") })).toHaveAttribute("aria-pressed", "true");
     }
@@ -116,6 +117,10 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     await expect(upgrade.getByRole("row")).toHaveCount(1 + 9);
     await expect(upgrade.getByRole("row", { name: new RegExp(m.upgrade.rows.label) }).getByRole("cell").first()).toHaveText("✓");
     await expect(upgrade.getByRole("row", { name: new RegExp(m.upgrade.rows.share) }).getByRole("cell").first()).toHaveText("✓");
+    // Saved formulas: the same on both plans (Free kept what it had, 0034).
+    const formulasRow = upgrade.getByRole("row", { name: new RegExp(m.upgrade.rows.formulas) }).getByRole("cell");
+    await expect(formulasRow.nth(0)).toHaveText("✓");
+    await expect(formulasRow.nth(1)).toHaveText("✓");
     // Monthly / yearly.
     await upgrade.getByRole("button", { name: m.upgrade.monthly, exact: true }).click();
     await expect(upgrade.getByText(m.upgrade.perMonth)).toBeVisible();

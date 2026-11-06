@@ -28,12 +28,13 @@ export const COST_SAMPLE = Object.freeze({ oilPrice: 8, ethPrice: 150, pack: 45 
 // The upgrade sheet's comparison, row by row (prototype plan.rows). Values
 // are message keys under plan.compare, or numbers/limits read from the
 // entitlements. Label PNG and share links are Free on every plan (owner,
-// Phase 0), so both columns tick them.
+// Phase 0), so both columns tick them. Saved formulas too: Free could save
+// as many as Pro before this round, so it keeps that (0034).
 export const COMPARE_ROWS = Object.freeze([
   { key: "bench", free: "yes", pro: "yes" },
   { key: "presets", free: "yes", pro: "yes" },
   { key: "ingredients", free: { limit: "ingredients" }, pro: "unlimited" },
-  { key: "formulas", free: { limit: "formulas" }, pro: "unlimited" },
+  { key: "formulas", free: "yes", pro: "yes" },
   { key: "rest", free: "lastBatches", pro: "fullHistory" },
   { key: "reminders", free: "no", pro: "yes" },
   { key: "cost", free: "no", pro: "yes" },

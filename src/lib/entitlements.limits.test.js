@@ -32,8 +32,8 @@ describe("Bench SaaS gates", () => {
 });
 
 describe("limit()", () => {
-  it("gives Free 5 formulas, 3 blend materials and the last 3 journal batches", () => {
-    expect(limit(free, "formulas")).toBe(5);
+  it("gives Free 3 blend materials and the last 3 journal batches, and no formula limit (0034)", () => {
+    expect(limit(free, "formulas")).toBe(Infinity);
     expect(limit(free, "ingredients")).toBe(3);
     expect(limit(free, "journalBatches")).toBe(3);
   });
@@ -41,18 +41,24 @@ describe("limit()", () => {
     for (const n of ["formulas", "ingredients", "journalBatches"]) expect(limit(pro, n)).toBe(Infinity);
   });
   it("reads missing entitlements or an old plan row as Free, never as unlimited", () => {
-    expect(limit(undefined, "formulas")).toBe(5);
+    expect(limit(undefined, "ingredients")).toBe(3);
+    expect(limit(undefined, "formulas")).toBe(Infinity); // Free has no formula limit
     expect(limit(FALLBACK, "ingredients")).toBe(3);
     expect(limit({ features: [] }, "journalBatches")).toBe(3);
+    // An old /api/me answer without formulaCap reads Free's (none), never as null.
+    expect(limit({ features: [] }, "formulas")).toBe(Infinity);
+    expect(canAddFormula({ features: [] }, 0)).toBe(true);
   });
   it("refuses an unknown limit name", () => {
     expect(() => limit(free, "bottles")).toThrow(/Unknown limit/);
   });
   it("counts down to the cap", () => {
-    expect(left(free, "formulas", 3)).toBe(2);
-    expect(left(free, "formulas", 9)).toBe(0);
-    expect(canAddFormula(free, 4)).toBe(true);
-    expect(canAddFormula(free, 5)).toBe(false);
+    const capped = fromPlanRow({ id: "x", name: "Capped", features: [], formula_cap: 5 });
+    expect(left(capped, "formulas", 3)).toBe(2);
+    expect(left(capped, "formulas", 9)).toBe(0);
+    expect(canAddFormula(capped, 4)).toBe(true);
+    expect(canAddFormula(capped, 5)).toBe(false);
+    expect(canAddFormula(free, 40)).toBe(true);
     expect(canAddFormula(pro, 500)).toBe(true);
     expect(canAddIngredient(free, 2)).toBe(true);
     expect(canAddIngredient(free, 3)).toBe(false);
