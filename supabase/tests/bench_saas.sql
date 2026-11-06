@@ -1,6 +1,8 @@
 -- =====================================================================
 -- 0031 checks (Bench SaaS, Phase 2): plan limits enforced by the database,
 -- recipe_ingredients isolation, batch numbers, note tags, the trial.
+-- Since 0034 Free has no formula limit (the 50-per-user guard applies to
+-- every plan, as before 0031): run after 0034.
 -- Run against STAGING only (Supabase MCP execute_sql, or psql -f).
 -- Same shape as rls_isolation.sql: throwaway users, acting as PostgREST
 -- does for a signed-in request; any failure raises "BENCH_SAAS FAILED: …";
@@ -42,9 +44,9 @@ begin
   if public.effective_plan(free_u) <> 'free' then raise exception 'BENCH_SAAS FAILED: no plan row is not Free'; end if; checks := checks + 1;
   if public.effective_plan(pro_u) <> 'pro' then raise exception 'BENCH_SAAS FAILED: manual Pro is not Pro'; end if; checks := checks + 1;
   if public.effective_plan(ended_u) <> 'free' then raise exception 'BENCH_SAAS FAILED: an ended trial is still Pro'; end if; checks := checks + 1;
-  if public.plan_limit(free_u, 'formula_cap') <> 5 or public.plan_limit(free_u, 'ingredient_cap') <> 3
+  if public.plan_limit(free_u, 'formula_cap') is not null or public.plan_limit(free_u, 'ingredient_cap') <> 3
      or public.plan_limit(free_u, 'journal_window') <> 3 then
-    raise exception 'BENCH_SAAS FAILED: Free limits are not 5 / 3 / 3';
+    raise exception 'BENCH_SAAS FAILED: Free limits are not none / 3 / 3 (0034)';
   end if; checks := checks + 1;
   if public.plan_limit(pro_u, 'formula_cap') is not null then raise exception 'BENCH_SAAS FAILED: Pro has a formula cap'; end if; checks := checks + 1;
 
@@ -95,14 +97,15 @@ begin
   perform set_config('request.jwt.claim.sub', free_u::text, true);
   perform set_config('role', 'authenticated', true);
 
-  for i in 1..5 loop
+  -- Free saves as many formulas as before 0031 (0034): up to the 50 guard.
+  for i in 1..50 loop
     insert into public.recipes (name) values ('Free ' || i);
   end loop;
   checks := checks + 1;
   ok := false;
-  begin insert into public.recipes (name) values ('Free 6');
+  begin insert into public.recipes (name) values ('Free 51');
   exception when sqlstate '54000' then ok := true; end;
-  if not ok then raise exception 'BENCH_SAAS FAILED: Free saved a sixth formula'; end if; checks := checks + 1;
+  if not ok then raise exception 'BENCH_SAAS FAILED: the 50-formula guard let a 51st in'; end if; checks := checks + 1;
 
   insert into public.recipe_versions (recipe_id, amount, unit, concentration_pct)
   select id, 50, 'ml', 20 from public.recipes where name = 'Free 1' returning id into rv_free;
@@ -123,7 +126,7 @@ begin
   if not ok then raise exception 'BENCH_SAAS FAILED: a user can start a trial without the API'; end if; checks := checks + 1;
   -- A user can't lift their own cap.
   ok := false;
-  begin update public.plans set formula_cap = null where id = 'free';
+  begin update public.plans set ingredient_cap = null where id = 'free';
   exception when insufficient_privilege then ok := true; end;
   if not ok then raise exception 'BENCH_SAAS FAILED: a user changed the Free plan'; end if; checks := checks + 1;
 
@@ -156,17 +159,20 @@ begin
   perform set_config('request.jwt.claim.sub', old_u::text, true);
   select count(*) into n from public.recipes;
   if n <> 6 then raise exception 'BENCH_SAAS FAILED: old recipes over the cap were lost (%)', n; end if; checks := checks + 1;
-  ok := false;
+  ok := true;
   begin insert into public.recipes (name) values ('Seventh');
-  exception when sqlstate '54000' then ok := true; end;
-  if not ok then raise exception 'BENCH_SAAS FAILED: a Free user over the cap added another'; end if; checks := checks + 1;
+  exception when sqlstate '54000' then ok := false; end;
+  if not ok then raise exception 'BENCH_SAAS FAILED: a Free user with six recipes could not save a seventh (0034)'; end if; checks := checks + 1;
 
   -- ---------------------------------------------- the ended trial is Free
   perform set_config('request.jwt.claims', json_build_object('sub', ended_u, 'role', 'authenticated')::text, true);
   perform set_config('request.jwt.claim.sub', ended_u::text, true);
-  for i in 1..5 loop insert into public.recipes (name) values ('Ended ' || i); end loop;
+  insert into public.recipes (name) values ('Ended 1');
+  insert into public.recipe_versions (recipe_id, amount, unit, concentration_pct)
+  select id, 50, 'ml', 20 from public.recipes where name = 'Ended 1' returning id into rv_pro;
+  insert into public.recipe_ingredients (version_id, position, name, pct) select rv_pro, g, 'E' || g, 10 from generate_series(0, 2) g;
   ok := false;
-  begin insert into public.recipes (name) values ('Ended 6');
+  begin insert into public.recipe_ingredients (version_id, position, name, pct) values (rv_pro, 3, 'E3', 10);
   exception when sqlstate '54000' then ok := true; end;
   if not ok then raise exception 'BENCH_SAAS FAILED: an ended trial kept Pro limits'; end if; checks := checks + 1;
 
