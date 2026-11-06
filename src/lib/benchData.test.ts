@@ -11,7 +11,9 @@ import {
 // @ts-ignore: plain JS
 import { fromPlanRow } from "./entitlements.js";
 
-const free = fromPlanRow({ id: "free", name: "Free", features: [], batch_cap: 25, formula_cap: 5, ingredient_cap: 3, journal_window: 3 });
+const free = fromPlanRow({ id: "free", name: "Free", features: [], batch_cap: 25, formula_cap: null, ingredient_cap: 3, journal_window: 3 });
+// A plan row that does cap formulas (none does since 0034); the mechanism stays.
+const capped = fromPlanRow({ id: "capped", name: "Capped", features: [], batch_cap: 25, formula_cap: 5, ingredient_cap: 3, journal_window: 3 });
 const pro = fromPlanRow({ id: "pro", name: "Pro", features: ["journal.checkins", "journal.reminders"], batch_cap: null });
 
 type Answer = { data?: unknown; error?: { code?: string; message?: string } | null };
@@ -88,16 +90,16 @@ describe("saveFormula", () => {
     ]);
   });
 
-  it("refuses a sixth formula on Free before writing anything", async () => {
+  it("refuses a formula over a plan's formula cap before writing anything", async () => {
     const { db, log } = fakeDb({});
-    await expect(saveFormula(db, free, 5, { name: "Six", version: VERSION })).rejects.toEqual(new LimitError("formula_cap", 5));
+    await expect(saveFormula(db, capped, 5, { name: "Six", version: VERSION })).rejects.toEqual(new LimitError("formula_cap", 5));
     expect(log).toEqual([]);
   });
 
   it("lets Pro save past 5, and versions of a saved formula never count", async () => {
     const { db } = fakeDb({ "recipes.insert": [{ data: { id: "r1" } }], "recipe_versions.insert": [{ data: { id: "v1" } }, { data: { id: "v2" } }], "recipes.select": [{ data: [SAVED] }, { data: [SAVED] }] });
     await expect(saveFormula(db, pro, 40, { name: "Many", version: VERSION })).resolves.toEqual(SAVED);
-    await expect(saveFormula(db, free, 5, { recipeId: "r1", version: VERSION })).resolves.toEqual(SAVED);
+    await expect(saveFormula(db, capped, 5, { recipeId: "r1", version: VERSION })).resolves.toEqual(SAVED);
   });
 
   it("refuses a fourth material on Free before writing anything", async () => {

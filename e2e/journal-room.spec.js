@@ -35,7 +35,7 @@ const fixtures = () => [
   batch(1, "Tonka Praline", "gourmand", 120),
 ];
 
-const FREE = { plan: "free", name: "Free", features: ["cards.download"], batchCap: 25, formulaCap: 5, ingredientCap: 3, journalWindow: 3, trial: null, batchesUsed: 5 };
+const FREE = { plan: "free", name: "Free", features: ["cards.download"], batchCap: 25, formulaCap: null, ingredientCap: 3, journalWindow: 3, trial: null, batchesUsed: 5 };
 const PRO = { plan: "pro", name: "Pro", features: FEATURES, batchCap: null, formulaCap: null, ingredientCap: null, journalWindow: null, trial: null, batchesUsed: 5 };
 
 async function fakeApi(page, { plan = "pro", locale = "en", batches = fixtures() } = {}) {

@@ -37,10 +37,11 @@ export const LIMITS = Object.freeze({
 });
 
 // What a user gets when no plan row can be loaded: Free, with nothing extra
-// and Free's limits.
+// and Free's limits. Free has no formula limit (0034): every plan keeps the
+// database's 50-per-user guard, as before the Bench SaaS round.
 export const FALLBACK = Object.freeze({
   plan: "free", name: "Free", features: [], batchCap: 25,
-  formulaCap: 5, ingredientCap: 3, journalWindow: 3, trial: null,
+  formulaCap: null, ingredientCap: 3, journalWindow: 3, trial: null,
 });
 
 // Normalise a `plans` row (snake_case, from the database) into entitlements.
