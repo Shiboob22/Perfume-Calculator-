@@ -117,10 +117,10 @@ test("the feed shows posts with the safety copy, filters by kind, and says when 
 
   await page.getByRole("button", { name: en.salon.feed.recipe }).click();
   await expect(page.getByRole("heading", { name: "Fresh and clean" })).toHaveCount(0);
-  expect(seen.feed.at(-1)).toMatchObject({ p_kind: "recipe", p_following: false });
+  await expect.poll(() => seen.feed.at(-1)).toMatchObject({ p_kind: "recipe", p_following: false });
   await page.getByRole("button", { name: en.salon.feed.following }).click();
   await expect(page.getByText(en.salon.feed.emptyFollowing)).toBeVisible();
-  expect(seen.feed.at(-1)).toMatchObject({ p_following: true });
+  await expect.poll(() => seen.feed.at(-1)).toMatchObject({ p_following: true });
 });
 
 test("a private profile can read but is told how to post", async ({ page }) => {
@@ -143,7 +143,7 @@ test("like toggles with a count, and a report sends the reason", async ({ page }
   await card.getByRole("button", { name: new RegExp(`^${en.salon.post.like}`) }).click();
   await expect(card.getByRole("button", { name: new RegExp(`^${en.salon.post.unlike}`) })).toHaveAttribute("aria-pressed", "true");
   await expect(card.getByRole("button", { name: /3$/ })).toBeVisible();
-  expect(seen.likes.at(-1)).toMatchObject({ post_id: P1 });
+  await expect.poll(() => seen.likes.at(-1)).toMatchObject({ post_id: P1 });
   await card.getByRole("button", { name: new RegExp(`^${en.salon.post.unlike}`) }).click();
   await expect.poll(() => seen.unlikes.length).toBe(1);
 
