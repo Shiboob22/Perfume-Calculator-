@@ -111,9 +111,11 @@ test("a batch logged on the bench shows up resting in the Journal", async ({ pag
   await expect(row).toContainText("Oud Nights");
   await expect(row).toContainText(en.journal.page.newBadge);
   await expect(row).toHaveAttribute("aria-pressed", "true");
-  const card = page.locator(`[data-soon="${sent.logs[0].id}"]`);
-  await expect(card).toContainText(en.journal.page.readyIn.other.replace("{count}", "90"));
-  await expect(card).toContainText(en.journal.page.progress.replace("{n}", "0"));
+  // The row carries the rest progress and, owing its Day 1 note, leads the list.
+  await expect(row).toContainText(en.journal.page.readyIn.other.replace("{count}", "90"));
+  await expect(row).toContainText(en.journal.page.progress.replace("{n}", "0"));
+  await expect(row).toContainText(en.journal.page.noteDue.replace("{milestone}", en.journal.page.milestones.d1));
+  await expect(page.locator("[data-batch]").first()).toHaveAttribute("data-batch", sent.logs[0].id);
   const detail = page.getByRole("region", { name: "Oud Nights" });
   await expect(detail).toContainText("No. 006");
   // Day 1 is today: its note is open; Week 1 is ahead.
@@ -132,12 +134,10 @@ test("a note at a milestone, two notes compared, and the reminder (Pro)", async 
   await page.goto("/journal");
   const p = en.journal.page;
 
-  // Ready soon: nearest first, ready batches last.
-  const soon = page.getByRole("region", { name: p.soon }).locator("[data-soon]");
-  await expect(soon).toHaveCount(5);
-  await expect(soon.nth(0)).toContainText("Santal Dry");
-  await expect(soon.nth(3)).toContainText(p.ready);
-  await expect(soon.nth(4)).toContainText(p.ready);
+  // "Ready soon" is folded into the list: no rail, rest progress on each row.
+  await expect(page.getByRole("heading", { name: p.soon })).toHaveCount(0);
+  await expect(page.locator(`[data-batch="${id(1)}"] [data-ready]`)).toHaveText(p.ready);
+  await expect(page.locator(`[data-batch="${id(3)}"] [data-ready]`)).toHaveText(p.readyIn.other.replace("{count}", "40"));
   // The list's milestone dots: Neroli has notes at Day 1 and Week 1, reached Week 2.
   await expect(page.locator(`[data-batch="${id(4)}"]`)).toContainText("● ● ○ · ·");
 
@@ -182,6 +182,62 @@ test("a note at a milestone, two notes compared, and the reminder (Pro)", async 
   expect(sent.reminds).toEqual([{ id: id(4), remind: true }]);
   await expect(detail.getByText(p.remindNote)).toBeVisible();
 
+  await settle(page);
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});
+
+const order = (page) => page.locator("[data-batch]").evaluateAll((els) => els.map((e) => e.getAttribute("data-batch")));
+
+test("the list sorts: needs a note (default), newest, maceration, size; kept on reload", async ({ page }) => {
+  await signIn(page);
+  const batches = fixtures();
+  [30, 100, 10, 50, 100].forEach((ml, i) => { batches[i].total_ml = ml; });
+  await fakeApi(page, { batches });
+  await page.goto("/journal");
+  const p = en.journal.page;
+  const sorts = page.getByRole("group", { name: p.sort.label });
+  await expect(sorts.getByRole("button", { name: p.sort.note })).toHaveAttribute("aria-pressed", "true");
+  // Neroli owes Week 2 (closes in 10 days), Santal Month 1 (40), then the two
+  // at Month 3 (never closes), then Amber, noted.
+  await expect.poll(() => order(page)).toEqual([id(4), id(3), id(2), id(1), id(5)]);
+  // With no batch picked, the room opens on the first row.
+  await expect(page.locator(`[data-batch="${id(4)}"]`)).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(`[data-batch="${id(4)}"] [data-due]`)).toHaveText(p.noteDue.replace("{milestone}", p.milestones.w2));
+  await expect(page.locator(`[data-batch="${id(5)}"] [data-due]`)).toHaveCount(0);
+
+  await sorts.getByRole("button", { name: p.sort.new }).click();
+  await expect.poll(() => order(page)).toEqual([id(5), id(4), id(3), id(2), id(1)]);
+  await expect(page.locator("[data-due]")).toHaveCount(0);
+  await sorts.getByRole("button", { name: p.sort.rest }).click();
+  await expect.poll(() => order(page)).toEqual([id(1), id(2), id(3), id(4), id(5)]);
+  await sorts.getByRole("button", { name: p.sort.size }).click();
+  // 100 mL twice: the newer first.
+  await expect.poll(() => order(page)).toEqual([id(4), id(1), id(2), id(5), id(3)]);
+  await expect(page).toHaveURL(/[?&]sort=size/);
+  // The selected batch stays selected across sorts.
+  await expect(page.locator(`[data-batch="${id(4)}"]`)).toHaveAttribute("aria-pressed", "true");
+
+  // Kept on reload and, with no ?sort=, remembered on this device.
+  await page.reload();
+  await expect(sorts.getByRole("button", { name: p.sort.size })).toHaveAttribute("aria-pressed", "true");
+  await page.goto("/journal");
+  await expect(sorts.getByRole("button", { name: p.sort.size })).toHaveAttribute("aria-pressed", "true");
+  await page.goto("/journal?sort=bogus");
+  await expect(sorts.getByRole("button", { name: p.sort.note })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("ar: the sort chips at 320 px", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await signIn(page);
+  await fakeApi(page, { locale: "ar" });
+  await page.goto("/ar/journal");
+  const p = ar.journal.page;
+  const sorts = page.getByRole("group", { name: p.sort.label });
+  await expect(sorts.getByRole("button")).toHaveCount(4);
+  await sorts.getByRole("button", { name: p.sort.rest }).click();
+  await expect.poll(() => order(page)).toEqual([id(1), id(2), id(3), id(4), id(5)]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await settle(page);
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
   expect(axe.violations).toEqual([]);
