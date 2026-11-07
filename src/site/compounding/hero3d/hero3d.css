@@ -1,0 +1,53 @@
+/* The 3D pour hero: only what inline styles can't say (sticky, svh, media
+   queries, theme). Positions use logical properties so Arabic mirrors. */
+.h3 { --h3-ground: #D09A55; --h3-glow: #E8BE80; --h3-edge: #A86F35; --h3-at: 72% 42%; --h3-pill: #1C130A; --h3-pill-text: #F3E4CF; --h3-rail: #E9B46E; position: relative; background: var(--h3-ground); color: var(--c-ink); }
+/* Dark edition: soot ground with an ember glow behind the bottle (a first pass; the prototype had no dark scene). */
+:root[data-theme="dark"] .h3 { --h3-ground: #241A12; --h3-glow: #4A3220; --h3-edge: #14110E; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .h3 { --h3-ground: #241A12; --h3-glow: #4A3220; --h3-edge: #14110E; } }
+/* Text on the warm ground uses ink and ink-soft only (dim is under 4.5:1 on it). */
+
+[dir="rtl"] .h3 { --h3-at: 28% 42%; }
+.h3-stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: clip; background: radial-gradient(circle at var(--h3-at), var(--h3-glow) 0, var(--h3-ground) 38%, var(--h3-edge) 100%); }
+
+/* Wide: the bottle on the end side, the captions on the start side. */
+.h3-vis { position: absolute; top: 0; bottom: 70px; inset-inline-start: 44%; inset-inline-end: 0; }
+.h3-caps { position: absolute; inset-inline-start: max(24px, 6vw); inset-inline-end: 58%; top: 50%; transform: translateY(-50%); display: grid; }
+.h3-caps > * { grid-area: 1 / 1; }
+
+/* Narrow: the bottle below, the captions on top; the bottle dims under the text (JS). */
+@media (max-width: 819.98px) {
+  .h3-vis { top: 30%; bottom: 76px; inset-inline: 0; }
+  .h3-caps { top: 44px; inset-inline: 20px; transform: none; }
+  .h3, [dir="rtl"] .h3 { --h3-at: 50% 64%; }
+}
+
+.h3-gl { position: absolute; inset: 0; touch-action: pan-y; cursor: grab; }
+.h3-gl:active { cursor: grabbing; }
+.h3-read { position: absolute; left: 50%; top: 88%; transform: translateX(-50%); display: flex; gap: 14px; align-items: baseline; padding: 8px 16px; background: var(--h3-pill); color: var(--h3-pill-text); border-radius: 8px; pointer-events: none; }
+.h3-pt { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; }
+.h3-pt > span { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); white-space: nowrap; font-style: italic; font-size: 17px; color: #1C130A; }
+@media (max-width: 819.98px) { .h3-pt > span { font-size: 15px; } }
+[dir="rtl"] .h3-pt > span { font-style: normal; }
+
+.h3-cap { opacity: 0; visibility: hidden; display: flex; flex-direction: column; gap: 14px; }
+.h3-cap[data-first] { opacity: 1; visibility: visible; }
+
+.h3-dial { position: relative; height: 176px; touch-action: none; cursor: ns-resize; border-radius: 2px; }
+.h3-dial:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+.h3-knob { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #EAD3A0, #B08D57 55%, #6E5426); box-shadow: 0 1px 3px rgb(28 19 10 / .35); pointer-events: none; transition: top var(--dur-fast) var(--ease-out); }
+
+.h3-cta { display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 22px; background: var(--h3-pill); color: var(--h3-pill-text); border-radius: 999px; font-weight: 500; text-decoration: none; }
+.h3-cta:hover { background: #3A2614; }
+.h3-cta:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+:root[data-theme="dark"] .h3-cta { background: var(--c-amber); color: var(--c-on-amber); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .h3-cta { background: var(--c-amber); color: var(--c-on-amber); } }
+
+.h3-name { font-size: 28px; background: transparent; border: 0; border-bottom: 1.5px solid currentColor; padding: 4px 0 8px; color: inherit; border-radius: 0; min-height: 48px; }
+.h3-name:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+
+.h3-pill { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 5; display: flex; flex-direction: column; background: var(--h3-pill); border-radius: 26px; overflow: clip; box-shadow: 0 10px 30px rgb(28 19 10 / .25); }
+.h3-pill button { min-height: 44px; padding: 0 14px; border: 0; border-radius: 22px; background: transparent; color: #D8C4A8; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.h3-pill button:focus-visible { outline: 2px solid var(--h3-rail); outline-offset: -2px; }
+.h3-rail { height: 2px; background: #3A2614; }
+.h3-rail > i { display: block; height: 100%; background: var(--h3-rail); transform-origin: left; transform: scaleX(0); }
+[dir="rtl"] .h3-rail > i { transform-origin: right; }

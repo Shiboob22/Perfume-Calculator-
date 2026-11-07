@@ -17,6 +17,13 @@ const RO = 0.92, DO = 0.6, RI = 0.74, RZ = 0.42;
 const CW = RI * 2, CH = 1.84, CD = RZ * 2, CB = 0.26, CY = CB + CH / 2, BH = 2.34;
 const FULL = 0.86; // the fill line, as a share of the cavity
 const MIST_N = 90, SPLASH_N = 36;
+// Additive light that leaves alpha alone. The canvas is transparent (premultiplied),
+// so light added over an empty pixel shows as light over the page, not as black.
+const LIGHT = {
+  blending: THREE.CustomBlending, blendEquation: THREE.AddEquation,
+  blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneFactor,
+  blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
+};
 
 // Seeded so a reload looks the same.
 function seeded(seed) {
@@ -24,19 +31,16 @@ function seeded(seed) {
   return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
 }
 
-const BACKDROP = {
-  light: ["#E8BE80", "#D09A55", "#A86F35"],
-  dark: ["#4A3220", "#241A12", "#14110E"],
-};
-
 /**
  * Builds the scene into `host` (a positioned element) and returns its handle.
  * overlay.labels(): the note-name elements (data-pt index = drop index);
  * overlay.readout: the readout pill, pinned under the pan.
  */
-export function createScene(host, { overlay, dark = false, fonts = {}, images = {} } = {}) {
+export function createScene(host, { overlay, fonts = {}, images = {} } = {}) {
   const rand = seeded(7);
-  const R = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+  // Transparent: the stage's own ground (hero3d.css) shows through, so canvas and page never meet at a seam.
+  const R = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+  R.setClearColor(0x000000, 0);
   R.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   R.toneMapping = THREE.ACESFilmicToneMapping;
   R.toneMappingExposure = 1;
@@ -59,21 +63,6 @@ export function createScene(host, { overlay, dark = false, fonts = {}, images = 
   };
 
   const scene = new THREE.Scene();
-  const bgCanvas = document.createElement("canvas");
-  bgCanvas.width = bgCanvas.height = 512;
-  const bgTex = new THREE.CanvasTexture(bgCanvas);
-  bgTex.colorSpace = THREE.SRGBColorSpace;
-  owned.push(bgTex);
-  const paintBackdrop = (isDark) => {
-    const [a, b, c] = isDark ? BACKDROP.dark : BACKDROP.light;
-    const ctx = bgCanvas.getContext("2d"), gr = ctx.createRadialGradient(256, 210, 20, 256, 256, 380);
-    gr.addColorStop(0, a); gr.addColorStop(0.55, b); gr.addColorStop(1, c);
-    ctx.fillStyle = gr; ctx.fillRect(0, 0, 512, 512);
-    bgTex.needsUpdate = true;
-    R.setClearColor(b, 1);
-  };
-  paintBackdrop(dark);
-  scene.background = bgTex;
   const pm = new THREE.PMREMGenerator(R);
   const envTarget = pm.fromScene(new RoomEnvironment(R), 0.04);
   scene.environment = envTarget.texture;
@@ -121,11 +110,11 @@ export function createScene(host, { overlay, dark = false, fonts = {}, images = 
   const g = new THREE.Group();
   scene.add(g);
   const tintMat = new THREE.MeshPhysicalMaterial({ color: "#EEF4F0", roughness: 0.05, metalness: 0, transparent: true, opacity: 0.04, depthWrite: false, envMapIntensity: 0.1 });
-  const reflMat = new THREE.MeshStandardMaterial({ color: "#000000", roughness: 0.03, metalness: 0, envMapIntensity: 0.9, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
-  const inReflMat = new THREE.MeshStandardMaterial({ color: "#000000", roughness: 0.05, metalness: 0, envMapIntensity: 0.2, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide });
+  const reflMat = new THREE.MeshStandardMaterial({ color: "#000000", roughness: 0.03, metalness: 0, envMapIntensity: 0.9, transparent: true, ...LIGHT, depthWrite: false });
+  const inReflMat = new THREE.MeshStandardMaterial({ color: "#000000", roughness: 0.05, metalness: 0, envMapIntensity: 0.2, transparent: true, ...LIGHT, depthWrite: false, side: THREE.BackSide });
   const baseGlass = new THREE.MeshPhysicalMaterial({ color: "#F4F8F4", roughness: 0.04, transparent: true, opacity: 0.1, depthWrite: false, envMapIntensity: 0.3 });
   const fresnel = (strength, power) => new THREE.ShaderMaterial({
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    transparent: true, depthWrite: false, ...LIGHT,
     uniforms: { c: { value: new THREE.Color("#FFF4E2") }, s: { value: strength }, pw: { value: power } },
     vertexShader: "varying vec3 n; varying vec3 vv; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); n = normalize(normalMatrix * normal); vv = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }",
     fragmentShader: "uniform vec3 c; uniform float s; uniform float pw; varying vec3 n; varying vec3 vv; void main(){ float f = pow(1.0 - abs(dot(normalize(n), normalize(vv))), pw); gl_FragColor = vec4(c * f * s, 1.0); }",
@@ -227,7 +216,7 @@ export function createScene(host, { overlay, dark = false, fonts = {}, images = 
   g.add(label);
 
   // Effects: glass streaks, mix swirl, meniscus, caustics and pool, glints, splash, puff.
-  const add = { transparent: true, depthWrite: false, blending: THREE.AdditiveBlending };
+  const add = { transparent: true, depthWrite: false, ...LIGHT };
   const stripT = canvasTex(64, 256, (c, w, h) => {
     const gx = c.createLinearGradient(0, 0, w, 0); gx.addColorStop(0, "rgba(255,255,255,0)"); gx.addColorStop(0.5, "rgba(255,255,255,1)"); gx.addColorStop(1, "rgba(255,255,255,0)");
     c.fillStyle = gx; c.fillRect(0, 0, w, h); c.globalCompositeOperation = "destination-in";
@@ -291,7 +280,7 @@ export function createScene(host, { overlay, dark = false, fonts = {}, images = 
     });
   });
   const glints = [[-0.33, 0.7, 0.2], [0.25, 0.07, 0.3], [0.36, 0.45, 0.12], [-0.3, 1.0, DO + 0.02]].map(([x, y, z], i) => {
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: starT, transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }));
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: starT, transparent: true, opacity: 0, depthWrite: false, depthTest: false, ...LIGHT }));
     sp.position.set(x, y, z); sp.scale.setScalar(i === 3 ? 0.26 : 0.34); sp.renderOrder = 31; sp.userData.ph = i * 0.27;
     return sp;
   });
@@ -414,6 +403,10 @@ export function createScene(host, { overlay, dark = false, fonts = {}, images = 
     const K = cameraAt(p), d = dist * K.dist;
     cam.position.set(Math.sin(K.orbit) * d, K.camY + pitch * 3, Math.cos(K.orbit) * d);
     cam.lookAt(0, K.lookY, 0);
+    cam.updateMatrixWorld();
+    // Where the top edge of the frame meets the bottle's plane (z = 0): drops enter just above it.
+    const ray = v.set(0, 1, 0.5).unproject(cam).sub(cam.position).normalize();
+    const frameTop = cam.position.y + ray.y * (-cam.position.z / ray.z);
     const halfW = d * Math.tan((cam.fov * Math.PI) / 360) * cam.aspect;
 
     // The flacon: scale spring, drag yaw, the mix sway, the ending's breathing.
@@ -514,10 +507,13 @@ export function createScene(host, { overlay, dark = false, fonts = {}, images = 
       const m = drops[i], el = labels[i];
       const u = (tierT[Math.min(P.tier, 2)] - P.s) / 0.4;
       if (P.tier === 3 || u <= 0 || u >= 1 || (level >= 1 && i % 2)) { m.visible = false; if (el) el.style.opacity = 0; return; }
-      const x0 = (P.x - 0.5) * 2 * halfW * 0.9, y0 = 4.7 + P.r * 1.4, z0 = (P.z - 0.5) * 1.6;
+      // Drops appear just inside the top of the frame (the prototype's 4.7+ sat out of view on
+      // wide screens, so the names faded unseen) and join the stream above the neck.
+      const x0 = (P.x - 0.5) * 2 * halfW * 0.9, y0 = frameTop - 0.12 - P.r * 0.4, z0 = (P.z - 0.5) * 1.6;
+      const joinY = mouth.y + 0.55 * k;
       const t = u, kk = smooth(0.25, 1, t), wob = Math.sin(t * 7 + P.ph) * 0.22 * (1 - t);
-      const y = y0 + (headY - y0) * t * t, x = x0 + (mouth.x - x0) * kk + wob, z = z0 + (mouth.z - z0) * kk;
-      const f = smooth(0.3, 0.62, t);
+      const y = y0 + (joinY - y0) * t * t, x = x0 + (mouth.x - x0) * kk + wob, z = z0 + (mouth.z - z0) * kk;
+      const f = smooth(0.5, 0.85, t);
       const bs = 0.07 * Math.max(0.7, k) * (1 - smooth(0.82, 1, t));
       m.visible = bs > 0.001;
       m.position.set(x, y, z);
@@ -529,7 +525,7 @@ export function createScene(host, { overlay, dark = false, fonts = {}, images = 
       el.style.opacity = 1;
       el.style.transform = `translate(${sx}px,${sy}px)`;
       const span = el.firstElementChild;
-      if (span) { span.style.opacity = 1 - f; span.style.transform = `translate(-50%,-50%) rotate(${Math.sin(P.ph + u * 5) * 6 * (1 - f)}deg)`; }
+      if (span) { span.style.opacity = clamp(t / 0.1) * (1 - f); span.style.transform = `translate(-50%,-50%) rotate(${Math.sin(P.ph + u * 5) * 6 * (1 - f)}deg)`; }
     });
 
     // Ripple and splash where the stream meets the liquid.
@@ -575,5 +571,5 @@ export function createScene(host, { overlay, dark = false, fonts = {}, images = 
     R.domElement.remove();
   }
 
-  return { render, resize, drawLabel, drawEngrave, setQuality, setDark: paintBackdrop, dispose, canvas: R.domElement };
+  return { render, resize, drawLabel, drawEngrave, setQuality, dispose, canvas: R.domElement };
 }

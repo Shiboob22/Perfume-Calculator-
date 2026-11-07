@@ -7,7 +7,9 @@ import { generateSW } from "workbox-build";
 const { count, size, warnings } = await generateSW({
   globDirectory: "dist",
   globPatterns: ["**/*.{js,css,html,woff2,svg,webmanifest}"],
-  globIgnores: ["sw.js", "workbox-*.js", "brand/**"],
+  // The home page's three.js chunk (about 125 KB gzipped) loads only where the
+  // 3D pour runs; precaching it would send it to every visitor.
+  globIgnores: ["sw.js", "workbox-*.js", "brand/**", "assets/scene-*.js"],
   swDest: "dist/sw.js",
   navigateFallback: "/app/index.html",
   navigateFallbackAllowlist: [/^\/(app|bench|wardrobe|atlas|salon|nose)(\/|$)/],
