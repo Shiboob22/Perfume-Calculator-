@@ -30,7 +30,7 @@ const loadImage = (src) => new Promise((res) => { const im = new Image(); im.onl
  * bench sizes). Drag or use the keys; it always lands on a listed value.
  * Kept left-to-right in Arabic: it is a scale, like the figures.
  */
-function Dial({ values, value, onChange, label, valueText, tickLabel, fill, width, railX }) {
+function Dial({ values, value, onChange, label, valueText, tickLabel, fill, railX }) {
   const min = values[0], max = values[values.length - 1];
   const at = (v) => 128 * ((v - min) / (max - min));
   const drag = useRef(false);
@@ -51,7 +51,7 @@ function Dial({ values, value, onChange, label, valueText, tickLabel, fill, widt
   };
   return (
     <div role="slider" tabIndex={0} aria-label={label} aria-valuemin={min} aria-valuemax={max} aria-valuenow={value} aria-valuetext={valueText}
-      className="h3-dial" style={{ width }} onKeyDown={onKey}
+      className="h3-dial" data-names={tickLabel ? "" : undefined} onKeyDown={onKey}
       onPointerDown={(e) => { drag.current = true; try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* old browsers */ } from(e); }}
       onPointerMove={(e) => { if (drag.current) from(e); }}
       onPointerUp={() => { drag.current = false; }} onPointerCancel={() => { drag.current = false; }}>
@@ -61,7 +61,7 @@ function Dial({ values, value, onChange, label, valueText, tickLabel, fill, widt
           <div key={v} aria-hidden="true" className="absolute left-0 flex items-center pointer-events-none" style={{ top: 145 - at(v), height: 14 }}>
             <span className="tabular-nums text-right text-[11px]" style={{ width: 30, color, fontWeight: on ? 600 : 400 }}>{v}</span>
             <span style={{ width: 8, height: 1, marginLeft: 5, background: color }} />
-            {tickLabel && <><span style={{ width: 34 }} /><span style={{ width: 8, height: 1, background: color }} /><span className="ms-1 text-[10px] whitespace-nowrap" style={{ color, fontWeight: on ? 600 : 400 }}>{tickLabel(v)}</span></>}
+            {tickLabel && <span className="flex items-center"><span style={{ width: 34 }} /><span style={{ width: 8, height: 1, background: color }} /><span className="ms-1 text-[10px] whitespace-nowrap" style={{ color, fontWeight: on ? 600 : 400 }}>{tickLabel(v)}</span></span>}
           </div>
         );
       })}
@@ -285,12 +285,12 @@ export default function Hero3D({ createScene, onFail }) {
               {hero.map((line, i) => <span key={line} className={`block ${i === hero.length - 1 ? "italic rtl:not-italic" : ""}`}>{line}</span>)}
             </h1>
             <p className={LEAD} style={{ color: COLORS.inkSoft }}>{t("site.home.hero3d.intro")}</p>
-            <div className="flex flex-wrap gap-x-7 gap-y-4 items-center mt-1">
+            <div className="flex flex-wrap gap-x-4 sm:gap-x-7 gap-y-4 items-center mt-1">
               <div className="flex flex-col gap-1.5">
                 <div dir="ltr" className="flex gap-3.5 items-center">
-                  <Dial values={T.STRENGTHS} value={pct} onChange={setPct} width={176} railX={60} label={t("site.home.hero3d.strength")}
+                  <Dial values={T.STRENGTHS} value={pct} onChange={setPct} railX={60} label={t("site.home.hero3d.strength")}
                     valueText={`${pct}% ${TIER_NAME[pct]}`} tickLabel={(v) => TIER_NAME[v]} fill={T.oilShade(pct)} />
-                  <div className="flex flex-col gap-1 min-w-[96px] tabular-nums">
+                  <div className="h3-info flex flex-col gap-1 min-w-[96px] tabular-nums">
                     <span className="text-[26px] leading-none">{pct}%</span>
                     <span className="text-[11px] uppercase tracking-[.1em]" style={{ color: COLORS.inkSoft }}>{TIER_NAME[pct]}</span>
                     <span className="mt-1.5 text-[12px]" dir={ar ? "rtl" : "ltr"}>{t("site.home.hero3d.oilMl", { ml: (size * pct / 100).toFixed(1) })}</span>
@@ -301,9 +301,9 @@ export default function Hero3D({ createScene, onFail }) {
               </div>
               <div className="flex flex-col gap-1.5">
                 <div dir="ltr" className="flex gap-3.5 items-center">
-                  <Dial values={T.SIZES} value={size} onChange={setSize} width={80} railX={56} label={t("site.home.hero3d.size")}
+                  <Dial values={T.SIZES} value={size} onChange={setSize} railX={56} label={t("site.home.hero3d.size")}
                     valueText={t("site.home.hero3d.sizeValue", { size })} fill="#B08D57" />
-                  <div className="flex flex-col gap-1 min-w-[80px] tabular-nums">
+                  <div className="h3-info flex flex-col gap-1 min-w-[80px] tabular-nums">
                     <span className="text-[26px] leading-none">{size}</span>
                     <span className="text-[11px] uppercase tracking-[.1em]" style={{ color: COLORS.inkSoft }}>mL</span>
                     <span className="mt-1.5 text-[12px]" dir={ar ? "rtl" : "ltr"}>{t("site.home.hero3d.batch", nums)}</span>

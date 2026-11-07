@@ -32,7 +32,10 @@
 .h3-cap { opacity: 0; visibility: hidden; display: flex; flex-direction: column; gap: 14px; }
 .h3-cap[data-first] { opacity: 1; visibility: visible; }
 
-.h3-dial { position: relative; height: 176px; touch-action: none; cursor: ns-resize; border-radius: 2px; }
+.h3-dial { position: relative; width: 80px; height: 176px; touch-action: none; cursor: ns-resize; border-radius: 2px; }
+.h3-dial[data-names] { width: 176px; }
+/* Phones: both dials on one row; the small figure columns give way (the steps and the readout carry the grams). */
+@media (max-width: 819.98px) { .h3-info { display: none !important; } }
 .h3-dial:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
 .h3-knob { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #EAD3A0, #B08D57 55%, #6E5426); box-shadow: 0 1px 3px rgb(28 19 10 / .35); pointer-events: none; transition: top var(--dur-fast) var(--ease-out); }
 

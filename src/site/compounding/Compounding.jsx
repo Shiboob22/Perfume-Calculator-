@@ -102,7 +102,8 @@ export default function Compounding() {
 
   return (
     <div ref={scene} data-compounding role="group" aria-label={t("site.compounding.sceneLabel")} style={{ ...sceneVars(), ...SCENE_VARS }}>
-      <LiveGauge />
+      {/* One scale at a time: the pour has its own readout. */}
+      {!pour && <LiveGauge />}
 
       {/* I · The reading. The headline never fades or moves (it is the LCP); light and depth sit behind it.
           Where the 3D pour may run, it takes this stage's place once its first frame is ready. */}
