@@ -25,7 +25,7 @@
 .h3-gl:active { cursor: grabbing; }
 .h3-read { position: absolute; left: 50%; top: 88%; transform: translateX(-50%); display: flex; gap: 14px; align-items: baseline; padding: 8px 16px; background: var(--h3-pill); color: var(--h3-pill-text); border-radius: 8px; pointer-events: none; }
 .h3-pt { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; }
-.h3-pt > span { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); white-space: nowrap; font-style: italic; font-size: 17px; color: #1C130A; }
+.h3-pt > span { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); white-space: nowrap; font-style: italic; font-size: 17px; color: var(--c-ink); }
 @media (max-width: 819.98px) { .h3-pt > span { font-size: 15px; } }
 [dir="rtl"] .h3-pt > span { font-style: normal; }
 
