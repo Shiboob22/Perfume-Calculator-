@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { Link, PageTransition, Progress } from "../motion";
 import { SiteFooter, SiteHeader } from "../components/SiteChrome";
 import { COLORS } from "../lib/theme";
+import { flagOn } from "../lib/flags";
 import { useI18n } from "../i18n/I18nProvider";
 import { headFor, localePath, parsePath } from "./meta";
 
@@ -26,12 +27,12 @@ export default function PublicLayout({ children }) {
   const other = locale === "ar" ? "en" : "ar";
   const to = (p) => localePath(locale, p);
 
-  const active = path.startsWith("/library") ? "guides" : path.startsWith("/pricing") ? "pricing" : undefined;
+  const active = path.startsWith("/library") ? "guides" : path.startsWith("/pricing") ? "pricing" : path.startsWith("/shop") ? "shop" : undefined;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <Progress />
-      <SiteHeader zone="site" active={active} language={
+      <SiteHeader zone="site" active={active} shop={flagOn("shop")} language={
         <Link to={localePath(other, path)} lang={other} hrefLang={other} title={t("site.nav.languageLabel")}
           className="text-sm min-h-[44px] inline-flex items-center hover:underline underline-offset-4" style={{ color: COLORS.ink }}>
           {t("site.nav.language")}

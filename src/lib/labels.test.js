@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LABEL_SIZES, customSize, labelFields, perSheet, typeSizes, bottleText } from "./labels";
+import { LABEL_SIZES, customSize, labelFields, perSheet, typeSizes, compactLayout, bottleText } from "./labels";
 import { createTranslator } from "../i18n/core";
 import en from "../i18n/messages/en";
 import ar from "../i18n/messages/ar";
@@ -47,7 +47,7 @@ describe("labelFields", () => {
 
 describe("typeSizes", () => {
   it("fits the name and every line inside the label height", () => {
-    for (const size of Object.values(LABEL_SIZES)) {
+    for (const size of Object.values(LABEL_SIZES).filter((s) => !s.roll)) {
       const { name, line } = typeSizes(size, 7);
       expect(4 + name * 1.1 + 1 + 7 * line * 1.35).toBeLessThanOrEqual(size.h + 0.01);
     }
@@ -60,6 +60,51 @@ describe("sizes", () => {
     expect(perSheet(LABEL_SIZES.small)).toEqual({ cols: 3, rows: 8, total: 24 });
     expect(perSheet(LABEL_SIZES.medium)).toEqual({ cols: 2, rows: 6, total: 12 });
     expect(perSheet(LABEL_SIZES.large)).toEqual({ cols: 2, rows: 5, total: 10 });
+  });
+
+  it("fits every field on the D30 roll: name, facts and weights in 12 mm", () => {
+    expect(LABEL_SIZES.d30).toMatchObject({ w: 40, h: 12, roll: true });
+    expect(perSheet(LABEL_SIZES.d30)).toEqual({ cols: 1, rows: 1, total: 1 });
+    const l = compactLayout({ ...batch, lot: "L-12" }, { t }, LABEL_SIZES.d30);
+    expect(l.rows[0].segments).toEqual(["25%", "100 mL", "2026-10-02", "Lot L-12"]);
+    expect(l.rows[1].segments).toEqual(["Oil 23.75", "Alc 60.75", "Tot 84.50 g"]);
+    expect(0.8 * 2 + l.nameSize * 1.1 + l.rows.reduce((h, r) => h + r.size * 1.2, 0)).toBeLessThanOrEqual(12.01);
+    for (const r of l.rows) expect(r.size).toBeGreaterThanOrEqual(2.1); // legible when thermally printed
+  });
+
+  it("never overflows the D30 label, whatever the name, lot or font width", () => {
+    const names = ["", "A", "Oud Wood", "Baccarat Rouge 540 Extrait de Parfum", "Supercalifragilisticexpialidocious-Reserve-Edition",
+      "عود وود الملكي الفاخر للغاية من الإصدار الخاص", "Tom Ford Tobacco Vanille Private Blend Winter Collection No. 7", "香水 オードパルファム 限定版 スペシャル"];
+    const lots = ["", "L-12", "ABC-2026-10-02-X", "L".repeat(60)];
+    const { w, h } = LABEL_SIZES.d30;
+    const avail = (w - 3) * 0.97;
+    for (const wide of [0.54, 0.6, 0.7]) { // glyph widths in em, up to a wide face
+      const em = (txt) => Array.from(txt).length * wide;
+      for (const fragrance_name of names) for (const lot of lots) {
+        const l = compactLayout({ ...batch, fragrance_name, lot }, { t }, LABEL_SIZES.d30, em);
+        const height = 1.6 + l.nameLines.length * l.nameSize * 1.1 + l.rows.reduce((n, r) => n + r.size * 1.2, 0);
+        expect(height, `${fragrance_name}/${lot}/${wide}`).toBeLessThanOrEqual(h + 0.01);
+        for (const line of l.nameLines) expect(em(line) * l.nameSize).toBeLessThanOrEqual(avail + 0.01);
+        for (const r of l.rows) expect(r.segments.reduce((n, sg) => n + em(sg) * r.size, 0) + (r.segments.length - 1)).toBeLessThanOrEqual(avail + 0.01);
+        expect(l.nameLines.length).toBeLessThanOrEqual(2);
+        expect(l.nameSize).toBeGreaterThanOrEqual(2);
+        for (const r of l.rows) expect(r.size).toBeGreaterThanOrEqual(1.6);
+      }
+    }
+  });
+
+  it("wraps a long name to two lines before shrinking it past legibility", () => {
+    const long = compactLayout({ ...batch, fragrance_name: "Baccarat Rouge 540 Extrait de Parfum" }, { t }, LABEL_SIZES.d30);
+    expect(long.nameLines).toHaveLength(2);
+    expect(long.nameLines.join(" ")).toBe("Baccarat Rouge 540 Extrait de Parfum");
+    expect(compactLayout(batch, { t }, LABEL_SIZES.d30).nameLines).toEqual(["Oud Wood"]);
+  });
+
+  it("keeps every weight and fact; only a lot that cannot fit is clipped", () => {
+    const l = compactLayout({ ...batch, lot: "L".repeat(60) }, { t }, LABEL_SIZES.d30);
+    expect(l.rows[0].segments.slice(0, 3)).toEqual(["25%", "100 mL", "2026-10-02"]);
+    expect(l.rows[0].segments[3].endsWith("…")).toBe(true);
+    expect(l.rows[1].segments).toEqual(["Oil 23.75", "Alc 60.75", "Tot 84.50 g"]);
   });
 
   it("accepts custom sizes that print on A4 only", () => {

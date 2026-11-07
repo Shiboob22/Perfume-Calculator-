@@ -3,9 +3,11 @@ import { Link } from "../motion";
 import { BrandMark } from "./FlaconMark";
 import FlaconMark from "./FlaconMark";
 import ThemeToggle from "./ThemeToggle";
-import { IconBalance, IconBook, IconBookmark, IconCrosshair, IconDrop, IconFlacon, IconFlameTriangle, IconNotebook, IconSeal } from "./icons";
+import { IconBalance, IconBook, IconBookmark, IconCart, IconCrosshair, IconDrop, IconFlacon, IconFlameTriangle, IconHourglass, IconNotebook, IconSeal } from "./icons";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
+import { cartCount } from "../lib/shop/cart";
+import { useCart } from "../lib/shop/useCart";
 
 // Header and footer shared by the public site and the app. No Supabase or
 // app imports: public pages are prerendered with it. `zone` says which side
@@ -23,10 +25,12 @@ function NavLink({ to, cross, active, icon: I, children }) {
 }
 
 /**
- * @param {{ zone: "site" | "app", active?: "guides"|"calculator"|"journal"|"pricing"|"wardrobe"|"atlas"|"salon"|"nose", wardrobe?: boolean, atlas?: boolean, salon?: boolean, nose?: boolean, language: React.ReactNode, extra?: React.ReactNode }} p
+ * @param {{ zone: "site" | "app", active?: "guides"|"calculator"|"journal"|"pricing"|"wardrobe"|"atlas"|"salon"|"nose"|"shop", wardrobe?: boolean, atlas?: boolean, salon?: boolean, nose?: boolean, shop?: boolean, language: React.ReactNode, extra?: React.ReactNode, badge?: React.ReactNode }} p
  */
-export function SiteHeader({ zone, active, language, extra, wardrobe = false, atlas = false, salon = false, nose = false }) {
+export function SiteHeader({ zone, active, language, extra, badge, wardrobe = false, atlas = false, salon = false, nose = false, shop = false }) {
   const { t, locale } = useI18n();
+  const cart = useCart();
+  const inCart = shop ? cartCount(cart) : 0;
   const inApp = zone === "app";
   return (
     <header data-mo-chrome="header" className="w-full" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
@@ -34,14 +38,24 @@ export function SiteHeader({ zone, active, language, extra, wardrobe = false, at
         {inApp
           ? <a href={site(locale, "/")} aria-label={t("site.nav.home")} className="me-auto"><BrandMark brand={t("brand")} sub={t("brandTagline")} signature={t("brandSignature")} /></a>
           : <Link to={site(locale, "/")} aria-label={t("site.nav.home")} className="me-auto"><BrandMark brand={t("brand")} sub={t("brandTagline")} signature={t("brandSignature")} /></Link>}
+        {/* The plan badge stays visible on phones, where the menu is in the bottom bar. */}
+        {badge && <div className="md:order-last">{badge}</div>}
         <nav aria-label={t("site.nav.main")} className={`${inApp ? "hidden md:flex" : "flex"} items-center gap-x-6 gap-y-1 flex-wrap -mx-1 px-1`}>
           <NavLink to={site(locale, "/library")} cross={inApp} active={active === "guides"} icon={IconBook}>{t("site.nav.guides")}</NavLink>
           <NavLink to="/bench" cross={!inApp} active={active === "calculator"} icon={IconBalance}>{t("site.nav.calculator")}</NavLink>
-          <NavLink to="/bench/journal" cross={!inApp} active={active === "journal"} icon={IconNotebook}>{t("site.nav.journal")}</NavLink>
+          <NavLink to={locale === "ar" ? "/ar/journal" : "/journal"} cross={!inApp} active={active === "journal"} icon={IconHourglass}>{t("site.nav.journal")}</NavLink>
           {atlas && <NavLink to="/atlas" cross={!inApp} active={active === "atlas"} icon={IconCrosshair}>{t("site.nav.atlas")}</NavLink>}
           {salon && <NavLink to="/salon" cross={!inApp} active={active === "salon"} icon={IconBookmark}>{t("site.nav.salon")}</NavLink>}
           {nose && <NavLink to="/nose" cross={!inApp} active={active === "nose"} icon={IconDrop}>{t("site.nav.nose")}</NavLink>}
           {wardrobe && <NavLink to="/wardrobe" cross={!inApp} active={active === "wardrobe"} icon={IconFlacon}>{t("site.nav.wardrobe")}</NavLink>}
+          {shop && (
+            <NavLink to={site(locale, "/shop")} cross={inApp} active={active === "shop"} icon={IconCart}>
+              {t("site.nav.shop")}
+              {inCart > 0 && <span className="ms-2 inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-semibold leading-none" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+                <span aria-hidden="true">{inCart}</span><span className="sr-only">{t("shop.cart.count", { count: inCart })}</span>
+              </span>}
+            </NavLink>
+          )}
           <NavLink to={site(locale, "/pricing")} cross={inApp} active={active === "pricing"} icon={IconSeal}>{t("site.nav.pricing")}</NavLink>
           <span aria-hidden="true" className="self-stretch my-3" style={{ borderInlineStart: `1px solid ${COLORS.line}` }} />
           {language}

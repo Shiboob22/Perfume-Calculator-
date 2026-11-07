@@ -2,11 +2,11 @@
 // router, the build scripts and the tests all read it.
 //
 // Kyphira's rooms: The Bench lives at /bench (calculator) and /bench/journal
-// (batches); The Wardrobe at /wardrobe and the Atlas at /atlas and the Salon at /salon and the Nose at /nose (all behind flags, see lib/flags.js); the rest of the app tabs stay under /app/<tab> until their own
+// (the batch records); the Journal (rest tracker) at /journal and /ar/journal; The Wardrobe at /wardrobe and the Atlas at /atlas and the Salon at /salon and the Nose at /nose (all behind flags, see lib/flags.js); the rest of the app tabs stay under /app/<tab> until their own
 // rooms are built. The Library replaces /guides.
 
 // Paths that serve the signed-in app shell.
-export const APP_PREFIXES = ["/app", "/bench", "/wardrobe", "/atlas", "/salon", "/nose"];
+export const APP_PREFIXES = ["/app", "/bench", "/journal", "/ar/journal", "/wardrobe", "/atlas", "/salon", "/nose"];
 
 export function isAppPath(pathname) {
   return APP_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -16,6 +16,7 @@ export function isAppPath(pathname) {
 export function tabPath(id) {
   if (id === "calculator") return "/bench";
   if (id === "batches") return "/bench/journal";
+  if (id === "journal") return "/journal";
   if (id === "wardrobe") return "/wardrobe";
   if (id === "atlas") return "/atlas";
   if (id === "salon") return "/salon";
@@ -27,6 +28,7 @@ export function tabPath(id) {
 export function tabFromPath(pathname, param) {
   if (pathname === "/bench") return "calculator";
   if (pathname === "/bench/journal") return "batches";
+  if (pathname === "/journal" || pathname === "/ar/journal") return "journal";
   if (pathname === "/wardrobe" || pathname.startsWith("/wardrobe/")) return "wardrobe";
   if (pathname === "/atlas" || pathname.startsWith("/atlas/")) return "atlas";
   if (pathname === "/salon" || pathname.startsWith("/salon/")) return "salon";

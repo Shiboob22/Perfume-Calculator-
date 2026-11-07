@@ -451,6 +451,44 @@ begin
   exception when check_violation then null;
   end; checks := checks + 1;
 
+  -- The Shop (0030): anyone may read the active products; orders and their
+  -- items are the service role's alone, and nobody can write products.
+  perform set_config('role', 'none', true);
+  insert into public.shop_products (slug, name_en, name_ar, price_egp, active)
+  values ('rls-on', 'On', 'ع', 10, true), ('rls-off', 'Off', 'ع', 10, false);
+  insert into public.shop_orders (order_no, name, phone, email, city, address, total_egp, proof_path)
+  values ('K-RLS234', 'Test Buyer', '+201001234567', 'x@example.com', 'Cairo', '1 Test Street', 10, 'K-RLS234.jpg');
+  declare
+    who text;
+    want integer;
+    seen integer;
+  begin
+    select count(*) into want from public.shop_products where active;
+    foreach who in array array['anon', 'authenticated'] loop
+      perform set_config('role', who, true);
+      select count(*) into seen from public.shop_products;
+      if seen <> want or exists (select 1 from public.shop_products where slug = 'rls-off') then
+        raise exception 'RLS_ISOLATION FAILED: % does not see exactly the active products', who;
+      end if; checks := checks + 1;
+      ok := false;
+      begin perform 1 from public.shop_orders; exception when insufficient_privilege then ok := true; end;
+      if not ok then raise exception 'RLS_ISOLATION FAILED: % can read shop_orders', who; end if; checks := checks + 1;
+      ok := false;
+      begin perform 1 from public.shop_order_items; exception when insufficient_privilege then ok := true; end;
+      if not ok then raise exception 'RLS_ISOLATION FAILED: % can read shop_order_items', who; end if; checks := checks + 1;
+      ok := false;
+      begin
+        insert into public.shop_orders (order_no, name, phone, email, city, address, total_egp, proof_path)
+        values ('K-RLS999', 'Test Buyer', '+201001234567', 'x@example.com', 'Cairo', '1 Test Street', 1, 'x.jpg');
+      exception when insufficient_privilege then ok := true; end;
+      if not ok then raise exception 'RLS_ISOLATION FAILED: % can place an order straight into the table', who; end if; checks := checks + 1;
+      ok := false;
+      begin update public.shop_products set price_egp = 1; exception when insufficient_privilege then ok := true; end;
+      if not ok then raise exception 'RLS_ISOLATION FAILED: % can change a product price', who; end if; checks := checks + 1;
+    end loop;
+    perform set_config('role', 'none', true);
+  end;
+
   raise exception 'RLS_ISOLATION PASSED: % checks (rolled back, nothing kept)', checks;
 end
 $$;

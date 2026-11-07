@@ -62,6 +62,10 @@ export function headFor(pathname) {
     guideTitle = g.title;
     arDraft = Boolean(guide.ar.needsReview);
     noindex = locale === "ar" && arDraft;
+  } else if (path === "/shop" || path.startsWith("/shop/")) {
+    title = t("shop.metaTitle");
+    description = t("shop.metaDescription");
+    noindex = true;
   } else if (LEGAL_PAGES.includes(path.slice(1))) {
     const doc = LEGAL[path.slice(1)];
     title = `${doc[locale].title} — ${brandName(locale)}`;

@@ -1,0 +1,18 @@
+{
+  "profile": "Pixel 7 viewport + 4x CPU throttle (DevTools mid-tier mobile), headless Chromium",
+  "seconds": 9.55,
+  "frames": 570,
+  "avgFps": 59.7,
+  "medianMs": 16.7,
+  "p95Ms": 16.8,
+  "p99Ms": 16.8,
+  "maxMs": 33.4,
+  "over25ms": 4,
+  "over33ms": 2,
+  "longTasks": 0,
+  "longTaskMaxMs": 0,
+  "layouts": 566,
+  "styleRecalcs": 579,
+  "layoutMs": 624.6,
+  "scriptMs": 1125.8
+}

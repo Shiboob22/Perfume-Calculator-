@@ -26,6 +26,22 @@ export function prefillFromQuery(params) {
   };
 }
 
+// The calculator link for what is on screen, in the same form prefillFromQuery
+// reads back: opening it restores the name, family, bottle and strength.
+// Invalid or blank parts are left out rather than guessed.
+export function shareQuery({ name, family, size, unit, conc } = {}) {
+  const q = new URLSearchParams();
+  const nm = cleanName(name);
+  if (nm) q.set("name", nm);
+  if (TIER_KEYS.includes(family)) q.set("family", family);
+  const s = Number(size);
+  if (Number.isFinite(s) && s > 0 && s <= 100000) q.set("size", String(s));
+  if (Object.hasOwn(UNIT_LABELS, unit ?? "")) q.set("unit", unit);
+  const c = Number(conc);
+  if (Number.isFinite(c) && c >= 1 && c <= 100) q.set("conc", String(c));
+  return q.toString();
+}
+
 // The public page that brought a new user (?ref=recipe|guide|home), as
 // a short slug for profiles.signup_ref; null when absent or malformed.
 export function refFrom(search) {

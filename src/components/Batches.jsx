@@ -14,7 +14,7 @@ import { useEntitlements } from "../lib/useEntitlements";
 import EmptyState from "./EmptyState";
 import { refusedBatches, dismissRefused } from "../lib/outbox";
 import { Stagger, useNavigate } from "../motion";
-import { can } from "../lib/entitlements";
+import { can, journalOpen } from "../lib/entitlements";
 import { dueNow, JOURNAL_CHANGED, restTimeline } from "../lib/journal";
 import { IconHourglass, IconSeal, IconDrop, IconToday, IconPlus } from "./icons";
 import JournalDue from "./journal/JournalDue";
@@ -182,7 +182,10 @@ export default function Batches() {
   useEffect(() => { listRecipes().then((r) => setRecipeNames(versionIndex(r))).catch(() => {}); }, []);
   const headingRef = useRef(null);
   const navigate = useNavigate();
-  const due = loading || error ? [] : dueNow(batches);
+  // Free keeps notes on its newest 3 batches, Pro on all (journalOpen); the
+  // check-in API refuses the rest on its own.
+  const journalIds = journalOpen(entitlements, batches);
+  const due = loading || error ? [] : dueNow(batches.filter((b) => journalIds.has(b.id)));
 
   // The app header shows how many check-ins are due; keep it in step.
   useEffect(() => {
@@ -352,7 +355,7 @@ export default function Batches() {
             {b.notes && (
               <div className="text-sm italic mt-2" style={{ color: COLORS.inkSoft }}>{b.notes}</div>
             )}
-            <BatchJournal batch={b} canAdd={can(entitlements, "journal.checkins")} onDone={handleCheckIn} onRemoved={handleCheckInRemoved} />
+            <BatchJournal batch={b} canAdd={journalIds.has(b.id)} onDone={handleCheckIn} onRemoved={handleCheckInRemoved} />
             <div className="mt-2">
               <SharePanel batch={b} onShared={handleShared} onStatus={setStatus} />
             </div>
@@ -426,7 +429,7 @@ export default function Batches() {
         </div>
       )}
 
-      {can(entitlements, "journal.checkins") && <JournalDue due={due} onDone={handleCheckIn} />}
+      <JournalDue due={due} onDone={handleCheckIn} />
       {!loading && batches.length > 0 && <JournalPatterns version={patternsVersion} />}
 
       {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}

@@ -10,10 +10,13 @@ import NotFound from "./site/NotFound";
 import LegalPage from "./site/LegalPage";
 import { COLORS } from "./lib/theme";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { flagOn } from "./lib/flags";
 
 // The signed-in app is its own chunk: public pages (prerendered, crawlable)
 // never load Supabase, the catalog search or the calculator.
 const App = lazy(() => import("./App"));
+// The Shop is public (no sign-in) but loaded on demand: the cart, checkout and image code stay out of the home page.
+const ShopRoutes = lazy(() => import("./site/shop/ShopRoutes"));
 // Dev-only screen previews; `import.meta.env.DEV` is false in production
 // builds, so this route and its chunk are dropped there.
 const DevScreens = import.meta.env.DEV ? lazy(() => import("./dev/DevScreens")) : null;
@@ -40,6 +43,7 @@ function PublicRoutes() {
         <Route path="library" element={<GuidesIndex />} />
         <Route path="library/:slug" element={<GuidePage />} />
         <Route path="guides/*" element={<GuideRedirect />} />
+        <Route path="shop/*" element={flagOn("shop") ? <Suspense fallback={null}><ShopRoutes /></Suspense> : <NotFound />} />
         <Route path="privacy" element={<LegalPage page="privacy" />} />
         <Route path="terms" element={<LegalPage page="terms" />} />
         <Route path="*" element={<NotFound />} />
@@ -51,6 +55,10 @@ function PublicRoutes() {
 const appElement = (
   <I18nProvider><ErrorBoundary><Suspense fallback={<AppLoading />}><App /></Suspense></ErrorBoundary></I18nProvider>
 );
+// The Journal has an Arabic address of its own (/ar/journal), like the public pages.
+const arAppElement = (
+  <I18nProvider locale="ar"><ErrorBoundary><Suspense fallback={<AppLoading />}><App /></Suspense></ErrorBoundary></I18nProvider>
+);
 
 export default function Root() {
   return (
@@ -58,6 +66,8 @@ export default function Root() {
       <Route path="/app/:tab?" element={appElement} />
       <Route path="/bench" element={appElement} />
       <Route path="/bench/journal" element={appElement} />
+      <Route path="/journal" element={appElement} />
+      <Route path="/ar/journal" element={arAppElement} />
       <Route path="/wardrobe" element={appElement} />
       <Route path="/atlas/*" element={appElement} />
       <Route path="/atlas" element={appElement} />

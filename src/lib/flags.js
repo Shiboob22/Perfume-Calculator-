@@ -10,7 +10,7 @@
 // A flag only decides what is *shown*. Every room's data is private behind
 // row-level security whatever the flag says, so turning one on in the
 // browser exposes nothing. Pure: env and storage are passed in for tests.
-export const FLAGS = ["wardrobe", "atlas", "salon", "nose", "compounding", "motion", "hero3d"];
+export const FLAGS = ["wardrobe", "atlas", "salon", "nose", "compounding", "motion", "shop", "hero3d"];
 
 const key = (name) => `kyphira.flag.${name}`;
 

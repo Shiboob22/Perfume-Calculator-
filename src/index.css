@@ -78,9 +78,17 @@ html[dir="rtl"] .ar-display { font-family: "Reem Kufi Variable", "Readex Pro Var
 html[dir="rtl"] .print-label-name { font-style: normal; }
 .print-label-row { display: flex; justify-content: space-between; gap: 2mm; line-height: 1.35; }
 .print-label-row dt { color: #4A3D25; }
+.print-label-line { display: flex; justify-content: space-between; gap: 1mm; white-space: nowrap; overflow: hidden; line-height: 1.2; }
+/* Niimbot D30 roll (12 × 40 mm): the page is the label, one per page. */
+.label-roll .print-label { padding: 0.8mm 1.5mm; }
+.label-roll .print-label-name { margin-bottom: 0; line-height: 1.1; }
+@page roll { size: 40mm 12mm; margin: 0; }
 @media print {
   .label-sheet { gap: 4mm; }
   .print-label { border-color: #CDBF9E; break-inside: avoid; }
+  .label-roll { page: roll; display: block; }
+  .label-roll .print-label { border: 0; background: #fff; break-after: page; }
+  .label-roll .print-label:last-child { break-after: auto; }
 }
 
 /* ── The living handbook (Phase 9): the public site set like the book ── */
@@ -190,6 +198,10 @@ summary::-webkit-details-marker { display: none; }
 @property --cg { syntax: "<integer>"; inherits: true; initial-value: 0; }
 @property --gw { syntax: "<integer>"; inherits: true; initial-value: 0; }
 @property --gf { syntax: "<integer>"; inherits: true; initial-value: 0; }
+@property --gt { syntax: "<integer>"; inherits: true; initial-value: 0; }
+@property --go { syntax: "<integer>"; inherits: true; initial-value: 0; }
+/* The gauge's tens digit: blank under 10 g (a scale shows no leading zero). */
+@counter-style cmp-tens { system: fixed 0; symbols: "" "1" "2" "3" "4" "5" "6" "7" "8" "9"; }
 
 [data-compounding] { position: relative; view-timeline: --cmp-scene block; }
 [data-vt] { view-timeline: --v block; }
@@ -223,8 +235,52 @@ summary::-webkit-details-marker { display: none; }
 .cmp-tickbox { position: absolute; inset: 0; }
 .cmp-tick { height: 1px; width: 10px; background: #F6F2EA; }
 .cmp-read { margin-top: 6px; padding: 2px 3px; background: rgb(16 14 10 / .88); color: #F6F2EA; font: 10px/1 "Instrument Sans Variable", system-ui, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap;
-  --gw: calc(var(--cg) / 100 - 0.5); --gf: calc(var(--cg) - var(--gw) * 100); counter-reset: cmpw var(--gw) cmpf var(--gf); }
-.cmp-read::before { content: counter(cmpw) "." counter(cmpf, decimal-leading-zero) "\2009g"; }
+  --gw: calc(var(--cg) / 100 - 0.5); --gf: calc(var(--cg) - var(--gw) * 100);
+  --gt: calc(var(--gw) / 10 - 0.5); --go: calc(var(--gw) - var(--gt) * 10);
+  counter-reset: cmpt var(--gt) cmpo var(--go) cmpf var(--gf); }
+/* A fixed-width readout whose tens digit has its own one-digit cell, so the
+   figures after it never move as the reading changes (no layout shift). */
+.cmp-read { box-sizing: border-box; width: 46px; text-align: left; }
+.cmp-read::before { content: counter(cmpt, cmp-tens); display: inline-block; width: 0.73em; text-align: right; vertical-align: top; }
+.cmp-read::after { content: counter(cmpo) "." counter(cmpf, decimal-leading-zero) "\2009g"; }
+/* While the home bench card is in view it sets data-sync and --cg-sync (its
+   rolling total, in hundredths of a gram) on the live gauge: the reading and
+   the fill follow the card instead of the scroll. */
+[data-compounding] .cmp-live[data-sync] .cmp-read { animation: none; --cg: var(--cg-sync, 0); }
+[data-compounding] .cmp-live[data-sync] .cmp-fill { animation: none; transform: scaleY(min(1, var(--cg-sync, 0) / var(--cg-max))); }
+[data-compounding] .cmp-live[data-sync] .cmp-tickbox { animation: none; transform: translateY(calc((1 - min(1, var(--cg-sync, 0) / var(--cg-max))) * 100%)); }
+/* Phones: the strip ends 88 px above the foot of the screen (and inside the
+   safe area), so its reading clears the browser's bottom bar and the
+   screen's rounded corners: on an iPhone the reading, 24 px from the foot,
+   was covered. The reading stays at the strip's foot, which leaves the
+   screen last as the scene ends, so it is in view whenever the card is. */
+@media (max-width: 639px) {
+  .cmp-stick { top: calc(16px + env(safe-area-inset-top, 0px)); height: calc(100svh - 104px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+}
+
+/* The home page's bench card (section I). Its body is a size container, so
+   the layout follows the card's own width, not the screen's: four bottles in
+   a row (two by two only when very narrow), four strengths in a row where
+   they fit and two by two otherwise (never three and one), the flacon beside
+   the figures, each label over its figure when narrow and beside it when
+   wide. Nothing depends on the figures, so the card never changes height. */
+.hb { container-type: inline-size; }
+.hb-sizes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.hb-strengths { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hb-figs { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1rem; align-items: end; }
+.hb-row { display: grid; grid-template-columns: minmax(0, 1fr); padding-block: .5rem; }
+.hb-val { text-align: end; white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1.15; font-size: clamp(1.125rem, 8.5cqi, 1.875rem); }
+/* The tens digit's cell: as wide as a "0" whether or not a digit shows. */
+.hb-tens { display: inline-grid; justify-items: end; }
+.hb-tens::before { content: "0"; visibility: hidden; }
+.hb-tens::before, .hb-tens > span { grid-area: 1 / 1; }
+@container (max-width: 15rem) {
+  .hb-sizes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hb-figs { gap: .75rem; }
+  .hb-row > span:first-child { letter-spacing: .06em; }
+}
+@container (min-width: 22rem) { .hb-strengths { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@container (min-width: 23rem) { .hb-row { grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: .75rem; } }
 
 /* The ember breathes at rest: ambient, 3.2 s, ease-in-out, off under reduced motion. */
 @media (prefers-reduced-motion: no-preference) { .cmp-breath { animation: cmp-breath var(--dur-ambient) var(--ease-in-out) infinite alternate; } }
@@ -287,3 +343,20 @@ summary::-webkit-details-marker { display: none; }
 .kx-beam {
   background: repeating-linear-gradient(90deg, var(--c-ink) 0 1px, transparent 1px calc(100% / 12)) bottom / 100% 5px no-repeat;
 }
+
+/* kx/Sheet: the modal's backdrop (Bench SaaS). */
+.kx-sheet::backdrop { background: rgb(0 0 0 / 0.45); }
+.kx-sheet { max-height: 100dvh; }
+
+/* Paper and surfaces (Bench SaaS Phase 6): the textures are custom properties
+   from src/lib/surfaces.js, written by the app shell. Unset (public pages):
+   nothing is drawn. */
+.kx-bench-top { background-image: var(--kx-benchtop, none); }
+.kx-grain { background-image: var(--kx-grain, none); }
+.kx-rule { height: 4px; background-image: var(--kx-rule, none); background-repeat: repeat-x; background-size: 240px 4px; }
+/* Reduced motion: the bottle jumps to its size, the cap never lifts. */
+@media (prefers-reduced-motion: reduce) { .kx-flacon, .kx-cap { transition: none !important; } }
+
+/* Bench tour (Phase 7): the cost card's Pro preview unblurs. */
+.kx-cost-body { transition: filter 600ms var(--ease-out, ease-out), opacity 600ms var(--ease-out, ease-out); }
+@media (prefers-reduced-motion: reduce) { .kx-cost-body, .kx-tour-spot, .kx-tour-card { transition: none !important; } }

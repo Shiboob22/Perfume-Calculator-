@@ -72,3 +72,52 @@ export function batchEconomics(b: Record<string, any>) {
     ...margin(cost.total, bottles, n(b.sale_price)),
   };
 }
+
+export interface CostInput {
+  /** Concentrate in the batch, g. */
+  oilG: number;
+  /** Ethanol in the batch, mL. */
+  ethMl: number;
+  /** The batch's volume, mL. */
+  totMl: number;
+  /** The bottle being priced, mL. */
+  bottleMl: number;
+  /** Concentrate price per gram (for a blend, blendMix().avgPrice). */
+  oilPrice: number;
+  /** Ethanol price per litre. */
+  ethPrice: number;
+  /** Bottle and packaging, per bottle. */
+  pack: number;
+  /** Margin as a share of the selling price, in %; clamped to 0–95. */
+  margin: number;
+}
+
+export const MAX_MARGIN_PCT = 95;
+/** Retail prices round up to the next multiple of this. */
+export const RETAIL_STEP = 5;
+
+// x rounded up to the next multiple of `step`, ignoring float noise
+// (88 / 0.4 is 220.00000000000003, which must stay 220).
+function ceilTo(x: number, step: number) {
+  return Math.ceil(Number((x / step).toPrecision(12))) * step;
+}
+
+/**
+ * The Bench's cost panel: what the batch costs, what one bottle of it costs
+ * (its share of the batch plus packaging), a retail price at the chosen
+ * margin (margin = share of the selling price, so price = cost / (1 − m)),
+ * rounded up to the next 5, and how many whole bottles the batch fills.
+ * Negative or missing inputs count as zero; a missing bottle or batch
+ * volume gives zero per bottle, zero retail and zero bottles.
+ */
+export function costFor(input: CostInput) {
+  const n = (v: unknown) => Math.max(Number(v) || 0, 0);
+  const batch = n(input.oilG) * n(input.oilPrice) + (n(input.ethMl) / 1000) * n(input.ethPrice);
+  const bottle = n(input.bottleMl);
+  const total = n(input.totMl);
+  const perBottle = total > 0 && bottle > 0 ? (batch / total) * bottle + n(input.pack) : 0;
+  const m = Math.min(n(input.margin), MAX_MARGIN_PCT) / 100;
+  const retail = perBottle > 0 ? ceilTo(perBottle / (1 - m), RETAIL_STEP) : 0;
+  const bottles = bottle > 0 ? Math.floor(Number((total / bottle).toPrecision(12))) : 0;
+  return { batch, perBottle, retail, bottles };
+}

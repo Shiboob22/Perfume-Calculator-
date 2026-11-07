@@ -110,7 +110,7 @@ test.describe("The Bench", () => {
 
         // The resting card: days left as a figure, dates, a link to the Journal.
         const card = page.getByRole("link", { name: /Kyphi No\. 3/ }).first();
-        await expect(card).toHaveAttribute("href", "/bench/journal");
+        await expect(card).toHaveAttribute("href", "/journal");
         await expect(card).toContainText(/\d/);
         await shoot(page, "bench", `${vname}-${lang}`);
       });

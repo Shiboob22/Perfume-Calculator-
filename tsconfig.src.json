@@ -8,6 +8,6 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src/lib/calc/**/*.ts", "src/lib/formulation.ts", "src/lib/selector/**/*.ts"],
+  "include": ["src/lib/calc/**/*.ts", "src/lib/formulation.ts", "src/lib/selector/**/*.ts", "src/lib/benchData.ts", "src/lib/database.types.ts"],
   "exclude": ["src/**/*.test.ts"]
 }

@@ -8,11 +8,11 @@ describe("formulation module", () => {
     // changes what the calculator shows, which needs an explicit decision.
     expect(Object.fromEntries(Object.values(FAMILIES).map((f) => [f.key, [f.active.density, f.active.defaultConc, f.active.restDays]])))
       .toEqual({
-        fresh: [0.87, 20, [7, 14]],
-        floral: [0.95, 25, [14, 21]],
-        woody: [0.93, 22, [21, 28]],
-        oriental: [1.02, 30, [28, 42]],
-        gourmand: [1.0, 25, [21, 28]],
+        fresh: [0.87, 20, [90, 90]],
+        floral: [0.95, 25, [90, 90]],
+        woody: [0.93, 22, [90, 90]],
+        oriental: [1.02, 30, [90, 90]],
+        gourmand: [1.0, 25, [90, 90]],
       });
   });
 
@@ -23,7 +23,7 @@ describe("formulation module", () => {
   });
 
   it("serves tiers.js the same shape as before", () => {
-    expect(TIERS.oriental).toMatchObject({ label: "Amber (Oriental)", density: 1.02, defaultConc: 30, restDays: [28, 42] });
+    expect(TIERS.oriental).toMatchObject({ label: "Amber (Oriental)", density: 1.02, defaultConc: 30, restDays: [90, 90] });
     expect(Object.keys(TIERS)).toEqual(["fresh", "floral", "woody", "oriental", "gourmand"]);
   });
 
@@ -35,6 +35,6 @@ describe("formulation module", () => {
   });
 
   it("builds the AI family guide from the active values", () => {
-    expect(familyGuide()).toContain("oriental — Amber (Oriental) (Soft Amber, Amber, Woody Amber). Oil density 1.02 g/mL, default 30%, rest 4–6 weeks.");
+    expect(familyGuide()).toContain("oriental — Amber (Oriental) (Soft Amber, Amber, Woody Amber). Oil density 1.02 g/mL, default 30%, rest 90 days (3 months).");
   });
 });

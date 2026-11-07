@@ -194,6 +194,36 @@ describe('POST /api/batches record fields', () => {
   });
 });
 
+describe('POST /api/batches blend pours (0032)', () => {
+  it('stores what was poured of each material, in order', async () => {
+    const pours = [
+      { name: 'Bergamot', type: 'eo', pct: 50, target_g: 10, actual_g: 11 },
+      { name: 'Hedione', type: 'aroma', pct: 50, target_g: 11, actual_g: 11.004 },
+    ];
+    const res = await call('POST', { body: { ...BATCH, pours } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.batch.pours).toEqual([pours[0], { ...pours[1], actual_g: 11 }]);
+  });
+
+  it('drops malformed entries instead of refusing the log', async () => {
+    const res = await call('POST', { body: { ...BATCH, pours: [
+      null, 'x', { name: 'No target', actual_g: 2 }, { target_g: 3, actual_g: -1 },
+      { name: ' Ambroxan ', type: 'resin', pct: 400, target_g: '4', actual_g: '' },
+    ] } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.batch.pours).toEqual([{ name: 'Ambroxan', type: null, pct: null, target_g: 4, actual_g: null }]);
+  });
+
+  it('leaves pours out for a simple formula or nothing usable', async () => {
+    const plain = await call('POST', { body: { ...BATCH } });
+    expect(plain.body.batch).not.toHaveProperty('pours');
+    const junk = await call('POST', { body: { ...BATCH, pours: [{ target_g: 0 }] } });
+    expect(junk.body.batch).not.toHaveProperty('pours');
+    const notList = await call('POST', { body: { ...BATCH, pours: { a: 1 } } });
+    expect(notList.body.batch).not.toHaveProperty('pours');
+  });
+});
+
 describe('POST /api/batches seller costs', () => {
   const costs = { ethanol_price_per_l: 40, bottle_cost: 10, bottles: 2, packaging_cost: 1.5, labour_minutes: 30, labour_rate_per_hour: 20, sale_price: 60, currency: 'SAR' };
   it('stores them for a Pro user', async () => {
@@ -254,7 +284,7 @@ describe('PATCH /api/batches (edit)', () => {
     expect(db.rows('batches')[0].fragrance_name).toBe('Oud Nights');
   });
   it('refuses a bad value with the field', async () => {
-    for (const edit of [{ fragrance_name: '' }, { blend_date: '2026-13-45' }, { actual_oil_g: -1 }, { lot: 'x'.repeat(61) }, {}, [1]]) {
+    for (const edit of [{ fragrance_name: '' }, { blend_date: '2026-13-45' }, { blend_date: '2999-01-01' }, { actual_oil_g: -1 }, { lot: 'x'.repeat(61) }, {}, [1]]) {
       const res = await call('PATCH', { body: { id: ID, edit } });
       expect(res.statusCode).toBe(400);
       expect(res.body.code).toBe('invalid_edit');
@@ -332,6 +362,7 @@ describe('POST /api/batches validation', () => {
     'long note': { notes: 'x'.repeat(2001) },
     'long name': { fragrance_name: 'x'.repeat(121) },
     'bad date': { blend_date: 'yesterday' },
+    'future date': { blend_date: '2999-01-01' },
     'negative price': { price_per_gram: -2 },
   };
   for (const [label, patch] of Object.entries(bad)) {

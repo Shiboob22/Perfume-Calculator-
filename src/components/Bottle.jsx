@@ -40,22 +40,23 @@ export function RatioBar({ oilG, ethanolG, caption, className = "" }) {
   );
 }
 
-/** A row of square segmented choices (bottle sizes, strengths). */
-export function Segmented({ legend, options, value, onChange, mono = false }) {
+/**
+ * Square segmented choices (bottle sizes, strengths) as a grid: `cols` is
+ * the grid's column classes, so a row of four can fold to two by two and
+ * never leave one choice alone on a line. The rules between cells are the
+ * grid's 1 px gaps on the line colour; an unchosen cell takes `surface`.
+ */
+export function Segmented({ legend, options, value, onChange, mono = false, cols = "grid-cols-4", surface = COLORS.card }) {
   return (
     <fieldset>
       <legend className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-2" style={{ color: COLORS.dim }}>{legend}</legend>
-      <div className="flex flex-wrap" style={{ border: `1px solid ${COLORS.ink}` }}>
-        {options.map((o, i) => {
+      <div className={`grid gap-px ${cols}`} style={{ border: `1px solid ${COLORS.ink}`, background: COLORS.line }}>
+        {options.map((o) => {
           const on = o.value === value;
           return (
             <button key={o.value} type="button" aria-pressed={on} onClick={() => onChange(o.value)} dir="ltr"
-              className={`flex-1 px-3 min-h-[44px] text-sm whitespace-nowrap ${mono ? "font-mono" : ""}`}
-              style={{
-                background: on ? COLORS.amber : "transparent",
-                color: on ? COLORS.onAmber : COLORS.ink,
-                borderInlineStart: i ? `1px solid ${COLORS.line}` : "none",
-              }}>
+              className={`min-w-0 px-1.5 min-h-[44px] text-sm whitespace-nowrap ${mono ? "font-mono" : ""}`}
+              style={{ background: on ? COLORS.amber : surface, color: on ? COLORS.onAmber : COLORS.ink }}>
               {o.label}
             </button>
           );

@@ -1,0 +1,41 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:4173",
+      "localStorage": [
+        {
+          "name": "kyphira.benchTourSeen",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "origin": "http://localhost:4174",
+      "localStorage": [
+        {
+          "name": "kyphira.benchTourSeen",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "origin": "http://localhost:4199",
+      "localStorage": [
+        {
+          "name": "kyphira.benchTourSeen",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "origin": "http://localhost:4211",
+      "localStorage": [
+        {
+          "name": "kyphira.benchTourSeen",
+          "value": "1"
+        }
+      ]
+    }
+  ]
+}

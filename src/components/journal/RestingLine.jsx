@@ -34,7 +34,7 @@ export default function RestingLine() {
   const name = next.batch.fragrance_name || t("journal.unnamed");
   return (
     <Reveal eager>
-    <Link to="/bench/journal" aria-label={t("journal.nextReady", { count: next.left, name, day: next.day, target: next.target })}
+    <Link to="/journal" aria-label={t("journal.nextReady", { count: next.left, name, day: next.day, target: next.target })}
       className="block mb-6 p-4 sm:p-5 border rounded" style={{ borderColor: COLORS.line, color: COLORS.ink }}>
       <span className="flex items-center justify-between gap-3 text-sm" style={{ color: COLORS.inkSoft }}>
         <span className="flex items-center gap-2 min-w-0"><IconHourglass size={18} /><span className="truncate">{name}</span></span>

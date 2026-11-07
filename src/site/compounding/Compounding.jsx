@@ -33,10 +33,10 @@ const ROOMS = [
 ];
 
 // One stage: a section that is its own timeline box, with the gauge's static reading.
-function Stage({ id, children, className = "", bg = COLORS.paper }) {
+function Stage({ id, children, className = "", bg = COLORS.paper, grams }) {
   return (
     <section data-stage={id} data-vt="" aria-labelledby={`st-${id}`} className={`relative overflow-clip ${className}`} style={{ background: bg, color: COLORS.ink }}>
-      <Gauge stage={id} />
+      <Gauge stage={id} grams={grams} />
       <div className={BODY}>{children(`st-${id}`)}</div>
     </section>
   );
@@ -97,6 +97,8 @@ export default function Compounding() {
   const scene = useRef(null);
   useScrollFallback(scene);
   const pour = usePour();
+  // The bench card's total once a visitor changes it: the handoff's still gauge reads it.
+  const [benchTotal, setBenchTotal] = useState(null);
   const nums = { oil: fmt2(oil), alcohol: fmt2(alcohol), total: fmt2(total) };
   const fig = (id) => t(`site.compounding.rooms.${id}.fig`, { n: GUIDES.length });
 
@@ -190,7 +192,7 @@ export default function Compounding() {
       </section>
 
       {/* V · Handoff: the live Bench */}
-      <Stage id="handoff" bg={COLORS.card} className="py-16 lg:py-24">
+      <Stage id="handoff" bg={COLORS.card} className="py-16 lg:py-24" grams={benchTotal}>
         {(h) => (
           <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-center">
             <div>
@@ -202,7 +204,7 @@ export default function Compounding() {
                 </Magnetic>
               </div>
             </div>
-            <LiveBench />
+            <LiveBench onTotal={setBenchTotal} />
           </div>
         )}
       </Stage>

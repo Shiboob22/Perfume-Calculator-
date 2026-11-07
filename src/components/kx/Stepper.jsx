@@ -13,11 +13,15 @@ const FIRST_MS = 400;
 // figure itself never animates.
 export default function Stepper({ label, value, unit, decLabel, incLabel, onStep, onType, inputId, hideLabel = false, decDisabled = false, incDisabled = false, className = "", after = null }) {
   const timer = useRef(null);
+  // The repeat calls the newest onStep: the caller's handler closes over the
+  // value, so a stale one would set the same value on every repeat.
+  const step = useRef(onStep);
+  step.current = onStep;
   const stop = () => { clearTimeout(timer.current); clearInterval(timer.current); };
   useEffect(() => stop, []);
   const hold = (dir) => {
-    onStep(dir);
-    timer.current = setTimeout(() => { timer.current = setInterval(() => onStep(dir), HOLD_MS); }, FIRST_MS);
+    step.current(dir);
+    timer.current = setTimeout(() => { timer.current = setInterval(() => step.current(dir), HOLD_MS); }, FIRST_MS);
   };
   const btn = (dir, aria, off, edge, glyph) => (
     <button type="button" aria-label={aria} disabled={off}

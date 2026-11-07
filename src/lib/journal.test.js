@@ -7,13 +7,13 @@ const day = (n) => new Date(made.getTime() + n * 86400000 + 3600000);
 
 describe("journal (app glue)", () => {
   it("reads the family's rest range and the batch's start", () => {
-    expect(restingBatch(batch())).toEqual({ id: "b1", startedAt: made, rest: [21, 28] });
+    expect(restingBatch(batch())).toEqual({ id: "b1", startedAt: made, rest: [90, 90] });
     expect(restingBatch(batch({ tier: "unknown" })).rest).toBeNull();
   });
   it("lists due check-ins with their batch, minus the answered ones", () => {
-    expect(dueNow([batch()], day(22))).toEqual([{ batchId: "b1", scheduledDay: 21, day: 22, batch: batch() }]);
-    const answered = batch({ batch_checkins: [{ id: "c", day: 21, scheduled_day: 21, rating: 4 }] });
-    expect(dueNow([answered], day(22))).toEqual([]);
+    expect(dueNow([batch()], day(91))).toEqual([{ batchId: "b1", scheduledDay: 90, day: 91, batch: batch() }]);
+    const answered = batch({ batch_checkins: [{ id: "c", day: 90, scheduled_day: 90, rating: 4 }] });
+    expect(dueNow([answered], day(91))).toEqual([]);
   });
   it("today's rest day, 0 without a start", () => {
     expect(todayFor(batch(), day(5))).toBe(5);
@@ -26,7 +26,7 @@ describe("sharing helpers", () => {
     const rated = batch({ batch_checkins: [{ id: "a", day: 1, rating: 2 }, { id: "b", day: 24, rating: 5 }, { id: "c", day: 30, rating: 4 }] });
     expect(suggestedRestDays(rated)).toBe(24);
     expect(suggestedRestDays(batch({ batch_checkins: [{ id: "a", day: 9, note: "x" }, { id: "s", day: 21, skipped: true }] }))).toBe(9);
-    expect(suggestedRestDays(batch())).toBe(28);
+    expect(suggestedRestDays(batch())).toBe(90);
     expect(suggestedRestDays(batch({ tier: "unknown" }))).toBeNull();
   });
   it("reads the share state as an object or a one-item list", () => {
@@ -63,14 +63,14 @@ describe("restTimeline", () => {
 
 describe("nextReady", () => {
   it("names the batch closest to the end of its rest", () => {
-    const fresh = batch({ id: "fresh", tier: "fresh", created_at: day(-1).toISOString() });
+    const fresh = batch({ id: "fresh", tier: "fresh", created_at: day(5).toISOString() });
     const woody = batch({ id: "woody" });
     const r = nextReady([woody, fresh], day(20));
     expect(r.batch.id).toBe("woody");
-    expect(r).toMatchObject({ day: 20, target: 28, left: 8 });
+    expect(r).toMatchObject({ day: 20, target: 90, left: 70 });
   });
   it("is null when every batch is ready or has no rest to count to", () => {
-    expect(nextReady([batch()], day(28))).toBeNull();
+    expect(nextReady([batch()], day(90))).toBeNull();
     expect(nextReady([batch({ tier: "unknown" })], day(3))).toBeNull();
     expect(nextReady([], day(3))).toBeNull();
   });

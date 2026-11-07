@@ -9,10 +9,11 @@ import { USER, json, signIn } from "./helpers.js";
 // worker bypasses (WebKit).
 test.use({ serviceWorkers: "block" });
 
-// Saved recipes with versions (Phase 3, migration 0023), against the
-// production build with a fake session and a fake API: save a recipe, see
-// which version a batch will carry, lose the link when the settings change,
-// save a new version, reopen one from "Make again".
+// Saved formulas with versions (recipes, migration 0023; the Bench SaaS
+// library since 2026-11-05), against the production build with a fake
+// session and a fake API: save a formula, see which version a batch will
+// carry, lose the link when the settings change, save a new version, reopen
+// one from "Make again".
 
 const FRAG_ID = "22222222-2222-4222-8222-222222222222";
 const RECIPE_ID = "55555555-5555-4555-8555-555555555555";
@@ -34,8 +35,9 @@ async function fakeApi(page, { recipes = [], batches = [], locale = "en" } = {})
       const body = req.postDataJSON();
       sent.versions.push(body);
       const r = state.recipes.find((x) => x.id === body.recipe_id);
-      r.recipe_versions.push({ id: r.recipe_versions.length ? V2 : V1, version: r.recipe_versions.length + 1, created_at: "2026-10-14T00:00:00Z", ...body });
-      return json(route, [], 201);
+      const id = r.recipe_versions.length ? V2 : V1;
+      r.recipe_versions.push({ ...body, id, version: r.recipe_versions.length + 1, created_at: "2026-10-14T00:00:00Z", recipe_ingredients: [] });
+      return json(route, one ? { id } : [{ id }], 201);
     }
     if (url.includes("/rest/v1/recipes") && req.method() === "POST") {
       const body = req.postDataJSON();
@@ -66,20 +68,29 @@ async function fakeApi(page, { recipes = [], batches = [], locale = "en" } = {})
   return sent;
 }
 
+// Opens the saved formulas: the rail on wide screens, the sheet on phones.
+async function formulasPanel(page, m = en) {
+  await page.getByRole("spinbutton", { name: m.calc.batchSize }).waitFor();
+  const button = page.getByRole("button", { name: new RegExp(m.calc.formulas.open) });
+  if (await button.isVisible()) {
+    await button.click();
+    return page.getByRole("dialog", { name: m.calc.formulas.title });
+  }
+  return page.getByRole("region", { name: m.calc.formulas.title });
+}
+
 const savedRecipe = (extra = {}) => ({
   id: RECIPE_ID, name: "Oud Nights", family: "woody", created_at: "2026-10-01T00:00:00Z", updated_at: "2026-10-01T00:00:00Z",
-  recipe_versions: [{ id: V1, version: 1, amount: 50, unit: "ml", concentration_pct: 25, oil_density: null, ethanol_density: null, note: null, created_at: "2026-10-01T00:00:00Z" }],
+  recipe_versions: [{ id: V1, version: 1, amount: 50, unit: "ml", concentration_pct: 25, oil_density: null, ethanol_density: null, note: null, created_at: "2026-10-01T00:00:00Z", recipe_ingredients: [] }],
   ...extra,
 });
 
-test("save a recipe, log with its version, lose the link on a change, save v2", async ({ page }) => {
+test("save a formula, log with its version, lose the link on a change, save v2", async ({ page }) => {
   await signIn(page);
   const sent = await fakeApi(page);
   await page.goto("/bench?name=Oud%20Nights&family=woody&size=50&unit=ml&conc=25");
 
-  await page.getByRole("button", { name: en.calc.recipes.add }).click();
-  await page.getByLabel(en.calc.recipes.name).fill("Oud Nights");
-  await page.getByRole("button", { name: en.calc.recipes.save, exact: true }).click();
+  await page.getByRole("button", { name: en.calc.formulas.save }).click();
   await expect(page.getByRole("status").filter({ hasText: "Oud Nights v1" })).toBeVisible();
   expect(sent.recipes[0]).toMatchObject({ name: "Oud Nights", family: "woody" });
   expect(sent.versions[0]).toMatchObject({ amount: 50, unit: "ml", concentration_pct: 25 });
@@ -97,19 +108,19 @@ test("save a recipe, log with its version, lose the link on a change, save v2", 
   await expect.poll(() => sent.logs.length).toBe(2);
   expect(sent.logs[1]).not.toHaveProperty("recipe_version_id");
 
-  // Saving the change as the next version links again.
-  await page.getByRole("button", { name: en.calc.recipes.addVersion.replace("{name}", "Oud Nights") }).click();
-  await page.getByLabel(en.calc.recipes.note).fill("bigger bottle");
-  await page.getByRole("button", { name: en.calc.recipes.save, exact: true }).click();
+  // Saving again under the loaded formula's name makes the next version, linked again.
+  await page.getByRole("button", { name: en.calc.formulas.save }).click();
   await expect(page.getByRole("status").filter({ hasText: "Oud Nights v2" })).toBeVisible();
-  expect(sent.versions[1]).toMatchObject({ amount: 60, note: "bigger bottle", recipe_id: RECIPE_ID });
+  expect(sent.versions[1]).toMatchObject({ amount: 60, recipe_id: RECIPE_ID });
+  expect(sent.recipes).toHaveLength(1);
 });
 
-test("opening a saved recipe fills the calculator", async ({ page }) => {
+test("loading a saved formula fills the calculator", async ({ page }) => {
   await signIn(page);
   await fakeApi(page, { recipes: [savedRecipe()] });
   await page.goto("/bench");
-  await page.getByRole("button", { name: en.calc.recipes.open.replace("{label}", "Oud Nights v1") }).click();
+  const panel = await formulasPanel(page);
+  await panel.getByRole("button", { name: en.calc.formulas.loadName.replace("{name}", "Oud Nights") }).click();
   await expect(page.getByRole("spinbutton", { name: en.calc.batchSize })).toHaveValue("50");
   await expect(page.getByLabel(en.calc.family)).toHaveValue("woody");
   await expect(page.getByText(en.calc.recipes.linked.replace("{label}", "Oud Nights v1"))).toBeVisible();
@@ -130,14 +141,15 @@ test("Make again from a batch made from a recipe reopens that version", async ({
   await expect(page.getByText(en.calc.recipes.linked.replace("{label}", "Oud Nights v1"))).toBeVisible();
 });
 
-test("the recipe picker has no accessibility violations, and works in Arabic at 320 px", async ({ page }) => {
+test("the formulas sheet has no accessibility violations, and works in Arabic at 320 px", async ({ page }) => {
   await signIn(page);
   await fakeApi(page, { recipes: [savedRecipe()], locale: "ar" });
   await page.setViewportSize({ width: 320, height: 700 });
   await page.goto("/bench");
-  await page.getByRole("group", { name: ar.calc.recipes.label }).waitFor();
+  const sheet = await formulasPanel(page, ar);
+  await expect(sheet.getByRole("button", { name: ar.calc.formulas.loadName.replace("{name}", "Oud Nights") })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
-  const results = await new AxeBuilder({ page }).include('[role="group"]').analyze();
+  const results = await new AxeBuilder({ page }).include("dialog[open]").analyze();
   expect(results.violations).toEqual([]);
 });

@@ -12,6 +12,14 @@ describe("calcDraft", () => {
     saveDraft({ fragName: "Oud", batchSize: "50", batchUnit: "g", concPct: 25, chosenConc: true }, s);
     expect(loadDraft(s)).toEqual({ fragName: "Oud", batchSize: "50", batchUnit: "g", concPct: 25, chosenConc: true });
   });
+  it("keeps a blend: its type and rows", () => {
+    const s = memory();
+    const blend = [{ id: "a", name: "Bergamot", type: "eo", pct: "60" }, { id: "b", name: "Iso E", type: "aroma", pct: "40" }];
+    saveDraft({ formulaType: "blend", blend }, s);
+    expect(loadDraft(s)).toEqual({ formulaType: "blend", blend });
+    expect(cleanDraft({ blend: [1, 2] })).toBeNull();
+    expect(cleanDraft({ blend: { a: 1 } })).toBeNull();
+  });
   it("drops unknown and malformed fields", () => {
     expect(cleanDraft({ fragName: 3, evil: "x", densities: [1], mode: "run" })).toEqual({ mode: "run" });
     expect(cleanDraft({ evil: 1 })).toBeNull();

@@ -39,6 +39,8 @@ export default function RoomHeader({ numeral, name, title, headline, children, c
           {line("h1", name, { color: COLORS.ink })}
         </>
       )}
+      {/* The ink-printed rule under the room's heading (lib/surfaces.js). */}
+      <div aria-hidden="true" className="kx-rule mt-3" />
       {children}
     </header>
   );

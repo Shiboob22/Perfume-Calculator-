@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Readex+Pro:wght@300;400;500;600&family=Reem+Kufi:wght@400;500&family=Share+Tech+Mono&display=swap">
+<script src="./kyphira.js"></script>
+<style>body{margin:0;background:#F4F1EA;} a{color:#7A581B;} textarea{resize:vertical;}</style>
+</helmet>
+<div style="position:relative;height:100%;">
+<div dir="{{ dir }}" lang="{{ lang }}" style="{{ rootStyle }}">
+
+  <header style="border-bottom:1px solid var(--c-line, #D9D3C5);">
+    <div style="{{ headerInner }}">
+      <a href="Bench A Split.dc.html" style="display:inline-flex;align-items:center;gap:12px;color:var(--c-ink, #1B1814);text-decoration:none;margin-inline-end:auto;">
+        <sc-if value="{{ isLight }}" hint-placeholder-val="{{ true }}"><img src="./public/brand/kyphira-symbol.svg" alt="" width="40" height="50" style="width:40px;height:50px;object-fit:contain;"></sc-if>
+        <sc-if value="{{ isDark }}" hint-placeholder-val="{{ false }}"><img src="./public/brand/kyphira-symbol-reversed.svg" alt="" width="40" height="50" style="width:40px;height:50px;object-fit:contain;"></sc-if>
+        <span style="font-family:var(--f-serif, 'Instrument Serif', serif);font-size:22px;letter-spacing:-0.02em;">{{ t.brand }}</span>
+      </a>
+      <nav aria-label="Main" style="display:flex;align-items:center;gap:{{ navGap }};white-space:nowrap;">
+        <a href="Bench A Split.dc.html" style="min-height:44px;display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--c-ink, #1B1814);text-decoration:none;"><span aria-hidden="true">{{ backArrow }}</span>{{ t.journal.back }}</a>
+        <button type="button" onClick="{{ toggleLang }}" style="min-height:44px;padding:0 6px;font:inherit;font-size:14px;background:transparent;border:0;color:var(--c-ink, #1B1814);cursor:pointer;">{{ t.lang }}</button>
+        <button type="button" onClick="{{ toggleTheme }}" style="min-height:44px;padding:0 6px;font:inherit;font-size:14px;background:transparent;border:0;color:var(--c-ink, #1B1814);cursor:pointer;">{{ themeLabel }}</button>
+        <span style="{{ planBadge }}">{{ planLabel }}</span>
+      </nav>
+    </div>
+  </header>
+
+  <main style="{{ mainStyle }}">
+    <!-- Hero -->
+    <div>
+      <p style="margin:0 0 8px;display:flex;align-items:baseline;gap:12px;color:var(--c-dim, #5A544A);">
+        <span dir="ltr" style="font-family:var(--f-serif, 'Instrument Serif', serif);font-size:18px;color:var(--c-action-text, #7A581B);">II</span>
+        <span style="text-transform:uppercase;letter-spacing:0.14em;font-size:12px;">{{ t.journal.room }}</span>
+      </p>
+      <h1 style="margin:0;font-family:var(--f-serif, 'Instrument Serif', serif);font-weight:400;font-size:44px;line-height:1.1;letter-spacing:-0.01em;">{{ t.journal.title }}</h1>
+      <p style="margin:12px 0 0;max-width:36em;font-size:15px;line-height:1.5;color:var(--c-ink-soft, #3A352D);">{{ t.journal.lead }}</p>
+      <div aria-hidden="true" style="height:4px;margin-top:16px;max-width:360px;background-image:var(--kx-rule, none);background-repeat:repeat-x;background-size:240px 4px;"></div>
+    </div>
+
+    <!-- Ready soon -->
+    <section aria-label="{{ t.journal.soon }}">
+      <h2 style="margin:0 0 10px;font-size:11px;font-weight:400;text-transform:uppercase;letter-spacing:0.15em;color:var(--c-dim, #5A544A);">{{ t.journal.soon }}</h2>
+      <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;">
+        <sc-for list="{{ soon }}" as="c" hint-placeholder-count="3">
+          <button type="button" onClick="{{ c.pick }}" aria-pressed="{{ c.on }}" style="{{ c.style }}">
+            <span style="display:flex;align-items:center;gap:8px;">
+              <span aria-hidden="true" style="width:8px;height:8px;background:{{ c.color }};"></span>
+              <span style="font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ c.name }}</span>
+              <span dir="ltr" style="margin-inline-start:auto;font-size:12px;color:var(--c-dim, #5A544A);font-variant-numeric:tabular-nums;">{{ c.no }}</span>
+            </span>
+            <span dir="ltr" style="position:relative;display:block;height:6px;margin-top:12px;border:1px solid var(--c-field, #827A6B);background:var(--c-card, #FBF9F4);overflow:hidden;"><span style="{{ c.bar }}"></span></span>
+            <span style="display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:13px;">
+              <span style="{{ c.readyStyle }}">{{ c.readyText }}</span>
+              <span style="color:var(--c-dim, #5A544A);font-variant-numeric:tabular-nums;">{{ c.dayText }}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <div style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;">
+      <!-- Batch list -->
+      <aside style="{{ asideStyle }}">
+        <h2 style="margin:0 0 8px;font-size:11px;font-weight:400;text-transform:uppercase;letter-spacing:0.15em;color:var(--c-dim, #5A544A);">{{ t.journal.batches }}</h2>
+        <ul style="list-style:none;margin:0;padding:0;border-top:1px solid var(--c-line, #D9D3C5);">
+          <sc-for list="{{ rows }}" as="b" hint-placeholder-count="3">
+            <li>
+              <button type="button" onClick="{{ b.pick }}" aria-pressed="{{ b.on }}" style="{{ b.style }}">
+                <span aria-hidden="true" style="width:8px;height:8px;flex:none;background:{{ b.color }};"></span>
+                <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;text-align:start;">
+                  <span style="display:flex;align-items:center;gap:8px;font-size:15px;">{{ b.name }}<sc-if value="{{ b.fresh }}" hint-placeholder-val="{{ false }}"><span style="padding:1px 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:var(--c-amber, #B8893A);color:var(--c-on-amber, #1B1814);">{{ t.journal.newBadge }}</span></sc-if></span>
+                  <span style="font-size:12px;color:var(--c-dim, #5A544A);font-variant-numeric:tabular-nums;">{{ b.meta }}</span>
+                </span>
+                <span style="{{ b.dotsStyle }}">{{ b.dots }}</span>
+              </button>
+            </li>
+          </sc-for>
+        </ul>
+        <sc-if value="{{ showProCard }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:16px;padding:16px;border:1px solid var(--c-ink, #1B1814);border-radius:2px;background:var(--c-card, #FBF9F4);display:flex;flex-direction:column;gap:8px;">
+            <p style="margin:0;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-action-text, #7A581B)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="1.5"></rect><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"></path></svg>{{ proCardTitle }}</p>
+            <p style="margin:0;font-size:13px;line-height:1.5;color:var(--c-ink-soft, #3A352D);">{{ t.journal.lockedBody }}</p>
+            <button type="button" onClick="{{ startTrial }}" style="margin-top:4px;min-height:44px;padding:0 16px;font:inherit;font-size:14px;font-weight:500;border-radius:2px;background:var(--c-amber, #B8893A);color:var(--c-on-amber, #1B1814);border:1px solid var(--c-amber, #B8893A);cursor:pointer;">{{ t.plan.trial }}</button>
+          </div>
+        </sc-if>
+      </aside>
+
+      <!-- Batch detail -->
+      <section aria-label="{{ d.name }}" style="{{ detailStyle }}">
+        <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+          <div style="flex:1 1 240px;min-width:0;">
+            <p dir="ltr" style="margin:0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--c-action-text, #7A581B);text-align:start;">{{ d.kicker }}</p>
+            <h2 style="margin:4px 0 0;font-family:var(--f-serif, 'Instrument Serif', serif);font-weight:400;font-size:34px;line-height:1.1;">{{ d.name }}</h2>
+            <p style="margin:6px 0 0;font-size:14px;color:var(--c-ink-soft, #3A352D);">{{ d.meta }}</p>
+            <p style="margin:4px 0 0;font-size:13px;color:var(--c-dim, #5A544A);">{{ d.dates }}</p>
+          </div>
+          <button type="button" onClick="{{ toggleRemind }}" aria-pressed="{{ d.remind }}" style="{{ remindStyle }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15Z"></path><path d="M10 20.5a2 2 0 0 0 4 0"></path></svg>
+            <sc-if value="{{ isFree }}" hint-placeholder-val="{{ true }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--c-action-text, #7A581B)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="{{ t.plan.pro }}"><rect x="5" y="10.5" width="14" height="10" rx="1.5"></rect><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"></path></svg></sc-if>
+            <span>{{ remindLabel }}</span>
+          </button>
+        </div>
+
+        <!-- Rest timeline -->
+        <div style="position:relative;margin-top:28px;">
+          <div aria-hidden="true" style="position:absolute;top:17px;left:10%;right:10%;height:2px;background:var(--c-line, #D9D3C5);">
+            <div style="{{ trackFill }}"></div>
+          </div>
+          <ol style="position:relative;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));">
+            <sc-for list="{{ nodes }}" as="m" hint-placeholder-count="5">
+              <li style="display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;">
+                <button type="button" onClick="{{ m.pick }}" aria-pressed="{{ m.on }}" aria-label="{{ m.label }}" style="{{ m.style }}">{{ m.glyph }}</button>
+                <span style="{{ m.labelStyle }}">{{ m.label }}</span>
+                <span style="font-size:11px;color:var(--c-dim, #5A544A);">{{ m.date }}</span>
+              </li>
+            </sc-for>
+          </ol>
+        </div>
+
+        <!-- Note at the chosen milestone -->
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--c-line, #D9D3C5);display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <h3 style="margin:0;font-family:var(--f-serif, 'Instrument Serif', serif);font-weight:400;font-size:24px;">{{ msTitle }}</h3>
+            <button type="button" onClick="{{ toggleCompare }}" style="min-height:40px;padding:0;font:inherit;font-size:14px;background:transparent;border:0;color:var(--c-action-text, #7A581B);text-decoration:underline;text-underline-offset:4px;cursor:pointer;">{{ compareLabel }}</button>
+          </div>
+          <sc-if value="{{ isFuture }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0;padding:14px 16px;font-size:14px;border:1px dashed var(--c-field, #827A6B);color:var(--c-ink-soft, #3A352D);">{{ futureText }}</p>
+          </sc-if>
+          <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:500;">{{ t.journal.note }}
+              <textarea value="{{ draftText }}" onChange="{{ onDraft }}" rows="3" placeholder="{{ t.journal.notePh }}" style="width:100%;box-sizing:border-box;padding:12px;font:inherit;font-size:15px;font-weight:400;line-height:1.5;border-radius:2px;border:1px solid var(--c-field, #827A6B);background:var(--c-card-hi, #FFFDF9);color:var(--c-ink, #1B1814);"></textarea>
+            </label>
+            <div role="group" aria-label="{{ t.journal.rating }}" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span style="font-size:14px;font-weight:500;margin-inline-end:6px;">{{ t.journal.rating }}</span>
+              <sc-for list="{{ stars }}" as="x" hint-placeholder-count="5">
+                <button type="button" onClick="{{ x.pick }}" aria-pressed="{{ x.on }}" aria-label="{{ x.n }}" style="{{ x.style }}">{{ x.n }}</button>
+              </sc-for>
+            </div>
+            <div role="group" aria-label="{{ t.journal.tags }}" style="display:flex;flex-wrap:wrap;gap:6px;">
+              <sc-for list="{{ tagChips }}" as="g" hint-placeholder-count="7">
+                <button type="button" onClick="{{ g.pick }}" aria-pressed="{{ g.on }}" style="{{ g.style }}">{{ g.label }}</button>
+              </sc-for>
+            </div>
+            <div>
+              <button type="button" onClick="{{ saveNote }}" style="min-height:48px;padding:0 22px;font:inherit;font-size:15px;font-weight:500;border-radius:2px;background:var(--c-ink, #1B1814);color:var(--c-paper, #F4F1EA);border:1px solid var(--c-ink, #1B1814);cursor:pointer;">{{ t.journal.save }}</button>
+            </div>
+          </sc-if>
+
+          <!-- Compare two notes side by side -->
+          <sc-if value="{{ compareOn }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:16px;border-radius:2px;background:var(--c-sand, #EBE6DA);display:flex;flex-direction:column;gap:12px;">
+              <sc-if value="{{ canCompare }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                  <label style="display:flex;align-items:center;gap:8px;font-size:13px;">{{ t.journal.a }}
+                    <select value="{{ ca }}" onChange="{{ onCa }}" style="min-height:40px;padding:0 8px;font:inherit;font-size:14px;border-radius:2px;border:1px solid var(--c-field, #827A6B);background:var(--c-card-hi, #FFFDF9);color:var(--c-ink, #1B1814);">
+                      <sc-for list="{{ noteOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.k }}">{{ o.label }}</option></sc-for>
+                    </select>
+                  </label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:13px;">{{ t.journal.b }}
+                    <select value="{{ cb }}" onChange="{{ onCb }}" style="min-height:40px;padding:0 8px;font:inherit;font-size:14px;border-radius:2px;border:1px solid var(--c-field, #827A6B);background:var(--c-card-hi, #FFFDF9);color:var(--c-ink, #1B1814);">
+                      <sc-for list="{{ noteOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.k }}">{{ o.label }}</option></sc-for>
+                    </select>
+                  </label>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+                  <sc-for list="{{ cards }}" as="c" hint-placeholder-count="2">
+                    <article style="padding:16px;border-radius:2px;background:var(--c-card, #FBF9F4);background-image:var(--kx-grain, none);border:1px solid var(--c-line, #D9D3C5);display:flex;flex-direction:column;gap:8px;">
+                      <p style="margin:0;display:flex;justify-content:space-between;gap:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--c-dim, #5A544A);"><span>{{ c.label }}</span><span style="letter-spacing:0;text-transform:none;">{{ c.date }}</span></p>
+                      <p style="margin:0;font-family:var(--f-serif, 'Instrument Serif', serif);font-size:20px;line-height:1.35;">{{ c.text }}</p>
+                      <p style="margin:0;font-size:13px;color:var(--c-action-text, #7A581B);" dir="ltr">{{ c.dots }}</p>
+                      <p style="margin:0;font-size:13px;color:var(--c-ink-soft, #3A352D);">{{ c.tags }}</p>
+                    </article>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ cantCompare }}" hint-placeholder-val="{{ false }}">
+                <p style="margin:0;font-size:14px;color:var(--c-ink-soft, #3A352D);">{{ t.journal.compareNone }}</p>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+  <div role="status" style="position:absolute;left:50%;top:24px;transform:translateX(-50%);z-index:70;padding:12px 18px;font-size:14px;border-radius:2px;background:var(--c-ink, #1B1814);color:var(--c-paper, #F4F1EA);font-family:var(--f-sans, 'Instrument Sans', sans-serif);">{{ toast }}</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;phone&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;plan&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;free&quot;,&quot;pro&quot;],&quot;default&quot;:&quot;free&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const S = (str) => Object.fromEntries(str.split(";").filter((x) => x.trim()).map((d) => { const i = d.indexOf(":"); return [d.slice(0, i).trim().replace(/-([a-z])/g, (_, c) => c.toUpperCase()), d.slice(i + 1).trim()]; }));
+const V = (k, f) => `var(--c-${k}, ${f})`;
+const KEY = "kx-journal-v1";
+class Component extends DCLogic {
+  state = { lang: this.props.lang || "en", theme: this.props.theme || "light", plan: this.props.plan === "pro" ? "pro" : "free", batches: null, sel: null, ms: null, draft: null, compareOn: false, ca: null, cb: null, toast: null, showPro: false };
+  componentDidMount() {
+    if (!window.Kx) { this._r = () => { this.load(); this.forceUpdate(); }; window.addEventListener("kx-ready", this._r); } else this.load();
+    this._w = () => this.setState({ vw: window.innerWidth }); this._w(); window.addEventListener("resize", this._w);
+  }
+  componentDidUpdate(pp) {
+    if (pp.lang !== this.props.lang && this.props.lang) this.setState({ lang: this.props.lang });
+    if (pp.theme !== this.props.theme && this.props.theme) this.setState({ theme: this.props.theme });
+    if (pp.plan !== this.props.plan && this.props.plan) this.setState({ plan: this.props.plan === "pro" ? "pro" : "free" });
+  }
+  componentWillUnmount() { clearTimeout(this._t); window.removeEventListener("resize", this._w); if (this._r) window.removeEventListener("kx-ready", this._r); }
+  flash(msg) { clearTimeout(this._t); this.setState({ toast: msg }); this._t = setTimeout(() => this.setState({ toast: null }), 1800); }
+  // Sample batches, plus anything logged on the Bench (same browser storage). Newest number first.
+  load() {
+    const K = window.Kx; if (!K) return;
+    let saved = [];
+    try { saved = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { saved = []; }
+    const byNo = new Map();
+    [...K.JOURNAL, ...saved].forEach((b) => byNo.set(b.no, { ...(byNo.get(b.no) || {}), ...b }));
+    const batches = [...byNo.values()].sort((a, b) => b.no - a.no);
+    this.setState({ batches }, () => this.pick(batches[0].no));
+  }
+  persist(batches) { try { localStorage.setItem(KEY, JSON.stringify(batches)); } catch (e) { /* storage unavailable: changes last for this visit */ } }
+  days(b) { const K = window.Kx; return Math.max(0, Math.floor((new Date(K.TODAY + "T12:00:00") - new Date(b.poured + "T12:00:00")) / 864e5)); }
+  pick(no, k) {
+    const K = window.Kx, b = (this.state.batches || []).find((x) => x.no === no); if (!b) return;
+    const reached = K.MILESTONES.filter((m) => m.days <= this.days(b));
+    const ms = k || (reached.length ? reached[reached.length - 1].k : "d1");
+    const withNotes = K.MILESTONES.filter((m) => b.notes && b.notes[m.k]).map((m) => m.k);
+    const n = (b.notes || {})[ms];
+    this.setState({ sel: no, ms, draft: n ? { text: n.text, rating: n.rating, tags: [...(n.tags || [])] } : { text: "", rating: 0, tags: [] }, ca: withNotes[0] || null, cb: withNotes[withNotes.length - 1] || null });
+  }
+  renderVals() {
+    const K = window.Kx; if (!K) return {};
+    const s = this.state, p = this.props, lang = s.lang === "ar" ? "ar" : "en";
+    const t = K.strings(lang), J = t.journal, phone = p.device === "phone";
+    const pro = s.plan === "pro";
+    const all = s.batches || K.JOURNAL;
+    const visible = pro ? all : all.slice(0, K.PLAN.freeBatches);
+    const lockedN = all.length - visible.length;
+    const b = visible.find((x) => x.no === s.sel) || visible[0];
+    const day = this.days(b);
+    const fam = (x) => K.FAMILIES[x.family] || K.FAMILIES.fresh;
+    const tierName = (pct) => { const x = K.tierFor(pct); return lang === "ar" ? x.ar : x.name; };
+    const at = (x, d) => K.fmtDate(K.addDays(x.poured, d), lang);
+    const noTxt = (x) => `No. ${String(x.no).padStart(3, "0")}`;
+    const dotsFor = (x) => { const notes = x.notes || {}; return K.MILESTONES.map((m) => (notes[m.k] ? "●" : m.days <= this.days(x) ? "○" : "·")).join(" "); };
+    const vars = K.vars(s.theme, lang);
+    const ms = K.MILESTONES.find((m) => m.k === s.ms) || K.MILESTONES[0];
+    const future = ms.days > day;
+    const draft = s.draft || { text: "", rating: 0, tags: [] };
+    // Track fill: piecewise between the five evenly spaced nodes.
+    const pos = (() => { const M = K.MILESTONES; if (day >= M[M.length - 1].days) return 1; for (let i = 0; i < M.length - 1; i++) if (day < M[i + 1].days) return (i + (day - M[i].days) / (M[i + 1].days - M[i].days)) / (M.length - 1); return 1; })();
+    const withNotes = K.MILESTONES.filter((m) => b.notes && b.notes[m.k]);
+    const card = (k) => { const m = K.MILESTONES.find((x) => x.k === k); const n = m && b.notes[m.k]; return n ? { label: m[lang], date: at(b, m.days), text: n.text, dots: "●".repeat(n.rating || 0) + "○".repeat(5 - (n.rating || 0)), tags: (n.tags || []).map((g) => (K.TAGS.find((x) => x.k === g) || { [lang]: g })[lang]).join(" · ") } : null; };
+    const chip = (on) => S(`min-height:36px;padding:0 12px;font:inherit;font-size:13px;border-radius:2px;cursor:pointer;border:1px solid ${on ? V("ink", "#1B1814") : V("line", "#D9D3C5")};background:${on ? V("ink", "#1B1814") : "transparent"};color:${on ? V("paper", "#F4F1EA") : V("ink-soft", "#3A352D")};`);
+    const left = Math.max(0, 90 - day);
+    const setBatches = (fn) => this.setState((st) => { const next = fn(st.batches || K.JOURNAL); this.persist(next); return { batches: next }; });
+    const startTrial = () => { this.setState({ plan: "pro", showPro: false }); this.flash(t.plan.trialOn); };
+    return {
+      t, lang, dir: t.dir, isLight: s.theme !== "dark", isDark: s.theme === "dark", isFree: !pro,
+      rootStyle: { ...vars, ...this.surfaces(s.theme), minHeight: "100%", ...(phone ? { height: "100%", overflowY: "auto" } : {}), position: "relative" },
+      headerInner: S(`max-width:1152px;margin:0 auto;padding:${phone ? "10px 16px" : "12px 32px"};display:flex;align-items:center;gap:16px;`),
+      navGap: phone ? "2px" : "16px",
+      backArrow: t.dir === "rtl" ? "→" : "←",
+      mainStyle: S(`max-width:1152px;margin:0 auto;padding:${phone ? "20px 16px 40px" : "40px 32px 64px"};display:flex;flex-direction:column;gap:${phone ? "24px" : "36px"};`),
+      asideStyle: S(`flex:${phone ? "1 1 100%" : "0 0 300px"};min-width:0;`),
+      detailStyle: S(`flex:1 1 420px;min-width:0;padding:${phone ? "18px" : "28px"};border-radius:2px;background:${V("card", "#FBF9F4")};background-image:var(--kx-grain, none);border:1px solid ${V("ink", "#1B1814")};box-shadow:${K.PALETTES[s.theme].shadow};`),
+      themeLabel: s.theme === "dark" ? t.themeLight : t.themeDark,
+      toggleLang: () => this.setState({ lang: lang === "ar" ? "en" : "ar" }),
+      toggleTheme: () => this.setState({ theme: s.theme === "dark" ? "light" : "dark" }),
+      planLabel: pro ? t.plan.badgePro : t.plan.free,
+      planBadge: S(`min-height:32px;display:inline-flex;align-items:center;padding:0 10px;font-size:13px;font-weight:500;border-radius:2px;border:1px solid ${V("amber", "#B8893A")};background:${pro ? V("amber", "#B8893A") : "transparent"};color:${pro ? V("on-amber", "#1B1814") : V("action-text", "#7A581B")};`),
+      // Ready soon: nearest first, finished batches last.
+      soon: [...visible].sort((x, y) => (90 - this.days(x) <= 0) - (90 - this.days(y) <= 0) || (90 - this.days(x)) - (90 - this.days(y))).map((x) => {
+        const d = this.days(x), rem = 90 - d, on = x.no === b.no, ready = rem <= 0;
+        return {
+          name: x.name, no: noTxt(x), color: fam(x).color, on, pick: () => this.pick(x.no),
+          bar: S(`position:absolute;top:0;bottom:0;${lang === "ar" ? "right" : "left"}:0;width:${Math.min(100, (d / 90) * 100)}%;background:${ready ? V("verdigris", "#2F6F62") : V("amber", "#B8893A")};`),
+          readyText: ready ? J.ready : K.fill(J.readyIn, { n: rem }), readyStyle: S(`color:${ready ? V("verdigris-text", "#2F6F62") : V("ink", "#1B1814")};font-weight:500;`),
+          dayText: K.fill(J.progress, { n: Math.min(d, 90) }),
+          style: S(`flex:0 0 ${phone ? "220px" : "240px"};padding:14px;text-align:start;font:inherit;border-radius:2px;cursor:pointer;color:${V("ink", "#1B1814")};background:${V("card", "#FBF9F4")};border:1px solid ${on ? V("ink", "#1B1814") : V("line", "#D9D3C5")};box-shadow:${on ? K.PALETTES[s.theme].shadow : "none"};`),
+        };
+      }),
+      rows: visible.map((x) => ({
+        name: x.name, color: fam(x).color, fresh: !!x.fresh, on: x.no === b.no, pick: () => this.pick(x.no),
+        meta: `${noTxt(x)} · ${K.fill(J.meta, { size: x.size, pct: x.pct, tier: tierName(x.pct) })}`,
+        dots: dotsFor(x), dotsStyle: S(`flex:none;font-size:10px;letter-spacing:.05em;color:${V("action-text", "#7A581B")};`),
+        style: S(`width:100%;display:flex;align-items:center;gap:12px;padding:12px 8px;font:inherit;border:0;border-bottom:1px solid ${V("line", "#D9D3C5")};cursor:pointer;color:${V("ink", "#1B1814")};background:${x.no === b.no ? V("sand", "#EBE6DA") : "transparent"};`),
+      })),
+      showProCard: !pro && (lockedN > 0 || s.showPro),
+      proCardTitle: lockedN > 0 ? K.fill(J.locked, { n: lockedN }) : J.remindPro,
+      startTrial,
+      d: {
+        name: b.name, remind: !!b.remind,
+        kicker: `${noTxt(b)} · ${fam(b)[lang]}`,
+        meta: K.fill(J.meta, { size: b.size, pct: b.pct, tier: tierName(b.pct) }),
+        dates: `${K.fill(J.poured, { date: at(b, 0) })} · ${left > 0 ? K.fill(J.readyOn, { date: at(b, 90) }) : J.ready}`,
+      },
+      remindLabel: pro && b.remind ? J.reminded : J.remind,
+      remindStyle: S(`min-height:44px;padding:0 14px;display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:14px;border-radius:2px;cursor:pointer;border:1px solid ${pro && b.remind ? V("verdigris", "#2F6F62") : V("ink", "#1B1814")};background:${pro && b.remind ? V("verdigris", "#2F6F62") : "transparent"};color:${pro && b.remind ? V("paper", "#F4F1EA") : V("ink", "#1B1814")};`),
+      toggleRemind: () => { if (!pro) { this.setState({ showPro: true }); this.flash(J.remindPro); return; } setBatches((l) => l.map((x) => (x.no === b.no ? { ...x, remind: !x.remind } : x))); },
+      trackFill: S(`position:absolute;top:0;bottom:0;${lang === "ar" ? "right" : "left"}:0;width:${pos * 100}%;background:${V("amber", "#B8893A")};`),
+      nodes: K.MILESTONES.map((m) => {
+        const has = !!(b.notes && b.notes[m.k]), past = m.days <= day, on = m.k === ms.k;
+        return {
+          label: m[lang], date: at(b, m.days), on, glyph: has ? "●" : "", pick: () => this.pick(b.no, m.k),
+          labelStyle: S(`font-size:13px;font-weight:${on ? 600 : 400};color:${past ? V("ink", "#1B1814") : V("dim", "#5A544A")};`),
+          style: S(`width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:inherit;font-size:12px;cursor:pointer;box-sizing:border-box;color:${V("on-amber", "#1B1814")};background:${has ? V("amber", "#B8893A") : V("card", "#FBF9F4")};border:${past ? "1.5px solid" : "1.5px dashed"} ${has ? V("amber", "#B8893A") : past ? V("ink", "#1B1814") : V("field", "#827A6B")};box-shadow:${on ? `0 0 0 3px ${V("card", "#FBF9F4")}, 0 0 0 4.5px ${V("ink", "#1B1814")}` : "none"};`),
+        };
+      }),
+      msTitle: `${ms[lang]} · ${at(b, ms.days)}`,
+      isFuture: future, canEdit: !future, futureText: K.fill(J.future, { date: at(b, ms.days) }),
+      draftText: draft.text, onDraft: (e) => this.setState({ draft: { ...draft, text: e.target.value } }),
+      stars: [1, 2, 3, 4, 5].map((n) => ({ n, on: draft.rating >= n, pick: () => this.setState({ draft: { ...draft, rating: draft.rating === n ? 0 : n } }), style: S(`width:40px;height:40px;border-radius:50%;font:inherit;font-size:13px;cursor:pointer;font-variant-numeric:tabular-nums;border:1px solid ${draft.rating >= n ? V("amber", "#B8893A") : V("line", "#D9D3C5")};background:${draft.rating >= n ? V("amber", "#B8893A") : "transparent"};color:${draft.rating >= n ? V("on-amber", "#1B1814") : V("ink-soft", "#3A352D")};`) })),
+      tagChips: K.TAGS.map((g) => { const on = draft.tags.includes(g.k); return { label: g[lang], on, style: chip(on), pick: () => this.setState({ draft: { ...draft, tags: on ? draft.tags.filter((x) => x !== g.k) : [...draft.tags, g.k] } }) }; }),
+      saveNote: () => {
+        setBatches((l) => l.map((x) => (x.no === b.no ? { ...x, fresh: false, notes: { ...(x.notes || {}), [ms.k]: { text: draft.text, rating: draft.rating, tags: draft.tags } } } : x)));
+        this.flash(J.saved);
+        this.setState((st) => ({ ca: st.ca || ms.k, cb: ms.k }));
+      },
+      compareOn: s.compareOn, compareLabel: s.compareOn ? J.compareOff : J.compare,
+      toggleCompare: () => this.setState({ compareOn: !s.compareOn }),
+      canCompare: withNotes.length >= 2, cantCompare: withNotes.length < 2,
+      noteOpts: withNotes.map((m) => ({ k: m.k, label: m[lang] })),
+      ca: s.ca, cb: s.cb, onCa: (e) => this.setState({ ca: e.target.value }), onCb: (e) => this.setState({ cb: e.target.value }),
+      cards: [card(s.ca), card(s.cb)].filter(Boolean),
+      toast: s.toast,
+    };
+  }
+  // Same paper & bench-top surfaces as the Bench.
+  surfaces(theme) {
+    const dark = theme === "dark";
+    const uri = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+    const grain = (rgb, a, f, size) => uri(`<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='${f}' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 ${rgb} 0 0 0 0 ${rgb} 0 0 0 0 ${rgb} 0 0 0 ${a} 0'/></filter><rect width='100%' height='100%' filter='url(#n)'/></svg>`);
+    const ink = dark ? "#EADFCE" : "#1B1814";
+    const rule = uri(`<svg xmlns='http://www.w3.org/2000/svg' width='240' height='4' viewBox='0 0 240 4'><path d='M0 2.1C20 1.6 40 2.5 60 2S100 1.5 120 2.2 160 2.6 180 1.9 220 1.6 240 2.1' fill='none' stroke='${ink}' stroke-width='1.1'/><path d='M0 2.6C30 2.2 50 3 80 2.5S140 2.1 170 2.8 220 2.3 240 2.6' fill='none' stroke='${ink}' stroke-opacity='.35' stroke-width='.5'/></svg>`);
+    return {
+      "--kx-grain": dark ? grain(1, 0.035, 0.85, 180) : grain(0, 0.07, 0.85, 180),
+      "--kx-rule": rule,
+      backgroundImage: dark
+        ? `radial-gradient(120% 70% at 50% 0%, rgba(255,255,255,.04), transparent 70%), ${grain(1, 0.03, 0.55, 260)}`
+        : `radial-gradient(120% 70% at 50% 0%, rgba(255,255,255,.45), transparent 70%), ${grain(0, 0.05, 0.55, 260)}`,
+    };
+  }
+}
+</script>
+</body>
+</html>

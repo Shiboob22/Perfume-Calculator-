@@ -49,11 +49,35 @@
       "destination": "/api/recipe?sitemap=1"
     },
     {
+      "source": "/shop",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/shop/:path*",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/ar/shop",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/ar/shop/:path*",
+      "destination": "/app/index.html"
+    },
+    {
       "source": "/bench",
       "destination": "/app/index.html"
     },
     {
       "source": "/bench/:path*",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/journal",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/ar/journal",
       "destination": "/app/index.html"
     },
     {

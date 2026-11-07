@@ -168,6 +168,14 @@ export const IconCompass = make("IconCompass", (a) => <>
 </>);
 
 /** Three dots: more of the app. */
+export const IconCart = make("IconCart", (a, d) => <>
+  <path d="M3 4.5h2.6l2 10.2h9.6l1.9-7.4H6.6" />
+  <circle cx="9.6" cy="19" r="1.3" fill="currentColor" stroke="none" />
+  <circle cx="16.6" cy="19" r="1.3" fill="currentColor" stroke="none" />
+  <path d="M8 9.8h10.6l-.6 2.2H8.5Z" fill={a} stroke="none" />
+  {d && <path d="M10.5 7.3l.6 7.2M14.5 7.3l-.3 7.2" />}
+</>);
+
 export const IconMore = make("IconMore", () => <>
   <circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
   <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />

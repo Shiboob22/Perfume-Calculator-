@@ -23,6 +23,7 @@ describe("flagOn", () => {
     expect(FLAGS).toContain("atlas");
     expect(FLAGS).toContain("salon");
     expect(FLAGS).toContain("nose");
+    expect(FLAGS).toContain("shop");
     expect(FLAGS).toContain("hero3d");
     expect(flagOn("bazaar", { env: { VITE_FLAG_BAZAAR: "1" }, storage: memory() })).toBe(false);
   });

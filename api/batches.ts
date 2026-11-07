@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { loadEntitlements, canLogBatch, can } from './_lib/entitlements.js';
+import { loadEntitlements, canLogBatch, can, lockedFeature } from './_lib/entitlements.js';
 import { overLimit } from './_lib/rateLimit.js';
 import { randomBytes } from 'node:crypto';
 import { shareRow } from './_lib/share.js';
@@ -33,6 +33,35 @@ export function batchRecord(b: any) {
   // Only the fields given, so a log without them works on a database that
   // hasn't had 0015 yet.
   return Object.fromEntries(Object.entries(rec).filter(([, v]) => v != null));
+}
+
+// What was poured of each material of a blend (0032), one entry per
+// material in pour order. Like the record fields, a malformed entry is
+// dropped rather than refusing the log; nothing usable leaves it out.
+const POUR_TYPES = ['eo', 'aroma', 'absolute', 'fixative', 'dpg'];
+const grams = (v: unknown) => {
+  if (v == null || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 && n <= 100000 ? Math.round(n * 100) / 100 : undefined;
+};
+export function batchPours(b: any): { pours?: unknown[] } {
+  if (!Array.isArray(b.pours)) return {};
+  const pours = b.pours.slice(0, 30).flatMap((p: any) => {
+    if (!p || typeof p !== 'object') return [];
+    const target = grams(p.target_g);
+    const actual = grams(p.actual_g);
+    if (target == null || actual === undefined) return [];
+    const pct = Number(p.pct);
+    const name = typeof p.name === 'string' ? p.name.trim().slice(0, 120) : '';
+    return [{
+      name: name || null,
+      type: POUR_TYPES.includes(p.type) ? p.type : null,
+      pct: p.pct != null && pct > 0 && pct <= 100 ? pct : null,
+      target_g: target,
+      actual_g: actual,
+    }];
+  });
+  return pours.length ? { pours } : {};
 }
 
 // What the batch cost to make and what it sells for (0022). Pro only
@@ -79,6 +108,13 @@ export async function recipeLink(supabase: any, userId: string, b: any): Promise
 // never the planned recipe (Make again covers a different recipe). Only the
 // fields sent change; an empty value clears an optional field.
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+// A real calendar day, not later than tomorrow UTC (one day of slack for time zones).
+function validBlendDate(d: string, now = Date.now()): boolean {
+  if (!DATE.test(d)) return false;
+  const t = Date.parse(`${d}T00:00:00Z`);
+  return !Number.isNaN(t) && t <= now + 2 * 86_400_000 - 1;
+}
 export function editRow(edit: any): { row: Record<string, unknown> } | { error: string; field: string } {
   if (!edit || typeof edit !== 'object' || Array.isArray(edit)) return { error: 'Nothing to change.', field: 'edit' };
   const row: Record<string, unknown> = {};
@@ -103,7 +139,7 @@ export function editRow(edit: any): { row: Record<string, unknown> } | { error: 
   if (bad) return { error: `Check ${bad}.`, field: bad };
   if ('blend_date' in edit) {
     const d = String(edit.blend_date ?? '');
-    if (!DATE.test(d) || Number.isNaN(Date.parse(`${d}T00:00:00Z`))) return { error: 'Check blend_date.', field: 'blend_date' };
+    if (!validBlendDate(d)) return { error: 'Check blend_date.', field: 'blend_date' };
     row.blend_date = d;
   }
   if (!Object.keys(row).length) return { error: 'Nothing to change.', field: 'edit' };
@@ -144,7 +180,7 @@ export function batchRow(b: any): { row: Record<string, unknown> } | { error: st
     || text('oil_type', 120) || text('notes', 2000) || text('blended_by', 120);
   if (bad) return { error: `Check ${bad}.`, field: bad };
   const d = String(b.blend_date ?? '');
-  if (!DATE.test(d) || Number.isNaN(Date.parse(`${d}T00:00:00Z`))) return { error: 'Check blend_date.', field: 'blend_date' };
+  if (!validBlendDate(d)) return { error: 'Check blend_date.', field: 'blend_date' };
   row.blend_date = d;
   if (Math.abs(Number(row.total_g) - (Number(row.oil_g) + Number(row.ethanol_g))) > TOTAL_SLACK_G) {
     return { error: 'Check total_g.', field: 'total_g' };
@@ -247,6 +283,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         oil_density: Number(b.oil_density) > 0 ? Number(b.oil_density) : null,
         ethanol_density: Number(b.ethanol_density) > 0 ? Number(b.ethanol_density) : null,
         ...batchRecord(b),
+        ...batchPours(b),
         ...sellerCosts(b, entitlements),
         ...(await recipeLink(supabase, userId, b)),
         created_at: new Date().toISOString(),
@@ -282,7 +319,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // and its shared recipe if it was ever shared (0013).
       let query = supabase
         .from('batches')
-        .select('*, batch_checkins ( id, day, scheduled_day, note, rating, skipped, created_at ), shared_recipes ( slug, published, public_note, rest_days, indexable, updated_at )')
+        .select('*, batch_checkins ( id, day, scheduled_day, note, rating, skipped, tags, created_at ), shared_recipes ( slug, published, public_note, rest_days, indexable, updated_at )')
         .eq('user_id', userId);
       // One batch (labels), or the batches of one oil (its history): by
       // catalog id, or by name for batches logged without one.
@@ -313,7 +350,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const b = req.body || {};
       const id = typeof b.id === 'string' ? b.id : '';
-      if (!UUID.test(id) || (b.share === undefined && b.edit === undefined)) return fail(res, 400, 'invalid_id', 'Missing batch ID, share or edit.');
+      if (!UUID.test(id) || (b.share === undefined && b.edit === undefined && b.remind === undefined)) return fail(res, 400, 'invalid_id', 'Missing batch ID, share, edit or remind.');
+
+      // PATCH /api/batches { id, remind: true | false } — rest reminders are
+      // Pro (journal.reminders). Turning one off is always allowed, so a
+      // user whose trial ended can still silence a batch.
+      // Only the preference is stored (Bench SaaS Phase 5).
+      // TODO(reminders): a scheduled job (Vercel cron or Supabase pg_cron)
+      // that finds batches with remind = true reaching REST_DAYS
+      // (src/lib/calc/restTracker.ts) today and emails or pushes their
+      // owners once; needs SMTP/Resend and a sent-at column so a reminder
+      // goes out only once. Nothing is sent yet.
+      if (b.remind !== undefined) {
+        if (typeof b.remind !== 'boolean') return fail(res, 400, 'invalid_edit', 'remind must be true or false.', { field: 'remind' });
+        if (b.remind && !can(await loadEntitlements(supabase, userId), 'reminders')) {
+          return res.status(403).json(lockedFeature('journal.reminders'));
+        }
+        if (await overLimit(supabase, res, 'batch', userId)) return;
+        const { data, error } = await supabase
+          .from('batches').update({ remind: b.remind }).eq('id', id).eq('user_id', userId).select('*').maybeSingle();
+        if (error) throw error;
+        if (!data) return fail(res, 404, 'not_found', 'Batch not found.');
+        return res.status(200).json({ batch: data });
+      }
 
       if (b.edit !== undefined) {
         const edited = editRow(b.edit);

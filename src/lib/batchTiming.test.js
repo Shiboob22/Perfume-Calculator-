@@ -20,7 +20,7 @@ describe("batchReadyAt", () => {
   it("adds the family's maximum rest days to the blend date", () => {
     const ready = batchReadyAt({ blend_date: "2026-09-01", tier: "fresh" });
     expect(ready.getFullYear()).toBe(2026);
-    expect([ready.getMonth(), ready.getDate()]).toEqual([8, 15]); // +14 days
+    expect([ready.getMonth(), ready.getDate()]).toEqual([10, 30]); // +90 days
   });
 });
 

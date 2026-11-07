@@ -7,7 +7,7 @@ import { EXPORT_TABLES } from "./exportData";
 // the user's own session can only ever touch their own rows. Deleting the
 // account needs the service role and goes through /api/account.
 
-const PROFILE_FIELDS = "locale, default_unit, default_bottle, digits, onboarded_at, sells, currency";
+const PROFILE_FIELDS = "locale, default_unit, default_bottle, digits, onboarded_at, sells, currency, bench_tour_at";
 
 // The user's profile, or null if they have never saved one.
 export async function getProfile() {
@@ -46,7 +46,7 @@ const SELECT = { inventory: "*, fragrances(name)", fragrance_notes: "*, fragranc
 // The hosted API returns at most 1000 rows per request; page through, in a
 // stable order (a unique column) so no row moves between pages.
 const PAGE = 1000;
-const ORDER = { batches: "id", batch_checkins: "id", shared_recipes: "batch_id", inventory: "fragrance_id", fragrance_notes: "fragrance_id", calc_presets: "id", recipes: "id", recipe_versions: "id", wardrobe_bottles: "id", wear_log: "id", salon_profiles: "user_id", salon_posts: "id", salon_likes: "post_id", salon_follows: "followee_id", salon_reports: "id", profiles: "user_id", pro_waitlist: "user_id", user_plans: "user_id", fragrances: "id" };
+const ORDER = { batches: "id", batch_checkins: "id", shared_recipes: "batch_id", inventory: "fragrance_id", fragrance_notes: "fragrance_id", calc_presets: "id", recipes: "id", recipe_versions: "id", recipe_ingredients: "id", wardrobe_bottles: "id", wear_log: "id", salon_profiles: "user_id", salon_posts: "id", salon_likes: "post_id", salon_follows: "followee_id", salon_reports: "id", profiles: "user_id", pro_waitlist: "user_id", user_plans: "user_id", fragrances: "id" };
 // The catalog is shared and readable by everyone: only the rows this user added.
 const MINE = { fragrances: "added_by" };
 

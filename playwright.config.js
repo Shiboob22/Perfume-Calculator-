@@ -14,7 +14,9 @@ export default defineConfig({
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
   // Visual baselines (e2e/visual.spec.js) are macOS renders, one folder per project.
   snapshotPathTemplate: "{testDir}/__screenshots__/{projectName}/{arg}{ext}",
-  use: { baseURL: "http://localhost:4173", trace: "retain-on-failure" },
+  // Every spec starts with the Bench tour already seen (it would start by
+  // itself on a first visit); e2e/bench-tour.spec.js clears it.
+  use: { baseURL: "http://localhost:4173", trace: "retain-on-failure", storageState: "e2e/state/tour-seen.json" },
   projects: [
     { name: "phone", use: { ...devices["Pixel 7"], channel, launchOptions } },
     { name: "desktop", use: { ...devices["Desktop Chrome"], channel, launchOptions } },
