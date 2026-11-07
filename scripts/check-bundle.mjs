@@ -60,6 +60,21 @@ for (const file of files.filter((f) => /assets\/index-[^/]+\.js$/.test(f))) {
   }
 }
 
+// three.js (the home page's 3D pour) is its own chunk, loaded with import()
+// after the page is up: neither the entry bundle nor anything the HTML
+// preloads may carry it.
+{
+  const preloaded = new Set(files.filter((f) => /assets\/index-[^/]+\.js$/.test(f)));
+  for (const html of files.filter((f) => f.endsWith(".html"))) {
+    for (const [, src] of readFileSync(html, "utf8").matchAll(/<(?:script|link)[^>]+(?:src|href)="\/(assets\/[^"]+\.js)"/g)) preloaded.add(join(DIST, src));
+  }
+  for (const file of preloaded) {
+    try {
+      if (/isWebGLRenderer/.test(readFileSync(file, "utf8"))) problems.push(`${file}: three.js in a script the page loads up front`);
+    } catch { /* listed by an HTML page but not built: not ours to judge */ }
+  }
+}
+
 if (problems.length) {
   console.error("Secret check failed:\n" + problems.map((p) => "  - " + p).join("\n"));
   process.exit(1);
