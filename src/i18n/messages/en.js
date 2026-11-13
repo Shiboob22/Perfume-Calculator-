@@ -619,6 +619,7 @@ export default {
     deleteFailed: "Could not delete that batch.",
   },
   orders: {
+    tabBadge: { one: "{count} order ready to bottle", other: "{count} orders ready to bottle" },
     title: "Orders",
     loading: "Loading your orders…",
     headline: { zero: "No orders to make.", one: "{count} order to make.", other: "{count} orders to make." },

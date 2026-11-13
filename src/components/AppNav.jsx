@@ -6,6 +6,8 @@ import { useI18n } from "../i18n/I18nProvider";
 import { tabPath } from "../routes";
 import LanguageToggle from "./LanguageToggle";
 import ThemeToggle from "./ThemeToggle";
+import { useProfile } from "../lib/useProfile";
+import { useReadyToBottle } from "./orders/OrdersCard";
 import {
   IconBalance, IconBook, IconBookmark, IconCart, IconChat, IconClose, IconCompass, IconCrosshair, IconDrop,
   IconExit, IconFlacon, IconMore, IconNotebook, IconPerson, IconSeal, IconSearch, IconShelf, IconHourglass, IconSteps,
@@ -42,16 +44,24 @@ function destinations({ t, locale, flags }) {
 }
 
 // Four on the bar: the bench's daily rooms. The Nose takes the third place
-// when it is on; otherwise the Selector does.
-const PRIMARY = (flags) => ["search", "calculator", flags.nose ? "nose" : "selector", "journal"];
+// when it is on; otherwise the Selector does. For a seller ("I sell what I
+// blend" in Account) Orders takes that place and the Nose moves to More.
+const PRIMARY = (flags) => ["search", "calculator", flags.seller ? "orders" : flags.nose ? "nose" : "selector", "journal"];
 
-function DueBadge({ count, t }) {
+/** The wide screens' tab row: a seller gets Orders after the Calculator. */
+export function tabRow(tabs, seller) {
+  if (!seller || tabs.includes("orders")) return tabs;
+  const i = tabs.indexOf("calculator");
+  return [...tabs.slice(0, i + 1), "orders", ...tabs.slice(i + 1)];
+}
+
+function DueBadge({ count, t, label = "journal.tabBadge" }) {
   if (!count) return null;
   return (
     <span className="inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-semibold leading-none"
       style={{ background: COLORS.amber, color: COLORS.onAmber }}>
       <span aria-hidden="true">{count}</span>
-      <span className="sr-only">{t("journal.tabBadge", { count })}</span>
+      <span className="sr-only">{t(label, { count })}</span>
     </span>
   );
 }
@@ -60,8 +70,15 @@ function DueBadge({ count, t }) {
  * @param {{ active: string | null, tabs: string[], dueCount: number, flags: Record<string, boolean>,
  *   onSignOut: () => void }} p
  */
-export default function AppNav({ active, tabs, dueCount, flags, onSignOut }) {
+export default function AppNav({ active, tabs: baseTabs, dueCount, flags: baseFlags, onSignOut }) {
   const { t, locale } = useI18n();
+  const { profile } = useProfile() ?? {};
+  const seller = Boolean(baseFlags.orders && profile?.sells);
+  const flags = { ...baseFlags, seller };
+  const tabs = tabRow(baseTabs, seller);
+  const readyCount = useReadyToBottle(seller);
+  const badgeFor = (id) => (id === "journal" ? <DueBadge count={dueCount} t={t} />
+    : id === "orders" ? <DueBadge count={readyCount} t={t} label="orders.tabBadge" /> : null);
   const { pathname, search } = useLocation();
   const [open, setOpen] = useState(false);
   const moreRef = useRef(null);
@@ -96,7 +113,7 @@ export default function AppNav({ active, tabs, dueCount, flags, onSignOut }) {
                     <span aria-hidden="true" data-mo-ind="tab" data-on={on ? "" : undefined} className="absolute inset-0" style={{ background: on ? COLORS.ink : "transparent" }} />
                     <I size={18} accent={on ? COLORS.oil : undefined} className="relative" />
                     <span className="relative">{d.label}</span>
-                    {id === "journal" && <span className="relative"><DueBadge count={dueCount} t={t} /></span>}
+                    {badgeFor(id) && <span className="relative">{badgeFor(id)}</span>}
                   </Dest>
                 </li>
               );
@@ -112,7 +129,7 @@ export default function AppNav({ active, tabs, dueCount, flags, onSignOut }) {
           {primary.map((d) => (
             <li key={d.id}>
               <BarButton d={d} to={to(d)} on={active === d.id}
-                badge={d.id === "journal" ? <DueBadge count={dueCount} t={t} /> : null} />
+                badge={badgeFor(d.id)} />
             </li>
           ))}
           <li>

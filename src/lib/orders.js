@@ -1,3 +1,5 @@
+import { bottlingGroups } from "./calc";
+
 // From stored orders (seller_orders) and the seller's own formulas and
 // stock to what the batch plan reads (src/lib/calc/orderPlan.ts). No
 // arithmetic here: only which scent an order is, and where its density,
@@ -85,4 +87,19 @@ export function toBottlingOrder(row) {
     scentName: row.scent_text,
     strengthPct: Number(row.strength_pct) || 0,
   };
+}
+
+/** Sent by the order queue whenever its orders change ({ detail: { ready } }), for the tab's badge. */
+export const ORDERS_CHANGED = "kyphira-orders-changed";
+
+/** Today as YYYY-MM-DD in the seller's own time zone. */
+export function localToday(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** How many orders are waiting to be bottled today: resting, in a batch whose rest window has opened. */
+export function readyToBottle(rows = [], today = localToday()) {
+  return bottlingGroups(rows.map(toBottlingOrder), today).groups
+    .filter((g) => g.ready)
+    .reduce((n, g) => n + g.orders.filter((o) => o.status === "resting").length, 0);
 }

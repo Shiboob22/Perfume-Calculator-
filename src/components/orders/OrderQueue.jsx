@@ -12,7 +12,7 @@ import { fmt2, planMixes, restWindow, bottlingGroups, orderCost, shortMix, profi
 import { Link } from "../../motion";
 import { listRecipes, listInventory } from "../../lib/fragranceApi";
 import { listOrders, addOrder, editOrder, setOrderStatus, setGroupMode } from "../../lib/ordersApi";
-import { scentOptions, toPlanOrder, stockMap, weighLink, toBottlingOrder } from "../../lib/orders";
+import { scentOptions, toPlanOrder, stockMap, weighLink, toBottlingOrder, readyToBottle, ORDERS_CHANGED } from "../../lib/orders";
 import { CURRENCIES } from "../../lib/currencies";
 
 // The order queue (Phases A and B, docs/order-queue/Kyphira-Order-Queue_Brief_v2.md):
@@ -61,6 +61,10 @@ export default function OrderQueue() {
   const cancelled = (rows || []).filter((r) => r.status === "cancelled");
   const handed = (rows || []).filter((r) => r.status === "handed_over");
   const bottling = useMemo(() => bottlingGroups((rows || []).map(toBottlingOrder), today()), [rows]);
+  // Keep the Orders tab's badge in step with what this screen shows.
+  useEffect(() => {
+    if (rows) window.dispatchEvent(new CustomEvent(ORDERS_CHANGED, { detail: { ready: readyToBottle(rows, today()) } }));
+  }, [rows]);
   const [early, setEarly] = useState(null); // an order asked to bottle before its ready-from date
   const costOf = (r) => orderCost(r?.batches, Number(r?.size_ml), r?.price == null ? null : Number(r.price));
   const profit = useMemo(() => profitTotals(handed.map(costOf)), [handed]); // eslint-disable-line react-hooks/exhaustive-deps
