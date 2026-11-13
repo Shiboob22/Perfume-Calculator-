@@ -17,7 +17,7 @@ const o = en.orders;
 const fill = (s, vars) => Object.entries(vars).reduce((x, [k, v]) => x.replaceAll(`{${k}}`, String(v)), s);
 
 async function fakeApi(page, { plan = "pro", locale = "en", orders = [], flag = true, sells = true } = {}) {
-  const sent = { posts: [], patches: [] };
+  const sent = { posts: [], patches: [], logs: [] };
   if (flag) await page.addInitScript(() => localStorage.setItem("kyphira.flag.orders", "1"));
   await page.route(/\/(auth|rest)\/v1\//, (route) => {
     const url = route.request().url();
@@ -47,7 +47,19 @@ async function fakeApi(page, { plan = "pro", locale = "en", orders = [], flag = 
       }
       const r = orders.find((x) => x.id === body.id);
       Object.assign(r, body.status ? { status: body.status } : body.edit);
-      return json(route, { order: r });
+      const { batches: _join, ...answer } = r; // writes answer without the batch join, as the API does
+      return json(route, { order: answer });
+    }
+    if (url.pathname === "/api/batches" && req.method() === "POST") {
+      const body = req.postDataJSON();
+      sent.logs.push(body);
+      const batch = { ...body, user_id: USER.id, batch_no: 6, created_at: new Date().toISOString() };
+      let linked = 0;
+      for (const id of body.order_ids || []) {
+        const o = orders.find((x) => x.id === id && ["queued", "planned"].includes(x.status));
+        if (o) { Object.assign(o, { status: "resting", batch_id: batch.id, batches: { batch_no: 6, blend_date: body.blend_date } }); linked += 1; }
+      }
+      return json(route, { success: true, batch, ...(body.order_ids ? { orders_linked: linked } : {}) }, 201);
     }
     if (url.pathname === "/api/batches") return json(route, { batches: [] });
     return json(route, {});
@@ -150,6 +162,85 @@ test("English: the add-order sheet has no axe violations", async ({ page }) => {
   await page.goto("/bench/orders");
   await page.getByRole("button", { name: o.add }).click();
   await expect(page.getByRole("dialog", { name: o.form.title })).toBeVisible();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(results.violations.map((v) => v.id)).toEqual([]);
+});
+
+test("weigh a mix from the plan, log it, then bottle and hand over", async ({ page }) => {
+  await signIn(page);
+  const A = "aaaaaaaa-0000-4000-8000-00000000000a";
+  const B = "aaaaaaaa-0000-4000-8000-00000000000b";
+  const sent = await fakeApi(page, {
+    orders: [
+      { id: A, user_id: USER.id, buyer_name: "Sara", scent_text: "Oud Nights", size_ml: 50, strength_pct: 25, status: "queued", group_mode: "mix" },
+      { id: B, user_id: USER.id, buyer_name: "Omar", scent_text: "Oud Nights", size_ml: 50, strength_pct: 25, status: "queued", group_mode: "mix" },
+    ],
+  });
+  await page.goto("/bench/orders");
+  await page.getByRole("link", { name: fill(o.weigh.labelFor, { mix: "105.00", scent: "Oud Nights" }) }).click();
+  await expect(page).toHaveURL(/\/bench\?/);
+  const q = new URL(page.url()).searchParams;
+  expect([q.get("size"), q.get("conc"), q.get("orders")]).toEqual(["105", "25", `${A},${B}`]);
+  await expect(page.getByText(fill(o.weigh.for.other, { count: 2 }))).toBeVisible();
+
+  // Pour along, as on any bench run.
+  await page.getByRole("button", { name: en.bench.start }).click();
+  await page.getByRole("checkbox").check();
+  const next = page.getByRole("button", { name: en.bench.next, exact: true });
+  await next.click(); await next.click();
+  const target = (label) => page.getByText(label, { exact: true }).locator("xpath=following-sibling::p[1]");
+  const num = async (loc) => Number((await loc.textContent()).replace(/[^\d.]/g, ""));
+  await page.getByLabel(en.bench.oil.actual).fill(String(await num(target(en.bench.oil.target))));
+  await next.click();
+  await page.getByLabel(en.bench.alcohol.actual).fill(String(await num(target(en.bench.alcohol.target))));
+  await next.click(); await next.click(); await next.click();
+  await page.getByRole("button", { name: en.bench.label.log }).click();
+  await expect(page.getByText(fill(o.weigh.linked.other, { count: 2 }))).toBeVisible();
+  expect(sent.logs[0].order_ids).toEqual([A, B]);
+  expect(sent.logs[0].total_ml).toBeCloseTo(105, 2);
+
+  await page.getByRole("button", { name: o.weigh.back }).click();
+  await expect(page).toHaveURL(/\/bench\/orders$/);
+  const card = page.getByRole("article").filter({ hasText: fill(o.bottle.batchNo, { no: "006", scent: "Oud Nights", pct: 25 }) });
+  await expect(card).toContainText(o.bottle.resting.split("{ready}")[0]);
+  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: "Sara" }));
+
+  // Still resting: bottling asks once.
+  await card.getByRole("button", { name: fill(o.bottle.markFor, { name: "Sara" }) }).click();
+  await expect(card.getByRole("alert")).toContainText(o.bottle.early.split("{ready}")[0]);
+  await card.getByRole("button", { name: o.bottle.anyway }).click();
+  await expect(card.getByRole("button", { name: fill(o.bottle.handFor, { name: "Sara" }) })).toBeVisible();
+  // Undo once, bottle again, then hand over.
+  await card.getByRole("button", { name: fill(o.bottle.undoFor, { name: "Sara" }) }).click();
+  await card.getByRole("button", { name: fill(o.bottle.markFor, { name: "Sara" }) }).click();
+  await card.getByRole("button", { name: o.bottle.anyway }).click();
+  await card.getByRole("button", { name: fill(o.bottle.handFor, { name: "Sara" }) }).click();
+  await expect(page.getByText(fill(o.history.one, { count: 1 }))).toBeVisible();
+  expect(sent.patches.filter((p) => p.status).map((p) => p.status)).toEqual(["bottled", "resting", "bottled", "handed_over"]);
+  // Omar's bottle is still to bottle, in the same batch.
+  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: "Omar" }));
+});
+
+test("an order whose batch was removed goes back to the queue", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page, { orders: [{ id: "a", user_id: USER.id, buyer_name: "Lina", scent_text: "Rose", size_ml: 30, strength_pct: 20, status: "resting", batch_id: null, group_mode: "mix" }] });
+  await page.goto("/bench/orders");
+  await expect(page.getByText(fill(o.bottle.lost, { name: "Lina", scent: "Rose" }))).toBeVisible();
+  await page.getByRole("button", { name: o.bottle.requeue }).click();
+  expect(sent.patches.at(-1)).toMatchObject({ id: "a", status: "queued" });
+  await expect(page.getByRole("article").filter({ hasText: fill(o.mix.group, { scent: "Rose", pct: 20 }) })).toBeVisible();
+});
+
+test("Arabic: bottling has no axe violations", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, {
+    locale: "ar",
+    orders: [{ id: "a", user_id: USER.id, buyer_name: "سارة", scent_text: "عود", size_ml: 50, strength_pct: 25, status: "bottled", family: "woody", batch_id: "b1", batches: { batch_no: 12, blend_date: "2026-09-01" }, group_mode: "mix" },
+      { id: "h", user_id: USER.id, buyer_name: "عمر", scent_text: "عود", size_ml: 30, strength_pct: 25, status: "handed_over", batch_id: "b1", batches: { batch_no: 12, blend_date: "2026-09-01" }, group_mode: "mix" }],
+  });
+  await page.goto("/ar/bench/orders");
+  await expect(page.getByText(ar.orders.bottle.title, { exact: true })).toBeVisible();
+  await expect(page.getByText(ar.orders.bottle.ready, { exact: true })).toBeVisible();
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(results.violations.map((v) => v.id)).toEqual([]);
 });

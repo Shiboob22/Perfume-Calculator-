@@ -41,3 +41,25 @@ describe("stockMap", () => {
     expect(stockMap()).toEqual({});
   });
 });
+
+import { weighLink, toBottlingOrder } from "./orders";
+
+describe("weighLink", () => {
+  it("opens the Bench at the mix's volume with its orders", () => {
+    const url = new URL(weighLink({ scentName: "Oud Nights", family: "woody", strengthPct: 25, scentKey: "v:v9" }, { mixMl: 105, orderIds: ["a", "b"] }), "http://x");
+    expect(url.pathname).toBe("/bench");
+    expect(Object.fromEntries(url.searchParams)).toEqual({ name: "Oud Nights", family: "woody", size: "105", unit: "ml", conc: "25", recipe: "v9", orders: "a,b" });
+  });
+  it("leaves out what the group doesn't have", () => {
+    const q = new URL(weighLink({ scentName: "Rose", family: null, strengthPct: 20, scentKey: "t:rose" }, { mixMl: 30, orderIds: ["c"] }), "http://x").searchParams;
+    expect([q.has("family"), q.has("recipe"), q.get("orders")]).toEqual([false, false, "c"]);
+  });
+});
+
+describe("toBottlingOrder", () => {
+  it("takes the batch's number and blend date from the join", () => {
+    expect(toBottlingOrder({ id: "o", status: "resting", batch_id: "b", family: "fresh", scent_text: "Neroli", strength_pct: "20", batches: { batch_no: 7, blend_date: "2026-11-01" } }))
+      .toEqual({ id: "o", status: "resting", family: "fresh", batchId: "b", blendDate: "2026-11-01", batchNo: 7, scentName: "Neroli", strengthPct: 20 });
+    expect(toBottlingOrder({ id: "o", status: "resting", scent_text: "N", strength_pct: null })).toMatchObject({ batchId: null, blendDate: null, batchNo: null, family: null, strengthPct: 0 });
+  });
+});

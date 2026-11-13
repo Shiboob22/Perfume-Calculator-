@@ -8,16 +8,18 @@ import Card from "../kx/Card";
 import Sheet from "../kx/Sheet";
 import Chip from "../kx/Chip";
 import Button from "../kx/Button";
-import { fmt2, planMixes, restWindow, MIX_ALLOWANCE_PCT, STRENGTH_TIERS } from "../../lib/calc";
+import { fmt2, planMixes, restWindow, bottlingGroups, MIX_ALLOWANCE_PCT, STRENGTH_TIERS } from "../../lib/calc";
+import { Link } from "../../motion";
 import { listRecipes, listInventory } from "../../lib/fragranceApi";
 import { listOrders, addOrder, editOrder, setOrderStatus, setGroupMode } from "../../lib/ordersApi";
-import { scentOptions, toPlanOrder, stockMap } from "../../lib/orders";
+import { scentOptions, toPlanOrder, stockMap, weighLink, toBottlingOrder } from "../../lib/orders";
 import { CURRENCIES } from "../../lib/currencies";
 
-// The order queue (Phase A, docs/order-queue/Kyphira-Order-Queue_Brief_v2.md):
+// The order queue (Phases A and B, docs/order-queue/Kyphira-Order-Queue_Brief_v2.md):
 // buyers' orders, grouped into mixes by scent and strength, with the grams
-// to weigh and the oil each scent needs against stock. Pro (the App's Gate).
-// All arithmetic is planMixes()/restWindow(); this file only lays it out.
+// to weigh and the oil each scent needs against stock; then each weighed
+// batch rests, is bottled and handed over. Pro (the App's Gate).
+// All arithmetic is planMixes()/restWindow()/bottlingGroups(); this file only lays it out.
 
 const SIZES = [10, 30, 50, 100];
 const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` };
@@ -57,13 +59,18 @@ export default function OrderQueue() {
   const plan = useMemo(() => planMixes((rows || []).map((r) => toPlanOrder(r, { recipes })), stockMap(inventory)), [rows, recipes, inventory]);
   const byId = useMemo(() => new Map((rows || []).map((r) => [r.id, r])), [rows]);
   const cancelled = (rows || []).filter((r) => r.status === "cancelled");
+  const handed = (rows || []).filter((r) => r.status === "handed_over");
+  const bottling = useMemo(() => bottlingGroups((rows || []).map(toBottlingOrder), today()), [rows]);
+  const [early, setEarly] = useState(null); // an order asked to bottle before its ready-from date
   const open = plan.groups.reduce((n, g) => n + g.orders.length, 0) + plan.unplanned.length;
 
   const merge = (changed) => setRows((prev) => {
     const list = [...(prev || [])];
     for (const c of [].concat(changed)) {
       const i = list.findIndex((r) => r.id === c.id);
-      if (i >= 0) list[i] = c; else list.unshift(c);
+      // A write answers without the batch join: keep the one we had while the batch is the same.
+      if (i >= 0) list[i] = { ...c, batches: c.batches ?? (c.batch_id && c.batch_id === list[i].batch_id ? list[i].batches : null) };
+      else list.unshift(c);
     }
     return list;
   });
@@ -90,7 +97,70 @@ export default function OrderQueue() {
       </div>
       {error && <p role="alert" className="mb-4 text-sm" style={{ color: COLORS.danger }}>{error}</p>}
 
-      {rows !== null && open === 0 && (
+      {(bottling.groups.length > 0 || bottling.orphaned.length > 0) && (
+        <section aria-labelledby="orders-bottle" className="mb-8">
+          <h2 id="orders-bottle" className="font-serif italic text-2xl mb-3" style={{ color: COLORS.ink }}>{t("orders.bottle.title")}</h2>
+          <div className="grid gap-4">
+            {bottling.groups.map((g) => (
+              <Card key={g.batchId} as="article" title={g.batchNo
+                ? t("orders.bottle.batchNo", { no: String(g.batchNo).padStart(3, "0"), scent: g.scentName, pct: g.strengthPct })
+                : t("orders.mix.group", { scent: g.scentName, pct: g.strengthPct })}>
+                <p className="text-sm mb-3" style={{ color: g.ready ? COLORS.verdigrisText : COLORS.inkSoft }}>
+                  {g.ready
+                    ? (today() < g.rest.fullyRested ? t("orders.bottle.readyUntil", { rested: date(g.rest.fullyRested) }) : t("orders.bottle.ready"))
+                    : t("orders.bottle.resting", { ready: date(g.rest.readyFrom), rested: date(g.rest.fullyRested) })}
+                </p>
+                <ul>
+                  {g.orders.map((o) => {
+                    const row = byId.get(o.id);
+                    if (!row) return null;
+                    const name = row.buyer_name;
+                    return (
+                      <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 border-t" style={{ borderColor: COLORS.line }}>
+                        <span className="me-auto">
+                          <span className="block" style={{ color: COLORS.ink }}>{t("orders.bottle.fill", { ml: Number(row.size_ml), name })}</span>
+                          <span className="block text-sm" style={{ color: COLORS.inkSoft }}>{o.status === "bottled" ? t("orders.bottle.bottled") : t("orders.bottle.notYet")}</span>
+                        </span>
+                        {o.status === "resting" && early !== o.id && (
+                          <Button variant="secondary" disabled={busy} aria-label={t("orders.bottle.markFor", { name })}
+                            onClick={() => (g.ready ? run(() => setOrderStatus(o.id, "bottled")) : setEarly(o.id))}>{t("orders.bottle.mark")}</Button>
+                        )}
+                        {o.status === "resting" && early === o.id && (
+                          <span className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                            <span role="alert" className="text-sm" style={{ color: COLORS.ink }}>{t("orders.bottle.early", { ready: date(g.rest.readyFrom) })}</span>
+                            <Button variant="secondary" disabled={busy} onClick={() => { setEarly(null); run(() => setOrderStatus(o.id, "bottled")); }}>{t("orders.bottle.anyway")}</Button>
+                            <Button variant="ghost" onClick={() => setEarly(null)}>{t("orders.bottle.wait")}</Button>
+                          </span>
+                        )}
+                        {o.status === "bottled" && (
+                          <>
+                            <Button disabled={busy} aria-label={t("orders.bottle.handFor", { name })} onClick={() => run(() => setOrderStatus(o.id, "handed_over"))}>{t("orders.bottle.hand")}</Button>
+                            <button type="button" disabled={busy} onClick={() => run(() => setOrderStatus(o.id, "resting"))} className="min-h-[44px] px-2 text-sm underline underline-offset-4"
+                              style={{ color: COLORS.ink }} aria-label={t("orders.bottle.undoFor", { name })}>{t("orders.bottle.undo")}</button>
+                          </>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Card>
+            ))}
+            {bottling.orphaned.map((o) => {
+              const row = byId.get(o.id);
+              return row && (
+                <Card key={o.id} as="article" tone="inset">
+                  <p style={{ color: COLORS.ink }}>{t("orders.bottle.lost", { name: row.buyer_name, scent: row.scent_text })}</p>
+                  <button type="button" disabled={busy} onClick={() => run(() => setOrderStatus(o.id, "queued"))} className="mt-2 min-h-[44px] text-sm underline underline-offset-4" style={{ color: COLORS.ink }}>
+                    {t("orders.bottle.requeue")}
+                  </button>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {rows !== null && open === 0 && bottling.groups.length === 0 && bottling.orphaned.length === 0 && (
         <Card className="mb-6"><p style={{ color: COLORS.inkSoft }}>{t("orders.empty")}</p></Card>
       )}
 
@@ -144,6 +214,10 @@ export default function OrderQueue() {
                           </div>
                         ))}
                       </dl>
+                      <Button as={Link} to={weighLink(g, m)} variant="secondary" className="mt-3 w-full sm:w-auto"
+                        aria-label={t("orders.weigh.labelFor", { mix: fmt2(m.mixMl), scent: g.scentName })}>
+                        {g.mode === "mix" ? t("orders.weigh.mix") : t("orders.weigh.bottle")}
+                      </Button>
                       <ul className="mt-3">
                         {m.orderIds.map((id) => <OrderRow key={id} row={byId.get(id)} date={date} t={t} busy={busy}
                           onEdit={() => setEditing(byId.get(id))} onCancel={() => run(() => setOrderStatus(id, "cancelled"))} />)}
@@ -175,6 +249,19 @@ export default function OrderQueue() {
         <details className="mb-8">
           <summary className="cursor-pointer min-h-[44px] flex items-center" style={{ color: COLORS.inkSoft }}>{t("orders.cancelled", { count: cancelled.length })}</summary>
           <ul>{cancelled.map((r) => <OrderRow key={r.id} row={r} date={date} t={t} busy={busy} onRestore={() => run(() => setOrderStatus(r.id, "queued"))} />)}</ul>
+        </details>
+      )}
+
+      {handed.length > 0 && (
+        <details className="mb-8">
+          <summary className="cursor-pointer min-h-[44px] flex items-center" style={{ color: COLORS.inkSoft }}>{t("orders.history", { count: handed.length })}</summary>
+          <ul>{handed.map((r) => (
+            <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 border-t" style={{ borderColor: COLORS.line }}>
+              <span className="me-auto" style={{ color: COLORS.ink }}>{t("orders.row.who", { name: r.buyer_name, scent: r.scent_text })}</span>
+              <button type="button" disabled={busy} onClick={() => run(() => setOrderStatus(r.id, "bottled"))} className="min-h-[44px] px-2 text-sm underline underline-offset-4"
+                style={{ color: COLORS.ink }} aria-label={t("orders.bottle.undoHandFor", { name: r.buyer_name })}>{t("orders.bottle.undo")}</button>
+            </li>
+          ))}</ul>
         </details>
       )}
 

@@ -55,3 +55,34 @@ export function toPlanOrder(row, { recipes = [] } = {}) {
 export function stockMap(inventory = []) {
   return Object.fromEntries(inventory.map((i) => [i.fragrance_id, Number.isFinite(Number(i.stock_g)) ? Number(i.stock_g) : null]));
 }
+
+/**
+ * The Bench link that weighs one planned mix (Phase B): its scent, family,
+ * strength and volume (the mix's, with any allowance), the saved formula
+ * when there is one, and the orders the logged batch will take.
+ */
+export function weighLink(group, mix) {
+  const q = new URLSearchParams();
+  q.set("name", group.scentName);
+  if (group.family) q.set("family", group.family);
+  q.set("size", String(mix.mixMl));
+  q.set("unit", "ml");
+  q.set("conc", String(group.strengthPct));
+  if (group.scentKey?.startsWith("v:")) q.set("recipe", group.scentKey.slice(2));
+  q.set("orders", mix.orderIds.join(","));
+  return `/bench?${q}`;
+}
+
+/** A stored order as the bottling list reads it (its batch from the join). */
+export function toBottlingOrder(row) {
+  return {
+    id: row.id,
+    status: row.status,
+    family: row.family ?? null,
+    batchId: row.batch_id ?? null,
+    blendDate: row.batches?.blend_date ?? null,
+    batchNo: row.batches?.batch_no ?? null,
+    scentName: row.scent_text,
+    strengthPct: Number(row.strength_pct) || 0,
+  };
+}
