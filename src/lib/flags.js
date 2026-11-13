@@ -12,6 +12,11 @@
 // browser exposes nothing. Pure: env and storage are passed in for tests.
 export const FLAGS = ["wardrobe", "atlas", "salon", "nose", "compounding", "motion", "shop", "hero3d", "orders"];
 
+// On unless switched off: the order queue (owner, 2026-11-13: switched on in
+// code because the connected Vercel account can't reach the team's settings).
+// VITE_FLAG_ORDERS=0 at build time turns it off again for everyone.
+export const ON_BY_DEFAULT = ["orders"];
+
 const key = (name) => `kyphira.flag.${name}`;
 
 function deviceStorage() {
@@ -21,7 +26,9 @@ function deviceStorage() {
 /** Whether a room is switched on. Unknown names are always off. */
 export function flagOn(name, { env = import.meta.env, storage = deviceStorage() } = {}) {
   if (!FLAGS.includes(name)) return false;
-  if (env?.[`VITE_FLAG_${name.toUpperCase()}`] === "1") return true;
+  const built = env?.[`VITE_FLAG_${name.toUpperCase()}`];
+  if (built === "1") return true;
+  if (ON_BY_DEFAULT.includes(name)) return built !== "0";
   try { return storage?.getItem(key(name)) === "1"; } catch { return false; }
 }
 

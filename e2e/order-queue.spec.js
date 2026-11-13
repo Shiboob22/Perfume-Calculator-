@@ -126,11 +126,12 @@ test("Free sees the Pro lock", async ({ page }) => {
   await expect(page.getByText(en.plan.locked.orders)).toBeVisible();
 });
 
-test("without the flag the queue isn't there", async ({ page }) => {
+test("the queue is on without a device flag (on by default; VITE_FLAG_ORDERS=0 turns it off)", async ({ page }) => {
   await signIn(page);
   await fakeApi(page, { flag: false });
   await page.goto("/bench/orders");
-  await expect(page).toHaveURL(/\/bench$/);
+  await expect(page).toHaveURL(/\/bench\/orders$/);
+  await expect(page.getByRole("button", { name: o.add })).toBeVisible();
 });
 
 test("the Bench shows sellers a link to the queue", async ({ page }) => {
