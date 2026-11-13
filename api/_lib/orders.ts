@@ -9,8 +9,6 @@ import { UUID } from './http.js';
 export const ORDER_CAP = 1000;
 export const FAMILIES = ['fresh', 'floral', 'woody', 'oriental', 'gourmand'];
 export const GROUP_MODES = ['mix', 'separate'];
-/** Statuses a client may set in Phase A: cancel an order, or bring it back. */
-export const CLIENT_STATUSES = ['queued', 'cancelled'];
 
 /** Columns a client may write; everything else is the server's. */
 const EDITABLE = [
@@ -90,10 +88,32 @@ export function orderRow(input: unknown, partial = false): Result {
   return { row };
 }
 
-/** A status change a client may make; the timestamps follow it. */
-export function statusRow(status: unknown, now = new Date()): Result {
-  if (!CLIENT_STATUSES.includes(status as string)) return { error: 'That status can’t be set here.', field: 'status' };
-  return { row: { status, cancelled_at: status === 'cancelled' ? now.toISOString() : null } };
+/**
+ * The moves a seller makes by hand (the same table as canMove() in
+ * src/lib/calc/orderPlan.ts; a test keeps the two equal). Weighing is not
+ * here: an order becomes "resting" only when its batch is logged.
+ */
+export function canMove(from: string, to: string): boolean {
+  const moves: Record<string, string[]> = {
+    queued: ['cancelled'], planned: ['cancelled'], cancelled: ['queued'],
+    resting: ['bottled', 'queued'], bottled: ['handed_over', 'resting'], handed_over: ['bottled'],
+  };
+  return (moves[from] ?? []).includes(to);
+}
+
+/** A move from `from` to `status`, with the timestamps that follow it. */
+export function statusRow(status: unknown, from: string, now = new Date()): Result {
+  const to = String(status);
+  if (!canMove(from, to)) return { error: 'That change isn’t possible from here.', field: 'status' };
+  const at = now.toISOString();
+  const row: Record<string, unknown> = { status: to };
+  if (to === 'cancelled') row.cancelled_at = at;
+  if (to === 'queued') Object.assign(row, { cancelled_at: null, batch_id: null });
+  if (to === 'bottled') Object.assign(row, { bottled_at: from === 'resting' ? at : undefined, handed_at: null });
+  if (to === 'resting') row.bottled_at = null;
+  if (to === 'handed_over') row.handed_at = at;
+  for (const k of Object.keys(row)) if (row[k] === undefined) delete row[k];
+  return { row };
 }
 
 /** Ids for a group's change (all the orders of one group), at most 200. */
@@ -101,3 +121,6 @@ export function idList(v: unknown): string[] | null {
   if (!Array.isArray(v) || v.length === 0 || v.length > 200) return null;
   return v.every((x) => typeof x === 'string' && UUID.test(x)) ? [...new Set(v as string[])] : null;
 }
+
+/** Open orders a logged batch may take (queued or planned, the caller's own). */
+export const LINKABLE = ['queued', 'planned'];

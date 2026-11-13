@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { orderRow, statusRow, idList, ORDER_CAP } from './orders.js';
+import { orderRow, statusRow, idList, ORDER_CAP, canMove } from './orders.js';
+import { canMove as appCanMove } from '../../src/lib/calc/index';
 
 const ID = '11111111-1111-4111-8111-111111111111';
 const NEW = { buyer_name: ' Sara ', scent_text: 'Oud Nights', size_ml: '50', strength_pct: 25 };
@@ -51,13 +52,28 @@ describe('orderRow', () => {
 
 describe('statusRow', () => {
   const now = new Date('2026-11-13T10:00:00Z');
-  it('cancels with a time, and brings back without one', () => {
-    expect(statusRow('cancelled', now)).toEqual({ row: { status: 'cancelled', cancelled_at: now.toISOString() } });
-    expect(statusRow('queued', now)).toEqual({ row: { status: 'queued', cancelled_at: null } });
-    expect(statusRow('queued').row).toBeDefined();
+  const at = now.toISOString();
+  it('cancels before weighing, and brings back', () => {
+    expect(statusRow('cancelled', 'queued', now)).toEqual({ row: { status: 'cancelled', cancelled_at: at } });
+    expect(statusRow('queued', 'cancelled', now)).toEqual({ row: { status: 'queued', cancelled_at: null, batch_id: null } });
+    expect(statusRow('cancelled', 'resting')).toMatchObject({ field: 'status' });
   });
-  it('refuses statuses the server sets', () => {
-    for (const s of ['bottled', 'handed_over', 'resting', 'ready', 'planned', 1]) expect(statusRow(s)).toMatchObject({ field: 'status' });
+  it('bottles, hands over, and steps back once', () => {
+    expect(statusRow('bottled', 'resting', now)).toEqual({ row: { status: 'bottled', bottled_at: at, handed_at: null } });
+    expect(statusRow('handed_over', 'bottled', now)).toEqual({ row: { status: 'handed_over', handed_at: at } });
+    expect(statusRow('bottled', 'handed_over', now)).toEqual({ row: { status: 'bottled', handed_at: null } });
+    expect(statusRow('resting', 'bottled', now)).toEqual({ row: { status: 'resting', bottled_at: null } });
+    expect(statusRow('queued', 'resting', now)).toEqual({ row: { status: 'queued', cancelled_at: null, batch_id: null } });
+    expect(statusRow('bottled', 'resting').row).toBeDefined();
+  });
+  it('refuses jumps and moves the server makes', () => {
+    for (const [to, from] of [['handed_over', 'resting'], ['resting', 'queued'], ['bottled', 'queued'], ['planned', 'queued'], [1, 'queued'], ['bottled', 'nope']]) {
+      expect(statusRow(to, from as string)).toMatchObject({ field: 'status' });
+    }
+  });
+  it('allows exactly the moves the app offers', () => {
+    const all = ['queued', 'planned', 'resting', 'ready', 'bottled', 'handed_over', 'cancelled'];
+    for (const from of all) for (const to of all) expect(canMove(from, to), `${from} → ${to}`).toBe(appCanMove(from, to));
   });
 });
 

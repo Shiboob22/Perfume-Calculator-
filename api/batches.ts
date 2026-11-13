@@ -3,7 +3,7 @@ import { loadEntitlements, canLogBatch, can, lockedFeature } from './_lib/entitl
 import { overLimit } from './_lib/rateLimit.js';
 import { randomBytes } from 'node:crypto';
 import { shareRow } from './_lib/share.js';
-import { orderRow, statusRow, idList, ORDER_CAP } from './_lib/orders.js';
+import { orderRow, statusRow, idList, ORDER_CAP, LINKABLE } from './_lib/orders.js';
 import { setCors, serviceClient, requireUser, isTimeout, SLOW_READ, SLOW_WRITE, UUID } from './_lib/http.js';
 // @ts-ignore: plain JS shared with the browser
 import { recipeSlug } from '../src/lib/publicText.js';
@@ -243,7 +243,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { data: existing, error: existingError } = await supabase
           .from('batches').select('*').eq('id', clientId).eq('user_id', userId).maybeSingle();
         if (existingError) throw existingError;
-        if (existing) return res.status(200).json({ success: true, batch: existing, duplicate: true });
+        if (existing) {
+          const linked = await linkOrders(supabase, userId, existing.id, b.order_ids);
+          return res.status(200).json({ success: true, batch: existing, duplicate: true, ...linked });
+        }
       }
 
       if (await overLimit(supabase, res, 'batch', userId)) return;
@@ -307,7 +310,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (error) throw error;
 
       const stock = await deductOnLog(supabase, userId, entitlements, row.fragrance_id, b.deduct_oil_g);
-      return res.status(201).json({ success: true, batch: data[0], ...(stock ? { stock } : {}) });
+      const linked = await linkOrders(supabase, userId, data[0].id, b.order_ids, entitlements);
+      return res.status(201).json({ success: true, batch: data[0], ...(stock ? { stock } : {}), ...linked });
     } catch (err: any) {
       return failFrom(res, err, true, 'log');
     }
@@ -466,8 +470,10 @@ async function orders(req: VercelRequest, res: VercelResponse, supabase: ReturnT
     if (!can(await loadEntitlements(supabase, userId), 'orders')) return res.status(403).json(lockedFeature('orders'));
 
     if (req.method === 'GET') {
+      // Each order with its batch's number and blend date (Phase B), so the
+      // rest window counts from the day it was really mixed.
       const { data, error } = await supabase
-        .from('seller_orders').select('*').eq('user_id', userId)
+        .from('seller_orders').select('*, batches ( batch_no, blend_date )').eq('user_id', userId)
         .order('created_at', { ascending: false }).limit(ORDER_CAP);
       if (error) throw error;
       return res.status(200).json({ orders: data ?? [] });
@@ -517,7 +523,16 @@ async function orders(req: VercelRequest, res: VercelResponse, supabase: ReturnT
 
     const id = typeof b.id === 'string' ? b.id : '';
     if (!UUID.test(id)) return fail(res, 400, 'invalid_id', 'Missing order ID.');
-    const built = b.status !== undefined ? statusRow(b.status) : orderRow(b.edit, true);
+    let built;
+    if (b.status !== undefined) {
+      const { data: current, error: currentError } = await supabase
+        .from('seller_orders').select('status').eq('id', id).eq('user_id', userId).maybeSingle();
+      if (currentError) throw currentError;
+      if (!current) return fail(res, 404, 'not_found', 'Order not found.');
+      built = statusRow(b.status, current.status);
+    } else {
+      built = orderRow(b.edit, true);
+    }
     if ('error' in built) return fail(res, 400, 'invalid_order', built.error, { field: built.field });
     const { data, error } = await supabase
       .from('seller_orders').update({ ...built.row, updated_at: now }).eq('id', id).eq('user_id', userId).select('*').maybeSingle();
@@ -526,5 +541,35 @@ async function orders(req: VercelRequest, res: VercelResponse, supabase: ReturnT
     return res.status(200).json({ order: data });
   } catch (err: any) {
     return failFrom(res, err, write, 'orders');
+  }
+}
+
+// Phase B: a batch logged from the order queue carries the ids of the
+// orders it was weighed for. Each of the caller's own open orders takes the
+// batch and starts resting; anything else (someone else's, already weighed,
+// cancelled, malformed) is skipped. Never fails the log: the batch is the
+// record, the link is a convenience, so an error answers orders_linked: 0.
+async function linkOrders(supabase: ReturnType<typeof serviceClient>, userId: string, batchId: string, ids: unknown, entitlements?: any) {
+  if (ids === undefined) return {};
+  const list = idList(ids);
+  if (!list) return { orders_linked: 0 };
+  try {
+    if (!can(entitlements ?? (await loadEntitlements(supabase, userId)), 'orders')) return { orders_linked: 0 };
+    let n = 0;
+    for (const id of list) {
+      const { data: order, error } = await supabase
+        .from('seller_orders').select('status').eq('id', id).eq('user_id', userId).maybeSingle();
+      if (error) throw error;
+      if (!order || !LINKABLE.includes(order.status)) continue;
+      const { error: upError } = await supabase
+        .from('seller_orders').update({ batch_id: batchId, status: 'resting', updated_at: new Date().toISOString() })
+        .eq('id', id).eq('user_id', userId);
+      if (upError) throw upError;
+      n += 1;
+    }
+    return { orders_linked: n };
+  } catch (err: any) {
+    console.error(JSON.stringify({ at: 'api/batches', context: 'link_orders', message: String(err?.message ?? err) }));
+    return { orders_linked: 0 };
   }
 }
