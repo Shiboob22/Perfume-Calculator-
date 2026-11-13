@@ -698,6 +698,7 @@ export default {
       labelFor: "Label for {name}’s bottle",
       title: "To bottle",
       batchNo: "No. {no}: {scent} at {pct}%",
+      restingUntil: "Resting: ready from {ready}.",
       resting: "Resting: ready from {ready}, fully rested by {rested}.",
       ready: "Ready to bottle.",
       readyUntil: "Ready to bottle. It rests best until {rested}.",

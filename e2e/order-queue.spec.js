@@ -14,6 +14,8 @@ const FREE = { plan: "free", name: "Free", features: ["cards.download"], batchCa
 const PRO = { plan: "pro", name: "Pro", features: FEATURES, batchCap: null, formulaCap: null, ingredientCap: null, journalWindow: null, trial: null, batchesUsed: 0 };
 const OIL = "bbbbbbbb-bbbb-4bbb-8bbb-000000000001";
 const o = en.orders;
+// Names sit in their own direction inside a sentence (Unicode isolates).
+const iso = (s) => `\u2068${s}\u2069`;
 const fill = (s, vars) => Object.entries(vars).reduce((x, [k, v]) => x.replaceAll(`{${k}}`, String(v)), s);
 
 async function fakeApi(page, { plan = "pro", locale = "en", orders = [], flag = true, sells = true, batches = [] } = {}) {
@@ -208,7 +210,7 @@ test("weigh a mix from the plan, log it, then bottle and hand over", async ({ pa
   await expect(page).toHaveURL(/\/bench\/orders$/);
   const card = page.getByRole("article").filter({ hasText: fill(o.bottle.batchNo, { no: "006", scent: "Oud Nights", pct: 25 }) });
   await expect(card).toContainText(o.bottle.resting.split("{ready}")[0]);
-  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: "Sara" }));
+  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: iso("Sara") }));
 
   // Still resting: bottling asks once.
   await card.getByRole("button", { name: fill(o.bottle.markFor, { name: "Sara" }) }).click();
@@ -223,7 +225,7 @@ test("weigh a mix from the plan, log it, then bottle and hand over", async ({ pa
   await expect(page.getByText(fill(o.history.one, { count: 1 }))).toBeVisible();
   expect(sent.patches.filter((p) => p.status).map((p) => p.status)).toEqual(["bottled", "resting", "bottled", "handed_over"]);
   // Omar's bottle is still to bottle, in the same batch.
-  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: "Omar" }));
+  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: iso("Omar") }));
 });
 
 test("an order whose batch was removed goes back to the queue", async ({ page }) => {

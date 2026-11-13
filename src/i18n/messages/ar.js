@@ -699,6 +699,7 @@ export default {
       labelFor: "ملصق زجاجة {name}",
       title: "للتعبئة",
       batchNo: "رقم {no}: {scent} بتركيز {pct}%",
+      restingUntil: "في فترة النضج: جاهزة من {ready}.",
       resting: "في فترة النضج: جاهزة من {ready}، ومكتملة النضج بحلول {rested}.",
       ready: "جاهزة للتعبئة.",
       readyUntil: "جاهزة للتعبئة. نضجها الأفضل حتى {rested}.",

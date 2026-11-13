@@ -36,6 +36,10 @@ function useDate(locale) {
     .format(new Date(`${iso.slice(0, 10)}T00:00:00Z`)) : ""), [locale]);
 }
 
+// A buyer's or scent's own name, kept in its own direction inside the
+// sentence (a Latin name in an Arabic line, or the other way round).
+const iso = (s) => (s ? `\u2068${s}\u2069` : s);
+
 const newId = () => (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : undefined);
 
 export default function OrderQueue() {
@@ -119,6 +123,7 @@ export default function OrderQueue() {
                 <p className="text-sm mb-3" style={{ color: g.ready ? COLORS.verdigrisText : COLORS.inkSoft }}>
                   {g.ready
                     ? (today() < g.rest.fullyRested ? t("orders.bottle.readyUntil", { rested: date(g.rest.fullyRested) }) : t("orders.bottle.ready"))
+                    : g.rest.readyFrom === g.rest.fullyRested ? t("orders.bottle.restingUntil", { ready: date(g.rest.readyFrom) })
                     : t("orders.bottle.resting", { ready: date(g.rest.readyFrom), rested: date(g.rest.fullyRested) })}
                 </p>
                 {(() => {
@@ -139,7 +144,7 @@ export default function OrderQueue() {
                     return (
                       <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 border-t" style={{ borderColor: COLORS.line }}>
                         <span className="me-auto">
-                          <span className="block" style={{ color: COLORS.ink }}>{t("orders.bottle.fill", { ml: Number(row.size_ml), name })}</span>
+                          <span className="block" style={{ color: COLORS.ink }}>{t("orders.bottle.fill", { ml: Number(row.size_ml), name: iso(name) })}</span>
                           <span className="block text-sm" style={{ color: COLORS.inkSoft }}>{o.status === "bottled" ? t("orders.bottle.bottled") : t("orders.bottle.notYet")}</span>
                           <CostLine c={costOf(row)} t={t} />
                         </span>
@@ -289,7 +294,7 @@ export default function OrderQueue() {
           <ul>{handed.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 border-t" style={{ borderColor: COLORS.line }}>
               <span className="me-auto">
-                <span className="block" style={{ color: COLORS.ink }}>{t("orders.row.who", { name: r.buyer_name, scent: r.scent_text })}</span>
+                <span className="block" style={{ color: COLORS.ink }}>{t("orders.row.who", { name: iso(r.buyer_name), scent: iso(r.scent_text) })}</span>
                 <CostLine c={costOf(r)} t={t} />
               </span>
               <button type="button" disabled={busy} onClick={() => again(r)} className="min-h-[44px] px-2 text-sm underline underline-offset-4"
