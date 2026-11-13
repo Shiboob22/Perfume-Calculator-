@@ -214,7 +214,7 @@ describe("short mix", () => {
   it("within 1 % is not short; without weighed grams the plan stands", () => {
     expect(shortMix({ total_ml: 99.5 }, [50, 50]).shortMl).toBe(0);
     expect(shortMix({ total_ml: 90 }, [50, 50]).shortMl).toBe(10);
-    expect(shortMix({}, [50, null as any]).neededMl).toBe(50);
+    expect(shortMix({}, [50, null as any])).toEqual({ madeMl: 0, neededMl: 50, shortMl: 0 });
   });
 });
 

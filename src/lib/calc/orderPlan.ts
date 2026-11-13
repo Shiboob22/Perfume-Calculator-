@@ -355,6 +355,8 @@ export function shortMix(batch: Record<string, any>, sizesMl: number[]): { madeM
     ? oilG / (pos(batch.oil_density) ?? REFERENCE.oilDensity) + ethG / (pos(batch.ethanol_density) ?? ETHANOL_DENSITY)
     : Number(batch.total_ml) || 0);
   const gap = neededMl - madeMl;
+  // Nothing known about what was made (no grams, no volume): no check, never "short".
+  if (!(madeMl > 0)) return { madeMl: 0, neededMl, shortMl: 0 };
   return { madeMl, neededMl, shortMl: gap > neededMl * POUR_BAND ? round2(gap) : 0 };
 }
 
