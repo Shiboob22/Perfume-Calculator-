@@ -8,6 +8,8 @@
 import type { Densities } from "./types";
 import { solveBottle, solveRun } from "./solve";
 import { round2, shownTotal } from "./round";
+import { batchCost } from "./cost";
+import { POUR_BAND } from "./pour";
 import { FAMILIES, REFERENCE, ETHANOL_DENSITY, type TierKey } from "../formulation";
 
 /** Extra liquid on one mix, for what is lost filling several bottles (owner, 2026-11-13). */
@@ -295,4 +297,63 @@ export function bottlingGroups(orders: BottlingOrder[], today: string): { groups
   });
   groups.sort((a, b) => Number(b.ready) - Number(a.ready) || a.rest.readyFrom.localeCompare(b.rest.readyFrom));
   return { groups, orphaned };
+}
+
+// ------------------------------------------------------------ P1a
+// What one order's bottle cost, from the batch it was weighed in: its share
+// (by volume) of the batch's oil, alcohol and time, plus that batch's bottle
+// and packaging per bottle. Null when the batch has no prices at all, so a
+// missing cost never reads as zero.
+
+export interface OrderCost {
+  cost: number;
+  currency: string;
+  /** Price minus cost; null without a price. */
+  profit: number | null;
+  /** Profit as a share of the price, %; null without a price. */
+  marginPct: number | null;
+}
+
+const pos = (v: unknown) => (Number(v) > 0 ? Number(v) : null);
+
+export function orderCost(batch: Record<string, any> | null | undefined, sizeMl: number, price?: number | null): OrderCost | null {
+  if (!batch) return null;
+  const prices = {
+    oilPerG: pos(batch.price_per_gram),
+    ethanolPerL: pos(batch.ethanol_price_per_l),
+    bottleEach: pos(batch.bottle_cost),
+    packagingEach: pos(batch.packaging_cost),
+    labourMinutes: pos(batch.labour_minutes),
+    labourPerHour: pos(batch.labour_rate_per_hour),
+  };
+  if (Object.values(prices).every((v) => v === null)) return null;
+  const totalMl = pos(batch.total_ml);
+  const share = totalMl && sizeMl > 0 ? Math.min(sizeMl / totalMl, 1) : 0;
+  const liquid = batchCost(pos(batch.actual_oil_g) ?? (Number(batch.oil_g) || 0), Number(batch.ethanol_ml) || 0, 0, prices);
+  const cost = round2(liquid.total * share + (prices.bottleEach ?? 0) + (prices.packagingEach ?? 0));
+  const p = pos(price);
+  return {
+    cost,
+    currency: typeof batch.currency === "string" ? batch.currency : "",
+    profit: p === null ? null : round2(p - cost),
+    marginPct: p === null ? null : round2(((p - cost) / p) * 100),
+  };
+}
+
+/**
+ * Whether a logged mix came out short of the bottles it was weighed for.
+ * The volume made is read from the grams weighed and the batch's densities
+ * (the handbook's starting points where none were stored); without weighed
+ * grams the planned volume stands. Short only beyond POUR_BAND (1 %), the
+ * Bench's own tolerance. It informs; it never proposes a correction.
+ */
+export function shortMix(batch: Record<string, any>, sizesMl: number[]): { madeMl: number; neededMl: number; shortMl: number } {
+  const neededMl = round2(sizesMl.reduce((n, x) => n + (Number(x) || 0), 0));
+  const oilG = pos(batch.actual_oil_g);
+  const ethG = pos(batch.actual_ethanol_g);
+  const madeMl = round2(oilG && ethG
+    ? oilG / (pos(batch.oil_density) ?? REFERENCE.oilDensity) + ethG / (pos(batch.ethanol_density) ?? ETHANOL_DENSITY)
+    : Number(batch.total_ml) || 0);
+  const gap = neededMl - madeMl;
+  return { madeMl, neededMl, shortMl: gap > neededMl * POUR_BAND ? round2(gap) : 0 };
 }
