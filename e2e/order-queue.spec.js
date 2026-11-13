@@ -47,7 +47,8 @@ async function fakeApi(page, { plan = "pro", locale = "en", orders = [], flag = 
       }
       const r = orders.find((x) => x.id === body.id);
       Object.assign(r, body.status ? { status: body.status } : body.edit);
-      const { batches: _join, ...answer } = r; // writes answer without the batch join, as the API does
+      const answer = { ...r }; // writes answer without the batch join, as the API does
+      delete answer.batches;
       return json(route, { order: answer });
     }
     if (url.pathname === "/api/batches" && req.method() === "POST") {
