@@ -8,7 +8,7 @@ import LanguageToggle from "./LanguageToggle";
 import ThemeToggle from "./ThemeToggle";
 import {
   IconBalance, IconBook, IconBookmark, IconCart, IconChat, IconClose, IconCompass, IconCrosshair, IconDrop,
-  IconExit, IconFlacon, IconMore, IconNotebook, IconPerson, IconSeal, IconSearch, IconShelf, IconHourglass,
+  IconExit, IconFlacon, IconMore, IconNotebook, IconPerson, IconSeal, IconSearch, IconShelf, IconHourglass, IconSteps,
 } from "./icons";
 
 // The app's own navigation. Phones get one bar at the bottom, in reach of
@@ -26,6 +26,7 @@ function destinations({ t, locale, flags }) {
     flags.nose && { id: "nose", label: t("site.nav.nose"), icon: IconDrop },
     { id: "journal", label: t("app.tabs.journal"), icon: IconHourglass },
     { id: "batches", label: t("app.tabs.batches"), icon: IconNotebook },
+    flags.orders && { id: "orders", label: t("orders.title"), icon: IconSteps },
     { id: "selector", label: t("app.tabs.selector"), icon: IconCompass },
     { id: "inventory", label: t("app.tabs.inventory"), icon: IconShelf },
     { id: "ask", label: t("app.tabs.ask"), icon: IconChat },

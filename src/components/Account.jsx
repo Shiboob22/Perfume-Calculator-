@@ -8,6 +8,7 @@ import { useProfile } from "../lib/useProfile";
 import { deleteAccount, fetchExport, joinWaitlist, onWaitlist } from "../lib/accountApi";
 import { EXPORT_TABLES, toCsv, toJson } from "../lib/exportData";
 import { UNIT_LABELS } from "../lib/calcPrefill";
+import { CURRENCIES } from "../lib/currencies";
 import { signOut } from "../lib/auth";
 import { Reveal, TextReveal } from "../motion";
 
@@ -171,6 +172,21 @@ function Preferences({ profile, save, locale, setLocale }) {
           <span className="font-mono text-sm" style={{ color: COLORS.inkSoft }}>{UNIT_LABELS[unit]}</span>
         </span>
       </label>
+      <label className={row} style={{ borderColor: COLORS.line }}>
+        <span style={{ color: COLORS.ink }}>{t("account.prefs.sells")}</span>
+        <input type="checkbox" checked={Boolean(profile?.sells)} onChange={(e) => update({ sells: e.target.checked })}
+          className="w-6 h-6 min-h-[24px]" style={{ accentColor: COLORS.amber }} />
+      </label>
+      {profile?.sells && (
+        <label className={row} style={{ borderColor: COLORS.line }}>
+          <span style={{ color: COLORS.ink }}>{t("account.prefs.currency")}</span>
+          <select value={CURRENCIES.includes(profile?.currency) ? profile.currency : ""} onChange={(e) => update({ currency: e.target.value })}
+            className="px-3 py-2 rounded font-mono" style={inputStyle}>
+            {!CURRENCIES.includes(profile?.currency) && <option value="" disabled>—</option>}
+            {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </label>
+      )}
       <p role="status" className="text-xs mt-2 min-h-[1rem]" style={{ color: status === "failed" ? COLORS.danger : COLORS.inkSoft }}>
         {status === "saved" && t("account.prefs.saved")}
         {status === "failed" && t("account.prefs.saveFailed")}

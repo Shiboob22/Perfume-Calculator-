@@ -15,6 +15,7 @@ import Flacon from "./kx/Flacon";
 import { createBenchClock, useBenchFrame, useThemeName } from "./kx/benchClock";
 import Chip from "./kx/Chip";
 import RoomHeader from "./kx/RoomHeader";
+import OrdersCard from "./orders/OrdersCard";
 
 import MeasuredDensity from "./calc/MeasuredDensity";
 import Presets from "./calc/Presets";
@@ -679,6 +680,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         <TakeTour onStart={tour.start} t={t} />
       </RoomHeader>
       <RestingLine />
+      <OrdersCard />
       <div className="xl:grid xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-10 xl:items-start">
       {/* Saved formulas: in the rail on wide screens, a bottom sheet below that. */}
       <aside className="hidden xl:block xl:sticky xl:top-6">

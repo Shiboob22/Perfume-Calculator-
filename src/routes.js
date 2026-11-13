@@ -6,7 +6,7 @@
 // rooms are built. The Library replaces /guides.
 
 // Paths that serve the signed-in app shell.
-export const APP_PREFIXES = ["/app", "/bench", "/journal", "/ar/journal", "/wardrobe", "/atlas", "/salon", "/nose"];
+export const APP_PREFIXES = ["/app", "/bench", "/journal", "/ar/journal", "/ar/bench/orders", "/wardrobe", "/atlas", "/salon", "/nose"];
 
 export function isAppPath(pathname) {
   return APP_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -16,6 +16,7 @@ export function isAppPath(pathname) {
 export function tabPath(id) {
   if (id === "calculator") return "/bench";
   if (id === "batches") return "/bench/journal";
+  if (id === "orders") return "/bench/orders";
   if (id === "journal") return "/journal";
   if (id === "wardrobe") return "/wardrobe";
   if (id === "atlas") return "/atlas";
@@ -28,6 +29,7 @@ export function tabPath(id) {
 export function tabFromPath(pathname, param) {
   if (pathname === "/bench") return "calculator";
   if (pathname === "/bench/journal") return "batches";
+  if (pathname === "/bench/orders" || pathname === "/ar/bench/orders") return "orders";
   if (pathname === "/journal" || pathname === "/ar/journal") return "journal";
   if (pathname === "/wardrobe" || pathname.startsWith("/wardrobe/")) return "wardrobe";
   if (pathname === "/atlas" || pathname.startsWith("/atlas/")) return "atlas";
