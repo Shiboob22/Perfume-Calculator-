@@ -471,9 +471,10 @@ async function orders(req: VercelRequest, res: VercelResponse, supabase: ReturnT
 
     if (req.method === 'GET') {
       // Each order with its batch's number and blend date (Phase B), so the
-      // rest window counts from the day it was really mixed.
+      // rest window counts from the day it was really mixed, and (P1a) the
+      // grams weighed and prices, for the short-mix check and the order's cost.
       const { data, error } = await supabase
-        .from('seller_orders').select('*, batches ( batch_no, blend_date )').eq('user_id', userId)
+        .from('seller_orders').select('*, batches ( batch_no, blend_date, total_ml, oil_g, actual_oil_g, actual_ethanol_g, ethanol_ml, oil_density, ethanol_density, price_per_gram, ethanol_price_per_l, bottle_cost, packaging_cost, labour_minutes, labour_rate_per_hour, currency )').eq('user_id', userId)
         .order('created_at', { ascending: false }).limit(ORDER_CAP);
       if (error) throw error;
       return res.status(200).json({ orders: data ?? [] });
