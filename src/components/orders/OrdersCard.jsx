@@ -39,3 +39,20 @@ export default function OrdersCard() {
     </Link>
   );
 }
+
+/**
+ * On the Bench when it was opened from the order queue: how many orders
+ * this bottle is weighed for, then (after the log) how many it took.
+ */
+export function OrdersFor({ count, linked }) {
+  const { t, locale } = useI18n();
+  return (
+    <div role="status" className="flex flex-wrap items-center justify-between gap-3 mb-6 p-4 sm:p-5 border rounded" style={{ borderColor: COLORS.actionText, color: COLORS.ink }}>
+      <span className="flex items-center gap-2"><IconSteps size={18} />
+        <span>{linked === null ? t("orders.weigh.for", { count }) : t("orders.weigh.linked", { count: linked })}</span></span>
+      <Link to={locale === "ar" ? "/ar/bench/orders" : "/bench/orders"} className="text-sm underline underline-offset-4 min-h-[44px] inline-flex items-center" style={{ color: COLORS.ink }}>
+        {t("orders.weigh.back")}
+      </Link>
+    </div>
+  );
+}
