@@ -14,6 +14,7 @@ import "./motion/motion.css";
 import { initMotion } from "./motion";
 import { loadCatalog } from "./i18n/catalogs";
 import { initialLocale } from "./i18n/I18nProvider";
+import { checkForUpdate, CHECK_EVERY_MS } from "./lib/freshness";
 
 // A sign-in link that lands on a public page (Supabase falls back to the
 // Site URL when /app isn't an allowed redirect) carries its tokens in the
@@ -49,6 +50,27 @@ loadCatalog(/^\/ar(\/|$)/.test(location.pathname) ? "ar" : initialLocale())
 // Offline support (built by scripts/build-sw.mjs; production builds only).
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}
+
+// Stay on the live release (src/lib/freshness.js): check when the page opens
+// and whenever the tab comes back (at most once a minute), and reload once
+// onto a newer release, never while someone is typing or a sheet is open.
+if (import.meta.env.PROD) {
+  let last = 0;
+  const check = () => {
+    if (Date.now() - last < CHECK_EVERY_MS) return;
+    last = Date.now();
+    checkForUpdate({
+      built: import.meta.env.VITE_RELEASE,
+      fetchFn: (url, init) => fetch(url, init),
+      storage: (() => { try { return sessionStorage; } catch { return null; } })(),
+      doc: document,
+      reload: () => location.reload(),
+      updateWorker: async () => { const reg = await navigator.serviceWorker?.getRegistration(); await reg?.update(); },
+    });
+  };
+  window.addEventListener("load", check);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") check(); });
 }
 
 // Vercel Web Analytics: page views only, no cookies. The URL is sent without

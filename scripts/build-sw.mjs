@@ -13,6 +13,11 @@
 // names, so they are never stale. The two stylesheets with fixed names that
 // pages link directly are fetched like pages.
 import { generateSW } from "workbox-build";
+import { writeFileSync } from "node:fs";
+
+// The live release, for the app's update check (src/lib/freshness.js). Never
+// precached (not in globPatterns) and served with no-store (vercel.json).
+writeFileSync("dist/version.json", JSON.stringify({ release: process.env.VITE_RELEASE || (process.env.VERCEL_GIT_COMMIT_SHA || "local").slice(0, 7) }));
 
 const NETWORK_TIMEOUT_S = 3;
 
