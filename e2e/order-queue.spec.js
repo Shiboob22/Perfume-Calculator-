@@ -14,6 +14,8 @@ const FREE = { plan: "free", name: "Free", features: ["cards.download"], batchCa
 const PRO = { plan: "pro", name: "Pro", features: FEATURES, batchCap: null, formulaCap: null, ingredientCap: null, journalWindow: null, trial: null, batchesUsed: 0 };
 const OIL = "bbbbbbbb-bbbb-4bbb-8bbb-000000000001";
 const o = en.orders;
+// Names sit in their own direction inside a sentence (Unicode isolates).
+const iso = (s) => `\u2068${s}\u2069`;
 const fill = (s, vars) => Object.entries(vars).reduce((x, [k, v]) => x.replaceAll(`{${k}}`, String(v)), s);
 
 async function fakeApi(page, { plan = "pro", locale = "en", orders = [], flag = true, sells = true, batches = [] } = {}) {
@@ -141,7 +143,7 @@ test("the Bench shows sellers a link to the queue", async ({ page }) => {
   await signIn(page);
   await fakeApi(page, { orders: [{ id: "a", user_id: USER.id, buyer_name: "Lina", scent_text: "Rose", size_ml: 30, strength_pct: 20, status: "queued", group_mode: "mix" }] });
   await page.goto("/bench");
-  const card = page.getByRole("link", { name: new RegExp(o.benchCard.title) });
+  const card = page.getByRole("main").getByRole("link", { name: new RegExp(o.benchCard.title) });
   await expect(card).toContainText(fill(o.benchCard.line.one, { count: 1 }));
   await card.click();
   await expect(page).toHaveURL(/\/bench\/orders$/);
@@ -208,7 +210,7 @@ test("weigh a mix from the plan, log it, then bottle and hand over", async ({ pa
   await expect(page).toHaveURL(/\/bench\/orders$/);
   const card = page.getByRole("article").filter({ hasText: fill(o.bottle.batchNo, { no: "006", scent: "Oud Nights", pct: 25 }) });
   await expect(card).toContainText(o.bottle.resting.split("{ready}")[0]);
-  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: "Sara" }));
+  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: iso("Sara") }));
 
   // Still resting: bottling asks once.
   await card.getByRole("button", { name: fill(o.bottle.markFor, { name: "Sara" }) }).click();
@@ -223,7 +225,7 @@ test("weigh a mix from the plan, log it, then bottle and hand over", async ({ pa
   await expect(page.getByText(fill(o.history.one, { count: 1 }))).toBeVisible();
   expect(sent.patches.filter((p) => p.status).map((p) => p.status)).toEqual(["bottled", "resting", "bottled", "handed_over"]);
   // Omar's bottle is still to bottle, in the same batch.
-  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: "Omar" }));
+  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: iso("Omar") }));
 });
 
 test("an order whose batch was removed goes back to the queue", async ({ page }) => {
@@ -299,4 +301,46 @@ test("a batch logged without prices says so", async ({ page }) => {
   await page.goto("/bench/orders");
   await expect(page.getByText(o.cost.none)).toBeVisible();
   await expect(page.getByRole("note")).toHaveCount(0);
+});
+
+// The Orders tab: a seller's daily room, on the phone's bar in the Nose's
+// place (the Nose moves to More) and after the Calculator on wide screens,
+// with a badge for the orders ready to bottle today.
+// The bar's third room without Orders: the Nose when its flag is on, else the Selector.
+const THIRD = new RegExp(`^(${en.site.nav.nose}|${en.app.tabs.selector})$`);
+const navOf = (page, isMobile) => page.getByRole("navigation", { name: isMobile ? en.app.barLabel : en.app.tabsLabel });
+const READY = { id: "r", user_id: USER.id, buyer_name: "Sara", scent_text: "Oud Nights", family: "fresh", size_ml: 50, strength_pct: 25, status: "resting", group_mode: "mix", batch_id: "b-1", batches: { batch_no: 71, blend_date: "2026-01-01" } };
+
+test("a seller gets an Orders tab with a ready-to-bottle badge", async ({ page, isMobile }) => {
+  await signIn(page);
+  await fakeApi(page, { orders: [{ ...READY }, { ...READY, id: "q", status: "queued", batch_id: null, batches: null }] });
+  await page.goto("/bench");
+  const nav = navOf(page, isMobile);
+  const tab = nav.getByRole("link", { name: new RegExp(o.title) });
+  await expect(tab).toBeVisible();
+  await expect(tab.getByText(fill(o.tabBadge.one, { count: 1 }))).toBeAttached();
+  if (isMobile) {
+    await expect(nav.getByRole("link")).toHaveCount(4);
+    await expect(nav.getByRole("link", { name: THIRD })).toHaveCount(0);
+    await nav.getByRole("button", { name: en.app.more }).click();
+    await expect(page.getByRole("dialog", { name: en.app.moreTitle }).getByRole("link", { name: THIRD }).first()).toBeVisible();
+    await page.getByRole("button", { name: en.app.moreClose }).click();
+  }
+  await tab.click();
+  await expect(page).toHaveURL(/\/bench\/orders$/);
+  await expect(tab).toHaveAttribute("aria-current", "page");
+
+  // Bottling the ready order clears the badge without a reload.
+  await page.getByRole("button", { name: fill(o.bottle.markFor, { name: "Sara" }) }).click();
+  await expect(tab.getByText(fill(o.tabBadge.one, { count: 1 }))).toHaveCount(0);
+});
+
+test("someone who doesn't sell keeps the bar as it was", async ({ page, isMobile }) => {
+  await signIn(page);
+  await fakeApi(page, { sells: false });
+  await page.goto("/bench");
+  const nav = navOf(page, isMobile);
+  await expect(nav.getByRole("link", { name: en.app.tabs.calculator })).toBeVisible();
+  await expect(nav.getByRole("link", { name: new RegExp(`^${o.title}`) })).toHaveCount(0);
+  if (isMobile) await expect(nav.getByRole("link", { name: THIRD })).toBeVisible();
 });

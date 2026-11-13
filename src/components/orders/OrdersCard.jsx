@@ -7,6 +7,7 @@ import { useEntitlements } from "../../lib/useEntitlements";
 import { can } from "../../lib/entitlements";
 import { flagOn } from "../../lib/flags";
 import { listOrders } from "../../lib/ordersApi";
+import { readyToBottle, ORDERS_CHANGED } from "../../lib/orders";
 import { OPEN_STATUSES } from "../../lib/calc";
 import { IconSteps } from "../icons";
 
@@ -38,6 +39,26 @@ export default function OrdersCard() {
       </span>
     </Link>
   );
+}
+
+/**
+ * For the Orders tab's badge: how many orders are ready to bottle today.
+ * Asked once when the tab appears (Pro only; Free sees the lock, not a
+ * count), then kept in step by the queue itself (ORDERS_CHANGED).
+ */
+export function useReadyToBottle(enabled) {
+  const entitlements = useEntitlements();
+  const pro = entitlements.loaded && can(entitlements, "orders");
+  const [ready, setReady] = useState(0);
+  useEffect(() => {
+    if (!enabled || !pro) return undefined;
+    let live = true;
+    listOrders().then((rows) => { if (live) setReady(readyToBottle(rows)); }).catch(() => {});
+    const update = (e) => setReady(e.detail?.ready ?? 0);
+    window.addEventListener(ORDERS_CHANGED, update);
+    return () => { live = false; window.removeEventListener(ORDERS_CHANGED, update); };
+  }, [enabled, pro]);
+  return enabled && pro ? ready : 0;
 }
 
 /**

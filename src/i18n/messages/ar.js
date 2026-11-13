@@ -620,6 +620,7 @@ export default {
     deleteFailed: "تعذّر حذف هذه الدفعة.",
   },
   orders: {
+    tabBadge: { zero: "لا طلبات جاهزة للتعبئة", one: "طلب واحد جاهز للتعبئة", two: "طلبان جاهزان للتعبئة", few: "{count} طلبات جاهزة للتعبئة", many: "{count} طلبًا جاهزًا للتعبئة", other: "{count} طلب جاهز للتعبئة" },
     title: "الطلبات",
     loading: "جارٍ تحميل طلباتك…",
     headline: { zero: "لا طلبات لتحضيرها.", one: "طلب واحد لتحضيره.", two: "طلبان لتحضيرهما.", few: "{count} طلبات لتحضيرها.", many: "{count} طلبًا لتحضيرها.", other: "{count} طلب لتحضيرها." },
@@ -698,6 +699,7 @@ export default {
       labelFor: "ملصق زجاجة {name}",
       title: "للتعبئة",
       batchNo: "رقم {no}: {scent} بتركيز {pct}%",
+      restingUntil: "في فترة النضج: جاهزة من {ready}.",
       resting: "في فترة النضج: جاهزة من {ready}، ومكتملة النضج بحلول {rested}.",
       ready: "جاهزة للتعبئة.",
       readyUntil: "جاهزة للتعبئة. نضجها الأفضل حتى {rested}.",

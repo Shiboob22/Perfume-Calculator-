@@ -42,7 +42,7 @@ describe("stockMap", () => {
   });
 });
 
-import { weighLink, toBottlingOrder } from "./orders";
+import { weighLink, toBottlingOrder, readyToBottle, localToday } from "./orders";
 
 describe("weighLink", () => {
   it("opens the Bench at the mix's volume with its orders", () => {
@@ -61,5 +61,20 @@ describe("toBottlingOrder", () => {
     expect(toBottlingOrder({ id: "o", status: "resting", batch_id: "b", family: "fresh", scent_text: "Neroli", strength_pct: "20", batches: { batch_no: 7, blend_date: "2026-11-01" } }))
       .toEqual({ id: "o", status: "resting", family: "fresh", batchId: "b", blendDate: "2026-11-01", batchNo: 7, scentName: "Neroli", strengthPct: 20 });
     expect(toBottlingOrder({ id: "o", status: "resting", scent_text: "N", strength_pct: null })).toMatchObject({ batchId: null, blendDate: null, batchNo: null, family: null, strengthPct: 0 });
+  });
+});
+
+describe("readyToBottle", () => {
+  const row = (id, status, blend, family = "fresh") => ({ id, status, family, batch_id: `b-${blend}`, scent_text: "Neroli", strength_pct: 20, batches: { batch_no: 1, blend_date: blend } });
+  it("counts resting orders whose rest window has opened, not bottled or still resting ones", () => {
+    const rows = [row("a", "resting", "2026-01-01"), row("b", "bottled", "2026-01-01"), row("c", "resting", "2026-11-12"), { id: "d", status: "queued" }];
+    expect(readyToBottle(rows, "2026-11-13")).toBe(1);
+  });
+  it("is zero with no orders", () => {
+    expect(readyToBottle()).toBe(0);
+    expect(readyToBottle([], "2026-11-13")).toBe(0);
+  });
+  it("gives today as a local date", () => {
+    expect(localToday(new Date(2026, 0, 5))).toBe("2026-01-05");
   });
 });

@@ -619,6 +619,7 @@ export default {
     deleteFailed: "Could not delete that batch.",
   },
   orders: {
+    tabBadge: { one: "{count} order ready to bottle", other: "{count} orders ready to bottle" },
     title: "Orders",
     loading: "Loading your orders…",
     headline: { zero: "No orders to make.", one: "{count} order to make.", other: "{count} orders to make." },
@@ -697,6 +698,7 @@ export default {
       labelFor: "Label for {name}’s bottle",
       title: "To bottle",
       batchNo: "No. {no}: {scent} at {pct}%",
+      restingUntil: "Resting: ready from {ready}.",
       resting: "Resting: ready from {ready}, fully rested by {rested}.",
       ready: "Ready to bottle.",
       readyUntil: "Ready to bottle. It rests best until {rested}.",
