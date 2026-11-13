@@ -129,3 +129,46 @@ describe("oil against stock", () => {
     expect(planMixes([]).oil).toEqual([]);
   });
 });
+
+import { canMove, ORDER_STEPS, bottlingGroups } from "./index";
+
+describe("order steps", () => {
+  it("rest → bottled → handed over, each one step back", () => {
+    expect(ORDER_STEPS.resting.next).toBe("bottled");
+    expect([canMove("resting", "bottled"), canMove("bottled", "handed_over"), canMove("bottled", "resting"), canMove("handed_over", "bottled")]).toEqual([true, true, true, true]);
+    expect([canMove("resting", "handed_over"), canMove("handed_over", "resting"), canMove("queued", "bottled"), canMove("nope", "bottled")]).toEqual([false, false, false, false]);
+  });
+  it("cancel only before weighing; back to the queue from cancelled or a lost batch", () => {
+    expect([canMove("queued", "cancelled"), canMove("planned", "cancelled"), canMove("resting", "cancelled")]).toEqual([true, true, false]);
+    expect([canMove("cancelled", "queued"), canMove("resting", "queued"), canMove("bottled", "queued")]).toEqual([true, true, false]);
+  });
+});
+
+describe("bottling groups", () => {
+  const b = (id: string, extra: any = {}) => ({ id, status: "resting", batchId: "B1", blendDate: "2026-11-01", batchNo: 67, family: "woody", scentName: "Oud", strengthPct: 25, ...extra });
+  it("groups by batch with the rest counted from the blend date", () => {
+    const { groups, orphaned } = bottlingGroups([b("a"), b("b", { status: "bottled" }), b("q", { status: "queued" }), b("h", { status: "handed_over" })], "2026-11-13");
+    expect(orphaned).toEqual([]);
+    expect(groups).toHaveLength(1);
+    const min = restWindow("woody", "2026-11-01").minDays;
+    expect(groups[0]).toMatchObject({ batchId: "B1", batchNo: 67, ready: false, rest: { readyFrom: addDays("2026-11-01", min) } });
+    expect(groups[0].orders.map((o) => o.id)).toEqual(["a", "b"]);
+  });
+  it("ready batches first, then by ready-from; a lost batch is apart", () => {
+    const { groups, orphaned } = bottlingGroups([
+      b("late", { batchId: "B3", blendDate: "2026-11-10", family: null, batchNo: null }),
+      b("soon", { batchId: "B2", blendDate: "2026-10-01" }),
+      b("x", { batchId: "B4", blendDate: "2026-11-05" }),
+      b("lost", { batchId: null }), b("gone", { blendDate: null }),
+    ], "2026-11-13");
+    expect(groups.map((g) => [g.batchId, g.ready])).toEqual([["B2", true], ["B4", false], ["B3", false]]);
+    expect(groups[2].batchNo).toBeNull();
+    expect(orphaned.map((o) => o.id)).toEqual(["lost", "gone"]);
+  });
+  it("orders equal ready-from dates stably", () => {
+    const { groups } = bottlingGroups([b("a", { batchId: "X" }), b("c", { batchId: "Y" })], "2026-11-02");
+    expect(groups.map((g) => g.batchId)).toEqual(["X", "Y"]);
+    const later = bottlingGroups([b("a", { batchId: "L", blendDate: "2026-11-09" }), b("c", { batchId: "E", blendDate: "2026-11-08" })], "2026-11-10");
+    expect(later.groups.map((g) => g.batchId)).toEqual(["E", "L"]);
+  });
+});

@@ -222,3 +222,77 @@ export function oilNeeds(groups: OrderGroup[], stock: Record<string, number | nu
   }
   return [...needs.values()];
 }
+
+// ------------------------------------------------------------ Phase B
+// After weighing: an order rests with its batch, is bottled, then handed
+// over. Each step can be undone once (a mistaken tap). Queued/cancelled
+// moves are Phase A's (cancel, bring back).
+
+/** Steps a seller takes by hand, each with the one step back it allows. */
+export const ORDER_STEPS: Readonly<Record<string, { next: OrderStatus | null; back: OrderStatus | null }>> = Object.freeze({
+  resting: { next: "bottled", back: null },
+  bottled: { next: "handed_over", back: "resting" },
+  handed_over: { next: null, back: "bottled" },
+});
+
+/** Whether a seller may move an order from `from` to `to` by hand. */
+export function canMove(from: string, to: string): boolean {
+  if (to === "cancelled") return (OPEN_STATUSES as readonly string[]).includes(from);
+  if (to === "queued") return from === "cancelled" || from === "resting";
+  const step = ORDER_STEPS[from];
+  return !!step && (step.next === to || step.back === to);
+}
+
+export interface BottlingOrder {
+  id: string;
+  status: string;
+  family?: string | null;
+  batchId?: string | null;
+  /** The batch's blend date (YYYY-MM-DD); null when the batch is gone. */
+  blendDate?: string | null;
+  batchNo?: number | null;
+  scentName: string;
+  strengthPct: number;
+}
+
+export interface BottlingGroup {
+  batchId: string;
+  batchNo: number | null;
+  scentName: string;
+  strengthPct: number;
+  rest: RestWindow;
+  /** On or after the ready-from date. */
+  ready: boolean;
+  orders: BottlingOrder[];
+}
+
+/**
+ * Resting and bottled orders by their batch, with the rest window counted
+ * from the batch's real blend date. Ready batches first, then by ready-from
+ * date. Orders whose batch is gone are returned apart (back to the queue).
+ */
+export function bottlingGroups(orders: BottlingOrder[], today: string): { groups: BottlingGroup[]; orphaned: BottlingOrder[] } {
+  const live = orders.filter((o) => o.status === "resting" || o.status === "bottled");
+  const orphaned = live.filter((o) => !o.batchId || !o.blendDate);
+  const byBatch = new Map<string, BottlingOrder[]>();
+  for (const o of live.filter((x) => x.batchId && x.blendDate)) {
+    const list = byBatch.get(o.batchId as string) ?? [];
+    list.push(o);
+    byBatch.set(o.batchId as string, list);
+  }
+  const groups: BottlingGroup[] = [...byBatch].map(([batchId, list]) => {
+    const first = list[0];
+    const rest = restWindow(list.find((o) => o.family)?.family ?? null, first.blendDate as string);
+    return {
+      batchId,
+      batchNo: first.batchNo ?? null,
+      scentName: first.scentName,
+      strengthPct: first.strengthPct,
+      rest,
+      ready: today.slice(0, 10) >= rest.readyFrom,
+      orders: list,
+    };
+  });
+  groups.sort((a, b) => Number(b.ready) - Number(a.ready) || a.rest.readyFrom.localeCompare(b.rest.readyFrom));
+  return { groups, orphaned };
+}
