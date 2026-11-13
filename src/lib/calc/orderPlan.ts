@@ -357,3 +357,17 @@ export function shortMix(batch: Record<string, any>, sizesMl: number[]): { madeM
   const gap = neededMl - madeMl;
   return { madeMl, neededMl, shortMl: gap > neededMl * POUR_BAND ? round2(gap) : 0 };
 }
+
+/** Profit over many orders, one total per currency; orders without a cost or price are counted apart. */
+export function profitTotals(items: Array<OrderCost | null>): { totals: { currency: string; profit: number; count: number }[]; missing: number } {
+  const by = new Map<string, { currency: string; profit: number; count: number }>();
+  let missing = 0;
+  for (const c of items) {
+    if (!c || c.profit === null) { missing += 1; continue; }
+    const t = by.get(c.currency) ?? { currency: c.currency, profit: 0, count: 0 };
+    t.profit = round2(t.profit + c.profit);
+    t.count += 1;
+    by.set(c.currency, t);
+  }
+  return { totals: [...by.values()], missing };
+}

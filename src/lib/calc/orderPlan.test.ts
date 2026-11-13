@@ -217,3 +217,15 @@ describe("short mix", () => {
     expect(shortMix({}, [50, null as any]).neededMl).toBe(50);
   });
 });
+
+import { profitTotals } from "./index";
+
+describe("profit totals", () => {
+  it("one total per currency, the rest counted as missing", () => {
+    const c = (profit: number | null, currency = "EGP") => ({ cost: 1, currency, profit, marginPct: null });
+    expect(profitTotals([c(100.25), c(50.5), c(10, "USD"), c(null), null])).toEqual({
+      totals: [{ currency: "EGP", profit: 150.75, count: 2 }, { currency: "USD", profit: 10, count: 1 }], missing: 2,
+    });
+    expect(profitTotals([])).toEqual({ totals: [], missing: 0 });
+  });
+});
