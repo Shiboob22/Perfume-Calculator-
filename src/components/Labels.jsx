@@ -20,6 +20,8 @@ export default function Labels() {
   const { state } = useLocation();
   const [params] = useSearchParams();
   const id = params.get("batch");
+  // From the order queue: one buyer's bottle (?for=<name>&ml=<size>).
+  const order = Number(params.get("ml")) > 0 ? { sizeMl: Number(params.get("ml")), forName: params.get("for") ?? "" } : null;
   const [batch, setBatch] = useState(state?.batch?.id === id ? state.batch : null);
   const [error, setError] = useState(null);
   const [sizeKey, setSizeKey] = useState("medium");
@@ -55,8 +57,8 @@ export default function Labels() {
   const size = sizeKey === "custom" ? customSize(custom.w, custom.h) : LABEL_SIZES[sizeKey];
   const sheet = size ? perSheet(size) : null;
   const count = Math.min(Math.max(1, Number(copies) || 1), MAX_COPIES);
-  const label = batch ? labelFields(batch, { t, lot }) : null;
-  const roll = batch && size?.roll ? compactLayout(batch, { t, lot }, size, em) : null;
+  const label = batch ? labelFields(batch, { t, lot, order }) : null;
+  const roll = batch && size?.roll ? compactLayout(batch, { t, lot, order }, size, em) : null;
   // Type scaled so every line fits the label; mm keeps it true to the printout.
   const type = size && label && !size.roll ? typeSizes(size, label.fields.length) : { name: 5, line: 3 };
 

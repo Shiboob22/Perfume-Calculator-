@@ -85,12 +85,14 @@ function splitName(name, em) {
   return best;
 }
 
-export function compactLayout(batch, { t, lot }, { w, h }, em = estimateEm) {
+export function compactLayout(batch, { t, lot, order = null }, { w, h }, em = estimateEm) {
   lot = lot ?? batch.lot ?? "";
   const avail = (w - 2 * ROLL.padX) * ROLL.safety;
   const box = h - 2 * ROLL.padY;
   const weights = labelWeights(Number(batch.oil_g), Number(batch.ethanol_g), Number(batch.actual_oil_g) || null, Number(batch.actual_ethanol_g) || null);
-  const facts = [`${batch.concentration_pct}%`, bottleText(batch), batch.blend_date || ""];
+  // An order's bottle (P1a) shows its own size; the round label has no room for the buyer.
+  const bottle = Number(order?.sizeMl) > 0 ? `${Number(fmt2(Number(order.sizeMl)))} mL` : bottleText(batch);
+  const facts = [`${batch.concentration_pct}%`, bottle, batch.blend_date || ""];
   if (String(lot).trim()) facts.push(`${t("labels.short.lot")} ${String(lot).trim()}`);
   const grams = [
     `${t("labels.short.oil")} ${fmt2(weights.oil)}`,
@@ -144,15 +146,25 @@ export function bottleText(batch) {
   return batch.basis === "weight" ? `${Number(fmt2(Number(batch.total_g)))} g` : `${Number(fmt2(Number(batch.total_ml)))} mL`;
 }
 
-export function labelFields(batch, { t, lot }) {
+// `order` (the order queue, P1a): one buyer's bottle filled from this batch.
+// Its own size replaces the batch's, the batch number and the buyer's name
+// are added, and the mix's weights are left off (they are the whole batch's,
+// not this bottle's).
+export function labelFields(batch, { t, lot, order = null }) {
   lot = lot ?? batch.lot ?? "";
   const weights = labelWeights(Number(batch.oil_g), Number(batch.ethanol_g), Number(batch.actual_oil_g) || null, Number(batch.actual_ethanol_g) || null);
+  const size = Number(order?.sizeMl) > 0 ? `${Number(fmt2(Number(order.sizeMl)))} mL` : bottleText(batch);
   const fields = [
     [t("bench.label.concentration"), `${batch.concentration_pct}%`],
-    [t("bench.label.bottle"), bottleText(batch)],
+    [t("bench.label.bottle"), size],
     [t("bench.label.date"), batch.blend_date || ""],
   ];
   if (String(lot).trim()) fields.push([t("bench.label.lot"), String(lot).trim()]);
+  if (order) {
+    if (Number(batch.batch_no) > 0) fields.push([t("labels.order.batch"), `No. ${String(batch.batch_no).padStart(3, "0")}`]);
+    if (String(order.forName ?? "").trim()) fields.push([t("labels.order.for"), String(order.forName).trim().slice(0, 60)]);
+    return { name: batch.fragrance_name || t("bench.untitled"), fields };
+  }
   fields.push(
     [t("bench.label.oil"), `${fmt2(weights.oil)} g`],
     [t("bench.label.alcohol"), `${fmt2(weights.ethanol)} g`],

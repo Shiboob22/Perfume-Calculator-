@@ -23,6 +23,19 @@ describe("bottleText and the stored lot", () => {
 });
 
 describe("labelFields", () => {
+  it("an order's bottle: its own size, the batch number and the buyer, no batch weights", () => {
+    const tt = (k) => k;
+    const { fields } = labelFields({ ...batch, batch_no: 67 }, { t: tt, order: { sizeMl: 50, forName: " Sara " } });
+    expect(Object.fromEntries(fields)).toEqual({
+      "bench.label.concentration": "25%", "bench.label.bottle": "50 mL", "bench.label.date": "2026-10-02",
+      "labels.order.batch": "No. 067", "labels.order.for": "Sara",
+    });
+    const bare = labelFields(batch, { t: tt, order: { sizeMl: 0, forName: "" } }).fields.map(([k]) => k);
+    expect(bare).toEqual(["bench.label.concentration", "bench.label.bottle", "bench.label.date"]);
+    const roll = compactLayout(batch, { t: tt, order: { sizeMl: 50 } }, { w: 30, h: 30 });
+    expect(roll.rows[0].segments).toContain("50 mL");
+  });
+
   it("uses the handbook's label fields and the target weights", () => {
     const { name, fields } = labelFields(batch, { t });
     expect(name).toBe("Oud Wood");
