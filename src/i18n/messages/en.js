@@ -649,6 +649,8 @@ export default {
     unplanned: "Can’t plan yet",
     cancelled: { one: "{count} cancelled order", other: "{count} cancelled orders" },
     row: {
+      again: "Order again",
+      againFor: "Order again for {name}",
       size: "{ml} mL at {pct}%",
       wanted: "wanted by {date}",
       price: "{price} {currency}",
@@ -690,6 +692,9 @@ export default {
       back: "Back to orders",
     },
     bottle: {
+      short: "This mix came out about {short} mL short: {made} mL made for {needed} mL of bottles.",
+      label: "Label",
+      labelFor: "Label for {name}’s bottle",
       title: "To bottle",
       batchNo: "No. {no}: {scent} at {pct}%",
       resting: "Resting: ready from {ready}, fully rested by {rested}.",
@@ -712,6 +717,13 @@ export default {
       requeue: "Back to the queue",
     },
     history: { one: "{count} handed over", other: "{count} handed over" },
+    cost: {
+      none: "No cost recorded for this batch.",
+      only: "Cost {cost} {currency}.",
+      line: "Cost {cost} {currency}, profit {profit} {currency} ({margin}%).",
+      total: { one: "Profit on {count} handed-over bottle: {profit} {currency}.", other: "Profit on {count} handed-over bottles: {profit} {currency}." },
+      missing: { one: "{count} has no cost or price.", other: "{count} have no cost or price." },
+    },
     benchCard: { title: "Orders", line: { zero: "No open orders.", one: "{count} open order.", other: "{count} open orders." }, open: "Open the order queue" },
   },
   journal: {
@@ -1535,6 +1547,7 @@ export default {
     failed: "Could not create the card: {error}",
   },
   labels: {
+    order: { batch: "Batch", for: "For" },
     title: "Bottle labels",
     open: "Print label",
     pick: "Choose a batch in Batches and tap “Print label”.",

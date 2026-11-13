@@ -650,6 +650,8 @@ export default {
     unplanned: "لا يمكن تخطيطها بعد",
     cancelled: { zero: "لا طلبات ملغاة", one: "طلب ملغى واحد", two: "طلبان ملغيان", few: "{count} طلبات ملغاة", many: "{count} طلبًا ملغى", other: "{count} طلب ملغى" },
     row: {
+      again: "اطلب مجددًا",
+      againFor: "طلب جديد لـ{name}",
       size: "{ml} مل بتركيز {pct}%",
       wanted: "مطلوب بحلول {date}",
       price: "{price} {currency}",
@@ -691,6 +693,9 @@ export default {
       back: "العودة إلى الطلبات",
     },
     bottle: {
+      short: "جاءت هذه الخلطة أقل بحوالي {short} مل: صُنع {made} مل لزجاجات مجموعها {needed} مل.",
+      label: "الملصق",
+      labelFor: "ملصق زجاجة {name}",
       title: "للتعبئة",
       batchNo: "رقم {no}: {scent} بتركيز {pct}%",
       resting: "في فترة النضج: جاهزة من {ready}، ومكتملة النضج بحلول {rested}.",
@@ -713,6 +718,13 @@ export default {
       requeue: "إعادة إلى القائمة",
     },
     history: { zero: "لا شيء سُلّم", one: "طلب واحد سُلّم", two: "طلبان سُلّما", few: "{count} طلبات سُلّمت", many: "{count} طلبًا سُلّم", other: "{count} طلب سُلّم" },
+    cost: {
+      none: "لا تكلفة مسجلة لهذه الدفعة.",
+      only: "التكلفة {cost} {currency}.",
+      line: "التكلفة {cost} {currency}، والربح {profit} {currency} ({margin}%).",
+      total: { zero: "لا ربح محسوب بعد.", one: "الربح من زجاجة واحدة سُلّمت: {profit} {currency}.", two: "الربح من زجاجتين سُلّمتا: {profit} {currency}.", few: "الربح من {count} زجاجات سُلّمت: {profit} {currency}.", many: "الربح من {count} زجاجة سُلّمت: {profit} {currency}.", other: "الربح من {count} زجاجة سُلّمت: {profit} {currency}." },
+      missing: { zero: "", one: "زجاجة واحدة بلا تكلفة أو سعر.", two: "زجاجتان بلا تكلفة أو سعر.", few: "{count} زجاجات بلا تكلفة أو سعر.", many: "{count} زجاجة بلا تكلفة أو سعر.", other: "{count} زجاجة بلا تكلفة أو سعر." },
+    },
     benchCard: { title: "الطلبات", line: { zero: "لا طلبات مفتوحة.", one: "طلب مفتوح واحد.", two: "طلبان مفتوحان.", few: "{count} طلبات مفتوحة.", many: "{count} طلبًا مفتوحًا.", other: "{count} طلب مفتوح." }, open: "افتح قائمة الطلبات" },
   },
   journal: {
@@ -1537,6 +1549,7 @@ export default {
     failed: "تعذّر إنشاء البطاقة: {error}",
   },
   labels: {
+    order: { batch: "الدفعة", for: "إلى" },
     title: "ملصقات الزجاجات",
     open: "اطبع ملصقًا",
     pick: "اختر دفعة من صفحة الدفعات واضغط «اطبع ملصقًا».",
