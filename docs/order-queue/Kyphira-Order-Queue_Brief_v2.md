@@ -1,6 +1,6 @@
 # Order queue → batch plan (spec v1)
 
-Status: Phase A built behind the `orders` flag (2026-11-13); Phase B not built
+Status: Phases A and B built behind the `orders` flag (2026-11-13); P1 not built
 v2: Q1 and Q2 answered by the owner (5 % allowance; family rest days, 90 days at most). Changes from v1 are in §5.2, §5.3, §5.4, R2, R6 and §9.
 Plan: **Pro** (owner, 2026-11-13)
 
