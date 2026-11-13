@@ -23,6 +23,9 @@ export function prefillFromQuery(params) {
     name: cleanName(params.get("name")),
     // A recipe version to reopen ("Make again" from a batch made from one).
     recipe: UUID.test(params.get("recipe") ?? "") ? params.get("recipe") : null,
+    // The order queue's orders this bottle is weighed for (?orders=a,b): the
+    // logged batch links them. Malformed ids are dropped; at most 200.
+    orders: [...new Set((params.get("orders") ?? "").split(",").filter((x) => UUID.test(x)))].slice(0, 200),
   };
 }
 

@@ -15,6 +15,7 @@ import Flacon from "./kx/Flacon";
 import { createBenchClock, useBenchFrame, useThemeName } from "./kx/benchClock";
 import Chip from "./kx/Chip";
 import RoomHeader from "./kx/RoomHeader";
+import OrdersCard, { OrdersFor } from "./orders/OrdersCard";
 
 import MeasuredDensity from "./calc/MeasuredDensity";
 import Presets from "./calc/Presets";
@@ -262,6 +263,9 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [concPct, setConcPct] = useState(draft?.concPct ?? prefill.conc ?? (prefill.family ? TIERS[prefill.family].defaultConc : 20));
   // The recipe version a logged batch will be linked to (null: none, or the settings were changed).
   const [recipeVersionId, setRecipeVersionId] = useState(null);
+  // Orders from the order queue this bottle is weighed for (?orders=…).
+  const [orderIds] = useState(() => prefill.orders);
+  const [ordersLinked, setOrdersLinked] = useState(null);
   const [densities, setDensities] = useState(() => ({
     ...Object.fromEntries(Object.entries(TIERS).map(([k, t]) => [k, t.density])),
     ethanol: ETHANOL_DENSITY_DEFAULT,
@@ -431,6 +435,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     blend: blendOn ? blend.map(({ name, type, pct }) => ({ name, type, pct })) : null,
     // The rest of the record, so a bench log is as full as one from here.
     oilType, pricePerGram, blendedBy,
+    orderIds,
     // A new start, even of the same blend, starts a new bench run.
     startedAt: Date.now(),
   });
@@ -558,7 +563,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     const row = (fragranceId) => buildBatch({
       id: logId.current, fragranceId, name: fragName.trim(), tier: tierKey, blendDate, concPct,
       target: result, densities: result.densities, actualOilG, actualEthG,
-      oilType, pricePerGram: priceUsed, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit, seller, recipeVersionId,
+      oilType, pricePerGram: priceUsed, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit, seller, recipeVersionId, orderIds,
     });
     try {
       let fragrance = matched;
@@ -577,6 +582,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       // log doesn't silently reuse them.
       setActualOilG(""); setActualEthG("");
       setLoggedNo(Number(saved.batch_no) > 0 ? Number(saved.batch_no) : null);
+      if (orderIds.length) setOrdersLinked(Number(saved.ordersLinked) || 0);
       setLogStatus("saved");
       entitlements.refresh();
     } catch (e) {
@@ -679,6 +685,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         <TakeTour onStart={tour.start} t={t} />
       </RoomHeader>
       <RestingLine />
+      {orderIds.length > 0 ? <OrdersFor count={orderIds.length} linked={ordersLinked} /> : <OrdersCard />}
       <div className="xl:grid xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-10 xl:items-start">
       {/* Saved formulas: in the rail on wide screens, a bottom sheet below that. */}
       <aside className="hidden xl:block xl:sticky xl:top-6">

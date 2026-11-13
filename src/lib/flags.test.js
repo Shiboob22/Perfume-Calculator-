@@ -18,6 +18,11 @@ describe("flagOn", () => {
     const s = memory(); s.setItem("kyphira.flag.wardrobe", "yes");
     expect(flagOn("wardrobe", { env: {}, storage: s })).toBe(false);
   });
+  it("the order queue is on unless the build says 0", () => {
+    expect(flagOn("orders", { env: {}, storage: memory() })).toBe(true);
+    expect(flagOn("orders", { env: { VITE_FLAG_ORDERS: "0" }, storage: memory() })).toBe(false);
+    expect(flagOn("orders", { env: { VITE_FLAG_ORDERS: "1" }, storage: memory() })).toBe(true);
+  });
   it("knows only the listed rooms", () => {
     expect(FLAGS).toContain("wardrobe");
     expect(FLAGS).toContain("atlas");

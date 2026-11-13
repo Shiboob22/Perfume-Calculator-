@@ -177,7 +177,7 @@ const TARE_STEP = 1;
 // held awake, nothing can be logged and the title is an h2 (the page has
 // its h1).
 export default function BenchMode({ demo = null }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const [plan] = useState(() => (demo ? demo.plan : loadPlan(location.state)));
@@ -202,6 +202,7 @@ export default function BenchMode({ demo = null }) {
   // A run that was logged stays logged after a reload: no second log.
   const [status, setStatus] = useState(saved?.status === "saved" || saved?.status === "queued" ? saved.status : null); // null | saving | saved | queued | error
   const [batchNo, setBatchNo] = useState(saved?.batchNo ?? null);
+  const [ordersLinked, setOrdersLinked] = useState(null);
   const [error, setError] = useState("");
   const [stockNote, setStockNote] = useState("");
   const entitlements = useEntitlements();
@@ -278,6 +279,7 @@ export default function BenchMode({ demo = null }) {
         oilType: plan.oilType, pricePerGram: plan.pricePerGram, blendedBy: plan.blendedBy,
         lot, amount: plan.amount, unit: plan.unit,
         pours: pourRecord(items, poured, ps.targets),
+        orderIds: plan.orderIds,
       }),
       // The server takes the oil out of stock for a Pro user's tracked oil.
       ...(tracksStock ? { deduct_oil_g: usedOil(target, actualOil) } : {}),
@@ -286,6 +288,7 @@ export default function BenchMode({ demo = null }) {
       const logged = await logBatch(batch);
       setStatus("saved");
       if (logged?.batch_no) setBatchNo(logged.batch_no);
+      if (plan.orderIds?.length) setOrdersLinked(Number(logged.ordersLinked) || 0);
       if (logged.stock === "not_tracked") setStockNote(t("calculator.log.untracked"));
       if (logged.stock === "failed") setStockNote(t("calculator.log.stockFailed", { error: t("errors.server_error") }));
     } catch (e) {
@@ -499,9 +502,15 @@ export default function BenchMode({ demo = null }) {
               {status === "error" && t("bench.label.failed", { error })}
             </p>
             {stockNote && <p className="mt-1 text-xs" style={{ color: COLORS.inkSoft }}>{stockNote}</p>}
+            {ordersLinked !== null && <p className="mt-1 text-sm" style={{ color: COLORS.inkSoft }}>{t("orders.weigh.linked", { count: ordersLinked })}</p>}
             {(status === "saved" || status === "queued") && (
               <nav aria-label={t("bench.after.title")} className="mt-6 grid gap-2">
                 <h2 className="font-serif italic text-xl" style={{ color: COLORS.amberDeep }}>{t("bench.after.title")}</h2>
+                {plan.orderIds?.length > 0 && (
+                  <button type="button" onClick={() => navigate(locale === "ar" ? "/ar/bench/orders" : "/bench/orders")} className="py-3 rounded border text-start px-4" style={{ borderColor: COLORS.actionText, color: COLORS.actionText }}>
+                    {t("orders.weigh.back")}
+                  </button>
+                )}
                 {status === "saved" && (
                   <button type="button" onClick={() => navigate(`/journal?batch=${logId.current}`)} className="py-3 rounded border text-start px-4" style={{ borderColor: COLORS.actionText, color: COLORS.actionText }}>
                     {t("bench.after.journal")}
