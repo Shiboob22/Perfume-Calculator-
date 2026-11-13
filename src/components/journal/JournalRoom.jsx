@@ -12,10 +12,12 @@ import { dueNow, todayFor, JOURNAL_CHANGED } from "../../lib/journal";
 import { TIER_COLORS, TIERS } from "../../lib/tiers";
 import { UNIT_LABELS } from "../../lib/calcPrefill";
 import {
-  MILESTONES, DOT_GLYPH, notesByMilestone, milestoneDots, milestoneIndex, restProgress, trackPosition, readySoonOrder, isFresh, tierFor,
+  MILESTONES, DOT_GLYPH, notesByMilestone, milestoneDots, milestoneIndex, restProgress, trackPosition, isFresh, tierFor,
+  JOURNAL_SORTS, journalSort, journalSortKey, journalSortDir, needsNote,
 } from "../../lib/calc";
 import { useStartTrial } from "../plan/Upgrade";
 import { IconBell } from "../icons";
+import Chip from "../kx/Chip";
 
 // The Journal room (Bench SaaS Phase 5, prototype Journal.dc.html): every
 // logged batch rests 90 days and is noted at five milestones. Built on the
@@ -28,6 +30,19 @@ import { IconBell } from "../icons";
 
 const TAGS = ["harsh", "sharp", "rounder", "sweeter", "woodier", "fading", "ready"];
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+const SORT_KEY = "kyphira.journalSort";
+const DIR_KEY = "kyphira.journalSortDir";
+const stored = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
+const store = (key, v) => { try { if (v == null) localStorage.removeItem(key); else localStorage.setItem(key, v); } catch { /* private window */ } };
+
+function SwapIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7 4v16M3.5 16.5 7 20l3.5-3.5M17 20V4M13.5 7.5 17 4l3.5 3.5" />
+    </svg>
+  );
+}
 
 const noOf = (b) => String(b.batch_no ?? 0).padStart(3, "0");
 const swatchOf = (b) => TIER_COLORS[b.tier] ?? COLORS.dim;
@@ -81,6 +96,27 @@ export default function JournalRoom() {
   const visible = useMemo(() => all.filter((b) => open.has(b.id)), [all, open]);
   const lockedN = all.length - visible.length;
 
+  // One list in the chosen order (URL, then this device, then "needs a note").
+  // Each sort but "needs a note" runs either way (?dir=asc|desc); a new
+  // sort starts in its own default direction.
+  const sort = journalSortKey(params.get("sort") ?? stored(SORT_KEY));
+  const dir = journalSortDir(sort, params.get("dir") ?? stored(DIR_KEY));
+  const sorted = useMemo(() => journalSort(visible.map((x) => ({
+    b: x, day: todayFor(x, now), no: Number(x.batch_no) || 0, ml: Number(x.total_ml),
+    start: batchStartedAt(x)?.getTime() ?? NaN, checkins: x.batch_checkins,
+  })), sort, dir).map((r) => r.b), [visible, sort, dir, now]);
+  const pickSort = (k) => {
+    store(SORT_KEY, k);
+    store(DIR_KEY, null);
+    setParams((p) => { const q = new URLSearchParams(p); q.set("sort", k); q.delete("dir"); return q; }, { replace: true });
+  };
+  const flipDir = () => {
+    const next = dir === "asc" ? "desc" : "asc";
+    store(SORT_KEY, sort);
+    store(DIR_KEY, next);
+    setParams((p) => { const q = new URLSearchParams(p); q.set("sort", sort); q.set("dir", next); return q; }, { replace: true });
+  };
+
   // The header's "due" badge follows the notes made here.
   useEffect(() => {
     if (!batches) return;
@@ -88,7 +124,7 @@ export default function JournalRoom() {
   }, [batches, visible]);
 
   const selId = params.get("batch");
-  const b = visible.find((x) => x.id === selId) ?? visible[0] ?? null;
+  const b = visible.find((x) => x.id === selId) ?? sorted[0] ?? null;
   const pick = (id) => setParams((p) => { const q = new URLSearchParams(p); q.set("batch", id); return q; }, { replace: true });
   const replaceBatch = (next) => setBatches((list) => list.map((x) => (x.id === next.id ? { ...x, ...next } : x)));
 
@@ -130,14 +166,28 @@ export default function JournalRoom() {
 
       {b && (
         <>
-          <ReadySoon batches={visible} sel={b.id} pick={pick} dayOf={dayOf} t={t} />
           <div className="flex flex-wrap gap-6 sm:gap-8 items-start">
             <aside className="flex-[1_1_100%] lg:flex-[0_0_300px] min-w-0">
-              <h2 className="font-serif text-2xl">{t("journal.page.batches")}</h2>
-              <ul className="mt-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
-                {visible.map((x) => {
+              <h2 id="journal-batches" className="font-serif text-2xl">{t("journal.page.batches")}</h2>
+              <div role="group" aria-label={t("journal.page.sort.label")} className="mt-3 flex flex-wrap gap-2">
+                {JOURNAL_SORTS.map((k) => (
+                  <Chip key={k} pressed={sort === k} onToggle={() => pickSort(k)} className="whitespace-nowrap">{t(`journal.page.sort.${k}`)}</Chip>
+                ))}
+              </div>
+              {dir && (
+                <button type="button" data-sort-dir={dir} onClick={flipDir}
+                  className="mt-2 inline-flex items-center gap-2 min-h-[44px] px-3 text-sm rounded border"
+                  style={{ borderColor: COLORS.field, color: COLORS.ink }}>
+                  <SwapIcon />{t(`journal.page.dir.${sort}.${dir}`)}
+                </button>
+              )}
+              <ul aria-labelledby="journal-batches" className="mt-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+                {sorted.map((x) => {
                   const on = x.id === b.id;
-                  const dots = milestoneDots(x.batch_checkins, dayOf(x));
+                  const day = dayOf(x);
+                  const dots = milestoneDots(x.batch_checkins, day);
+                  const p = restProgress(day);
+                  const due = sort === "note" ? needsNote(x.batch_checkins, day) : null;
                   return (
                     <li key={x.id}>
                       <button type="button" onClick={() => pick(x.id)} aria-pressed={on} data-batch={x.id}
@@ -153,6 +203,20 @@ export default function JournalRoom() {
                           <span className="text-xs truncate" style={{ color: COLORS.dim }}>
                             <span dir="ltr">{t("journal.page.no", { no: noOf(x) })}</span> · {metaOf(x)}
                           </span>
+                          <span aria-hidden="true" className="relative block h-1.5 mt-2" style={{ background: COLORS.line }}>
+                            <span className="absolute inset-y-0 start-0" style={{ width: `${p.fraction * 100}%`, background: p.ready ? COLORS.verdigris : COLORS.amber }} />
+                          </span>
+                          <span className="mt-1 flex items-baseline justify-between gap-2 text-xs">
+                            <span data-ready className="font-medium" style={{ color: p.ready ? (COLORS.verdigrisText ?? COLORS.verdigris) : COLORS.ink }}>
+                              {p.ready ? t("journal.page.ready") : t("journal.page.readyIn", { count: p.left })}
+                            </span>
+                            <span className="tabular-nums" style={{ color: COLORS.dim }}>{t("journal.page.progress", { n: p.day })}</span>
+                          </span>
+                          {due && (
+                            <span data-due className="mt-1 text-xs font-medium" style={{ color: COLORS.actionText }}>
+                              {t("journal.page.noteDue", { milestone: t(`journal.page.milestones.${due.k}`) })}
+                            </span>
+                          )}
                         </span>
                         <span dir="ltr" role="img" className="flex-none text-[11px] tracking-[0.05em]" style={{ color: COLORS.actionText }}
                           aria-label={t("journal.page.dotsLabel", { list: MILESTONES.map((m, i) => `${t(`journal.page.milestones.${m.k}`)} ${t(`journal.page.dots.${dots[i]}`)}`).join(", ") })}>
@@ -174,42 +238,6 @@ export default function JournalRoom() {
         </>
       )}
     </div>
-  );
-}
-
-// Nearest first, ready batches last: one card each with its rest progress.
-function ReadySoon({ batches, sel, pick, dayOf, t }) {
-  const items = readySoonOrder(batches.map((b) => ({ b, day: dayOf(b) })));
-  return (
-    <section aria-labelledby="journal-soon">
-      <h2 id="journal-soon" className="font-serif text-2xl">{t("journal.page.soon")}</h2>
-      <div className="mt-3 flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-        {items.map(({ b, day }) => {
-          const p = restProgress(day);
-          const on = b.id === sel;
-          return (
-            <button key={b.id} type="button" onClick={() => pick(b.id)} aria-pressed={on} data-soon={b.id}
-              className="flex-[0_0_220px] sm:flex-[0_0_240px] p-3.5 rounded text-start flex flex-col gap-2.5"
-              style={{ background: COLORS.card, border: `1px solid ${on ? COLORS.ink : COLORS.line}` }}>
-              <span className="flex items-center gap-2 min-w-0">
-                <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: swatchOf(b) }} />
-                <span className="truncate font-medium">{b.fragrance_name}</span>
-                <span dir="ltr" className="ms-auto flex-none text-xs tabular-nums" style={{ color: COLORS.dim }}>{t("journal.page.no", { no: noOf(b) })}</span>
-              </span>
-              <span aria-hidden="true" className="relative block h-1.5" style={{ background: COLORS.line }}>
-                <span className="absolute inset-y-0 start-0" style={{ width: `${p.fraction * 100}%`, background: p.ready ? COLORS.verdigris : COLORS.amber }} />
-              </span>
-              <span className="flex items-baseline justify-between gap-2 text-sm">
-                <span className="font-medium" style={{ color: p.ready ? (COLORS.verdigrisText ?? COLORS.verdigris) : COLORS.ink }}>
-                  {p.ready ? t("journal.page.ready") : t("journal.page.readyIn", { count: p.left })}
-                </span>
-                <span className="text-xs tabular-nums" style={{ color: COLORS.dim }}>{t("journal.page.progress", { n: p.day })}</span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
   );
 }
 

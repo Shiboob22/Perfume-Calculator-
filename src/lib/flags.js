@@ -1,5 +1,6 @@
 // Feature flags for the rooms that aren't finished (Wardrobe, Atlas, Salon
-// and Nose), for the home page's scroll scene ("compounding") and for the
+// and Nose), for the home page's scroll scene ("compounding"), its 3D pour
+// hero ("hero3d", needs "compounding" too) and for the
 // site-wide motion layer ("motion", src/motion). Off unless
 // its flag is on:
 //   - at build time: VITE_FLAG_<NAME>=1 (a preview or production build),
@@ -9,7 +10,7 @@
 // A flag only decides what is *shown*. Every room's data is private behind
 // row-level security whatever the flag says, so turning one on in the
 // browser exposes nothing. Pure: env and storage are passed in for tests.
-export const FLAGS = ["wardrobe", "atlas", "salon", "nose", "compounding", "motion", "shop"];
+export const FLAGS = ["wardrobe", "atlas", "salon", "nose", "compounding", "motion", "shop", "hero3d"];
 
 const key = (name) => `kyphira.flag.${name}`;
 

@@ -102,3 +102,80 @@ export function isFresh(createdAt: string | null | undefined, checkins: readonly
   const age = now.getTime() - t;
   return age >= 0 && age < FRESH_HOURS * 3600 * 1000 && !(checkins ?? []).some((c) => !c.skipped);
 }
+
+/**
+ * The milestone a batch owes a note for, or null: the one it has reached
+ * (older missed milestones don't count) when that milestone has no note.
+ * `left` is the days until the next milestone closes its window
+ * (Infinity at the last one, which never closes).
+ */
+export function needsNote(checkins: readonly JournalNote[] | null | undefined, day: number): { k: MilestoneKey; left: number } | null {
+  const i = milestoneIndex(Math.max(0, day));
+  const m = MILESTONES[i];
+  if (notesByMilestone(checkins)[m.k]) return null;
+  const next = MILESTONES[i + 1];
+  return { k: m.k, left: next ? next.days - Math.max(0, day) : Infinity };
+}
+
+/** The Journal list's sorts (journal sort brief v1). The first is the default. */
+export const JOURNAL_SORTS = Object.freeze(["note", "new", "rest", "size"] as const);
+export type JournalSort = (typeof JOURNAL_SORTS)[number];
+
+/** A known sort key, else the default. */
+export function journalSortKey(v: unknown): JournalSort {
+  return (JOURNAL_SORTS as readonly unknown[]).includes(v) ? (v as JournalSort) : JOURNAL_SORTS[0];
+}
+
+export interface SortItem {
+  /** Rest day today. */ day: number;
+  /** Batch number. */ no: number;
+  /** Total volume in mL, as logged. */ ml: number;
+  /** When the rest started, ms since the epoch. */ start: number;
+  checkins?: readonly JournalNote[] | null;
+}
+
+/** Which way a sort runs. "Needs a note" has no direction. */
+export type SortDir = "asc" | "desc";
+
+/** Each directional sort's own first direction (by its value: number, start, size). */
+export const SORT_DEFAULT_DIR: Readonly<Record<Exclude<JournalSort, "note">, SortDir>> = Object.freeze({
+  new: "desc", // newest first
+  rest: "asc", // started earliest first: closest to ready
+  size: "desc", // largest first
+});
+
+/** The direction for a sort: a known one, else the sort's default; null for "note". */
+export function journalSortDir(key: unknown, v: unknown): SortDir | null {
+  const k = journalSortKey(key);
+  if (k === "note") return null;
+  return v === "asc" || v === "desc" ? v : SORT_DEFAULT_DIR[k];
+}
+
+/**
+ * The Journal list in one of its four orders. Every order ends on batch
+ * number, newest first, so it is stable whichever way it runs.
+ * - note: batches owing a note first, the window closing soonest leading;
+ *   then the rest. No direction.
+ * - new: by batch number (default newest first).
+ * - rest: by start (default earliest first: closest to ready, ready on top).
+ * - size: by total volume (default largest first).
+ * An unknown start or size sorts last in either direction.
+ */
+export function journalSort<T extends SortItem>(items: readonly T[], key: unknown, dir?: unknown): T[] {
+  const k = journalSortKey(key);
+  const sign = journalSortDir(k, dir) === "desc" ? -1 : 1;
+  const rows = items.map((x) => ({ x, due: k === "note" ? needsNote(x.checkins, x.day) : null }));
+  const byNo = (a: T, b: T) => b.no - a.no;
+  const by = (va: number, vb: number) => {
+    const ka = Number.isFinite(va), kb = Number.isFinite(vb);
+    if (!ka || !kb) return Number(!ka) - Number(!kb);
+    return sign * (va - vb);
+  };
+  const cmp: Record<JournalSort, (a: (typeof rows)[number], b: (typeof rows)[number]) => number> = {
+    note: (a, b) => Number(!a.due) - Number(!b.due) || (a.due && b.due ? a.due.left - b.due.left || 0 : 0),
+    new: (a, b) => sign * (a.x.no - b.x.no),
+    rest: (a, b) => by(a.x.start, b.x.start),
+    size: (a, b) => by(a.x.ml, b.x.ml),
+  };
+  return rows.sort((a, b) => cmp[k](a, b) || byNo(a.x, b.x)).map((r) => r.x);
+}

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, Light, Magnetic, Tilt, TextReveal } from "../../motion";
 import { TYPE, COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
@@ -11,6 +11,7 @@ import LiveBench from "../LiveBench";
 import { IconArrow, IconBook } from "../../components/icons";
 import { Gauge, LiveGauge } from "./parts";
 import Weigh from "./Weigh";
+import { useHero3D } from "./hero3d/gate";
 import "./rooms.css";
 import { M, V, sceneVars, useScrollFallback } from "./motion";
 
@@ -32,10 +33,10 @@ const ROOMS = [
 ];
 
 // One stage: a section that is its own timeline box, with the gauge's static reading.
-function Stage({ id, children, className = "", bg = COLORS.paper }) {
+function Stage({ id, children, className = "", bg = COLORS.paper, grams }) {
   return (
     <section data-stage={id} data-vt="" aria-labelledby={`st-${id}`} className={`relative overflow-clip ${className}`} style={{ background: bg, color: COLORS.ink }}>
-      <Gauge stage={id} />
+      <Gauge stage={id} grams={grams} />
       <div className={BODY}>{children(`st-${id}`)}</div>
     </section>
   );
@@ -59,6 +60,34 @@ const Figure = ({ value, unit = "g", size = "text-[clamp(3.5rem,9vw,7rem)]" }) =
   </p>
 );
 
+/**
+ * The 3D pour, when this device may run it (useHero3D: both flags, no reduced
+ * motion, not low power, WebGL). Its two chunks load when the browser is idle
+ * after hydration; it swaps in only if the visitor is still at the top, so a
+ * page already being read never jumps. Until then, and everywhere else, the
+ * static reading stage and the weighing stay as they are.
+ */
+function usePour() {
+  const allowed = useHero3D();
+  const [pour, setPour] = useState(null);
+  useEffect(() => {
+    if (!allowed) return undefined;
+    let dead = false;
+    const idle = window.requestIdleCallback || ((f) => setTimeout(f, 200));
+    const cancel = window.cancelIdleCallback || clearTimeout;
+    const id = idle(() => {
+      Promise.all([import("./hero3d/Hero3D"), import("./hero3d/scene")])
+        .then(([h, s]) => {
+          if (dead || scrollY > 40) return;
+          setPour({ Hero3D: h.default, createScene: s.createScene, fail: () => setPour(null) });
+        })
+        .catch(() => { /* the static stage stays */ });
+    });
+    return () => { dead = true; cancel(id); };
+  }, [allowed]);
+  return pour;
+}
+
 export default function Compounding() {
   const { t, locale } = useI18n();
   const hero = t.raw("site.home.hero") || [];
@@ -67,14 +96,20 @@ export default function Compounding() {
   const roomHref = (room) => (room.lib ? to(room.href) : room.href);
   const scene = useRef(null);
   useScrollFallback(scene);
+  const pour = usePour();
+  // The bench card's total once a visitor changes it: the handoff's still gauge reads it.
+  const [benchTotal, setBenchTotal] = useState(null);
   const nums = { oil: fmt2(oil), alcohol: fmt2(alcohol), total: fmt2(total) };
   const fig = (id) => t(`site.compounding.rooms.${id}.fig`, { n: GUIDES.length });
 
   return (
     <div ref={scene} data-compounding role="group" aria-label={t("site.compounding.sceneLabel")} style={{ ...sceneVars(), ...SCENE_VARS }}>
-      <LiveGauge />
+      {/* One scale at a time: the pour has its own readout. */}
+      {!pour && <LiveGauge />}
 
-      {/* I · The reading. The headline never fades or moves (it is the LCP); light and depth sit behind it. */}
+      {/* I · The reading. The headline never fades or moves (it is the LCP); light and depth sit behind it.
+          Where the 3D pour may run, it takes this stage's place once its first frame is ready. */}
+      {pour ? <pour.Hero3D createScene={pour.createScene} onFail={pour.fail} /> : (
       <Stage id="reading" className="mo-grain pt-10 pb-14 lg:pt-14 lg:pb-20 min-h-[88svh] flex items-center">
         {(h) => (
           <div className="w-full">
@@ -114,9 +149,10 @@ export default function Compounding() {
           </div>
         )}
       </Stage>
+      )}
 
-      {/* II to III · The pinned weighing: oil, dusk, alcohol, the total */}
-      <Weigh oil={oil} alcohol={alcohol} total={total} oilShare={oilShare} />
+      {/* II to III · The pinned weighing: oil, dusk, alcohol, the total (the 3D pour already tells it) */}
+      {!pour && <Weigh oil={oil} alcohol={alcohol} total={total} oilShare={oilShare} />}
 
       {/* IV · Six rooms, each known by a number. Sideways across a pinned stage on wide screens (once), a plain grid elsewhere. */}
       <section data-stage="rooms" data-pin aria-labelledby="st-rooms" className="rs relative overflow-clip" style={{ background: COLORS.paper, color: COLORS.ink }}>
@@ -156,7 +192,7 @@ export default function Compounding() {
       </section>
 
       {/* V · Handoff: the live Bench */}
-      <Stage id="handoff" bg={COLORS.card} className="py-16 lg:py-24">
+      <Stage id="handoff" bg={COLORS.card} className="py-16 lg:py-24" grams={benchTotal}>
         {(h) => (
           <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-center">
             <div>
@@ -168,7 +204,7 @@ export default function Compounding() {
                 </Magnetic>
               </div>
             </div>
-            <LiveBench />
+            <LiveBench onTotal={setBenchTotal} />
           </div>
         )}
       </Stage>

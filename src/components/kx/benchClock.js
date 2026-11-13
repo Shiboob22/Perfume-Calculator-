@@ -10,6 +10,9 @@ import { reduced } from "../../motion/env.js";
 // retarget() starts from whatever the display shows right now, so holding
 // + or − keeps rolling on from the last value instead of starting from zero.
 // The first target, reduced motion and a hidden tab jump straight to rest.
+// Options: `jump` rests at once (the home page's bench while it is off
+// screen); `pace` slows the same pour down (2 = half speed: the home bench's
+// first pour). finish() ends a pour where it would rest.
 
 const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => v === b[i]);
 
@@ -18,11 +21,12 @@ export function createBenchClock({ jitter } = {}) {
   let from = null;
   let to = null;
   let t0 = 0;
+  let pace = 1;
   let raf = 0;
   const subs = new Set();
   const emit = () => subs.forEach((fn) => fn());
   const tick = (now) => {
-    frame = rollFrame(from, to, now - t0, jitter);
+    frame = rollFrame(from, to, (now - t0) / pace, jitter);
     raf = frame.done ? 0 : requestAnimationFrame(tick);
     emit();
   };
@@ -30,15 +34,22 @@ export function createBenchClock({ jitter } = {}) {
   return {
     get: () => frame,
     subscribe(fn) { subs.add(fn); return () => subs.delete(fn); },
-    retarget(target) {
+    retarget(target, opts = {}) {
       const next = target.map((v) => (Number.isFinite(Number(v)) ? Number(v) : 0));
       if (same(next, to)) return;
-      const jump = !frame || reduced() || (typeof document !== "undefined" && document.hidden) || typeof requestAnimationFrame !== "function";
+      const jump = opts.jump || !frame || reduced() || (typeof document !== "undefined" && document.hidden) || typeof requestAnimationFrame !== "function";
       if (jump) { stop(); to = next; frame = restFrame(next); emit(); return; }
       from = frame.values;
       to = next;
+      pace = opts.pace > 0 ? opts.pace : 1;
       t0 = performance.now();
       if (!raf) raf = requestAnimationFrame(tick);
+    },
+    finish() {
+      if (!raf || !to) return;
+      stop();
+      frame = restFrame(to);
+      emit();
     },
     stop,
   };
@@ -57,10 +68,16 @@ const themeNow = () => {
   return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 };
 
-/** "light" or "dark" as shown now; follows the toggle and the system setting. */
-export function useThemeName() {
-  const [theme, setTheme] = useState(themeNow);
+/**
+ * "light" or "dark" as shown now; follows the toggle and the system setting.
+ * `prerendered`: the first render says "light", as the prerender did (it
+ * cannot know), and the real theme follows after hydration, so React never
+ * keeps a server colour it believes it has already changed.
+ */
+export function useThemeName({ prerendered = false } = {}) {
+  const [theme, setTheme] = useState(prerendered ? "light" : themeNow);
   useEffect(() => {
+    setTheme(themeNow());
     const update = () => setTheme(themeNow());
     const mo = new MutationObserver(update);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });

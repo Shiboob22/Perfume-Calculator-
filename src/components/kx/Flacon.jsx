@@ -11,11 +11,16 @@ import { BENCH_MOTION, RESIZE_EASE, ETHANOL_TINT, bottleScale, liquidShape, oilS
 // The box is fixed (150 × 190), so the readout never shifts: the bottle
 // scales inside it with a transform (compositor only, no layout), springing
 // between sizes. Decoration: the figures are in the readout's text.
+//
+// `stand={false}` draws the bottle alone, without the weighing pan and its
+// engraving (the home page's bench card), in a box of `box` = [width,
+// height] that must hold the largest bottle it will show (100 mL is 104 ×
+// 134 at scale 1).
 
 const W = 104;
 const H = 134;
 
-export default function Flacon({ share = 0, flow = 0, wobble = 0, pct, totalMl, layers = [], theme = "light" }) {
+export default function Flacon({ share = 0, flow = 0, wobble = 0, pct, totalMl, layers = [], theme = "light", stand = true, box = stand ? [150, 190] : [150, 172] }) {
   const id = useId().replace(/:/g, "");
   const k = bottleScale(totalMl);
   const liq = liquidShape(share, wobble, flow);
@@ -24,7 +29,7 @@ export default function Flacon({ share = 0, flow = 0, wobble = 0, pct, totalMl, 
   const ink = COLORS.ink;
   const u = (n) => `url(#${id}${n})`;
   return (
-    <div aria-hidden="true" data-flacon className="flex-none flex flex-col items-center justify-end" style={{ width: 150, height: 190, contain: "layout" }}>
+    <div aria-hidden="true" data-flacon className="flex-none flex flex-col items-center justify-end" style={{ width: box[0], height: box[1], contain: "layout" }}>
       <svg viewBox="0 0 120 155" width={W} height={H} data-scale-k={k.toFixed(3)}
         className="block overflow-visible kx-flacon" style={{ transform: `scale(${k})`, transformOrigin: "50% 100%", transition: `transform ${BENCH_MOTION.resize}ms ${RESIZE_EASE}` }}>
         <defs>
@@ -60,10 +65,12 @@ export default function Flacon({ share = 0, flow = 0, wobble = 0, pct, totalMl, 
           <rect x="41.5" y="5" width="37" height="2" rx="1" fill="#FFFFFF" opacity=".35" />
         </g>
       </svg>
-      <div style={{ width: 144, height: 5, marginTop: -1, boxSizing: "border-box", borderRadius: 3, background: "linear-gradient(180deg,#EDE9E1,#9A958C 60%,#6F6A61)", border: `1px solid ${ink}` }} />
-      {/* Engraved text as generated content: an engraving is decoration, not text to contrast-check. */}
-      <div dir="ltr" data-engrave={`${Math.round(Math.max(0, Number(totalMl) || 0))} mL`} className="flex items-center justify-center before:content-[attr(data-engrave)]"
-        style={{ width: 112, height: 12, borderRadius: "0 0 4px 4px", background: "linear-gradient(180deg,#3A352D,#1B1814)", boxShadow: "0 8px 12px -8px rgba(0,0,0,.5)", fontFamily: "'Share Tech Mono', ui-monospace, monospace", fontSize: 8, letterSpacing: ".18em", color: "rgba(234,223,206,.55)" }} />
+      {stand && <>
+        <div style={{ width: 144, height: 5, marginTop: -1, boxSizing: "border-box", borderRadius: 3, background: "linear-gradient(180deg,#EDE9E1,#9A958C 60%,#6F6A61)", border: `1px solid ${ink}` }} />
+        {/* Engraved text as generated content: an engraving is decoration, not text to contrast-check. */}
+        <div dir="ltr" data-engrave={`${Math.round(Math.max(0, Number(totalMl) || 0))} mL`} className="flex items-center justify-center before:content-[attr(data-engrave)]"
+          style={{ width: 112, height: 12, borderRadius: "0 0 4px 4px", background: "linear-gradient(180deg,#3A352D,#1B1814)", boxShadow: "0 8px 12px -8px rgba(0,0,0,.5)", fontFamily: "'Share Tech Mono', ui-monospace, monospace", fontSize: 8, letterSpacing: ".18em", color: "rgba(234,223,206,.55)" }} />
+      </>}
     </div>
   );
 }

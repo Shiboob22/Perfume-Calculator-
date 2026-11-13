@@ -20,7 +20,7 @@ const batch = (n, name, tier, daysAgo) => {
     batch_checkins: n === 2 ? [{ id: "c1", day: 0, scheduled_day: 0, note: "Bright, thin.", rating: 3, tags: ["sharp"], skipped: false, created_at: at.toISOString() }] : [], shared_recipes: null,
   };
 };
-const FREE = { plan: "free", name: "Free", features: ["cards.download"], batchCap: 25, formulaCap: 5, ingredientCap: 3, journalWindow: 3, trial: null, batchesUsed: 4 };
+const FREE = { plan: "free", name: "Free", features: ["cards.download"], batchCap: 25, formulaCap: null, ingredientCap: 3, journalWindow: 3, trial: null, batchesUsed: 4 };
 
 async function setup(page, locale, theme) {
   await signIn(page);
