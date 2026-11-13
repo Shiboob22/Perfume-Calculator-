@@ -8,7 +8,7 @@ import Card from "../kx/Card";
 import Sheet from "../kx/Sheet";
 import Chip from "../kx/Chip";
 import Button from "../kx/Button";
-import { fmt2, planMixes, restWindow, bottlingGroups, MIX_ALLOWANCE_PCT, STRENGTH_TIERS } from "../../lib/calc";
+import { fmt2, planMixes, restWindow, bottlingGroups, orderCost, shortMix, profitTotals, MIX_ALLOWANCE_PCT, STRENGTH_TIERS } from "../../lib/calc";
 import { Link } from "../../motion";
 import { listRecipes, listInventory } from "../../lib/fragranceApi";
 import { listOrders, addOrder, editOrder, setOrderStatus, setGroupMode } from "../../lib/ordersApi";
@@ -62,6 +62,13 @@ export default function OrderQueue() {
   const handed = (rows || []).filter((r) => r.status === "handed_over");
   const bottling = useMemo(() => bottlingGroups((rows || []).map(toBottlingOrder), today()), [rows]);
   const [early, setEarly] = useState(null); // an order asked to bottle before its ready-from date
+  const costOf = (r) => orderCost(r?.batches, Number(r?.size_ml), r?.price == null ? null : Number(r.price));
+  const profit = useMemo(() => profitTotals(handed.map(costOf)), [handed]); // eslint-disable-line react-hooks/exhaustive-deps
+  // An order copied into a new one ("Order again"): same buyer, scent, size, strength and price.
+  const again = (r) => setEditing({
+    buyer_name: r.buyer_name, buyer_contact: r.buyer_contact, scent_text: r.scent_text, family: r.family,
+    size_ml: r.size_ml, strength_pct: r.strength_pct, price: r.price, note: r.note,
+  });
   const open = plan.groups.reduce((n, g) => n + g.orders.length, 0) + plan.unplanned.length;
 
   const merge = (changed) => setRows((prev) => {
@@ -110,6 +117,16 @@ export default function OrderQueue() {
                     ? (today() < g.rest.fullyRested ? t("orders.bottle.readyUntil", { rested: date(g.rest.fullyRested) }) : t("orders.bottle.ready"))
                     : t("orders.bottle.resting", { ready: date(g.rest.readyFrom), rested: date(g.rest.fullyRested) })}
                 </p>
+                {(() => {
+                  const mine = (rows || []).filter((r) => r.batch_id === g.batchId && r.status !== "cancelled");
+                  const batch = mine.find((r) => r.batches)?.batches;
+                  const s = batch ? shortMix(batch, mine.map((r) => Number(r.size_ml))) : null;
+                  return s && s.shortMl > 0 ? (
+                    <p role="note" className="text-sm mb-3" style={{ color: COLORS.danger }}>
+                      {t("orders.bottle.short", { short: fmt2(s.shortMl), needed: fmt2(s.neededMl), made: fmt2(s.madeMl) })}
+                    </p>
+                  ) : null;
+                })()}
                 <ul>
                   {g.orders.map((o) => {
                     const row = byId.get(o.id);
@@ -120,7 +137,11 @@ export default function OrderQueue() {
                         <span className="me-auto">
                           <span className="block" style={{ color: COLORS.ink }}>{t("orders.bottle.fill", { ml: Number(row.size_ml), name })}</span>
                           <span className="block text-sm" style={{ color: COLORS.inkSoft }}>{o.status === "bottled" ? t("orders.bottle.bottled") : t("orders.bottle.notYet")}</span>
+                          <CostLine c={costOf(row)} t={t} />
                         </span>
+                        <Link to={`/app/labels?${new URLSearchParams({ batch: g.batchId, ml: String(Number(row.size_ml)), for: name })}`}
+                          className="min-h-[44px] px-2 text-sm underline underline-offset-4 inline-flex items-center" style={{ color: COLORS.ink }}
+                          aria-label={t("orders.bottle.labelFor", { name })}>{t("orders.bottle.label")}</Link>
                         {o.status === "resting" && early !== o.id && (
                           <Button variant="secondary" disabled={busy} aria-label={t("orders.bottle.markFor", { name })}
                             onClick={() => (g.ready ? run(() => setOrderStatus(o.id, "bottled")) : setEarly(o.id))}>{t("orders.bottle.mark")}</Button>
@@ -255,9 +276,20 @@ export default function OrderQueue() {
       {handed.length > 0 && (
         <details className="mb-8">
           <summary className="cursor-pointer min-h-[44px] flex items-center" style={{ color: COLORS.inkSoft }}>{t("orders.history", { count: handed.length })}</summary>
+          {profit.totals.length > 0 && (
+            <p className="text-sm py-2" style={{ color: COLORS.ink }}>
+              {profit.totals.map((x) => t("orders.cost.total", { count: x.count, profit: fmt2(x.profit), currency: x.currency })).join(" ")}
+              {profit.missing > 0 && ` ${t("orders.cost.missing", { count: profit.missing })}`}
+            </p>
+          )}
           <ul>{handed.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 border-t" style={{ borderColor: COLORS.line }}>
-              <span className="me-auto" style={{ color: COLORS.ink }}>{t("orders.row.who", { name: r.buyer_name, scent: r.scent_text })}</span>
+              <span className="me-auto">
+                <span className="block" style={{ color: COLORS.ink }}>{t("orders.row.who", { name: r.buyer_name, scent: r.scent_text })}</span>
+                <CostLine c={costOf(r)} t={t} />
+              </span>
+              <button type="button" disabled={busy} onClick={() => again(r)} className="min-h-[44px] px-2 text-sm underline underline-offset-4"
+                style={{ color: COLORS.ink }} aria-label={t("orders.row.againFor", { name: r.buyer_name })}>{t("orders.row.again")}</button>
               <button type="button" disabled={busy} onClick={() => run(() => setOrderStatus(r.id, "bottled"))} className="min-h-[44px] px-2 text-sm underline underline-offset-4"
                 style={{ color: COLORS.ink }} aria-label={t("orders.bottle.undoHandFor", { name: r.buyer_name })}>{t("orders.bottle.undo")}</button>
             </li>
@@ -269,6 +301,17 @@ export default function OrderQueue() {
         {editing !== null && <OrderForm row={editing} options={options} currency={profile?.currency} busy={busy} error={error} onSave={save} t={t} />}
       </Sheet>
     </div>
+  );
+}
+
+/** One order's cost and profit from its batch (P1a); says so when the batch has no prices. */
+function CostLine({ c, t }) {
+  return (
+    <span className="block text-sm" style={{ color: COLORS.inkSoft }}>
+      {!c ? t("orders.cost.none")
+        : c.profit === null ? t("orders.cost.only", { cost: fmt2(c.cost), currency: c.currency })
+          : t("orders.cost.line", { cost: fmt2(c.cost), profit: fmt2(c.profit), margin: fmt2(c.marginPct), currency: c.currency })}
+    </span>
   );
 }
 

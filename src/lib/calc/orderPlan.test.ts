@@ -172,3 +172,60 @@ describe("bottling groups", () => {
     expect(later.groups.map((g) => g.batchId)).toEqual(["E", "L"]);
   });
 });
+
+import { orderCost, shortMix } from "./index";
+
+describe("order cost and margin", () => {
+  // 105 mL mix: 24.94 g oil at 2/g, 78.75 mL alcohol at 20/L, bottle 30, box 10.
+  const batch = { total_ml: 105, oil_g: 24.94, actual_oil_g: null, ethanol_ml: 78.75, price_per_gram: 2, ethanol_price_per_l: 20, bottle_cost: 30, packaging_cost: 10, currency: "EGP" };
+  it("a 50 mL share of the liquid plus its own bottle and box", () => {
+    // liquid 49.88 + 1.575 = 51.455; × 50/105 = 24.50…; + 40
+    const c = orderCost(batch, 50, 450)!;
+    expect(c.cost).toBe(64.5);
+    expect([c.profit, c.marginPct, c.currency]).toEqual([385.5, 85.67, "EGP"]);
+  });
+  it("uses the oil really poured, and time by share", () => {
+    const c = orderCost({ total_ml: 100, oil_g: 25, actual_oil_g: 30, ethanol_ml: 75, price_per_gram: 1, labour_minutes: 60, labour_rate_per_hour: 100 }, 50)!;
+    expect(c).toEqual({ cost: 65, currency: "", profit: null, marginPct: null });
+  });
+  it("no prices, no batch: no cost (never zero)", () => {
+    expect(orderCost({ total_ml: 100, oil_g: 25, ethanol_ml: 75 }, 50, 100)).toBeNull();
+    expect(orderCost(null, 50)).toBeNull();
+    expect(orderCost(undefined, 50)).toBeNull();
+  });
+  it("a share never passes the whole batch; unknown volume counts only the bottle", () => {
+    expect(orderCost({ total_ml: 30, oil_g: 10, ethanol_ml: 20, price_per_gram: 1 }, 50)!.cost).toBe(10);
+    expect(orderCost({ oil_g: 10, ethanol_ml: 20, price_per_gram: 1, bottle_cost: 5 }, 50)!.cost).toBe(5);
+    expect(orderCost({ total_ml: 30, oil_g: undefined, ethanol_ml: undefined, price_per_gram: 1 }, 0)!.cost).toBe(0);
+  });
+});
+
+describe("short mix", () => {
+  it("reads the volume made from the grams weighed and the batch's densities", () => {
+    // 24.94/0.95 + 63.79/0.81 = 26.253 + 78.753 = 105.01 (the rounded grams)
+    expect(shortMix({ actual_oil_g: 24.94, actual_ethanol_g: 63.79, oil_density: 0.95, ethanol_density: 0.81, total_ml: 105 }, [50, 50]))
+      .toEqual({ madeMl: 105.01, neededMl: 100, shortMl: 0 });
+  });
+  it("short beyond 1 %, with the handbook's densities when none were stored", () => {
+    const r = shortMix({ actual_oil_g: 20, actual_ethanol_g: 50, total_ml: 105 }, [50, 50]);
+    expect(r.madeMl).toBe(82.78);
+    expect(r.shortMl).toBe(17.22);
+  });
+  it("within 1 % is not short; without weighed grams the plan stands", () => {
+    expect(shortMix({ total_ml: 99.5 }, [50, 50]).shortMl).toBe(0);
+    expect(shortMix({ total_ml: 90 }, [50, 50]).shortMl).toBe(10);
+    expect(shortMix({}, [50, null as any])).toEqual({ madeMl: 0, neededMl: 50, shortMl: 0 });
+  });
+});
+
+import { profitTotals } from "./index";
+
+describe("profit totals", () => {
+  it("one total per currency, the rest counted as missing", () => {
+    const c = (profit: number | null, currency = "EGP") => ({ cost: 1, currency, profit, marginPct: null });
+    expect(profitTotals([c(100.25), c(50.5), c(10, "USD"), c(null), null])).toEqual({
+      totals: [{ currency: "EGP", profit: 150.75, count: 2 }, { currency: "USD", profit: 10, count: 1 }], missing: 2,
+    });
+    expect(profitTotals([])).toEqual({ totals: [], missing: 0 });
+  });
+});

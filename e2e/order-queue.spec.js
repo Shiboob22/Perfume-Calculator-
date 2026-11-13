@@ -16,7 +16,7 @@ const OIL = "bbbbbbbb-bbbb-4bbb-8bbb-000000000001";
 const o = en.orders;
 const fill = (s, vars) => Object.entries(vars).reduce((x, [k, v]) => x.replaceAll(`{${k}}`, String(v)), s);
 
-async function fakeApi(page, { plan = "pro", locale = "en", orders = [], flag = true, sells = true } = {}) {
+async function fakeApi(page, { plan = "pro", locale = "en", orders = [], flag = true, sells = true, batches = [] } = {}) {
   const sent = { posts: [], patches: [], logs: [] };
   if (flag) await page.addInitScript(() => localStorage.setItem("kyphira.flag.orders", "1"));
   await page.route(/\/(auth|rest)\/v1\//, (route) => {
@@ -62,7 +62,10 @@ async function fakeApi(page, { plan = "pro", locale = "en", orders = [], flag = 
       }
       return json(route, { success: true, batch, ...(body.order_ids ? { orders_linked: linked } : {}) }, 201);
     }
-    if (url.pathname === "/api/batches") return json(route, { batches: [] });
+    if (url.pathname === "/api/batches") {
+      const id = url.searchParams.get("id");
+      return json(route, { batches: id ? batches.filter((b) => b.id === id) : batches });
+    }
     return json(route, {});
   });
   return sent;
@@ -245,4 +248,55 @@ test("Arabic: bottling has no axe violations", async ({ page }) => {
   await expect(page.getByText(ar.orders.bottle.ready, { exact: true })).toBeVisible();
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(results.violations.map((v) => v.id)).toEqual([]);
+});
+
+const BATCH = {
+  id: "bbbbbbbb-0000-4000-8000-000000000067", batch_no: 67, fragrance_name: "Oud Nights", tier: "woody", concentration_pct: 25, blend_date: "2026-10-01",
+  amount: 105, unit: "ml", basis: "volume", oil_g: 24.94, ethanol_g: 63.79, total_g: 88.73, oil_ml: 26.25, ethanol_ml: 78.75, total_ml: 105,
+  actual_oil_g: 20, actual_ethanol_g: 50, oil_density: 0.95, ethanol_density: 0.81,
+  price_per_gram: 2, ethanol_price_per_l: 20, bottle_cost: 30, packaging_cost: 10, currency: "EGP",
+};
+const joined = (extra) => ({ user_id: USER.id, scent_text: "Oud Nights", family: "woody", strength_pct: 25, group_mode: "mix", batch_id: BATCH.id, batches: BATCH, currency: "EGP", ...extra });
+
+test("cost, profit, a short mix, the buyer's label and Order again", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page, {
+    batches: [BATCH],
+    orders: [
+      joined({ id: "s", buyer_name: "Sara", size_ml: 50, price: 450, status: "bottled" }),
+      joined({ id: "o", buyer_name: "Omar", size_ml: 50, price: 450, status: "handed_over" }),
+    ],
+  });
+  await page.goto("/bench/orders");
+  const card = page.getByRole("article").filter({ hasText: fill(o.bottle.batchNo, { no: "067", scent: "Oud Nights", pct: 25 }) });
+  // 20 g + 50 g weighed make about 82.78 mL for 100 mL of bottles.
+  await expect(card.getByRole("note")).toHaveText(fill(o.bottle.short, { short: "17.22", made: "82.78", needed: "100.00" }));
+  // Liquid 40 + 1.575 = 41.575 × 50/105 = 19.80, + bottle 30 + box 10.
+  await expect(card).toContainText(fill(o.cost.line, { cost: "59.80", profit: "390.20", margin: "86.71", currency: "EGP" }));
+
+  await page.getByText(fill(o.history.one, { count: 1 })).click();
+  await expect(page.getByText(fill(o.cost.total.one, { count: 1, profit: "390.20", currency: "EGP" }))).toBeVisible();
+  await page.getByRole("button", { name: fill(o.row.againFor, { name: "Omar" }) }).click();
+  const sheet = page.getByRole("dialog", { name: o.form.title });
+  await expect(sheet.getByLabel(o.form.buyer)).toHaveValue("Omar");
+  await expect(sheet.getByLabel(o.form.scent)).toHaveValue("Oud Nights");
+  await sheet.getByRole("button", { name: o.form.save }).click();
+  expect(sent.posts.at(-1)).toMatchObject({ buyer_name: "Omar", scent_text: "Oud Nights", size_ml: 50, strength_pct: 25, price: 450 });
+  expect(sent.posts.at(-1).id).not.toBe("o");
+
+  await card.getByRole("link", { name: fill(o.bottle.labelFor, { name: "Sara" }) }).click();
+  await expect(page).toHaveURL(/\/app\/labels\?batch=.*&ml=50&for=Sara/);
+  await expect(page.getByText("For", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Sara", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("50 mL", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("No. 067", { exact: true }).first()).toBeVisible();
+});
+
+test("a batch logged without prices says so", async ({ page }) => {
+  await signIn(page);
+  const bare = { ...BATCH, price_per_gram: null, ethanol_price_per_l: null, bottle_cost: null, packaging_cost: null, actual_oil_g: null, actual_ethanol_g: null };
+  await fakeApi(page, { orders: [joined({ id: "s", buyer_name: "Sara", size_ml: 50, price: 450, status: "resting", batches: bare })] });
+  await page.goto("/bench/orders");
+  await expect(page.getByText(o.cost.none)).toBeVisible();
+  await expect(page.getByRole("note")).toHaveCount(0);
 });
