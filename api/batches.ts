@@ -3,6 +3,7 @@ import { loadEntitlements, canLogBatch, can, lockedFeature } from './_lib/entitl
 import { overLimit } from './_lib/rateLimit.js';
 import { randomBytes } from 'node:crypto';
 import { shareRow } from './_lib/share.js';
+import { orderRow, statusRow, idList, ORDER_CAP } from './_lib/orders.js';
 import { setCors, serviceClient, requireUser, isTimeout, SLOW_READ, SLOW_WRITE, UUID } from './_lib/http.js';
 // @ts-ignore: plain JS shared with the browser
 import { recipeSlug } from '../src/lib/publicText.js';
@@ -227,6 +228,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!userId) return;
   const supabase = serviceClient();
 
+  // The order queue (0035) lives here because the Hobby plan's 12 functions
+  // are all in use: /api/batches?resource=orders.
+  if (req.query.resource === 'orders') return orders(req, res, supabase, userId);
+
   if (req.method === 'POST') {
     try {
       const b = req.body || {};
@@ -445,4 +450,81 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   return fail(res, 405, 'method_not_allowed', 'Method not allowed');
+}
+
+// ------------------------------------------------------------ order queue
+// GET    /api/batches?resource=orders                    → { orders }
+// POST   /api/batches?resource=orders  { …order, id? }    → { order }
+// PATCH  /api/batches?resource=orders  { id, edit }       → { order }
+//                                      { id, status }     → { order } (queued | cancelled)
+//                                      { ids, group_mode } → { orders } (one group's grouping)
+// Pro only (`orders`). Writes only here: the table has no browser writes.
+async function orders(req: VercelRequest, res: VercelResponse, supabase: ReturnType<typeof serviceClient>, userId: string) {
+  const write = req.method !== 'GET';
+  try {
+    if (!['GET', 'POST', 'PATCH'].includes(req.method || '')) return fail(res, 405, 'method_not_allowed', 'Method not allowed.');
+    if (!can(await loadEntitlements(supabase, userId), 'orders')) return res.status(403).json(lockedFeature('orders'));
+
+    if (req.method === 'GET') {
+      const { data, error } = await supabase
+        .from('seller_orders').select('*').eq('user_id', userId)
+        .order('created_at', { ascending: false }).limit(ORDER_CAP);
+      if (error) throw error;
+      return res.status(200).json({ orders: data ?? [] });
+    }
+
+    if (await overLimit(supabase, res, 'batch', userId)) return;
+    const b = req.body || {};
+
+    if (req.method === 'POST') {
+      const clientId = typeof b.id === 'string' && UUID.test(b.id) ? b.id : null;
+      if (clientId) {
+        const { data: existing, error } = await supabase
+          .from('seller_orders').select('*').eq('id', clientId).eq('user_id', userId).maybeSingle();
+        if (error) throw error;
+        if (existing) return res.status(200).json({ order: existing, duplicate: true });
+      }
+      const built = orderRow(b);
+      if ('error' in built) return fail(res, 400, 'invalid_order', built.error, { field: built.field });
+      const { count, error: countError } = await supabase
+        .from('seller_orders').select('id', { count: 'exact', head: true }).eq('user_id', userId);
+      if (countError) throw countError;
+      if ((count ?? 0) >= ORDER_CAP) return fail(res, 409, 'order_cap', `At most ${ORDER_CAP} orders.`);
+      const { data, error } = await supabase
+        .from('seller_orders')
+        .insert({ ...built.row, ...(clientId ? { id: clientId } : {}), user_id: userId, status: 'queued' })
+        .select('*').single();
+      if (error) throw error;
+      return res.status(201).json({ order: data });
+    }
+
+    // PATCH
+    const now = new Date().toISOString();
+    if (b.ids !== undefined) {
+      const ids = idList(b.ids);
+      if (!ids) return fail(res, 400, 'invalid_id', 'ids must be a list of order ids.');
+      const built = orderRow({ group_mode: b.group_mode }, true);
+      if ('error' in built) return fail(res, 400, 'invalid_order', built.error, { field: built.field });
+      const changed = [];
+      for (const id of ids) {
+        const { data, error } = await supabase
+          .from('seller_orders').update({ ...built.row, updated_at: now }).eq('id', id).eq('user_id', userId).select('*').maybeSingle();
+        if (error) throw error;
+        if (data) changed.push(data);
+      }
+      return res.status(200).json({ orders: changed });
+    }
+
+    const id = typeof b.id === 'string' ? b.id : '';
+    if (!UUID.test(id)) return fail(res, 400, 'invalid_id', 'Missing order ID.');
+    const built = b.status !== undefined ? statusRow(b.status) : orderRow(b.edit, true);
+    if ('error' in built) return fail(res, 400, 'invalid_order', built.error, { field: built.field });
+    const { data, error } = await supabase
+      .from('seller_orders').update({ ...built.row, updated_at: now }).eq('id', id).eq('user_id', userId).select('*').maybeSingle();
+    if (error) throw error;
+    if (!data) return fail(res, 404, 'not_found', 'Order not found.');
+    return res.status(200).json({ order: data });
+  } catch (err: any) {
+    return failFrom(res, err, write, 'orders');
+  }
 }

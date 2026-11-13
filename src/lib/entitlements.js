@@ -15,6 +15,7 @@ export const FEATURES = [
   "journal.insights",
   "journal.checkins",
   "journal.reminders",
+  "orders",
 ];
 
 // Bench SaaS names for the gates (Phase 2). A string is the plan feature
@@ -23,6 +24,7 @@ export const FEATURES = [
 // answer is always yes.
 export const GATES = Object.freeze({
   reminders: "journal.reminders",
+  orders: "orders",
   costPerBottle: "calculator.advanced",
   fullJournal: "journal.checkins",
   labelPng: null,

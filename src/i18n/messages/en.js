@@ -42,6 +42,7 @@ export default {
         checkins: "Free keeps notes on your newest 3 batches. Notes on every batch are part of Pro.",
         reminders: "Rest reminders are part of Pro.",
       },
+      orders: "The order queue is part of Pro.",
     },
     limit: {
       ingredients: "Your Free plan allows up to {cap} materials in a blend. More are part of Pro.",
@@ -1269,6 +1270,8 @@ export default {
     share_name: "The batch needs a name to be shared.",
     share_rest: "Rest days must be a whole number from 0 to 365.",
     invalid_edit: "Check the changes: one of the values is not allowed.",
+    invalid_order: "Check the order: one of the values is not allowed.",
+    order_cap: "You have reached the most orders one account can keep.",
     server_error: "Something went wrong on our side. Please try again.",
     method_not_allowed: "That action isn't supported.",
   },
@@ -1415,7 +1418,7 @@ export default {
     waitlist: { title: "Pro waitlist", lead: "Pro is not on sale yet. Join the list and you will hear first when it opens. No payment details are asked for.", join: "Join the Pro waitlist", joined: "You are on the list.", failed: "Could not join. Try again." },
     prefs: { title: "Preferences", language: "Language", unit: "Measure in", bottle: "Usual bottle size", saved: "Saved.", saveFailed: "Could not save." },
     data: { title: "Your data", lead: "Download everything you have saved: batches, inventory, notes, presets and preferences.", json: "Download all (JSON)", csv: "Download {table} (CSV)", empty: "Nothing saved yet.", failed: "Could not prepare the download.",
-      tables: { batches: "batches", batch_checkins: "journal check-ins", shared_recipes: "shared recipes", inventory: "inventory", fragrance_notes: "notes", calc_presets: "presets", recipes: "recipes", recipe_versions: "recipe versions", recipe_ingredients: "recipe ingredients", wardrobe_bottles: "wardrobe bottles", wear_log: "wear log", salon_profiles: "salon profile", salon_posts: "salon posts", salon_likes: "salon likes", salon_follows: "salon follows", salon_reports: "salon reports you sent", profiles: "preferences", pro_waitlist: "waitlist", user_plans: "plan", fragrances: "fragrances you added" } },
+      tables: { batches: "batches", batch_checkins: "journal check-ins", shared_recipes: "shared recipes", inventory: "inventory", fragrance_notes: "notes", calc_presets: "presets", recipes: "recipes", recipe_versions: "recipe versions", recipe_ingredients: "recipe ingredients", seller_orders: "buyer orders", wardrobe_bottles: "wardrobe bottles", wear_log: "wear log", salon_profiles: "salon profile", salon_posts: "salon posts", salon_likes: "salon likes", salon_follows: "salon follows", salon_reports: "salon reports you sent", profiles: "preferences", pro_waitlist: "waitlist", user_plans: "plan", fragrances: "fragrances you added" } },
     delete: {
       title: "Delete account",
       lead: "This deletes your account and everything in it — batches, inventory, notes, presets and preferences — straight away. It cannot be undone. Download your data first if you want a copy.",
@@ -1583,6 +1586,7 @@ export default {
           checkins: "Rest notes on every batch (Free: your newest 3)",
           reminders: "Rest reminders",
         },
+        orders: "Order queue: buyers' orders grouped into mixes, with the oil to weigh",
       },
     },
     notFound: { title: "Page not found", home: "Back to the home page" },
