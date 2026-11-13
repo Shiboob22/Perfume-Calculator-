@@ -15,3 +15,4 @@ export * from "./strength";
 export * from "./pourAlong";
 export * from "./restTracker";
 export * from "./flacon";
+export * from "./orderPlan";
