@@ -1,4 +1,5 @@
-// Generated from the staging Supabase project (schema public) after 0031.
+// Generated from the staging Supabase project (schema public) after 0031;
+// seller_orders (0035) added in the generator's layout from the staging table.
 // Do not edit by hand: regenerate with the Supabase MCP generate_typescript_types
 // (or `supabase gen types typescript --project-id eiqgsvqisuhinmbgxuop`).
 export type Json =
@@ -985,6 +986,103 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      seller_orders: {
+        Row: {
+          batch_id: string | null
+          bottled_at: string | null
+          buyer_contact: string | null
+          buyer_name: string
+          cancelled_at: string | null
+          created_at: string
+          currency: string | null
+          family: string | null
+          fragrance_id: string | null
+          group_mode: string
+          handed_at: string | null
+          id: string
+          note: string | null
+          price: number | null
+          recipe_version_id: string | null
+          scent_text: string
+          size_ml: number
+          status: string
+          strength_pct: number
+          updated_at: string
+          user_id: string
+          wanted_by: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          bottled_at?: string | null
+          buyer_contact?: string | null
+          buyer_name: string
+          cancelled_at?: string | null
+          created_at?: string
+          currency?: string | null
+          family?: string | null
+          fragrance_id?: string | null
+          group_mode?: string
+          handed_at?: string | null
+          id?: string
+          note?: string | null
+          price?: number | null
+          recipe_version_id?: string | null
+          scent_text: string
+          size_ml: number
+          status?: string
+          strength_pct: number
+          updated_at?: string
+          user_id: string
+          wanted_by?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          bottled_at?: string | null
+          buyer_contact?: string | null
+          buyer_name?: string
+          cancelled_at?: string | null
+          created_at?: string
+          currency?: string | null
+          family?: string | null
+          fragrance_id?: string | null
+          group_mode?: string
+          handed_at?: string | null
+          id?: string
+          note?: string | null
+          price?: number | null
+          recipe_version_id?: string | null
+          scent_text?: string
+          size_ml?: number
+          status?: string
+          strength_pct?: number
+          updated_at?: string
+          user_id?: string
+          wanted_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_orders_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_orders_fragrance_id_fkey"
+            columns: ["fragrance_id"]
+            isOneToOne: false
+            referencedRelation: "fragrances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_orders_recipe_version_id_fkey"
+            columns: ["recipe_version_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_versions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shared_recipes: {
         Row: {
