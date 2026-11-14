@@ -113,7 +113,7 @@ Measured from the database (no new tracking needed; Vercel custom events need a 
 
 ## 6. Decisions for the owner
 
-- **D1** Rest model: family rest days capped at 90 (my recommendation, matches the Bench and order queue) or 90 days for everyone (the prototype's).
+- **D1** Rest model: **decided 2026-11-14: family rest days, capped at 90** (matches the Bench and order queue). The prototype's flat 90 days goes away.
 - **D2** The tasting tag list, in your words, EN and AR.
 - **D3** Which QC checks from your checklist belong in the Journal.
 - **D4** Fold `/bench/journal` into `/journal` (keeps every feature, removes the second room).
