@@ -1597,6 +1597,10 @@ export type Database = {
       }
       atlas_submit: { Args: { p: Json }; Returns: string }
       atlas_wear_stats: { Args: { p_id: string }; Returns: Json }
+      classify_family: {
+        Args: { accords: string[]; olfactory_family: string }
+        Returns: string
+      }
       classify_tier: { Args: { accords: string[] }; Returns: string }
       effective_plan: { Args: { p_user: string }; Returns: string }
       ensure_fragrance: {

@@ -63,6 +63,10 @@ test("no WebGL keeps the static stage", async ({ page }) => {
 
 test.describe("flags on, with WebGL", () => {
   test.beforeEach(async ({ page }) => {
+    // Headless Chrome draws WebGL in software. Alone, the longest of these takes
+    // 13 to 18 s; in CI, beside the rest of the suite, it ran past the 30 s a
+    // test gets and failed at whichever step it had reached. Three times the budget.
+    test.slow();
     await flags(page);
     // Layout shifts around the moment the pour swaps in (the device flags also switch
     // the plain home page to the scene after load; that shift is not the pour's).
