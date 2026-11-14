@@ -1,6 +1,6 @@
 # Family review: the 200 most popular fragrances, before and after
 
-Kyphira catalogue, migration 0038, 2026-11-14. On staging now. Production is unchanged until you say go.
+Kyphira catalogue, migration 0038, 2026-11-14. Applied to staging, then to production on the owner's go the same day (24,865 production rows changed; the counts below are staging's).
 
 ## What you are deciding
 
@@ -126,7 +126,11 @@ Rank is by popularity. A question mark marks the ones I would look at twice.
 
 Where the same fragrance sits in the catalogue twice (Bleu de Chanel, Boss Bottled, Armani Code), the two rows now agree with each other. Before, they did not.
 
-## If you want something different
+## Putting it back
+
+Every changed row's old family is in `catalog_backup.fragrance_tier_0038` on both databases. `supabase/migrations/0038_family_rule.down.sql` restores them and the 0020 rule in one step. If you want only some fragrances moved, name them and I will set those by hand.
+
+## Before the decision (kept for the record)
 
 - **Go:** I apply 0038 to production. Every changed row's old family is saved, so it can be put back in one step.
 - **Go, with corrections:** name the fragrances that should sit elsewhere. I can pin those by hand, or adjust a weight if they share a cause.
