@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Link } from "../../motion";
+import { Link, startNav } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { listBatches } from "../../lib/fragranceApi";
@@ -156,7 +156,9 @@ export default function JournalRoom() {
 
   const selId = params.get("batch");
   const b = visible.find((x) => x.id === selId) ?? sorted[0] ?? null;
-  const pick = (id) => setParams((p) => { const q = new URLSearchParams(p); q.set("batch", id); return q; }, { replace: true });
+  // Picking a batch carries its name from the row into the detail (motion M2) when both are on screen.
+  const pick = (id, from) => startNav(() => setParams((p) => { const q = new URLSearchParams(p); q.set("batch", id); return q; }, { replace: true }),
+    { share: `batch-${id}`, from });
   const removeBatch = (id) => {
     setBatches((list) => list.filter((x) => x.id !== id));
     setParams((p) => { const q = new URLSearchParams(p); q.delete("batch"); return q; }, { replace: true });
@@ -237,12 +239,12 @@ export default function JournalRoom() {
                   const due = sort === "note" ? needsNote(x.batch_checkins, day) : null;
                   return (
                     <li key={x.id}>
-                      <button type="button" onClick={() => pick(x.id)} aria-pressed={on} data-batch={x.id}
+                      <button type="button" onClick={(e) => pick(x.id, e.currentTarget)} aria-pressed={on} data-batch={x.id}
                         className="w-full flex items-center gap-3 px-2 py-3 text-start" style={{ borderBottom: `1px solid ${COLORS.line}`, background: on ? COLORS.sand : "transparent" }}>
                         <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: swatchOf(x) }} />
                         <span className="flex-1 min-w-0 flex flex-col">
                           <span className="flex items-center gap-2 min-w-0">
-                            <span className="truncate font-medium">{x.fragrance_name}</span>
+                            <span data-mo-share={`batch-${x.id}`} className="truncate font-medium">{x.fragrance_name}</span>
                             {isFresh(x.created_at, x.batch_checkins, now) && (
                               <span className="flex-none px-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] rtl:tracking-normal" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("journal.page.newBadge")}</span>
                             )}
@@ -330,7 +332,7 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised,
           <p className="text-[12px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.actionText }}>
             <span dir="ltr">{t("journal.page.no", { no: noOf(b) })}</span> · {family}
           </p>
-          <h2 id="journal-batch" className="mt-1 font-serif text-[32px] leading-tight break-words">{b.fragrance_name}</h2>
+          <h2 id="journal-batch" data-mo-share-to={`batch-${b.id}`} className="mt-1 font-serif text-[32px] leading-tight break-words">{b.fragrance_name}</h2>
           <p className="mt-1 text-sm" style={{ color: COLORS.inkSoft }}>{metaOf(b)}</p>
           <p className="mt-1 text-sm" style={{ color: COLORS.inkSoft }}>
             {t("journal.page.poured", { date: dateAt(b, 0) })} · {p.ready ? t("journal.page.ready") : t("journal.page.readyOn", { date: dateAt(b, 90) })}

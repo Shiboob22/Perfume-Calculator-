@@ -98,7 +98,7 @@ function Picks({ result, atlasOn, t }) {
       {result.intro && <p className="text-sm mb-4 max-w-prose" style={{ color: COLORS.inkSoft }}>{result.intro}</p>}
       <Stagger as="ul" eager key={result.picks.map((p) => p.id).join(",")} className="grid gap-3 list-none p-0 m-0">
         {result.picks.map((p) => (
-          <FragranceCard key={p.id} name={p.name} href={atlasOn ? fragranceHref(p.id) : undefined}
+          <FragranceCard key={p.id} name={p.name} href={atlasOn ? fragranceHref(p.id) : undefined} vt={`frag-${p.id}`}
             facts={[p.brand, p.year ? String(p.year) : null, p.family]} accords={p.accords ?? p.matched ?? []} matched={p.matched ?? []}>
             {p.reason && <p className="text-sm mt-2 max-w-prose" style={{ color: COLORS.ink }}>{p.reason}</p>}
             {p.matched?.length > 0 && <p className="text-xs mt-2" style={{ color: COLORS.inkSoft }}>{t("nose.matched", { list: p.matched.join(", ") })}</p>}

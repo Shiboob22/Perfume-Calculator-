@@ -163,3 +163,24 @@ describe("M1: answer", () => {
   });
 });
 
+
+describe("M2: carry", () => {
+  const site = SHEETS["motion.css"];
+  it("moves forward from the end edge and back from the start edge, mirrored by --mo-dir", () => {
+    const rule = (dir, side) => site.match(new RegExp(`\\[data-mo-nav="${dir}"\\]::view-transition-${side}\\(root\\) \\{([^}]*)\\}`))?.[1];
+    expect(rule("forward", "new")).toContain("--mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m));");
+    expect(rule("forward", "old")).toContain("--mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m) * -1);");
+    expect(rule("back", "new")).toContain("--mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m) * -1);");
+    expect(rule("back", "old")).toContain("--mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m));");
+    // The view being left goes on the fast step, the new one arrives on the base step.
+    for (const dir of ["forward", "back"]) {
+      expect(rule(dir, "old")).toContain("var(--mo-fast)");
+      expect(rule(dir, "new")).toContain("var(--mo-base)");
+    }
+  });
+  it("gives the shared element one name, travelling on the in-out curve", () => {
+    expect(site).toMatch(/::view-transition-group\(mo-share\) \{ animation-duration: var\(--mo-base\); animation-timing-function: var\(--mo-ease-io\); \}/);
+    const nav = readFileSync(new URL("./nav.js", import.meta.url), "utf8");
+    expect(nav).toContain('const SHARE = "mo-share"');
+  });
+});

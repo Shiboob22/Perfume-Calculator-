@@ -103,6 +103,21 @@ html[data-mo-vt] [data-mo-ind="site"][data-on] { view-transition-name: mo-ind-si
 html[data-mo-vt] [data-mo-ind="tab"][data-on] { view-transition-name: mo-ind-tab; }
 html[data-mo-vt] [data-mo-ind="bar"][data-on] { view-transition-name: mo-ind-bar; }
 html[data-motion]::view-transition-group(mo-ind-site), html[data-motion]::view-transition-group(mo-ind-tab), html[data-motion]::view-transition-group(mo-ind-bar) { animation-duration: var(--mo-base); animation-timing-function: var(--mo-ease-io); }
+/* M2, carry. Direction (html[data-mo-nav], set by startNav): deeper into a room
+   comes in from the end edge, back out of it from the start edge; another room
+   is the cross-fade above. The old view leaves on the fast step, the new one
+   arrives on the base step. --mo-dir mirrors both in Arabic. The shared element
+   (`mo-share`: a row becoming the detail it opens) travels on the base step. */
+html[data-motion]::view-transition-group(mo-share) { animation-duration: var(--mo-base); animation-timing-function: var(--mo-ease-io); }
+html[data-motion]::view-transition-old(mo-share), html[data-motion]::view-transition-new(mo-share) { animation-duration: var(--mo-base); }
+@keyframes mo-vt-out { to { opacity: 0; translate: var(--mo-vt-x) 0; } }
+@keyframes mo-vt-in { from { opacity: 0; translate: var(--mo-vt-x) 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-motion][data-mo-nav="forward"]::view-transition-old(root) { --mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m) * -1); animation: mo-vt-out var(--mo-fast) var(--mo-ease) both; }
+  html[data-motion][data-mo-nav="forward"]::view-transition-new(root) { --mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m)); animation: mo-vt-in var(--mo-base) var(--mo-ease) both; }
+  html[data-motion][data-mo-nav="back"]::view-transition-old(root) { --mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m)); animation: mo-vt-out var(--mo-fast) var(--mo-ease) both; }
+  html[data-motion][data-mo-nav="back"]::view-transition-new(root) { --mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m) * -1); animation: mo-vt-in var(--mo-base) var(--mo-ease) both; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   html[data-motion]::view-transition-group(*), html[data-motion]::view-transition-old(*), html[data-motion]::view-transition-new(*) { animation: none !important; }

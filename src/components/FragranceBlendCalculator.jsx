@@ -762,7 +762,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             <div className="relative">
               {/* ARIA 1.2 combobox: focus stays in the input; arrows move
                   through the list, Enter picks, Escape closes. */}
-              <TextInput id="calc-name" value={fragName} placeholder={t("calc.namePlaceholder")} autoComplete="off"
+              <TextInput id="calc-name" data-mo-share-to="formula" value={fragName} placeholder={t("calc.namePlaceholder")} autoComplete="off"
                 role="combobox" aria-autocomplete="list" aria-controls="calc-name-list"
                 aria-expanded={listOpen && suggestions.length > 0}
                 aria-activedescendant={listOpen && activeOption >= 0 ? `calc-name-opt-${activeOption}` : undefined}
