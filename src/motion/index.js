@@ -7,6 +7,7 @@ export { Reveal, Stagger, TextReveal, DrawLine, Pin, CountUp, Skeleton, PageTran
 export { startNav, carry } from "./nav.js";
 export { navDirection } from "./carry.js";
 export { useFlip, flipDeltas, flipEntered } from "./flip.js";
+export { fileBatch, canSign, SIGNATURE_MS } from "./signature.js";
 export { useExit } from "./useExit.js";
 export { Light, Magnetic, Tilt, pointerMotion } from "./pointer.jsx";
 export { Progress } from "./Progress.jsx";

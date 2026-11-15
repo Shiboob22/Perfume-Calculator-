@@ -210,3 +210,28 @@ describe("M3: hold", () => {
     expect(nav).not.toMatch(/badgeFor\(id\) && <span className="relative">/);
   });
 });
+
+describe("M4: mark", () => {
+  const app = read("../index.css");
+  const src = (p) => readFileSync(new URL(p, import.meta.url), "utf8");
+  it("finishes the Ready day under a second: the verdigris line by 750 ms, the word by 850 ms", () => {
+    expect(app).toMatch(/\.kx-ready-fill \{ transform-origin: left center; animation: kx-track-fill var\(--dur-slow\) var\(--ease-out\) var\(--dur-fast\) both; \}/);
+    expect(app).toMatch(/\.kx-ready-word \{ animation: kx-settle var\(--dur-base\) var\(--ease-out\) var\(--dur-slow\) both; \}/);
+    const d = TOKENS.duration;
+    expect(d.fast + d.slow).toBeLessThan(1000);
+    expect(d.slow + d.base).toBeLessThan(1000);
+  });
+  it("plays the signature out of the way: aria-hidden, no pointer events, skipped by any tap or key", () => {
+    const sig = src("./signature.js");
+    expect(sig).toContain('ghost.setAttribute("aria-hidden", "true")');
+    expect(sig).toContain('pointerEvents: "none"');
+    expect(sig).toMatch(/addEventListener\("pointerdown", skip/);
+    expect(sig).toMatch(/addEventListener\("keydown", skip/);
+    expect(sig).toContain("canSign() ||");
+    expect(sig).not.toMatch(/duration: \d/);
+  });
+  it("sets the Wardrobe's answer down from above", () => {
+    expect(SHEETS["motion.css"]).toMatch(/\.mo-reveal\[data-mo-from="down"\] \{ --mo-from: 0 calc\(var\(--mo-d-m\) \* -1\); \}/);
+    expect(src("../components/wardrobe/Today.jsx")).toContain('<Reveal as="article" eager from="down"');
+  });
+});

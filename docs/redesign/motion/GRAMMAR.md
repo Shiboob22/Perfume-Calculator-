@@ -68,6 +68,15 @@ Matter on a bench: liquid pours and settles, ink draws and dries, weight lands a
 - **Optimistic where the outbox makes it safe**: a quick note from Smell today is in the Journal at once ("Saving…"), then saved or saved on this phone; a busy server (429, 5xx) queues it like no connection; a refusal takes it back out and keeps the words for the next try.
 - **Empty states arrive like content** (`kx-settle`, or the `Stagger` of `EmptyState`).
 
+## Mark (M4)
+
+- **The product's signature, "a logged batch is filed into the Journal"** (`fileBatch()` in `src/motion/signature.js`): when a batch is logged on the Bench or in Pour along, a small capped flacon presses its cap home, its label is written ("No. 072", in the page's language and direction), and it travels on an arc to the Journal tab, which takes it with a 4 px settle. 900 ms (the slow step and two fast ones). From the flacon when it is on screen, else from the Log button; to the Journal tab on screen, else to "Open the Journal" (the wide tab row scrolls away). Never in the way: `aria-hidden`, no pointer events, any tap or key finishes it; the status line says "Logged as No. 072" at once either way. Reduced motion, the layer off or a low-power device: the words only. A duplicate log (the same batch sent twice) does not play it.
+- **Journal, Ready day**: the first time a batch is opened after its 90 days (once per batch, on the device), verdigris draws over the full track just behind its fill and "Ready" settles in; done by 850 ms.
+- **Search**: the result you open grows from its row into the detail's heading (M2's `carry()`); on a phone the detail opens below the list, off screen, so it is a plain swap.
+- **Wardrobe**: tonight's answer is set down from above (`Reveal from="down"`), not risen.
+- **Nose**: the answers already arrive in order of match (`Stagger`), unchanged.
+- **Upgrade**: the cost card's blur already clears on the slow step when the plan changes on the page (the tour uses the same transition), unchanged.
+
 ## Where each piece lives
 
 - Tokens and primitives (site layer): `src/motion/`

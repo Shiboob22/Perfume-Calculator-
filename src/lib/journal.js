@@ -89,3 +89,18 @@ export function nextReady(batches, now = new Date()) {
   }
   return best;
 }
+
+// Ready day (motion M4): the first time a batch is opened after it reaches the
+// end of its rest, the track completes and it turns from resting to ready.
+// The batches whose moment has played are kept on the device, newest last.
+export const READY_SEEN_KEY = "kyphira.readySeen";
+
+/** Whether a batch's ready moment is still to play. */
+export const readyMomentDue = (seen, id, ready) => Boolean(ready && id) && !(seen ?? []).includes(id);
+
+/** The list with `id` added (once, newest last), at most `max` long. */
+export function markReadySeen(seen, id, max = 200) {
+  const list = (Array.isArray(seen) ? seen : []).filter((x) => typeof x === "string" && x !== id);
+  list.push(id);
+  return list.slice(-max);
+}

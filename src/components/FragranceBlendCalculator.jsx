@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import RoomBeam from "./kx/RoomBeam";
 import { useSearchParams } from "react-router-dom";
-import { useNavigate } from "../motion";
+import { fileBatch, useNavigate } from "../motion";
 import { UNIT_LABELS, prefillFromQuery, startingBottle, shareQuery } from "../lib/calcPrefill";
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
@@ -555,6 +555,16 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   // send reached the server but the answer was lost, the retry is
   // recognised as the same batch instead of logging it twice.
   const logId = useRef(null);
+  const logBtn = useRef(null);
+  // The product's signature (motion M4): the batch, capped and labelled, is filed
+  // into the Journal tab. From the flacon when it is on screen, else from the
+  // Log button. Decoration only: the status line below says it in words.
+  const fileIt = (label) => {
+    const flacon = document.querySelector("[data-instrument] svg");
+    const r = flacon?.getBoundingClientRect();
+    const seen = r && r.bottom > 0 && r.top < window.innerHeight && r.width > 0;
+    fileBatch({ from: seen ? flacon : logBtn.current, label });
+  };
 
   async function handleLogBatch() {
     if (!fragName.trim()) return;
@@ -583,6 +593,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       setActualOilG(""); setActualEthG("");
       setLoggedNo(Number(saved.batch_no) > 0 ? Number(saved.batch_no) : null);
       if (orderIds.length) setOrdersLinked(Number(saved.ordersLinked) || 0);
+      if (!saved.duplicate) fileIt(Number(saved.batch_no) > 0 ? t("journal.page.no", { no: String(saved.batch_no).padStart(3, "0") }) : fragName.trim());
       setLogStatus("saved");
       entitlements.refresh();
     } catch (e) {
@@ -592,6 +603,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         enqueue({ ...row(matched?.id ?? null), ...(can(entitlements, "inventory") ? { deduct_oil_g: result.usedOilG } : {}) });
         logId.current = null;
         setActualOilG(""); setActualEthG("");
+        fileIt(fragName.trim());
         setLogStatus("queued");
         return;
       }
@@ -1089,7 +1101,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
           <div className="mt-5 grid grid-cols-2 gap-2">
             {logStatus === "saved" ? (
-              <button type="button" onClick={() => navigate("/journal")}
+              <button type="button" data-journal-door onClick={() => navigate("/journal")}
                 className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium"
                 style={{ backgroundColor: COLORS.mist, color: COLORS.forest, border: `1px solid ${COLORS.forest}` }}>
                 <IconBookmarkCheck size={18} /> {t("calc.savedOpen")}
@@ -1101,7 +1113,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 <IconDiamondAlert size={18} /> {t("calc.retry")}
               </button>
             ) : (
-              <button type="button" onClick={handleLogBatch} disabled={!fragName.trim() || logStatus === "saving" || !(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
+              <button ref={logBtn} type="button" onClick={handleLogBatch} disabled={!fragName.trim() || logStatus === "saving" || !(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
                 className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium disabled:opacity-50"
                 style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}>
                 <IconBookmark size={18} /> {logStatus === "saving" ? t("calc.saving") : t("calc.log")}

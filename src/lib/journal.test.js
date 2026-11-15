@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { restWindow, addDays } from "./calc";
 import { FAMILIES } from "./formulation";
-import { dueNow, notesDue, todayFor, restingBatch, suggestedRestDays, shareOf, restTimeline, nextReady } from "./journal";
+import { dueNow, notesDue, todayFor, restingBatch, suggestedRestDays, shareOf, restTimeline, nextReady, readyMomentDue, markReadySeen } from "./journal";
 
 const made = new Date(2026, 8, 1, 10, 0);
 const batch = (extra = {}) => ({ id: "b1", tier: "woody", created_at: made.toISOString(), blend_date: "2026-09-01", ...extra });
@@ -102,5 +102,25 @@ describe("nav badge counts the room's needs-a-note", () => {
     const noted = batch({ batch_checkins: [{ id: "n", day: 8, scheduled_day: 7, note: "x" }] });
     expect(notesDue([noted], day(8))).toBe(0); // Week 1 is noted
     expect(dueNow([noted], day(8))).toHaveLength(1); // the older schedule still asks for its day 1
+  });
+});
+
+describe("Ready day (motion M4)", () => {
+  it("plays once per batch, only when it is ready", () => {
+    expect(readyMomentDue([], "a", true)).toBe(true);
+    expect(readyMomentDue(["a"], "a", true)).toBe(false);
+    expect(readyMomentDue([], "a", false)).toBe(false);
+    expect(readyMomentDue(null, "a", true)).toBe(true);
+    expect(readyMomentDue([], "", true)).toBe(false);
+  });
+  it("keeps each batch once, newest last, and at most the newest 200", () => {
+    expect(markReadySeen(["a", "b"], "a")).toEqual(["b", "a"]);
+    expect(markReadySeen("junk", "a")).toEqual(["a"]);
+    expect(markReadySeen([1, "b"], "c")).toEqual(["b", "c"]);
+    const many = Array.from({ length: 200 }, (_, i) => `x${i}`);
+    const next = markReadySeen(many, "new");
+    expect(next).toHaveLength(200);
+    expect(next[0]).toBe("x1");
+    expect(next.at(-1)).toBe("new");
   });
 });
