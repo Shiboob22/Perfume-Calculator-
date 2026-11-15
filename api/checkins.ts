@@ -3,6 +3,7 @@ import { setCors, serviceClient, requireUser, isTimeout, SLOW_READ, SLOW_WRITE, 
 import { overLimit } from './_lib/rateLimit.js';
 import { loadEntitlements, can, limit, journalOpen, lockedFeature } from './_lib/entitlements.js';
 import { parseCheckIn } from './_lib/checkin.js';
+import { runReminders, unsubscribe } from './_lib/reminders.js';
 import { familyPatterns, MAX_CHECKINS_PER_BATCH } from '../src/lib/calc/journal.js';
 
 // The Resting Journal.
@@ -16,10 +17,17 @@ import { familyPatterns, MAX_CHECKINS_PER_BATCH } from '../src/lib/calc/journal.
 //   GET    /api/checkins       the caller's per-family patterns: the days for
 //                              Pro (journal.insights), only which families
 //                              are ready for Free
+//   GET    /api/checkins?job=reminders   the daily reminder job (cron secret), see _lib/reminders.ts
+//   GET    /api/checkins?unsub=<id>.<token>   one-click unsubscribe from reminder emails
 // Check-ins are read with the batches (GET /api/batches embeds them).
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   setCors(req, res, 'GET, POST, DELETE');
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // Not a signed-in call: the daily reminder job (cron secret) and the
+  // unsubscribe link in each reminder email (signed token).
+  if (req.method === 'GET' && req.query.job === 'reminders') return runReminders(req, res);
+  if (req.method === 'GET' && req.query.unsub) return unsubscribe(req, res);
 
   const supabase = serviceClient();
   const userId = await requireUser(req, res);

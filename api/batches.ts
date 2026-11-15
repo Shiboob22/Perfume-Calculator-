@@ -364,12 +364,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // PATCH /api/batches { id, remind: true | false } — rest reminders are
       // Pro (journal.reminders). Turning one off is always allowed, so a
       // user whose trial ended can still silence a batch.
-      // Only the preference is stored (Bench SaaS Phase 5).
-      // TODO(reminders): a scheduled job (Vercel cron or Supabase pg_cron)
-      // that finds batches with remind = true reaching REST_DAYS
-      // (src/lib/calc/restTracker.ts) today and emails or pushes their
-      // owners once; needs SMTP/Resend and a sent-at column so a reminder
-      // goes out only once. Nothing is sent yet.
+      // The daily job (api/_lib/reminders.ts, GET /api/checkins?job=reminders) emails
+      // owners whose batches reached a milestone with no note; once per milestone.
       if (b.remind !== undefined) {
         if (typeof b.remind !== 'boolean') return fail(res, 400, 'invalid_edit', 'remind must be true or false.', { field: 'remind' });
         if (b.remind && !can(await loadEntitlements(supabase, userId), 'reminders')) {
