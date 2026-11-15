@@ -66,8 +66,8 @@
   html[data-motion] :is(button, [role="button"], a.mo-press):not(:disabled, [aria-disabled="true"]):active { translate: 0 1px; }
   html[data-motion] .mo-sheet-scrim { animation: mo-fade var(--mo-base) var(--mo-ease) backwards; }
   html[data-motion] .mo-sheet-panel { animation: mo-sheet-in var(--mo-base) var(--mo-ease) backwards; }
-  html[data-motion] [data-leaving] > .mo-sheet-scrim { animation: mo-fade-out var(--mo-base) var(--mo-ease) forwards; }
-  html[data-motion] [data-leaving] > .mo-sheet-panel { animation: mo-sheet-out var(--mo-base) var(--mo-ease) forwards; }
+  html[data-motion] [data-leaving] > .mo-sheet-scrim { animation: mo-fade-out var(--mo-fast) var(--mo-ease) forwards; }
+  html[data-motion] [data-leaving] > .mo-sheet-panel { animation: mo-sheet-out var(--mo-fast) var(--mo-ease) forwards; }
   html[data-motion] .mo-notice:not([data-tone="warning"]) { animation: mo-enter var(--mo-base) var(--mo-ease) backwards; --mo-from: 0 var(--mo-d-s); }
   html[data-motion] .mo-notice[data-leaving] { animation: mo-leave var(--mo-fast) var(--mo-ease) forwards; }
 

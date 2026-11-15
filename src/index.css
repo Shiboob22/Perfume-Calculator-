@@ -288,11 +288,10 @@ summary::-webkit-details-marker { display: none; }
 @media (prefers-reduced-motion: no-preference) { .cmp-breath { animation: cmp-breath var(--dur-ambient) var(--ease-in-out) infinite alternate; } }
 /* Cinematic rise (Salon profile header only): 600 ms ease-out. Static under reduced motion. */
 @media (prefers-reduced-motion: no-preference) { .kx-rise { animation: kx-rise var(--dur-slow) var(--ease-out) both; } }
-@keyframes kx-rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes kx-rise { 0% { opacity: 0; transform: translateY(14px); } 25% { opacity: 1; } 100% { transform: none; } }
 /* A confirmation: the check draws, 600 ms ease-out. Still under reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
   .kx-tick path { stroke-dasharray: 24; animation: kx-tick-draw var(--dur-slow) var(--ease-out) both; }
-  .kx-confirm { animation: kx-rise var(--dur-base) var(--ease-out) both; }
 }
 @keyframes kx-tick-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
 /* The Nose's thinking state: three dots, ambient (2 s), still under reduced motion. */
@@ -347,6 +346,33 @@ summary::-webkit-details-marker { display: none; }
 /* kx/Sheet: the modal's backdrop (Bench SaaS). */
 .kx-sheet::backdrop { background: rgb(0 0 0 / 0.45); }
 .kx-sheet { max-height: 100dvh; }
+/* Sheets (kx/Sheet): rise from the bottom on phones, settle in on wide screens; leave faster
+   than they came (grammar rule 2). Sheet.jsx holds the dialog open for the exit's length. */
+@media (prefers-reduced-motion: no-preference) {
+  .kx-sheet[open] { animation: kx-sheet-in var(--dur-base) var(--ease-out); }
+  .kx-sheet[open]::backdrop { animation: sheetFade var(--dur-base) var(--ease-out); }
+  .kx-sheet[data-leaving] { animation: kx-sheet-out var(--dur-fast) var(--ease-out) forwards; }
+  .kx-sheet[data-leaving]::backdrop { animation: kx-fade-out var(--dur-fast) var(--ease-out) forwards; }
+}
+@media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+  .kx-sheet[open] { animation-name: kx-pop-in; }
+  .kx-sheet[data-leaving] { animation-name: kx-pop-out; }
+}
+@keyframes kx-sheet-in { from { translate: 0 100%; } }
+@keyframes kx-sheet-out { to { translate: 0 100%; } }
+@keyframes kx-pop-in { 0% { opacity: 0; translate: 0 8px; } 60% { opacity: 1; } 100% { translate: 0 0; } }
+@keyframes kx-pop-out { to { opacity: 0; translate: 0 8px; } }
+@keyframes kx-fade-out { to { opacity: 0; } }
+
+/* The phone bar's room indicator (AppNav): one ink rule that slides to the room you open,
+   from the start edge (the right in Arabic). */
+.kx-bar-ind { transform: translateX(calc(var(--mo-dir, 1) * var(--i, 0) * 100%)); }
+@media (prefers-reduced-motion: no-preference) {
+  .kx-bar-ind { transition: transform var(--dur-base) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
+}
+
+/* Saved on this phone (kx/SaveState "queued"): the same check, dashed and drawn at once. */
+.kx-tick[data-queued] path { stroke-dasharray: 3 2.5; animation: none; }
 
 /* Paper and surfaces (Bench SaaS Phase 6): the textures are custom properties
    from src/lib/surfaces.js, written by the app shell. Unset (public pages):
@@ -376,4 +402,4 @@ summary::-webkit-details-marker { display: none; }
   .kx-settle { animation: kx-settle var(--dur-base) var(--ease-out) both; }
 }
 @keyframes kx-track-fill { from { transform: scaleX(0); } }
-@keyframes kx-settle { from { opacity: 0; transform: translateY(4px); } }
+@keyframes kx-settle { 0% { opacity: 0; transform: translateY(4px); } 60% { opacity: 1; } 100% { transform: none; } }

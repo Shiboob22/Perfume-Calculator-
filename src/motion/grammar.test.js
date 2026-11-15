@@ -139,3 +139,27 @@ describe("Tailwind timing", () => {
     expect(cfg).toContain("pulse var(--mo-ambient) var(--mo-ease-io) infinite");
   });
 });
+
+describe("M1: answer", () => {
+  const app = read("../index.css");
+  const site = SHEETS["motion.css"];
+  it("makes every exit faster than its entrance (sheets in the app and the More sheet)", () => {
+    expect(app).toMatch(/\.kx-sheet\[open\] \{ animation: kx-sheet-in var\(--dur-base\)/);
+    expect(app).toMatch(/\.kx-sheet\[data-leaving\] \{ animation: kx-sheet-out var\(--dur-fast\)/);
+    expect(site).toMatch(/\.mo-sheet-panel \{ animation: mo-sheet-in var\(--mo-base\)/);
+    for (const l of site.split("\n").filter((x) => /\[data-leaving\]/.test(x) && /animation:/.test(x))) expect(l, l).toContain("var(--mo-fast)");
+  });
+  it("gives the phone bar one room indicator, moved by transform", () => {
+    const nav = readFileSync(new URL("../components/AppNav.jsx", import.meta.url), "utf8");
+    expect(nav.match(/data-mo-ind="bar"/g)).toHaveLength(1);
+    expect(app).toMatch(/\.kx-bar-ind \{ transform: translateX\(calc\(var\(--mo-dir, 1\)/);
+  });
+  it("lets text settle in without waiting at partial opacity (whole by 60 % of the base step, so within the fast one)", () => {
+    for (const name of ["kx-settle", "kx-pop-in"]) {
+      const body = app.match(new RegExp(`@keyframes ${name} \\{(.*)\\}`))[1];
+      expect(body, name).toMatch(/60% \{ opacity: 1; \}/);
+    }
+    expect(TOKENS.duration.base * 0.6).toBeLessThanOrEqual(TOKENS.duration.fast);
+  });
+});
+

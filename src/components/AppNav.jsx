@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Link, useExit } from "../motion";
+import { Link, TOKENS, useExit } from "../motion";
 import { COLORS, SHAPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { tabPath } from "../routes";
@@ -92,6 +92,7 @@ export default function AppNav({ active, tabs: baseTabs, dueCount, flags: baseFl
   useEffect(() => { setOpen(false); }, [pathname]);
 
   // The calculator keeps the address's query (a guide's ?size=…&conc=…).
+  const barIndex = primary.findIndex((d) => d.id === active);
   const to = (d) => d.path ?? `${tabPath(d.id)}${d.id === "calculator" ? search : ""}`;
 
   return (
@@ -107,7 +108,7 @@ export default function AppNav({ active, tabs: baseTabs, dueCount, flags: baseFl
               return (
                 <li key={id} className="flex-1 min-w-[7.5rem]" style={{ borderInlineEnd: `1px solid ${COLORS.line}` }}>
                   <Dest d={d} to={to(d)} current={on}
-                    className={`relative w-full min-h-[48px] px-3 inline-flex items-center justify-center gap-2 text-sm whitespace-nowrap transition-colors ${SHAPE.control}`}
+                    className={`mo-press relative w-full min-h-[48px] px-3 inline-flex items-center justify-center gap-2 text-sm whitespace-nowrap transition-colors ${SHAPE.control}`}
                     style={{ color: on ? COLORS.paper : COLORS.inkSoft }}>
                     {/* The active tab's plate is its own element so a route change can slide it (src/motion). */}
                     <span aria-hidden="true" data-mo-ind="tab" data-on={on ? "" : undefined} className="absolute inset-0" style={{ background: on ? COLORS.ink : "transparent" }} />
@@ -125,6 +126,12 @@ export default function AppNav({ active, tabs: baseTabs, dueCount, flags: baseFl
       {/* Phones: one bar at the bottom. */}
       <nav aria-label={t("app.barLabel")} data-mo-chrome="bar" className="md:hidden fixed bottom-0 inset-x-0 z-40"
         style={{ background: COLORS.card, borderTop: `1px solid ${COLORS.line}`, paddingBottom: "env(safe-area-inset-bottom)" }}>
+        {/* The room you are in: one ink rule on the bar's top edge that slides from room to room. */}
+        <span aria-hidden="true" data-mo-ind="bar" data-on={barIndex >= 0 ? "" : undefined}
+          className="kx-bar-ind pointer-events-none absolute top-0 start-0 h-[2px] px-4"
+          style={{ width: `${100 / (primary.length + 1)}%`, "--i": Math.max(barIndex, 0), opacity: barIndex >= 0 ? 1 : 0 }}>
+          <span className="block h-full" style={{ background: COLORS.ink }} />
+        </span>
         <ul className="grid grid-cols-5">
           {primary.map((d) => (
             <li key={d.id}>
@@ -162,11 +169,9 @@ const BarButton = React.forwardRef(function BarButton({ d, to, on, current, expa
     : { d, to, current: on };
   return (
     <Tag {...own}
-      className="relative w-full min-h-[60px] pt-2 pb-1.5 flex flex-col items-center justify-center gap-1 text-[11px] leading-none"
+      className="mo-press relative w-full min-h-[60px] pt-2 pb-1.5 flex flex-col items-center justify-center gap-1 text-[11px] leading-none"
       style={{ color: on ? COLORS.ink : COLORS.inkSoft, fontWeight: on ? 600 : 400 }}>
-      {/* The room you are in: an ink rule on the bar's top edge and a tinted plate under the icon. */}
-      <span aria-hidden="true" data-mo-ind="bar" data-on={on && !isMore ? "" : undefined} className="absolute top-0 inset-x-4 h-[2px] transition-opacity duration-fast"
-        style={{ background: COLORS.ink, opacity: on ? 1 : 0 }} />
+      {/* The room you are in: a tinted plate under the icon (the bar's sliding rule marks it too). */}
       <span className="relative inline-flex items-center justify-center w-12 h-7 transition-colors duration-fast"
         style={{ background: on ? COLORS.sand : "transparent" }}>
         <I size={22} />
@@ -182,7 +187,7 @@ function MoreSheet({ items, active, to, onGo, onSignOut, onClose: close }) {
   const titleId = useId();
   const closeRef = useRef(null);
   // Closing plays the sheet's exit first (with the motion layer on; at once without it).
-  const { leaving, leave } = useExit();
+  const { leaving, leave } = useExit(TOKENS.duration.fast);
   const onClose = useCallback(() => leave(close), [leave, close]);
   useEffect(() => {
     closeRef.current?.focus();
