@@ -77,6 +77,14 @@ Matter on a bench: liquid pours and settles, ink draws and dries, weight lands a
 - **Nose**: the answers already arrive in order of match (`Stagger`), unchanged.
 - **Upgrade**: the cost card's blur already clears on the slow step when the plan changes on the page (the tour uses the same transition), unchanged.
 
+## The public site (M5)
+
+- **Guides index**: the Essays / Glossary tabs are one width each with one rule under the open tab that slides between them by transform (`.kx-bar-ind`, `data-mo-ind="guides"`, the phone bar's rule; from the right in Arabic). The panel settles in after a switch, not when the page opens. A search or filter that keeps some guides slides them to their new places (`useFlip` on the Wearing contents and the Blending sequence, only rows on screen); "No guides found" settles in.
+- **Pricing**: the two plan links answer a press (`mo-press`).
+- **Shop**: loading keeps the shape of the products and of the order summary (`kx/ListSkeleton`); "Added" settles in on the card; the phone cart bar's count is keyed by the count and settles; the checkout's "fix the fields" line settles. The cart lines already slide (M3).
+- **3D pour (D3)**: not switched on. Stills for the owner's review in `docs/redesign/motion/m5/hero3d/` (README there).
+- Not done: the check on a real mid-range Android phone (owner, with M6's recorded check); a Lighthouse run (the home page did not change).
+
 ## Where each piece lives
 
 - Tokens and primitives (site layer): `src/motion/`
