@@ -1,7 +1,7 @@
 import React, { Children, cloneElement, isValidElement, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link as RouterLink, useLocation, useNavigate as useRouterNavigate, useNavigationType } from "react-router-dom";
 import { TOKENS, countValue, splitWords, staggerIndex } from "./config.js";
-import { motionOn, reduced } from "./env.js";
+import { calm, motionOn, reduced } from "./env.js";
 import { watch, watchAmbient } from "./observe.js";
 import { isPlainClick, navCommitted, startNav, takeViaTransition } from "./nav.js";
 import { createScrollMemory, navDirection, popDirection } from "./carry.js";
@@ -222,7 +222,8 @@ export function PageTransition({ as: Tag = "main", className, children, ...rest 
     const dir = type === "POP" ? popDirection(from.idx, idx) : navDirection(from.pathname, pathname);
     const rtl = document.documentElement.dir === "rtl" ? -1 : 1;
     const d = TOKENS.distance.m;
-    const startAt = dir === "back" ? `${-d * rtl}px 0` : dir === "forward" ? `${d * rtl}px 0` : `0 ${TOKENS.distance.s}px`;
+    // Motion: Calm (M6): a plain cross-fade, no travel.
+    const startAt = calm() ? "0 0" : dir === "back" ? `${-d * rtl}px 0` : dir === "forward" ? `${d * rtl}px 0` : `0 ${TOKENS.distance.s}px`;
     ref.current.animate(
       [{ opacity: 0, translate: startAt }, { opacity: 1, translate: "0 0" }],
       { duration: TOKENS.duration.base, easing: TOKENS.ease.out },

@@ -1,5 +1,5 @@
 import { TOKENS } from "./config.js";
-import { lowPower, motionOn, reduced } from "./env.js";
+import { calm, lowPower, motionOn } from "./env.js";
 import { onScreen } from "./carry.js";
 
 // Motion M4, the product's signature: "a logged batch is filed into the
@@ -57,7 +57,7 @@ export const toKeyframes = (path) => path.map(({ offset, x, y, scale, opacity })
 }));
 
 /** Whether the signature can play now (else the words alone say it). */
-export const canSign = () => motionOn() && !reduced() && !lowPower();
+export const canSign = () => motionOn() && !calm() && !lowPower();
 
 const visible = (el) => Boolean(el?.isConnected) && onScreen(el.getBoundingClientRect(), window.innerWidth, window.innerHeight);
 
