@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Link, Reveal } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
@@ -25,6 +26,9 @@ export default function FragrancePage({ id, terms }) {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const wardrobe = flagOn("wardrobe");
+  // The name the card carried here (motion M2): the heading is in place at
+  // once, so the name travels from the card into it while the rest loads.
+  const carried = useLocation().state?.name;
 
   useEffect(() => {
     let live = true;
@@ -48,7 +52,21 @@ export default function FragrancePage({ id, terms }) {
     }
   }
 
-  if (f === undefined) return <p role="status" className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>…</p>;
+  const back = <Link to="/atlas" className="text-sm underline underline-offset-4 inline-flex items-center min-h-[44px]" style={{ color: COLORS.forest }}>{t("atlas.nav.search")}</Link>;
+  const heading = (name) => <h2 id="atlas-fragrance-h" data-mo-share-to={`frag-${id}`} className="font-serif text-3xl sm:text-4xl mt-1" style={{ color: COLORS.ink }}>{name}</h2>;
+  // Moving from one fragrance to another keeps this page mounted: until the new
+  // row arrives, the old one is not shown under the new address.
+  const stale = f && String(f.id) !== String(id);
+  if ((f === undefined || stale) && typeof carried === "string" && carried) {
+    return (
+      <Reveal as="article" eager aria-labelledby="atlas-fragrance-h" aria-busy="true">
+        {back}
+        {heading(carried)}
+        <p role="status" className="mt-2 text-xs font-mono" style={{ color: COLORS.inkSoft }}>…</p>
+      </Reveal>
+    );
+  }
+  if (f === undefined || stale) return <p role="status" className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>…</p>;
   if (f === null) return <p role={failed ? "alert" : "status"} className="text-sm" style={{ color: failed ? COLORS.danger : COLORS.inkSoft }}>{t(failed ? "atlas.loadFailed" : "atlas.fragrance.notFound")}</p>;
 
   const house = f.brand?.trim();
@@ -56,8 +74,8 @@ export default function FragrancePage({ id, terms }) {
   const similar = related?.similar ?? [];
   return (
     <Reveal as="article" eager aria-labelledby="atlas-fragrance-h">
-      <Link to="/atlas" className="text-sm underline underline-offset-4 inline-flex items-center min-h-[44px]" style={{ color: COLORS.forest }}>{t("atlas.nav.search")}</Link>
-      <h2 id="atlas-fragrance-h" className="font-serif text-3xl sm:text-4xl mt-1" style={{ color: COLORS.ink, viewTransitionName: `frag-${f.id}` }}>{f.name}</h2>
+      {back}
+      {heading(f.name)}
       <p className="mt-2 text-base flex flex-wrap items-center gap-x-4 gap-y-1" style={{ color: COLORS.inkSoft }}>
         {house && <Link to={entityHref("house", house)} className="underline underline-offset-4 inline-flex items-center min-h-[44px]" style={{ color: COLORS.ink }}>{t("atlas.fragrance.by", { house: termName(terms, "house", house.toLowerCase(), locale, house) })}</Link>}
         {f.year && <span className="font-mono tabular-nums">{t("atlas.fragrance.released", { year: String(f.year) })}</span>}
