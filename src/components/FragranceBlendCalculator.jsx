@@ -685,6 +685,11 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         <TakeTour onStart={tour.start} t={t} />
       </RoomHeader>
       <RestingLine />
+      {prefill.best && (
+        <p data-best-from className="mb-6 text-sm" style={{ color: COLORS.inkSoft }}>
+          {t("journal.page.bestFrom", { no: String(prefill.best.no).padStart(3, "0"), day: prefill.best.day })}
+        </p>
+      )}
       {orderIds.length > 0 ? <OrdersFor count={orderIds.length} linked={ordersLinked} /> : <OrdersCard />}
       <div className="xl:grid xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-10 xl:items-start">
       {/* Saved formulas: in the rail on wide screens, a bottom sheet below that. */}

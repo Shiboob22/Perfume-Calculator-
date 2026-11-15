@@ -28,6 +28,11 @@ export function makeAgainHref(b) {
   return `/bench?${q}`;
 }
 
+/** "Make again" from the Journal's oil view: the winner's settings, plus which batch it was and the day it peaked, for the Bench's line. */
+export function makeAgainFromBest(b, no, day) {
+  return `${makeAgainHref(b)}&best=${Number(no)}:${Number(day)}`;
+}
+
 const sameName = (a, b) => (a || "").trim().toLowerCase() === (b || "").trim().toLowerCase();
 
 /**

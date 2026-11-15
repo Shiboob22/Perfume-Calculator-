@@ -10,6 +10,7 @@ import { useEntitlements } from "../../lib/useEntitlements";
 import { can, journalOpen } from "../../lib/entitlements";
 import { batchStartedAt } from "../../lib/batchTiming";
 import { notesDue, todayFor, JOURNAL_CHANGED } from "../../lib/journal";
+import { makeAgainHref } from "../../lib/oilHistory";
 import { TIER_COLORS, TIERS } from "../../lib/tiers";
 import { UNIT_LABELS } from "../../lib/calcPrefill";
 import {
@@ -140,7 +141,7 @@ export default function JournalRoom() {
     );
   }
 
-  const oilBatches = all.map((x) => ({ id: x.id, no: Number(x.batch_no) || 0, oil: oilKey(x), pct: Number(x.concentration_pct), checkins: x.batch_checkins }));
+  const oilBatches = all.map((x) => ({ id: x.id, no: Number(x.batch_no) || 0, oil: oilKey(x), pct: Number(x.concentration_pct), checkins: x.batch_checkins, again: makeAgainHref(x) }));
   const dayOf = (x) => todayFor(x, now);
   const dateAt = (x, days) => {
     const start = batchStartedAt(x);

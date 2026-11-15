@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { Link } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { oilOverlay, bestOf, tierFor, STRENGTH_TIERS } from "../../lib/calc";
@@ -40,6 +41,12 @@ export default function OilOverlay({ batches, selectedId, locked, lockedCard, t 
               ? t("journal.page.oil.best", { count: curves.length, who: label(best.batch), milestone: name(best.curve.peak.k), rating: best.curve.peak.rating })
               : t("journal.page.oil.none", { count: curves.length })}
           </p>
+          {best?.batch.again && (
+            <Link to={`${locale === "ar" ? "/ar" : ""}${best.batch.again}&best=${best.batch.no}:${best.curve.peak.day}`} data-make-again
+              className="mt-3 inline-flex min-h-[44px] items-center px-4 text-sm font-medium rounded" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+              {t("journal.page.oil.again", { who: label(best.batch) })}
+            </Link>
+          )}
           <svg data-oil-svg viewBox={`0 0 ${BOX.width} ${BOX.height}`} aria-hidden="true" focusable="false"
             className="mt-3 w-full h-auto" style={{ maxHeight: 210, overflow: "visible" }}>
             <line x1={BOX.pad.left} x2={BOX.width - BOX.pad.right} y1={BOX.height - BOX.pad.bottom} y2={BOX.height - BOX.pad.bottom} stroke={COLORS.line} strokeWidth="1" />

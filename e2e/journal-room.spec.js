@@ -289,6 +289,12 @@ test("your batches of this oil: Pro sees them on one curve and which rated best;
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
   expect(axe.violations).toEqual([]);
 
+  // Make again at the winner's settings: the Bench opens on its oil, strength and size, with a line about it.
+  await oil.locator("[data-make-again]").click();
+  await expect(page).toHaveURL(/\/bench\?size=50&unit=ml&conc=25&family=woody&name=oud\+nights&best=7:7$/);
+  await expect(page.locator("[data-best-from]")).toHaveText("Your best of this oil was No. 007, rested 7 days.");
+  await page.goto("/journal?batch=" + id(7));
+
   // A batch of another oil has no overlay.
   await page.goto("/journal?batch=" + id(5));
   await expect(page.locator("[data-oil]")).toHaveCount(0);
