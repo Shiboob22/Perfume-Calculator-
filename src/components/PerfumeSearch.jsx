@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { carry } from '../motion';
 import { searchCatalog, browseCatalog, fetchPopular, fetchSimilar, forgetCatalogAnswers } from '../lib/searchApi';
 
 // How often an open, visible Search screen re-reads the catalog.
@@ -279,12 +280,12 @@ function ResultRow({ item, active, onSelect }) {
   const { brand, title } = splitName(item);
   const f = familyOf(item.tier, t);
   return (
-    <button type="button" onClick={() => onSelect(item)} aria-current={active ? "true" : undefined}
+    <button type="button" onClick={(e) => onSelect(item, e.currentTarget)} aria-current={active ? "true" : undefined}
       className="w-full text-start px-3 py-2.5 flex items-center gap-3 transition-colors"
       style={{ background: active ? 'rgba(233,200,138,0.08)' : 'transparent', borderBottom: `1px solid ${COLORS.line}` }}>
       <BottlePhoto perfume={item} size="thumb" />
       <span className="min-w-0 flex-1">
-        <span className="block font-serif text-[15px] leading-tight truncate" style={{ color: COLORS.forestDeep }}>{title}</span>
+        <span data-mo-share={item.id ? `search-${item.id}` : undefined} className="block font-serif text-[15px] leading-tight truncate" style={{ color: COLORS.forestDeep }}>{title}</span>
         <span className="block font-mono text-[10px] uppercase tracking-wider truncate mt-0.5" style={{ color: COLORS.inkSoft }}>
           {[brand, item.year].filter(Boolean).join(', ') || f.label}
         </span>
@@ -640,7 +641,8 @@ export function PerfumeSearch({ onSelectPerfume }) {
             )}
             <div className="rounded overflow-hidden md:max-h-[70vh] md:overflow-y-auto" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
               {results.map((item) => (
-                <ResultRow key={item.id} item={item} active={selectedPerfume?.id === item.id} onSelect={selectPerfume} />
+                <ResultRow key={item.id} item={item} active={selectedPerfume?.id === item.id}
+                  onSelect={(it, el) => (it.id ? carry(() => selectPerfume(it), { share: `search-${it.id}`, from: el }) : selectPerfume(it))} />
               ))}
               {hasMore && (
                 <button type="button" onClick={loadMore} disabled={loadingMore}
@@ -706,7 +708,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                       </div>
                     )
                   )}
-                  <h2 className="font-serif italic leading-[0.95] break-words text-4xl sm:text-5xl mt-1" style={{ color: COLORS.forestDeep }}>
+                  <h2 data-mo-share-to={selectedPerfume.id ? `search-${selectedPerfume.id}` : undefined} className="font-serif italic leading-[0.95] break-words text-4xl sm:text-5xl mt-1" style={{ color: COLORS.forestDeep }}>
                     {names.title}
                   </h2>
                   {meta.length > 0 && (

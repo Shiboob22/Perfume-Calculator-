@@ -111,7 +111,7 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
         <>
           {/* One answer, large; the next two quieter beneath it. */}
           {top.slice(0, 1).map((r) => (
-            <Reveal as="article" eager key={r.bottle.id} aria-labelledby="today-answer" className="p-6" style={{ background: COLORS.card, border: `1px solid ${COLORS.actionText}` }}>
+            <Reveal as="article" eager from="down" key={r.bottle.id} aria-labelledby="today-answer" className="p-6" style={{ background: COLORS.card, border: `1px solid ${COLORS.actionText}` }}>
               <div className="flex items-baseline justify-between gap-3">
                 <p className="text-sm" style={{ color: COLORS.dim }}>{t("wardrobe.today.picks")}</p>
                 <span className="font-mono tabular-nums text-xs" dir="ltr" style={{ color: COLORS.dim }}>{t("wardrobe.today.score", { score: r.score.toFixed(1) })}</span>
