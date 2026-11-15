@@ -9,7 +9,7 @@ import { saveNote, TAGS } from "../../lib/journalNotes";
 import { useEntitlements } from "../../lib/useEntitlements";
 import { can, journalOpen } from "../../lib/entitlements";
 import { batchStartedAt } from "../../lib/batchTiming";
-import { notesDue, todayFor, JOURNAL_CHANGED } from "../../lib/journal";
+import { notesDue, todayFor, JOURNAL_CHANGED, READY_SEEN_KEY, readyMomentDue, markReadySeen } from "../../lib/journal";
 import { makeAgainHref } from "../../lib/oilHistory";
 import { useProfile } from "../../lib/useProfile";
 import { flagOn } from "../../lib/flags";
@@ -309,6 +309,16 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised,
   const [remindBusy, setRemindBusy] = useState(false);
   const [remindMsg, setRemindMsg] = useState("");
   const remindOn = Boolean(b.remind) && canRemind;
+  // Ready day (motion M4): the first time this batch is opened after its rest
+  // is done, the track completes in verdigris and the line turns to "Ready".
+  // Once per batch on this device; the words are the same either way.
+  const [readyMoment] = useState(() => {
+    try { return readyMomentDue(JSON.parse(localStorage.getItem(READY_SEEN_KEY) ?? "[]"), b.id, p.ready); } catch { return false; }
+  });
+  useEffect(() => {
+    if (!p.ready) return;
+    try { localStorage.setItem(READY_SEEN_KEY, JSON.stringify(markReadySeen(JSON.parse(localStorage.getItem(READY_SEEN_KEY) ?? "[]"), b.id))); } catch { /* storage off */ }
+  }, [b.id, p.ready]);
   const family = TIERS[b.tier] ? t(`families.${b.tier}.label`) : b.tier;
   const withNotes = MILESTONES.filter((x) => notes[x.k]);
   const [compareOn, setCompareOn] = useState(false);
@@ -342,7 +352,10 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised,
           <h2 id="journal-batch" data-mo-share-to={`batch-${b.id}`} className="mt-1 font-serif text-[32px] leading-tight break-words">{b.fragrance_name}</h2>
           <p className="mt-1 text-sm" style={{ color: COLORS.inkSoft }}>{metaOf(b)}</p>
           <p className="mt-1 text-sm" style={{ color: COLORS.inkSoft }}>
-            {t("journal.page.poured", { date: dateAt(b, 0) })} · {p.ready ? t("journal.page.ready") : t("journal.page.readyOn", { date: dateAt(b, 90) })}
+            {t("journal.page.poured", { date: dateAt(b, 0) })} ·{" "}
+            {p.ready
+              ? <span data-ready-moment={readyMoment ? "" : undefined} className={readyMoment ? "kx-ready-word inline-block" : undefined} style={{ color: COLORS.verdigrisText ?? COLORS.verdigris }}>{t("journal.page.ready")}</span>
+              : t("journal.page.readyOn", { date: dateAt(b, 90) })}
           </p>
         </div>
         <button type="button" onClick={remind} aria-pressed={remindOn} disabled={remindBusy}
@@ -362,6 +375,7 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised,
         <div className="relative">
           <div aria-hidden="true" className="absolute top-[18px] h-[3px]" style={{ insetInlineStart: "10%", insetInlineEnd: "10%", background: COLORS.line }}>
             <div data-track-fill className="kx-track-fill absolute inset-y-0 start-0" style={{ width: `${pos * 100}%`, background: COLORS.amber }} />
+            {p.ready && <div data-ready-fill className={`absolute inset-0${readyMoment ? " kx-ready-fill" : ""}`} style={{ background: COLORS.verdigris }} />}
           </div>
           {pos < 1 && (
             <span aria-hidden="true" data-today className="absolute top-[8px] w-[2px] h-[23px]" style={{ insetInlineStart: `calc(10% + ${pos * 80}% - 1px)`, background: COLORS.ink }} />

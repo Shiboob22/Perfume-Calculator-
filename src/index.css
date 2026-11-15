@@ -400,6 +400,10 @@ summary::-webkit-details-marker { display: none; }
   .kx-track-fill { transform-origin: left center; animation: kx-track-fill var(--dur-slow) var(--ease-out) both; }
   [dir="rtl"] .kx-track-fill { transform-origin: right center; }
   .kx-settle { animation: kx-settle var(--dur-base) var(--ease-out) both; }
+  /* Ready day (motion M4): verdigris draws over the track just behind its fill, then the word settles; all done by 850 ms. */
+  .kx-ready-fill { transform-origin: left center; animation: kx-track-fill var(--dur-slow) var(--ease-out) var(--dur-fast) both; }
+  [dir="rtl"] .kx-ready-fill { transform-origin: right center; }
+  .kx-ready-word { animation: kx-settle var(--dur-base) var(--ease-out) var(--dur-slow) both; }
 }
 @keyframes kx-track-fill { from { transform: scaleX(0); } }
 @keyframes kx-settle { 0% { opacity: 0; transform: translateY(4px); } 60% { opacity: 1; } 100% { transform: none; } }
