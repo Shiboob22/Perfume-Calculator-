@@ -265,9 +265,10 @@ function CountDueCheckIns() {
 function TabLoading() {
   const { t } = useI18n();
   // With the motion layer on, a still page of slow-sweeping lines; the words stay for screen readers.
+  // Tall enough to keep the footer below the fold, so it does not jump when the page arrives.
   if (motionOn()) {
     return (
-      <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 grid gap-3" role="status">
+      <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 grid gap-3 content-start min-h-[100svh]" role="status">
         <span className="sr-only">{t("app.loading")}</span>
         <Skeleton w="38%" h={28} />
         <Skeleton w="100%" h={14} />
@@ -277,7 +278,7 @@ function TabLoading() {
     );
   }
   return (
-    <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 text-xs font-mono" style={{ color: COLORS.inkSoft }}>
+    <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 text-xs font-mono min-h-[100svh]" style={{ color: COLORS.inkSoft }}>
       {t("app.loading")}
     </div>
   );

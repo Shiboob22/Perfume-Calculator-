@@ -393,6 +393,30 @@ test("a seller sees the bottles promised on a batch; the records page links to t
   await expect(page.locator("[data-record]")).toBeVisible();
 });
 
+test("the room's small motions run, and stop under reduced motion", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page);
+  const names = () => page.evaluate(() => ({
+    fill: getComputedStyle(document.querySelector("[data-track-fill]")).animationName,
+    line: getComputedStyle(document.querySelector(".kx-curve-line") ?? document.body).animationName,
+  }));
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/journal?batch=" + id(4));
+  await expect(page.locator("[data-track-fill]")).toBeAttached();
+  expect((await names()).fill).toBe("kx-track-fill");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect((await names()).fill).toBe("none");
+
+  // A saved note settles in.
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  const detail = page.getByRole("region", { name: "Neroli Eau" });
+  await detail.getByLabel(en.journal.page.note, { exact: true }).fill("Warmer.");
+  await detail.getByRole("button", { name: en.journal.page.save }).click();
+  const saved = detail.getByRole("status").getByText(en.journal.page.saved);
+  await expect(saved).toBeVisible();
+  expect(await saved.evaluate((el) => getComputedStyle(el).animationName)).toBe("kx-settle");
+});
+
 const order = (page) => page.locator("[data-batch]").evaluateAll((els) => els.map((e) => e.getAttribute("data-batch")));
 
 test("the list sorts: needs a note (default), newest, maceration, size; kept on reload", async ({ page }) => {

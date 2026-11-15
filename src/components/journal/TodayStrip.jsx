@@ -19,7 +19,7 @@ export default function TodayStrip({ items, onSaved, onOpen, noOf, locale, t }) 
   return (
     <section aria-labelledby="journal-today" data-today-strip className="p-4 sm:p-5 rounded" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
       <h2 id="journal-today" className="font-serif text-2xl">{t("journal.page.todayStrip.title")}</h2>
-      <p role="status" className="text-sm empty:hidden" style={{ color: COLORS.actionText }}>{done}</p>
+      <p role="status" className="text-sm empty:hidden" style={{ color: COLORS.actionText }}>{done && <span key={done} className="kx-settle inline-block">{done}</span>}</p>
       {due.length > 0 ? (
         <ul className="mt-3 flex flex-col gap-2">
           {due.map(({ item, k }) => (

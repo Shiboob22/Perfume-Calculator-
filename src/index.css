@@ -366,3 +366,14 @@ summary::-webkit-details-marker { display: none; }
   .kx-curve-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: kx-curve-draw var(--dur-slow) var(--ease-out) forwards; }
 }
 @keyframes kx-curve-draw { to { stroke-dashoffset: 0; } }
+
+/* The Journal room's small motions, on the existing tokens; none under reduced motion.
+   The rest timeline fills from where it starts (the right in Arabic), and a saved note's
+   confirmation settles in like ink. */
+@media (prefers-reduced-motion: no-preference) {
+  .kx-track-fill { transform-origin: left center; animation: kx-track-fill var(--dur-slow) var(--ease-out) both; }
+  [dir="rtl"] .kx-track-fill { transform-origin: right center; }
+  .kx-settle { animation: kx-settle var(--dur-base) var(--ease-out) both; }
+}
+@keyframes kx-track-fill { from { transform: scaleX(0); } }
+@keyframes kx-settle { from { opacity: 0; transform: translateY(4px); } }

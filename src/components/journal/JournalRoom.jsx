@@ -179,7 +179,7 @@ export default function JournalRoom() {
   }));
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-6 sm:pt-10 flex flex-col gap-6 sm:gap-9">
+    <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-6 sm:pt-10 flex flex-col gap-6 sm:gap-9 min-h-[100svh]">
       <div>
         <p className="flex items-center gap-3 text-[12px] uppercase tracking-[0.18em] rtl:tracking-normal" style={{ color: COLORS.actionText }}>
           <span dir="ltr" className="tabular-nums">II</span><span>{t("journal.page.room")}</span>
@@ -345,7 +345,7 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised,
         <p className="sr-only">{t("journal.page.today", { n: day })}</p>
         <div className="relative">
           <div aria-hidden="true" className="absolute top-[18px] h-[3px]" style={{ insetInlineStart: "10%", insetInlineEnd: "10%", background: COLORS.line }}>
-            <div data-track-fill className="absolute inset-y-0 start-0" style={{ width: `${pos * 100}%`, background: COLORS.amber }} />
+            <div data-track-fill className="kx-track-fill absolute inset-y-0 start-0" style={{ width: `${pos * 100}%`, background: COLORS.amber }} />
           </div>
           {pos < 1 && (
             <span aria-hidden="true" data-today className="absolute top-[8px] w-[2px] h-[23px]" style={{ insetInlineStart: `calc(10% + ${pos * 80}% - 1px)`, background: COLORS.ink }} />
@@ -460,8 +460,9 @@ function NoteEditor({ b, m, day, note, onSaved, t }) {
           {status === "saving" ? t("journal.page.saving") : t("journal.page.save")}
         </button>
         <p role="status" className="text-sm" style={{ color: status === "error" || status === "empty" ? COLORS.danger : COLORS.actionText }}>
-          {status === "saved" && t("journal.page.saved")}
-          {status === "queued" && t("journal.page.savedOffline")}
+          {(status === "saved" || status === "queued") && (
+            <span key={status} className="kx-settle inline-block">{status === "saved" ? t("journal.page.saved") : t("journal.page.savedOffline")}</span>
+          )}
           {status === "error" && t("journal.page.saveFailed")}
           {status === "empty" && t("journal.page.needSomething")}
         </p>
