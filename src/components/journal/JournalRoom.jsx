@@ -29,6 +29,11 @@ import OilOverlay from "./OilOverlay";
 import BatchCompare from "./BatchCompare";
 import BatchRecord from "./BatchRecord";
 import PushToggle from "./PushToggle";
+import SaveState from "../kx/SaveState";
+
+// The note editor's status, in the shared save-state language (kx/SaveState).
+const SAVE_STATE = { saved: "saved", queued: "queued", error: "failed", empty: "failed" };
+const SAVE_TEXT = { saved: "journal.page.saved", queued: "journal.page.savedOffline", error: "journal.page.saveFailed", empty: "journal.page.needSomething" };
 
 // The Journal room (Bench SaaS Phase 5, prototype Journal.dc.html): every
 // logged batch rests 90 days and is noted at five milestones. Built on the
@@ -461,13 +466,7 @@ function NoteEditor({ b, m, day, note, onSaved, t }) {
           className="min-h-[48px] px-5 text-[15px] font-medium rounded disabled:opacity-60" style={{ background: COLORS.ink, color: COLORS.paper }}>
           {status === "saving" ? t("journal.page.saving") : t("journal.page.save")}
         </button>
-        <p role="status" className="text-sm" style={{ color: status === "error" || status === "empty" ? COLORS.danger : COLORS.actionText }}>
-          {(status === "saved" || status === "queued") && (
-            <span key={status} className="kx-settle inline-block">{status === "saved" ? t("journal.page.saved") : t("journal.page.savedOffline")}</span>
-          )}
-          {status === "error" && t("journal.page.saveFailed")}
-          {status === "empty" && t("journal.page.needSomething")}
-        </p>
+        <SaveState state={SAVE_STATE[status]}>{SAVE_TEXT[status] && t(SAVE_TEXT[status])}</SaveState>
       </div>
     </div>
   );

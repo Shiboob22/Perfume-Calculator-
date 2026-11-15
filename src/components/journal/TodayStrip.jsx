@@ -3,6 +3,7 @@ import { COLORS } from "../../lib/theme";
 import { dueToday, nextUp } from "../../lib/calc";
 import { saveNote, TAGS } from "../../lib/journalNotes";
 import Sheet from "../kx/Sheet";
+import SaveState from "../kx/SaveState";
 
 // "Smell today": what is due, one card per batch, oldest window first, and a
 // quick note in a sheet (rating, tags, one line, Save: three taps). The full
@@ -10,7 +11,7 @@ import Sheet from "../kx/Sheet";
 // comes next.
 export default function TodayStrip({ items, onSaved, onOpen, noOf, locale, t }) {
   const [target, setTarget] = useState(null); // { item, k }
-  const [done, setDone] = useState("");
+  const [done, setDone] = useState(null); // { state, text }
   const due = dueToday(items);
   const next = due.length ? null : nextUp(items);
   const name = (k) => t(`journal.page.milestones.${k}`);
@@ -19,7 +20,7 @@ export default function TodayStrip({ items, onSaved, onOpen, noOf, locale, t }) 
   return (
     <section aria-labelledby="journal-today" data-today-strip className="p-4 sm:p-5 rounded" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
       <h2 id="journal-today" className="font-serif text-2xl">{t("journal.page.todayStrip.title")}</h2>
-      <p role="status" className="text-sm empty:hidden" style={{ color: COLORS.actionText }}>{done && <span key={done} className="kx-settle inline-block">{done}</span>}</p>
+      <SaveState state={done?.state} className="empty:hidden">{done?.text}</SaveState>
       {due.length > 0 ? (
         <ul className="mt-3 flex flex-col gap-2">
           {due.map(({ item, k }) => (
@@ -30,7 +31,7 @@ export default function TodayStrip({ items, onSaved, onOpen, noOf, locale, t }) 
                   {t("journal.page.todayStrip.card", { no: no(item), milestone: name(k) })}
                 </span>
               </button>
-              <button type="button" onClick={() => { setDone(""); setTarget({ item, k }); }}
+              <button type="button" onClick={() => { setDone(null); setTarget({ item, k }); }}
                 className="min-h-[44px] px-4 text-sm font-medium rounded" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
                 {t("journal.page.todayStrip.add")}
               </button>
@@ -54,7 +55,7 @@ export default function TodayStrip({ items, onSaved, onOpen, noOf, locale, t }) 
           <QuickNote key={`${target.item.b.id}:${target.k}`} target={target} t={t}
             onSaved={(checkin, queued) => {
               onSaved(target.item.b, checkin);
-              setDone(t(queued ? "journal.page.savedOffline" : "journal.page.todayStrip.saved", { no: no(target.item), milestone: name(target.k) }));
+              setDone({ state: queued ? "queued" : "saved", text: t(queued ? "journal.page.savedOffline" : "journal.page.todayStrip.saved", { no: no(target.item), milestone: name(target.k) }) });
               setTarget(null);
             }} />
         )}
