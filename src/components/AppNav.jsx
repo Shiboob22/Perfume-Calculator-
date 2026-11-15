@@ -165,9 +165,9 @@ const BarButton = React.forwardRef(function BarButton({ d, to, on, current, expa
       className="relative w-full min-h-[60px] pt-2 pb-1.5 flex flex-col items-center justify-center gap-1 text-[11px] leading-none"
       style={{ color: on ? COLORS.ink : COLORS.inkSoft, fontWeight: on ? 600 : 400 }}>
       {/* The room you are in: an ink rule on the bar's top edge and a tinted plate under the icon. */}
-      <span aria-hidden="true" data-mo-ind="bar" data-on={on && !isMore ? "" : undefined} className="absolute top-0 inset-x-4 h-[2px] transition-opacity duration-200"
+      <span aria-hidden="true" data-mo-ind="bar" data-on={on && !isMore ? "" : undefined} className="absolute top-0 inset-x-4 h-[2px] transition-opacity duration-fast"
         style={{ background: COLORS.ink, opacity: on ? 1 : 0 }} />
-      <span className="relative inline-flex items-center justify-center w-12 h-7 transition-colors duration-200"
+      <span className="relative inline-flex items-center justify-center w-12 h-7 transition-colors duration-fast"
         style={{ background: on ? COLORS.sand : "transparent" }}>
         <I size={22} />
         {badge && <span className="absolute -top-1 -end-1">{badge}</span>}
@@ -195,10 +195,10 @@ function MoreSheet({ items, active, to, onGo, onSignOut, onClose: close }) {
 
   return (
     <div data-leaving={leaving ? "" : undefined} className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
-      <div aria-hidden="true" className="mo-sheet-scrim absolute inset-0 motion-safe:animate-[sheetFade_.2s_ease-out]"
+      <div aria-hidden="true" className="mo-sheet-scrim absolute inset-0 motion-safe:animate-[sheetFade_var(--dur-base)_var(--ease-out)]"
         style={{ background: "rgba(0,0,0,.45)" }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-labelledby={titleId}
-        className="mo-sheet-panel relative max-h-[85vh] overflow-y-auto motion-safe:animate-[sheetUp_.24s_cubic-bezier(.2,.8,.2,1)]"
+        className="mo-sheet-panel relative max-h-[85vh] overflow-y-auto motion-safe:animate-[sheetUp_var(--dur-base)_var(--ease-out)]"
         style={{ background: COLORS.paper, borderTop: `1px solid ${COLORS.line}`, paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <h2 id={titleId} className="font-serif italic text-2xl" style={{ color: COLORS.ink }}>{t("app.moreTitle")}</h2>

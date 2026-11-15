@@ -8,7 +8,6 @@
    of .rs; elsewhere scrollFallback() writes --pp on it, same keyframes. */
 .rs-track { --rs-w: clamp(20rem, 29vw, 33rem); --rs-gap: 1px; --rs-pad: 0px; }
 @keyframes rs-slide { from { translate: 0 0; } to { translate: calc(var(--mo-dir) * -1 * max(0px, 6 * var(--rs-w) + 5 * var(--rs-gap) + 2 * var(--rs-pad) - 100cqw)) 0; } }
-@keyframes rs-hint { 0%, 4% { opacity: 1; } 12%, 100% { opacity: 0; } }
 .rs-meter { display: none; }
 
 @media (prefers-reduced-motion: no-preference) and (min-width: 1024px) {
