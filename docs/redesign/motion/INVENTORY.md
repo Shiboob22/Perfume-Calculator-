@@ -23,6 +23,7 @@ M0 of `docs/redesign/Kyphira-Motion_Brief_v1.md`, 2026-11-15. Every keyframe, ti
 | `rs-slide` | `src/site/compounding/rooms.css` | The rooms strip | keep |
 | `kDrift`, `kPulse` | `index.css` | Homepage v2 export, never referenced | **removed** |
 | `rs-hint` | `rooms.css` | Never referenced | **removed** |
+| `mo-vt-out`, `mo-vt-in` | `motion.css` | M2: a route change going forward or back (the old view leaves on `fast`, the new arrives on `base`, 16 px along the reading direction) | new in M2 |
 
 Total after M0: 51 keyframes in 4 stylesheets (was 54), each referenced (tested).
 

@@ -53,6 +53,13 @@ Matter on a bench: liquid pours and settles, ink draws and dries, weight lands a
 - **Sheets**: `kx/Sheet` rises in `base` and leaves in `fast`, keeping its last title and content while it leaves; the More sheet leaves in `fast` too. At once under reduced motion.
 - **Where you are**: the phone bar has one room rule (`.kx-bar-ind`) that slides by transform to the room you open, toward the left in Arabic; still under reduced motion.
 
+## Carry (M2)
+
+- **Direction**: going deeper into a room (Atlas to a fragrance, the Bench to its batches) comes in from the end edge; coming out of it, from the start edge; another room, or the same page, is a cross-fade. The old view leaves on `fast`, the new arrives on `base`, 16 px along the reading direction (`--mo-dir`: the left in Arabic). Worked out from the two paths (`navDirection()` in `src/motion/carry.js`); browser back and forward read the history position.
+- **Shared element**: the source is marked `data-mo-share="<key>"`, the destination `data-mo-share-to="<key>"`. They take the one name `mo-share` only while the transition runs, one at a time, and only when both are on screen; it travels on `base` with the in-out curve. Today: a Journal row's name into the batch detail, a fragrance card's name into its Atlas page (the card carries the name, so the heading is there before the page loads), a formula's name in the Bench rail into the Bench's name field.
+- **Coming back**: browser back and forward return to where that page was scrolled (kept per history entry for the tab), waiting for a list that loads after the route, and giving up if the reader scrolls first.
+- **Fallbacks**: reduced motion is a cut; a browser without View Transitions gets the page fade it had; a low-power phone gets the cross-fade without travel or shared element.
+
 ## Where each piece lives
 
 - Tokens and primitives (site layer): `src/motion/`
