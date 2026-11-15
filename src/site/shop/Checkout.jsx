@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "../../motion";
-import { Button, Field, Notice } from "../../components/kx";
+import { Button, Field, ListSkeleton, Notice } from "../../components/kx";
 import { COLORS, TYPE } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { fetchProducts, placeOrder } from "../../lib/shopApi";
@@ -147,7 +147,7 @@ export default function Checkout() {
 
         <aside aria-labelledby="co-summary" className="lg:sticky lg:top-6 p-5 rounded" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
           <h2 id="co-summary" className="font-serif text-2xl mb-4">{t("shop.checkout.summary")}</h2>
-          {!products ? <p role="status" style={{ color: COLORS.inkSoft }}>{t("shop.loading")}</p> : (
+          {!products ? <ListSkeleton label={t("shop.loading")} rows={2} className="mb-5" /> : (
             <>
               {gone.length > 0 && <Notice tone="info" className="mb-4">{t("shop.cart.gone")}</Notice>}
               <ul className="list-none p-0 flex flex-col gap-2 mb-4">
@@ -166,7 +166,7 @@ export default function Checkout() {
           )}
           <div ref={errRef} tabIndex={-1} aria-live="assertive" className="focus:outline-none">
             {error && <Notice tone="warning" className="mb-4">{text(error)}</Notice>}
-            {tried && !error && (Object.keys(errors).length > 0 || !proof) && <p role="alert" className="text-sm mb-4" style={{ color: COLORS.danger }}>{t("shop.checkout.fix")}</p>}
+            {tried && !error && (Object.keys(errors).length > 0 || !proof) && <p role="alert" className="kx-settle text-sm mb-4" style={{ color: COLORS.danger }}>{t("shop.checkout.fix")}</p>}
           </div>
           <Button type="submit" size="lg" className="w-full" loading={sending} disabled={!products || preparing}>
             {sending ? t("shop.checkout.sending") : t("shop.checkout.submit")}
