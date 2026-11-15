@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useNavigate } from "../motion";
+import { fileBatch, useNavigate } from "../motion";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
@@ -200,6 +200,7 @@ export default function BenchMode({ demo = null }) {
   const [qc, setQc] = useState(() => new Set(saved?.qc ?? []));
   const [timer, setTimer] = useState(null); // seconds left, or null
   // A run that was logged stays logged after a reload: no second log.
+  const logBtn = useRef(null);
   const [status, setStatus] = useState(saved?.status === "saved" || saved?.status === "queued" ? saved.status : null); // null | saving | saved | queued | error
   const [batchNo, setBatchNo] = useState(saved?.batchNo ?? null);
   const [ordersLinked, setOrdersLinked] = useState(null);
@@ -286,6 +287,8 @@ export default function BenchMode({ demo = null }) {
     };
     try {
       const logged = await logBatch(batch);
+      // The product's signature (motion M4): the batch is filed into the Journal tab.
+      if (!logged?.duplicate) fileBatch({ from: logBtn.current, label: logged?.batch_no ? t("journal.page.no", { no: String(logged.batch_no).padStart(3, "0") }) : "" });
       setStatus("saved");
       if (logged?.batch_no) setBatchNo(logged.batch_no);
       if (plan.orderIds?.length) setOrdersLinked(Number(logged.ordersLinked) || 0);
@@ -294,6 +297,7 @@ export default function BenchMode({ demo = null }) {
     } catch (e) {
       if (isOffline(e)) {
         enqueue(batch);
+        fileBatch({ from: logBtn.current, label: "" });
         setStatus("queued");
       } else {
         setStatus("error");
@@ -492,7 +496,7 @@ export default function BenchMode({ demo = null }) {
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.total")}</dt>
               <dd dir="ltr" className="text-start font-mono">{fmt2(labelled.total)} g</dd>
             </dl>
-            <button type="button" onClick={handleLog} disabled={Boolean(demo) || status === "saving" || status === "saved" || status === "queued"}
+            <button ref={logBtn} type="button" onClick={handleLog} disabled={Boolean(demo) || status === "saving" || status === "saved" || status === "queued"}
               className="mt-6 w-full py-4 rounded text-lg font-semibold disabled:opacity-60" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
               {status === "saving" ? t("bench.label.saving") : t("bench.label.log")}
             </button>

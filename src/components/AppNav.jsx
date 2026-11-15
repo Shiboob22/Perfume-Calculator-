@@ -158,7 +158,7 @@ export default function AppNav({ active, tabs: baseTabs, dueCount, flags: baseFl
 
 /** A destination: an in-app Link, or a plain link to the public site. */
 function Dest({ d, to, current, onClick, className, style, children }) {
-  const props = { className, style, onClick, "aria-current": current ? "page" : undefined };
+  const props = { className, style, onClick, "aria-current": current ? "page" : undefined, "data-tab": d.id };
   return d.href ? <a href={d.href} {...props}>{children}</a> : <Link to={to} {...props}>{children}</Link>;
 }
 
