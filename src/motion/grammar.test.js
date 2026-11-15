@@ -235,3 +235,23 @@ describe("M4: mark", () => {
     expect(src("../components/wardrobe/Today.jsx")).toContain('<Reveal as="article" eager from="down"');
   });
 });
+
+describe("M5: the public site", () => {
+  const src = (p) => readFileSync(new URL(p, import.meta.url), "utf8");
+  it("gives the guides tabs one rule that slides by transform, as the phone bar's", () => {
+    const g = src("../site/GuidesIndex.jsx");
+    expect(g.match(/data-mo-ind="guides"/g)).toHaveLength(1);
+    expect(g).toContain('className="kx-bar-ind');
+    expect(g).not.toContain("border-b-2"); // no rule per button
+  });
+  it("slides the guide lists that a search or filter changes", () => {
+    for (const f of ["../site/GuidesIndex.jsx", "../site/MethodSequence.jsx"]) {
+      expect(src(f), f).toMatch(/useFlip\(list, guides\.map\(\(g\) => g\.slug\)\.join\(","\)\)/);
+      expect(src(f), f).toContain("data-flip={g.slug}");
+    }
+  });
+  it("lets the plan links answer a press, and the shop load in its own shape", () => {
+    expect(src("../site/PlanCards.jsx").match(/className="mo-press /g)).toHaveLength(2);
+    for (const f of ["../site/shop/ShopPage.jsx", "../site/shop/Checkout.jsx"]) expect(src(f), f).toContain("<ListSkeleton");
+  });
+});

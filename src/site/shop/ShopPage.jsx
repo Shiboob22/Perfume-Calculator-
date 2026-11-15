@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useFlip } from "../../motion";
-import { Button, Notice } from "../../components/kx";
+import { Button, ListSkeleton, Notice } from "../../components/kx";
 import FlaconMark from "../../components/FlaconMark";
 import { COLORS, TYPE } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
@@ -39,7 +39,8 @@ export default function ShopPage() {
           {error === "loadFailed" && <Button variant="secondary" onClick={load} className="mt-2">{t("shop.retry")}</Button>}
         </Notice>
       )}
-      {!error && !products && <p role="status" style={{ color: COLORS.inkSoft }}>{t("shop.loading")}</p>}
+      {/* Loading keeps the shape of the products (motion M3). */}
+      {!error && !products && <ListSkeleton label={t("shop.loading")} rows={3} framed className="max-w-xl" />}
       {products && products.length === 0 && <p style={{ color: COLORS.inkSoft }}>{t("shop.empty")}</p>}
 
       {products && products.length > 0 && (
@@ -55,7 +56,8 @@ export default function ShopPage() {
         <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 px-4 py-3 flex items-center gap-3"
           style={{ background: COLORS.card, borderTop: `1px solid ${COLORS.line}`, paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
           <p className="flex-1 text-sm" style={{ color: COLORS.ink }}>
-            <span className="font-medium tabular-nums">{t("shop.cart.count", { count })}</span>
+            {/* The count settles in when it changes (as the nav badge, motion M3). */}
+            <span key={count} data-cart-count={count} className="kx-settle inline-block font-medium tabular-nums">{t("shop.cart.count", { count })}</span>
             {" "}<span className="tabular-nums" style={{ color: COLORS.inkSoft }}>{money(total, locale)}</span>
           </p>
           <Button as="a" href="#cart" variant="secondary">{t("shop.cart.view")}</Button>
@@ -101,7 +103,7 @@ function ProductCard({ product }) {
             {hasOptions ? money(price, locale) : money(fromPrice(product), locale)}
           </p>
           <Button onClick={() => { add({ productId: product.id, variantId }); setJustAdded(true); }} aria-label={`${t("shop.add")}: ${name}`}>
-            {justAdded ? t("shop.added") : t("shop.add")}
+            <span key={justAdded ? "added" : "add"} className={justAdded ? "kx-settle inline-block" : undefined}>{justAdded ? t("shop.added") : t("shop.add")}</span>
           </Button>
           <span role="status" className="sr-only">{justAdded ? `${t("shop.added")}: ${name}` : ""}</span>
         </div>
