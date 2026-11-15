@@ -172,4 +172,11 @@ describe("smell today", () => {
     expect(nextUp([a, b])).toMatchObject({ k: "w2", at: start + 14 * D });
     expect(nextUp([mk(1, 90)])).toBeNull();
   });
+  it("the next milestone: an unknown start is skipped, a tie goes to the newer batch", () => {
+    expect(nextUp([{ no: 9, day: 8, start: NaN }])).toBeNull();
+    expect(nextUp([mk(1, 8), mk(2, 8)])!.item.no).toBe(2);
+    expect(nextUp([mk(2, 8), mk(1, 8)])!.item.no).toBe(2);
+    // A later date never replaces an earlier one.
+    expect(nextUp([mk(1, 8), { ...mk(2, 8), start: start + 5 * D }])!.item.no).toBe(1);
+  });
 });

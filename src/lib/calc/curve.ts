@@ -140,7 +140,7 @@ export function oilOverlay(batches: readonly OilBatch[], selectedId: string, box
   const rated = (b: OilBatch) => (b.checkins ?? []).some((c) => !c.skipped && c.rating != null && c.rating >= 1);
   const withNotes = same.filter(rated);
   if (withNotes.length < 2 || !rated(me)) return null;
-  const span = Math.max(box.span ?? CURVE_DAYS, ...withNotes.flatMap((b) => (b.checkins ?? []).filter((c) => !c.skipped).map((c) => c.day)));
+  const span = Math.max(box.span ?? CURVE_DAYS, ...withNotes.flatMap((b) => b.checkins!.filter((c) => !c.skipped).map((c) => c.day)));
   return withNotes.map((batch) => ({ batch, curve: buildCurve(batch.checkins, { ...box, span }) }));
 }
 

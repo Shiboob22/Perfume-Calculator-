@@ -105,3 +105,35 @@ describe("one batch summarised for a side-by-side compare", () => {
     expect(summarizeBatch({ pct: 15, checkins: null })).toEqual({ tier: "EDT", pct: 15, notes: 0, rated: 0, peak: null, last: null, tags: [] });
   });
 });
+
+describe("oil overlay, the edges", () => {
+  const ob = (id: string, no: number, checkins: unknown) => ({ id, no, oil: "o", pct: 25, checkins }) as never;
+  const two = (d1: number, r1: number, d2: number, r2: number) => [n("a", d1, r1), n("b", d2, r2)];
+
+  it("reads a batch with no name as an empty name", () => {
+    expect(oilKey({})).toBe("name:");
+    expect(oilKey({ fragrance_name: null })).toBe("name:");
+  });
+
+  it("skips batches whose notes are missing, and uses the box's own span", () => {
+    const o = oilOverlay([ob("1", 1, two(0, 3, 7, 4)), ob("2", 2, two(0, 2, 7, 5)), ob("3", 3, null)], "1", { ...box, span: 120 })!;
+    expect(o.map((c) => c.batch.id)).toEqual(["1", "2"]);
+    expect(oilOverlay([ob("1", 1, null), ob("2", 2, two(0, 2, 7, 5))], "1", box)).toBeNull();
+  });
+
+  it("breaks a tie on rating by the earlier peak day, then by the newer batch", () => {
+    const curves = (list: ReturnType<typeof ob>[]) => oilOverlay(list, "1", box)!;
+    // Same best rating: the batch that reached it sooner wins.
+    expect(bestOf(curves([ob("1", 1, two(0, 2, 30, 5)), ob("2", 2, two(0, 2, 14, 5))]))!.batch.id).toBe("2");
+    expect(bestOf(curves([ob("1", 1, two(0, 2, 14, 5)), ob("2", 2, two(0, 2, 30, 5))]))!.batch.id).toBe("1");
+    // Same rating on the same day: the newer batch.
+    expect(bestOf(curves([ob("1", 1, two(0, 2, 14, 5)), ob("2", 2, two(0, 2, 14, 5))]))!.batch.id).toBe("2");
+    expect(bestOf(curves([ob("1", 7, two(0, 2, 14, 5)), ob("2", 2, two(0, 2, 14, 5))]))!.batch.id).toBe("1");
+  });
+
+  it("has no best batch when none has a peak", () => {
+    expect(bestOf([])).toBeNull();
+    // One rating each: on the overlay, but one rating is not a peak.
+    expect(bestOf(oilOverlay([ob("1", 1, [n("a", 0, 3)]), ob("2", 2, [n("a", 0, 4)])], "1", box)!)).toBeNull();
+  });
+});
