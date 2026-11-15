@@ -1,7 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createHmac } from 'node:crypto';
 import { serviceClient, UUID } from './http.js';
-import { loadEntitlements, can } from './entitlements.js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { loadEntitlements, can, lockedFeature } from './entitlements.js';
+import { sendPush, vapidFromEnv, validEndpoint } from './webpush.js';
 import { sendEmail } from './email.js';
 import { dueToday, type MilestoneKey } from '../../src/lib/calc/restTracker.js';
 
@@ -93,15 +95,22 @@ function siteUrl(): string {
   return (process.env.SITE_URL || 'https://scent-handbook-app.vercel.app').replace(/\/$/, '');
 }
 
-/** GET /api/checkins?job=reminders (cron). `?dry=1` reports what would be sent and sends nothing. */
+/**
+ * GET /api/checkins?job=reminders (cron). `?dry=1` reports what would be sent and sends nothing.
+ * Two channels, each with its own switch: email (REMINDERS_ENABLED=0 turns it off) and web push
+ * (PUSH_ENABLED=0 turns it off; it also needs the VAPID keys). Each is announced once per
+ * milestone (reminder_sends.channel).
+ */
 export async function runReminders(req: VercelRequest, res: VercelResponse) {
   const secret = process.env.CRON_SECRET;
   if (!secret || req.headers.authorization !== `Bearer ${secret}`) return res.status(401).json({ error: 'Unauthorized.' });
-  if (process.env.REMINDERS_ENABLED === '0') return res.status(200).json({ skipped: 'disabled' });
+  const emailOn = process.env.REMINDERS_ENABLED !== '0';
+  const vapid = process.env.PUSH_ENABLED === '0' ? null : vapidFromEnv();
+  if (!emailOn && !vapid) return res.status(200).json({ skipped: 'disabled' });
   const dry = req.query.dry === '1';
   const now = new Date();
   const supabase = serviceClient();
-  const out = { users: 0, sent: 0, failed: 0, dry, would: [] as Array<{ user: string; items: string[] }> };
+  const out = { users: 0, sent: 0, failed: 0, push: { sent: 0, gone: 0, failed: 0 }, dry, would: [] as Array<{ user: string; channel: string; items: string[] }> };
   try {
     const { data: rows, error } = await supabase
       .from('batches')
@@ -115,38 +124,101 @@ export async function runReminders(req: VercelRequest, res: VercelResponse) {
       const entitlements = await loadEntitlements(supabase, userId);
       if (!can(entitlements, 'reminders')) continue;
       const { data: done, error: doneError } = await supabase
-        .from('reminder_sends').select('batch_id, milestone').eq('user_id', userId).eq('channel', 'email');
+        .from('reminder_sends').select('batch_id, milestone, channel').eq('user_id', userId);
       if (doneError) throw doneError;
-      const sent = new Set((done ?? []).map((r: any) => `${r.batch_id}:${r.milestone}`));
-      const due = remindersDue(batches, now, sent);
-      if (!due.length) continue;
+      const sentOn = (channel: string) => new Set((done ?? []).filter((r: any) => r.channel === channel).map((r: any) => `${r.batch_id}:${r.milestone}`));
+      const dueEmail = emailOn ? remindersDue(batches, now, sentOn('email')) : [];
+      const duePush = vapid ? remindersDue(batches, now, sentOn('push')) : [];
+      if (!dueEmail.length && !duePush.length) continue;
       out.users += 1;
-      if (dry) { out.would.push({ user: userId, items: due.map((d) => `${d.batch.id}:${d.k}`) }); continue; }
+      const record = async (due: Due[], channel: 'email' | 'push') => {
+        const { error: insertError } = await supabase.from('reminder_sends').upsert(
+          due.map((d) => ({ batch_id: d.batch.id, user_id: userId, milestone: d.k, channel })),
+          { onConflict: 'batch_id,milestone,channel', ignoreDuplicates: true });
+        if (insertError) console.error(JSON.stringify({ type: 'journal_reminder', channel, error: insertError.message }));
+      };
 
-      const { data: u } = await supabase.auth.admin.getUserById(userId);
-      const to = u?.user?.email;
-      if (!to) { out.failed += 1; continue; }
-      const { data: profile } = await supabase.from('profiles').select('locale').eq('user_id', userId).maybeSingle();
-      const lang = profile?.locale === 'ar' ? 'ar' : 'en';
-      const base = siteUrl();
-      const unsub = `${base}/api/checkins?unsub=${userId}.${unsubToken(userId, secret)}`;
-      const mail = buildDigest(due, lang, { journal: `${base}${lang === 'ar' ? '/ar' : ''}/journal`, unsub });
-      const ok = await sendEmail({
-        to, ...mail, from: process.env.REMINDER_FROM_EMAIL || undefined,
-        headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
-      }, 'journal_reminder');
-      if (!ok) { out.failed += 1; continue; }
-      out.sent += 1;
-      const { error: insertError } = await supabase.from('reminder_sends').upsert(
-        due.map((d) => ({ batch_id: d.batch.id, user_id: userId, milestone: d.k, channel: 'email' })),
-        { onConflict: 'batch_id,milestone,channel', ignoreDuplicates: true });
-      if (insertError) console.error(JSON.stringify({ type: 'journal_reminder', error: insertError.message }));
+      // Web push: an empty push to every device this owner turned it on for.
+      if (duePush.length) {
+        const { data: subs } = await supabase.from('push_subscriptions').select('endpoint').eq('user_id', userId);
+        if (dry) out.would.push({ user: userId, channel: 'push', items: duePush.map((d) => `${d.batch.id}:${d.k}`) });
+        else if (subs?.length) {
+          let delivered = false;
+          for (const sub of subs) {
+            const r = await sendPush(sub.endpoint, vapid!);
+            out.push[r] += 1;
+            if (r === 'sent') delivered = true;
+            if (r === 'gone') await supabase.from('push_subscriptions').delete().eq('user_id', userId).eq('endpoint', sub.endpoint);
+          }
+          if (delivered) await record(duePush, 'push');
+        }
+      }
+
+      // Email.
+      if (dueEmail.length) {
+        if (dry) { out.would.push({ user: userId, channel: 'email', items: dueEmail.map((d) => `${d.batch.id}:${d.k}`) }); continue; }
+        const { data: u } = await supabase.auth.admin.getUserById(userId);
+        const to = u?.user?.email;
+        if (!to) { out.failed += 1; continue; }
+        const { data: profile } = await supabase.from('profiles').select('locale').eq('user_id', userId).maybeSingle();
+        const lang = profile?.locale === 'ar' ? 'ar' : 'en';
+        const base = siteUrl();
+        const unsub = `${base}/api/checkins?unsub=${userId}.${unsubToken(userId, secret)}`;
+        const mail = buildDigest(dueEmail, lang, { journal: `${base}${lang === 'ar' ? '/ar' : ''}/journal`, unsub });
+        const ok = await sendEmail({
+          to, ...mail, from: process.env.REMINDER_FROM_EMAIL || undefined,
+          headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
+        }, 'journal_reminder');
+        if (!ok) { out.failed += 1; continue; }
+        out.sent += 1;
+        await record(dueEmail, 'email');
+      }
     }
     return res.status(200).json(out);
   } catch (err: any) {
     console.error(JSON.stringify({ type: 'journal_reminder', error: String(err?.message ?? err).slice(0, 300) }));
     return res.status(500).json({ error: 'Reminder job failed.' });
   }
+}
+
+/** GET /api/checkins?push=key: the public key a browser subscribes with (404 when push is not set up). */
+export function pushKey(_req: VercelRequest, res: VercelResponse) {
+  const v = process.env.PUSH_ENABLED === '0' ? null : vapidFromEnv();
+  if (!v) return res.status(404).json({ error: 'Push is not set up.', code: 'push_off' });
+  return res.status(200).json({ publicKey: v.publicKey });
+}
+
+const MAX_SUBSCRIPTIONS = 10;
+
+/** POST /api/checkins?push=subscribe { endpoint, keys }, Pro (journal.reminders): this browser is nudged. */
+export async function pushSubscribe(req: VercelRequest, res: VercelResponse, supabase: SupabaseClient, userId: string) {
+  const b = req.body ?? {};
+  if (!validEndpoint(b.endpoint)) return res.status(400).json({ error: 'A push endpoint is needed.', code: 'invalid_subscription' });
+  const text = (v: unknown, max: number) => (typeof v === 'string' && v.length <= max ? v : null);
+  try {
+    if (!can(await loadEntitlements(supabase, userId), 'reminders')) return res.status(403).json(lockedFeature('journal.reminders'));
+    const { count, error: countError } = await supabase.from('push_subscriptions').select('id', { count: 'exact', head: true }).eq('user_id', userId);
+    if (countError) throw countError;
+    const { data: existing } = await supabase.from('push_subscriptions').select('id').eq('endpoint', b.endpoint).maybeSingle();
+    if (!existing && (count ?? 0) >= MAX_SUBSCRIPTIONS) return res.status(409).json({ error: 'Too many devices.', code: 'too_many_devices' });
+    // The same browser signing in as someone else moves the subscription to them.
+    const { error } = await supabase.from('push_subscriptions').upsert(
+      { user_id: userId, endpoint: b.endpoint, p256dh: text(b.keys?.p256dh, 200), auth: text(b.keys?.auth, 100) },
+      { onConflict: 'endpoint' });
+    if (error) throw error;
+    return res.status(201).json({ success: true });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Could not save the subscription.' });
+  }
+}
+
+/** DELETE /api/checkins?push=unsubscribe { endpoint }: this browser is not nudged any more. Always allowed. */
+export async function pushUnsubscribe(req: VercelRequest, res: VercelResponse, supabase: SupabaseClient, userId: string) {
+  const endpoint = req.body?.endpoint;
+  if (!validEndpoint(endpoint)) return res.status(400).json({ error: 'A push endpoint is needed.', code: 'invalid_subscription' });
+  const { error } = await supabase.from('push_subscriptions').delete().eq('user_id', userId).eq('endpoint', endpoint);
+  if (error) return res.status(500).json({ error: error.message });
+  return res.status(200).json({ success: true });
 }
 
 /** GET /api/checkins?unsub=<userId>.<token>: turns the bell off on every batch of that owner. */

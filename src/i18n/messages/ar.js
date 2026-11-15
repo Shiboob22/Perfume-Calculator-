@@ -776,6 +776,13 @@ export default {
       save: "احفظ الملاحظة",
       saving: "جارٍ الحفظ…",
       saved: "حُفظت الملاحظة",
+      push: {
+        enable: "نبّهني على هذا الجهاز",
+        on: "التنبيهات مفعّلة على هذا الجهاز",
+        note: "إشعار حين تصبح دفعة جاهزة للشمّ. فعّل الجرس على الدفعات التي تريدها.",
+        denied: "الإشعارات محظورة لهذا الموقع. اسمح بها من إعدادات المتصفح لتصلك التنبيهات.",
+        failed: "تعذّر تفعيل التنبيهات. حاول مرة أخرى.",
+      },
       record: { title: "السجل", promised: { one: "زجاجة واحدة موعودة، جاهزة في {date}", two: "زجاجتان موعودتان، جاهزتان في {date}", few: "{count} زجاجات موعودة، جاهزة في {date}", many: "{count} زجاجة موعودة، جاهزة في {date}", other: "{count} زجاجة موعودة، جاهزة في {date}" } },
       cmp: {
         title: "قارن بين دفعتين",
@@ -1584,7 +1591,7 @@ export default {
     waitlist: { title: "قائمة انتظار Pro", lead: "خطة Pro ليست معروضة للبيع بعد. انضم إلى القائمة لتكون أول من يعلم عند إطلاقها. لن نطلب أي بيانات دفع.", join: "انضم إلى قائمة انتظار Pro", joined: "أنت في القائمة.", failed: "تعذّر الانضمام. حاول مرة أخرى." },
     prefs: { title: "التفضيلات", language: "اللغة", unit: "وحدة القياس", bottle: "حجم الزجاجة المعتاد", sells: "أبيع ما أخلطه", currency: "عملة الأسعار", saved: "تم الحفظ.", saveFailed: "تعذّر الحفظ." },
     data: { title: "بياناتك", lead: "نزّل كل ما حفظته: الخلطات والمخزون والملاحظات والإعدادات المحفوظة والتفضيلات.", json: "تنزيل الكل (JSON)", csv: "تنزيل {table} (CSV)", empty: "لا شيء محفوظ بعد.", failed: "تعذّر تجهيز التنزيل.",
-      tables: { batches: "الخلطات", batch_checkins: "تسجيلات اليوميات", shared_recipes: "الوصفات المشتركة", inventory: "المخزون", fragrance_notes: "الملاحظات", calc_presets: "الإعدادات المحفوظة", recipes: "الوصفات", recipe_versions: "إصدارات الوصفات", recipe_ingredients: "مكوّنات الوصفات", reminder_sends: "التذكيرات المرسلة", seller_orders: "طلبات الزبائن", wardrobe_bottles: "زجاجات الخزانة", wear_log: "سجل الاستعمال", salon_profiles: "ملف الصالون", salon_posts: "منشورات الصالون", salon_likes: "إعجابات الصالون", salon_follows: "متابعات الصالون", salon_reports: "البلاغات التي أرسلتها", profiles: "التفضيلات", pro_waitlist: "قائمة الانتظار", user_plans: "الخطة", fragrances: "العطور التي أضفتها" } },
+      tables: { batches: "الخلطات", batch_checkins: "تسجيلات اليوميات", shared_recipes: "الوصفات المشتركة", inventory: "المخزون", fragrance_notes: "الملاحظات", calc_presets: "الإعدادات المحفوظة", recipes: "الوصفات", recipe_versions: "إصدارات الوصفات", recipe_ingredients: "مكوّنات الوصفات", push_subscriptions: "اشتراكات الإشعارات", reminder_sends: "التذكيرات المرسلة", seller_orders: "طلبات الزبائن", wardrobe_bottles: "زجاجات الخزانة", wear_log: "سجل الاستعمال", salon_profiles: "ملف الصالون", salon_posts: "منشورات الصالون", salon_likes: "إعجابات الصالون", salon_follows: "متابعات الصالون", salon_reports: "البلاغات التي أرسلتها", profiles: "التفضيلات", pro_waitlist: "قائمة الانتظار", user_plans: "الخطة", fragrances: "العطور التي أضفتها" } },
     delete: {
       title: "حذف الحساب",
       lead: "سيُحذف حسابك وكل ما فيه — الخلطات والمخزون والملاحظات والإعدادات المحفوظة والتفضيلات — فورًا، ولا يمكن التراجع عن ذلك. نزّل بياناتك أولًا إن أردت نسخة منها.",

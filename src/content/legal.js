@@ -31,6 +31,7 @@ export const LEGAL = {
         { id: "reminders", h: "Journal reminder emails", p: [
           "If you switch the reminder on for a batch (a Pro feature), we email you at your account address when that batch reaches a Journal milestone and has no note yet. At most one email a morning, only when something is due, and each milestone once.",
           "To send it we record which batch and milestone we emailed (so it is not sent twice) and pass your email address, the batch number and fragrance name to our email provider, Resend. Every email has a link that switches reminders off on all your batches. Turning the bell off on a batch stops them for that batch.",
+          "If you switch on \"Nudge this device\", we also keep that browser's push address (and its public keys) so your device can show a notification. The notification carries no words from us about your batches: your device writes the message. The address is deleted when you switch nudges off, when the browser says it is gone, and when you delete your account. Push goes through your browser's own push service (Google, Apple or Mozilla, depending on the browser).",
         ] },
         { id: "ai", h: "Ask (AI)", p: [
           "Ask is a Pro feature that sends your question, the conversation so far, and your 30 most recent batches (date, fragrance name, family, strength, size, oil weight, oil type, price and cost fields, and notes) to Google's Gemini API to write an answer. Your email address is not sent.",
@@ -77,6 +78,7 @@ export const LEGAL = {
         { id: "reminders", h: "رسائل تذكير الدفتر", p: [
           "إن فعّلت التذكير على دفعة (ميزة Pro) نراسلك على عنوان حسابك حين تبلغ تلك الدفعة محطة في الدفتر ولا ملاحظة لها بعد. رسالة واحدة في الصباح كحدٍّ أقصى، ولا تصلك إلا حين يحين موعد، ولكل محطة رسالة واحدة فقط.",
           "لإرسالها نسجّل أي دفعة وأي محطة راسلناك عنها (كي لا تُرسل مرتين)، ونمرّر بريدك ورقم الدفعة واسم العطر إلى مزوّد البريد لدينا Resend. في كل رسالة رابط يوقف التذكيرات على كل دفعاتك. وإيقاف الجرس على دفعة يوقفها لتلك الدفعة.",
+          "إن فعّلت «نبّهني على هذا الجهاز» فنحتفظ أيضًا بعنوان الإشعارات لذلك المتصفح (ومفاتيحه العلنية) ليتمكن جهازك من عرض إشعار. لا يحمل الإشعار أي كلمات منا عن دفعاتك: جهازك هو من يكتب الرسالة. يُحذف العنوان حين توقف التنبيهات، وحين يعلن المتصفح أنه لم يعد صالحًا، وحين تحذف حسابك. تمر الإشعارات عبر خدمة الإشعارات الخاصة بمتصفحك (Google أو Apple أو Mozilla بحسب المتصفح).",
         ] },
         { id: "ai", h: "اسأل (الذكاء الاصطناعي)", p: [
           "ميزة «اسأل» جزء من Pro، وهي ترسل سؤالك والمحادثة حتى الآن وآخر 30 خلطة لك (التاريخ واسم العطر والعائلة والتركيز والحجم ووزن الزيت ونوعه وحقول السعر والتكلفة والملاحظات) إلى واجهة Gemini من Google لكتابة الإجابة. لا يُرسَل بريدك الإلكتروني.",

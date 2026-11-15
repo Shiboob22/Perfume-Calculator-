@@ -542,6 +542,22 @@ begin
   if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read reminder_sends'; end if; checks := checks + 1;
   perform set_config('role', 'none', true);
 
+  -- Web push (0037): the API writes push_subscriptions with the service role; an owner may
+  -- read their own rows and write none; anon reads nothing.
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', b::text, true);
+  perform set_config('role', 'authenticated', true);
+  ok := false;
+  begin insert into public.push_subscriptions (user_id, endpoint) values (b, 'https://push.example/x');
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B wrote a push_subscriptions row'; end if; checks := checks + 1;
+  perform set_config('role', 'anon', true);
+  ok := false;
+  begin perform 1 from public.push_subscriptions limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read push_subscriptions'; end if; checks := checks + 1;
+  perform set_config('role', 'none', true);
+
   raise exception 'RLS_ISOLATION PASSED: % checks (rolled back, nothing kept)', checks;
 end
 $$;

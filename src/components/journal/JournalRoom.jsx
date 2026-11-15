@@ -28,6 +28,7 @@ import MaturationCurve from "./MaturationCurve";
 import OilOverlay from "./OilOverlay";
 import BatchCompare from "./BatchCompare";
 import BatchRecord from "./BatchRecord";
+import PushToggle from "./PushToggle";
 
 // The Journal room (Bench SaaS Phase 5, prototype Journal.dc.html): every
 // logged batch rests 90 days and is noted at five milestones. Built on the
@@ -186,6 +187,7 @@ export default function JournalRoom() {
         </p>
         <h1 className="mt-2 font-serif text-[clamp(2.25rem,7vw,3.5rem)] leading-[1.05]">{t("journal.page.title")}</h1>
         <p className="mt-2 max-w-[52ch]" style={{ color: COLORS.inkSoft }}>{t("journal.page.lead")}</p>
+        {can(entitlements, "reminders") && <div className="mt-3"><PushToggle t={t} /></div>}
       </div>
 
       {batches === null && <p role="status" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}

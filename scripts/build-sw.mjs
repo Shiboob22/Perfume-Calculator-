@@ -27,7 +27,7 @@ const { count, size, warnings } = await generateSW({
   globPatterns: ["**/*.{js,css,woff2,svg,webmanifest}", "app/index.html"],
   // The home page's three.js chunk (about 125 KB gzipped) loads only where the
   // 3D pour runs; precaching it would send it to every visitor.
-  globIgnores: ["sw.js", "workbox-*.js", "brand/**", "assets/arabic-public.css", "r-assets/**", "assets/scene-*.js"],
+  globIgnores: ["sw.js", "workbox-*.js", "push-sw.js", "brand/**", "assets/arabic-public.css", "r-assets/**", "assets/scene-*.js"],
   swDest: "dist/sw.js",
   navigationPreload: true,
   runtimeCaching: [
@@ -47,6 +47,8 @@ const { count, size, warnings } = await generateSW({
       options: { cacheName: "page-styles", networkTimeoutSeconds: NETWORK_TIMEOUT_S, expiration: { maxEntries: 4 } },
     },
   ],
+  // Web push for the Journal: the push and click handlers live in public/push-sw.js.
+  importScripts: ["/push-sw.js"],
   cleanupOutdatedCaches: true,
   clientsClaim: true,
   skipWaiting: true,

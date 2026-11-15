@@ -417,6 +417,58 @@ test("the room's small motions run, and stop under reduced motion", async ({ pag
   expect(await saved.evaluate((el) => getComputedStyle(el).animationName)).toBe("kx-settle");
 });
 
+test("Pro can switch web push on for this device; Free is not offered it", async ({ page, browser }) => {
+  const stub = () => {
+    let sub = null;
+    const fake = { endpoint: "https://push.example/sub/1", toJSON: () => ({ endpoint: "https://push.example/sub/1", keys: { p256dh: "pk", auth: "ak" } }), unsubscribe: async () => { sub = null; window.__unsubscribed = true; return true; } };
+    const reg = { pushManager: { getSubscription: async () => sub, subscribe: async (o) => { window.__subscribeOptions = { userVisibleOnly: o.userVisibleOnly, bytes: o.applicationServerKey.length }; sub = fake; return fake; } } };
+    Object.defineProperty(navigator, "serviceWorker", { value: { register: async () => reg, getRegistration: async () => reg, ready: Promise.resolve(reg), addEventListener() {} }, configurable: true });
+    window.PushManager = function PushManager() {};
+    window.Notification = { permission: "default", requestPermission: async () => "granted" };
+  };
+  const key = Buffer.from([4, ...Array(64).fill(7)]).toString("base64url");
+  const calls = [];
+  await signIn(page);
+  await page.addInitScript(stub);
+  await fakeApi(page);
+  await page.route("**/api/checkins?push=*", (route) => {
+    const u = new URL(route.request().url());
+    if (u.searchParams.get("push") === "key") return json(route, { publicKey: key });
+    calls.push([route.request().method(), u.searchParams.get("push"), route.request().postDataJSON()]);
+    return json(route, { success: true }, route.request().method() === "POST" ? 201 : 200);
+  });
+  await page.goto("/journal");
+  const p = en.journal.page.push;
+  const button = page.locator("[data-push] button");
+  await expect(button).toHaveText(p.enable);
+  await button.click();
+  await expect(button).toHaveText(p.on);
+  expect(calls[0]).toEqual(["POST", "subscribe", { endpoint: "https://push.example/sub/1", keys: { p256dh: "pk", auth: "ak" } }]);
+  expect(await page.evaluate(() => window.__subscribeOptions)).toEqual({ userVisibleOnly: true, bytes: 65 });
+  await button.click();
+  await expect(button).toHaveText(p.enable);
+  expect(calls[1]).toEqual(["DELETE", "unsubscribe", { endpoint: "https://push.example/sub/1" }]);
+  expect(await page.evaluate(() => window.__unsubscribed)).toBe(true);
+
+  // Free: no offer. Push not set up on the server: no offer either.
+  const free = await browser.newPage();
+  await signIn(free);
+  await free.addInitScript(stub);
+  await fakeApi(free, { plan: "free" });
+  await free.route("**/api/checkins?push=*", (route) => json(route, { publicKey: key }));
+  await free.goto("/journal");
+  await expect(free.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(free.locator("[data-push]")).toHaveCount(0);
+  const off = await browser.newPage();
+  await signIn(off);
+  await off.addInitScript(stub);
+  await fakeApi(off);
+  await off.route("**/api/checkins?push=*", (route) => json(route, { error: "off" }, 404));
+  await off.goto("/journal");
+  await expect(off.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(off.locator("[data-push]")).toHaveCount(0);
+});
+
 const order = (page) => page.locator("[data-batch]").evaluateAll((els) => els.map((e) => e.getAttribute("data-batch")));
 
 test("the list sorts: needs a note (default), newest, maceration, size; kept on reload", async ({ page }) => {

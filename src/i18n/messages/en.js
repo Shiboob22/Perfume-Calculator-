@@ -774,6 +774,13 @@ export default {
       save: "Save note",
       saving: "Saving…",
       saved: "Note saved",
+      push: {
+        enable: "Nudge this device",
+        on: "Nudges on for this device",
+        note: "A notification when a batch is ready to smell. Switch the bell on for the batches you want.",
+        denied: "Notifications are blocked for this site. Allow them in your browser's settings to be nudged.",
+        failed: "Couldn't switch nudges on. Try again.",
+      },
       record: { title: "The record", promised: { one: "{count} bottle promised, ready on {date}", other: "{count} bottles promised, ready on {date}" } },
       cmp: {
         title: "Compare two batches",
@@ -1582,7 +1589,7 @@ export default {
     waitlist: { title: "Pro waitlist", lead: "Pro is not on sale yet. Join the list and you will hear first when it opens. No payment details are asked for.", join: "Join the Pro waitlist", joined: "You are on the list.", failed: "Could not join. Try again." },
     prefs: { title: "Preferences", language: "Language", unit: "Measure in", bottle: "Usual bottle size", sells: "I sell what I blend", currency: "Currency for prices", saved: "Saved.", saveFailed: "Could not save." },
     data: { title: "Your data", lead: "Download everything you have saved: batches, inventory, notes, presets and preferences.", json: "Download all (JSON)", csv: "Download {table} (CSV)", empty: "Nothing saved yet.", failed: "Could not prepare the download.",
-      tables: { batches: "batches", batch_checkins: "journal check-ins", shared_recipes: "shared recipes", inventory: "inventory", fragrance_notes: "notes", calc_presets: "presets", recipes: "recipes", recipe_versions: "recipe versions", recipe_ingredients: "recipe ingredients", reminder_sends: "reminders sent", seller_orders: "buyer orders", wardrobe_bottles: "wardrobe bottles", wear_log: "wear log", salon_profiles: "salon profile", salon_posts: "salon posts", salon_likes: "salon likes", salon_follows: "salon follows", salon_reports: "salon reports you sent", profiles: "preferences", pro_waitlist: "waitlist", user_plans: "plan", fragrances: "fragrances you added" } },
+      tables: { batches: "batches", batch_checkins: "journal check-ins", shared_recipes: "shared recipes", inventory: "inventory", fragrance_notes: "notes", calc_presets: "presets", recipes: "recipes", recipe_versions: "recipe versions", recipe_ingredients: "recipe ingredients", push_subscriptions: "push subscriptions", reminder_sends: "reminders sent", seller_orders: "buyer orders", wardrobe_bottles: "wardrobe bottles", wear_log: "wear log", salon_profiles: "salon profile", salon_posts: "salon posts", salon_likes: "salon likes", salon_follows: "salon follows", salon_reports: "salon reports you sent", profiles: "preferences", pro_waitlist: "waitlist", user_plans: "plan", fragrances: "fragrances you added" } },
     delete: {
       title: "Delete account",
       lead: "This deletes your account and everything in it — batches, inventory, notes, presets and preferences — straight away. It cannot be undone. Download your data first if you want a copy.",
