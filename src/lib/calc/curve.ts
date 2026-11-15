@@ -16,6 +16,8 @@ export interface CurveBox {
   pad?: { top: number; right: number; bottom: number; left: number };
   /** Days the axis spans at least (default CURVE_DAYS); overlays share one. */
   span?: number;
+  /** Right-to-left: day 0 at the right edge, time running leftwards. */
+  rtl?: boolean;
 }
 
 export interface CurvePoint {
@@ -61,9 +63,10 @@ export function peakOf(points: readonly Pick<CurvePoint, "day" | "rating" | "k" 
 }
 
 /** x for a rest day inside the box (day 0 at the left padding, `span` at the right). */
-function xOf(day: number, span: number, w: number, pad: { left: number; right: number }): number {
+function xOf(day: number, span: number, w: number, pad: { left: number; right: number }, rtl = false): number {
   const inner = Math.max(1, w - pad.left - pad.right);
-  return round(pad.left + (Math.min(Math.max(day, 0), span) / span) * inner);
+  const x = round(pad.left + (Math.min(Math.max(day, 0), span) / span) * inner);
+  return rtl ? round(w - x) : x;
 }
 
 /** y for a rating 1–5 (5 at the top padding, 1 at the bottom). */
@@ -92,7 +95,7 @@ export function buildCurve(checkins: readonly JournalNote[] | null | undefined, 
   const points: CurvePoint[] = notes.map((n) => ({
     id: n.id, day: n.day, rating: n.rating as number, tags: n.tags ?? [],
     k: MILESTONES[milestoneIndex(n.day)].k,
-    x: xOf(n.day, span, box.width, pad), y: yOf(n.rating as number, box.height, pad),
+    x: xOf(n.day, span, box.width, pad, box.rtl), y: yOf(n.rating as number, box.height, pad),
   }));
   const path = points.length >= 2 ? points.map((p, i) => `${i ? "L" : "M"} ${p.x} ${p.y}`).join(" ") : "";
   return {
@@ -100,7 +103,7 @@ export function buildCurve(checkins: readonly JournalNote[] | null | undefined, 
     enough: points.length >= MIN_CURVE_NOTES,
     path,
     peak: peakOf(points),
-    ticks: MILESTONES.map((m) => ({ k: m.k, days: m.days, x: xOf(m.days, span, box.width, pad) })),
+    ticks: MILESTONES.map((m) => ({ k: m.k, days: m.days, x: xOf(m.days, span, box.width, pad, box.rtl) })),
     span,
   };
 }

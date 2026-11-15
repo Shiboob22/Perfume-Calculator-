@@ -42,6 +42,12 @@ describe("maturation curve", () => {
     expect(c.peak?.day).toBe(peakDay(notes.map((x) => ({ ...x, batch_id: "b" })) as any));
     expect(peakOf(c.points.slice(0, 1))).toBeNull();
   });
+  it("mirrors for right-to-left: day 0 at the right edge, the ticks too", () => {
+    const c = buildCurve([n("a", 0, 5), n("b", 90, 3)], { ...box, rtl: true });
+    expect(c.points.map((p) => p.x)).toEqual([290, 10]);
+    expect(c.ticks[0].x).toBe(290);
+    expect(c.ticks[4].x).toBe(10);
+  });
   it("clamps ratings and days to the box", () => {
     const c = buildCurve([n("a", 3, 5)], { width: 100, height: 50 });
     expect(c.points[0].y).toBe(12);

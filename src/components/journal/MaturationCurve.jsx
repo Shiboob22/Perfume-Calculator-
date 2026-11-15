@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { COLORS } from "../../lib/theme";
+import { useI18n } from "../../i18n/I18nProvider";
 import { buildCurve, MIN_CURVE_NOTES } from "../../lib/calc";
 
 // A batch's own ratings drawn against rest day (Journal J3). The geometry is
@@ -13,7 +14,9 @@ import { buildCurve, MIN_CURVE_NOTES } from "../../lib/calc";
 const BOX = { width: 600, height: 150, pad: { top: 14, right: 18, bottom: 26, left: 18 } };
 
 export default function MaturationCurve({ checkins, t }) {
-  const curve = useMemo(() => buildCurve(checkins, BOX), [checkins]);
+  const { locale } = useI18n();
+  const rtl = locale === "ar";
+  const curve = useMemo(() => buildCurve(checkins, { ...BOX, rtl }), [checkins, rtl]);
   const name = (k) => t(`journal.page.milestones.${k}`);
   const { points, peak, enough } = curve;
   // A milestone's name is written only when it clears the one before it; its tick always shows.

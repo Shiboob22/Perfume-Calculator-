@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { COLORS } from "../../lib/theme";
+import { useI18n } from "../../i18n/I18nProvider";
 import { oilOverlay, bestOf, tierFor, STRENGTH_TIERS } from "../../lib/calc";
 
 // "Your batches of this oil" (Journal J3, Pro): every batch of the same
@@ -18,7 +19,9 @@ const lookOf = (pct) => LOOK[Math.max(0, STRENGTH_TIERS.findIndex((x) => x.name 
 const no = (b) => String(b.no).padStart(3, "0");
 
 export default function OilOverlay({ batches, selectedId, locked, lockedCard, t }) {
-  const curves = useMemo(() => oilOverlay(batches, selectedId, BOX), [batches, selectedId]);
+  const { locale } = useI18n();
+  const rtl = locale === "ar";
+  const curves = useMemo(() => oilOverlay(batches, selectedId, { ...BOX, rtl }), [batches, selectedId, rtl]);
   if (!curves) return null;
   const name = (k) => t(`journal.page.milestones.${k}`);
   const best = bestOf(curves);
