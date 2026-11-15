@@ -62,6 +62,9 @@ test("no WebGL keeps the static stage", async ({ page }) => {
 });
 
 test.describe("flags on, with WebGL", () => {
+  // The scene is drawn in software here (SwiftShader, no GPU), so each frame the steps wait on is slow, and
+  // slower still when other tests share the machine: a 30 s budget ran out on CI before the assertions did.
+  test.describe.configure({ timeout: 90_000 });
   test.beforeEach(async ({ page }) => {
     await flags(page);
     // Layout shifts around the moment the pour swaps in (the device flags also switch
