@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "../../motion";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useFlip } from "../../motion";
 import { Button, Notice } from "../../components/kx";
 import FlaconMark from "../../components/FlaconMark";
 import { COLORS, TYPE } from "../../lib/theme";
@@ -113,6 +113,9 @@ function ProductCard({ product }) {
 function CartPanel({ lines, total, gone }) {
   const { t, locale } = useI18n();
   const { setQty, remove } = useCartActions();
+  // A line added or removed: the others slide to their places (motion M3).
+  const list = useRef(null);
+  useFlip(list, lines.map((l) => `${l.productId}:${l.variantId}`).join(","));
   return (
     <aside id="cart" aria-labelledby="cart-title" className="lg:sticky lg:top-6 p-5 rounded" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
       <h2 id="cart-title" className="font-serif text-2xl mb-4" style={{ color: COLORS.ink }}>{t("shop.cart.title")}</h2>
@@ -121,12 +124,12 @@ function CartPanel({ lines, total, gone }) {
         <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("shop.cart.empty")}</p>
       ) : (
         <>
-          <ul className="list-none p-0 divide-y" style={{ borderColor: COLORS.line }}>
+          <ul ref={list} className="list-none p-0 divide-y" style={{ borderColor: COLORS.line }}>
             {lines.map((l) => {
               const name = l.name[locale] + (l.variantLabel ? ` (${l.variantLabel[locale]})` : "");
               const line = { productId: l.productId, variantId: l.variantId };
               return (
-                <li key={`${l.productId}:${l.variantId}`} className="py-3 flex flex-col gap-2" style={{ borderColor: COLORS.line }}>
+                <li key={`${l.productId}:${l.variantId}`} data-flip={`${l.productId}:${l.variantId}`} className="py-3 flex flex-col gap-2" style={{ borderColor: COLORS.line }}>
                   <p className="text-sm font-medium" style={{ color: COLORS.ink }}>{name}</p>
                   <div className="flex items-center gap-3">
                     <div role="group" aria-label={t("shop.cart.qty", { name })} className="inline-flex items-stretch rounded" style={{ border: `1px solid ${COLORS.field}` }}>

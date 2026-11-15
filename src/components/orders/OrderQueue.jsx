@@ -10,6 +10,7 @@ import Chip from "../kx/Chip";
 import Button from "../kx/Button";
 import { fmt2, planMixes, restWindow, bottlingGroups, orderCost, shortMix, profitTotals, MIX_ALLOWANCE_PCT, STRENGTH_TIERS } from "../../lib/calc";
 import { Link } from "../../motion";
+import ListSkeleton from "../kx/ListSkeleton";
 import { listRecipes, listInventory } from "../../lib/fragranceApi";
 import { listOrders, addOrder, editOrder, setOrderStatus, setGroupMode } from "../../lib/ordersApi";
 import { scentOptions, toPlanOrder, stockMap, weighLink, toBottlingOrder, readyToBottle, ORDERS_CHANGED } from "../../lib/orders";
@@ -111,6 +112,7 @@ export default function OrderQueue() {
         <Button onClick={() => setEditing({})} disabled={rows === null}>{t("orders.add")}</Button>
       </div>
       {error && <p role="alert" className="mb-4 text-sm" style={{ color: COLORS.danger }}>{error}</p>}
+      {rows === null && !error && <ListSkeleton label={t("orders.loading")} rows={3} framed className="mb-8" />}
 
       {(bottling.groups.length > 0 || bottling.orphaned.length > 0) && (
         <section aria-labelledby="orders-bottle" className="mb-8">
