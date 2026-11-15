@@ -775,6 +775,13 @@ export default {
       save: "احفظ الملاحظة",
       saving: "جارٍ الحفظ…",
       saved: "حُفظت الملاحظة",
+      curve: {
+        title: "كيف تغيّرت",
+        few: "{have} ملاحظات مقيَّمة حتى الآن. يُرسم المنحنى من {need}.",
+        peak: "في ملاحظاتك، كان أفضل تقييم لهذه الدفعة عند {milestone} ({rating} من 5).",
+        drawn: "تقييماتك، يومًا بيوم.",
+        point: "اليوم {day}: {rating} من 5",
+      },
       todayStrip: {
         title: "شمّ اليوم",
         card: "شمّ {no}، {milestone}",

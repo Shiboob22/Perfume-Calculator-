@@ -243,6 +243,33 @@ test("Smell today: due batches, a quick note in three taps, and a quiet day", as
   await expect(quiet.getByRole("region", { name: p.todayStrip.title })).toContainText("Nothing to smell today. Next: No. 005 on");
 });
 
+test("the curve: a plain line before three rated notes, then the drawing, its peak and its words", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, { batches: [
+    ...fixtures(),
+    batch(6, "Santal Soir", "woody", 40, [["d1", 0, "Raw.", 2, ["harsh"]], ["w1", 7, "Calmer.", 3, ["rounder"]], ["w2", 14, "Warm and round.", 5, ["rounder", "sweeter"]], ["m1", 30, "A touch flatter.", 4, ["fading"]]]),
+  ] });
+  await page.goto("/journal?batch=" + id(4));
+  const p = en.journal.page;
+  const curve = page.locator("[data-curve]");
+
+  // Neroli has two rated notes: words only, no drawing.
+  await expect(curve).toContainText("2 rated notes so far. The curve draws from 3.");
+  await expect(curve.locator("[data-curve-svg]")).toHaveCount(0);
+
+  await page.goto("/journal?batch=" + id(6));
+  await expect(curve.locator("[data-curve-svg]")).toBeVisible();
+  await expect(curve.locator("[data-curve-svg] circle")).toHaveCount(5); // four dots and the ringed peak
+  await expect(curve).toContainText("rated best at Week 2 (5 of 5)");
+  await expect(curve.locator("[data-curve-note]")).toHaveCount(4);
+  await expect(curve.locator('[data-curve-note="14"]')).toContainText("Day 14: 5 of 5");
+  await expect(curve.locator('[data-curve-note="14"]')).toContainText(`${p.tag.rounder}, ${p.tag.sweeter}`);
+
+  if (process.env.SHOT_DIR) await curve.screenshot({ path: `${process.env.SHOT_DIR}/curve-${test.info().project.name}.png` });
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});
+
 const order = (page) => page.locator("[data-batch]").evaluateAll((els) => els.map((e) => e.getAttribute("data-batch")));
 
 test("the list sorts: needs a note (default), newest, maceration, size; kept on reload", async ({ page }) => {

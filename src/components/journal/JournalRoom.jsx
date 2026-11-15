@@ -20,6 +20,7 @@ import { useStartTrial } from "../plan/Upgrade";
 import { IconBell } from "../icons";
 import Chip from "../kx/Chip";
 import TodayStrip from "./TodayStrip";
+import MaturationCurve from "./MaturationCurve";
 
 // The Journal room (Bench SaaS Phase 5, prototype Journal.dc.html): every
 // logged batch rests 90 days and is noted at five milestones. Built on the
@@ -344,6 +345,8 @@ function BatchDetail({ b, day, pro, canRemind, dateAt, metaOf, onChange, t }) {
           </ol>
         </div>
       </div>
+
+      <MaturationCurve checkins={b.batch_checkins} t={t} />
 
       <div className="mt-7 pt-5" style={{ borderTop: `1px solid ${COLORS.line}` }}>
         <div className="flex flex-wrap items-center justify-between gap-3">

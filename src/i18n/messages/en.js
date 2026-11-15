@@ -773,6 +773,13 @@ export default {
       save: "Save note",
       saving: "Saving…",
       saved: "Note saved",
+      curve: {
+        title: "How it changed",
+        few: "{have} rated notes so far. The curve draws from {need}.",
+        peak: "In your notes, this one rated best at {milestone} ({rating} of 5).",
+        drawn: "Your ratings, day by day.",
+        point: "Day {day}: {rating} of 5",
+      },
       todayStrip: {
         title: "Smell today",
         card: "Smell {no}, {milestone}",

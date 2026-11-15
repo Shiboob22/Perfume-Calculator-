@@ -360,3 +360,9 @@ summary::-webkit-details-marker { display: none; }
 /* Bench tour (Phase 7): the cost card's Pro preview unblurs. */
 .kx-cost-body { transition: filter 600ms var(--ease-out, ease-out), opacity 600ms var(--ease-out, ease-out); }
 @media (prefers-reduced-motion: reduce) { .kx-cost-body, .kx-tour-spot, .kx-tour-card { transition: none !important; } }
+
+/* The Journal's maturation curve is drawn once when it appears; nothing moves under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .kx-curve-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: kx-curve-draw var(--dur-slow) var(--ease-out) forwards; }
+}
+@keyframes kx-curve-draw { to { stroke-dashoffset: 0; } }
