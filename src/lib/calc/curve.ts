@@ -3,6 +3,7 @@
 // Only the user's own notes count, worded as their history; nothing here
 // claims anything about maceration.
 import { MILESTONES, milestoneIndex, type MilestoneKey, type JournalNote } from "./restTracker";
+import { tierFor } from "./strength";
 
 /** Notes with a rating needed before a curve is drawn; fewer show a plain line. */
 export const MIN_CURVE_NOTES = 3;
@@ -153,4 +154,40 @@ export function bestOf(curves: readonly OilCurve[]): OilCurve | null {
   if (!ranked.length) return null;
   return [...ranked].sort((a, b) =>
     (b.curve.peak!.rating - a.curve.peak!.rating) || (a.curve.peak!.day - b.curve.peak!.day) || (b.batch.no - a.batch.no))[0];
+}
+
+// ------------------------------------------------- two batches side by side
+
+export interface BatchSummary {
+  /** Handbook strength name for the batch's concentration, e.g. "EDP Intense". */
+  tier: string;
+  pct: number;
+  /** Notes that are not skips. */
+  notes: number;
+  /** Notes with a rating. */
+  rated: number;
+  /** Where the batch rated best (needs two ratings), else null. */
+  peak: { day: number; rating: number; k: MilestoneKey } | null;
+  /** The latest rating, by day. */
+  last: number | null;
+  /** Tasting tags used, most often first (ties by name), at most `maxTags`. */
+  tags: Array<{ tag: string; count: number }>;
+}
+
+/** One batch's own notes boiled down to what a side-by-side compare shows. */
+export function summarizeBatch(b: { pct: number; checkins?: readonly JournalNote[] | null }, maxTags = 5): BatchSummary {
+  const notes = (b.checkins ?? []).filter((c) => !c.skipped);
+  const curve = buildCurve(notes, { width: 100, height: 100 });
+  const counts = new Map<string, number>();
+  for (const c of notes) for (const t of c.tags ?? []) counts.set(t, (counts.get(t) ?? 0) + 1);
+  const lastPoint = curve.points[curve.points.length - 1];
+  return {
+    tier: tierFor(b.pct).name,
+    pct: b.pct,
+    notes: notes.length,
+    rated: curve.points.length,
+    peak: curve.peak ? { day: curve.peak.day, rating: curve.peak.rating, k: curve.peak.k } : null,
+    last: lastPoint ? lastPoint.rating : null,
+    tags: [...counts].map(([tag, count]) => ({ tag, count })).sort((x, y) => y.count - x.count || x.tag.localeCompare(y.tag)).slice(0, maxTags),
+  };
 }

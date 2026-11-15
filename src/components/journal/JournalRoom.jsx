@@ -23,6 +23,7 @@ import Chip from "../kx/Chip";
 import TodayStrip from "./TodayStrip";
 import MaturationCurve from "./MaturationCurve";
 import OilOverlay from "./OilOverlay";
+import BatchCompare from "./BatchCompare";
 
 // The Journal room (Bench SaaS Phase 5, prototype Journal.dc.html): every
 // logged batch rests 90 days and is noted at five milestones. Built on the
@@ -141,7 +142,6 @@ export default function JournalRoom() {
     );
   }
 
-  const oilBatches = all.map((x) => ({ id: x.id, no: Number(x.batch_no) || 0, oil: oilKey(x), pct: Number(x.concentration_pct), checkins: x.batch_checkins, again: makeAgainHref(x) }));
   const dayOf = (x) => todayFor(x, now);
   const dateAt = (x, days) => {
     const start = batchStartedAt(x);
@@ -149,6 +149,10 @@ export default function JournalRoom() {
     return new Date(start.getTime() + days * DAY_MS).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric", numberingSystem: "latn" });
   };
   const metaOf = (x) => t("journal.page.meta", { size: x.amount ?? "", unit: UNIT_LABELS[x.unit] ?? "mL", pct: x.concentration_pct, tier: tierFor(Number(x.concentration_pct)).name });
+  const oilBatches = all.map((x) => ({
+    id: x.id, no: Number(x.batch_no) || 0, oil: oilKey(x), pct: Number(x.concentration_pct), checkins: x.batch_checkins, again: makeAgainHref(x),
+    name: x.fragrance_name, size: x.amount ? `${x.amount} ${UNIT_LABELS[x.unit] ?? "mL"}` : "", poured: dateAt(x, 0), day: dayOf(x),
+  }));
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-6 sm:pt-10 flex flex-col gap-6 sm:gap-9">
@@ -353,6 +357,8 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, dateAt, m
       <MaturationCurve checkins={b.batch_checkins} t={t} />
       <OilOverlay batches={oilBatches} selectedId={b.id} locked={!canCompare} t={t}
         lockedCard={<ProCard title={t("journal.page.oil.proTitle")} body={t("journal.page.oil.proBody")} t={t} />} />
+      <BatchCompare batches={oilBatches} selectedId={b.id} locked={!canCompare} t={t}
+        lockedCard={<ProCard title={t("journal.page.cmp.proTitle")} body={t("journal.page.cmp.proBody")} t={t} />} />
 
       <div className="mt-7 pt-5" style={{ borderTop: `1px solid ${COLORS.line}` }}>
         <div className="flex flex-wrap items-center justify-between gap-3">

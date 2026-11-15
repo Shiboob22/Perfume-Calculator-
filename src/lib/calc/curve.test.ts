@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildCurve, peakOf, MIN_CURVE_NOTES, CURVE_DAYS, oilKey, oilOverlay, bestOf } from "./curve";
+import { buildCurve, peakOf, MIN_CURVE_NOTES, CURVE_DAYS, oilKey, oilOverlay, bestOf, summarizeBatch } from "./curve";
 import { peakDay } from "./journal";
 
 const box = { width: 300, height: 120, pad: { top: 10, right: 10, bottom: 20, left: 10 } };
@@ -86,5 +86,22 @@ describe("your batches of one oil", () => {
   it("the best batch has the highest peak, the earliest day, then the newer number", () => {
     const o = oilOverlay([b("1", 1, "o", 25, A), b("2", 2, "o", 20, B)], "1", box)!;
     expect(bestOf(o)?.batch.id).toBe("2"); // both peak at 5; B on day 14, A on day 30: B is earlier
+  });
+});
+
+describe("one batch summarised for a side-by-side compare", () => {
+  it("names the strength, counts notes and ratings, finds the peak and the last rating", () => {
+    const s = summarizeBatch({ pct: 25, checkins: [n("a", 0, 2, { tags: ["harsh"] }), n("b", 14, 5, { tags: ["rounder", "sweeter"] }), n("c", 30, 4, { tags: ["rounder"] }), n("s", 7, null, { skipped: true, tags: ["x"] }), n("u", 60, null)] });
+    expect(s).toMatchObject({ tier: "EDP Intense", pct: 25, notes: 4, rated: 3, last: 4 });
+    expect(s.peak).toEqual({ day: 14, rating: 5, k: "w2" });
+  });
+  it("lists tags most used first, ties by name, at most five", () => {
+    const tags = (t: string[]) => n(String(Math.random()), 1, 3, { tags: t });
+    const s = summarizeBatch({ pct: 20, checkins: [tags(["b", "a"]), tags(["b", "c", "d", "e", "f"])] });
+    expect(s.tags.map((x) => x.tag)).toEqual(["b", "a", "c", "d", "e"]);
+    expect(s.tags[0].count).toBe(2);
+  });
+  it("is empty and honest for a batch with no notes", () => {
+    expect(summarizeBatch({ pct: 15, checkins: null })).toEqual({ tier: "EDT", pct: 15, notes: 0, rated: 0, peak: null, last: null, tags: [] });
   });
 });

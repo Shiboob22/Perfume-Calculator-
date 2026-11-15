@@ -5,7 +5,7 @@ import ar from "../src/i18n/messages/ar.js";
 import { FEATURES } from "../src/lib/entitlements.js";
 import { USER, json, signIn } from "./helpers.js";
 
-// The Journal's maturation curve and "your batches of this oil" (J3), in
+// The Journal's maturation curve, "your batches of this oil" (J3) and the batch compare (J4), in
 // English and Arabic, light and dark: axe on both sections, no overflow, and
 // (with SHOT_DIR set) the screenshots for the PR. Run at phone and desktop widths.
 test.use({ serviceWorkers: "block" });
@@ -52,6 +52,11 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
       await expect(oil.locator("[data-oil-row]")).toHaveCount(3);
       await expect(curve).toContainText(m.journal.page.curve.title);
 
+      // Two batches side by side.
+      const cmp = page.locator("[data-compare]");
+      await cmp.getByLabel(m.journal.page.cmp.pick).selectOption(id(6));
+      await expect(cmp.locator("[data-compare-table]")).toBeVisible();
+
       // Nothing runs off the screen.
       const wide = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
       expect(wide).toBe(false);
@@ -60,8 +65,9 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
         const base = `${process.env.SHOT_DIR}/${locale}-${theme}-${info.project.name}`;
         await curve.screenshot({ path: `${base}-curve.png` });
         await oil.screenshot({ path: `${base}-oil.png` });
+        await cmp.screenshot({ path: `${base}-compare.png` });
       }
-      for (const [what, include] of [["curve", "[data-curve]"], ["oil", "[data-oil]"]]) {
+      for (const [what, include] of [["curve", "[data-curve]"], ["oil", "[data-oil]"], ["compare", "[data-compare]"]]) {
         const { violations } = await new AxeBuilder({ page }).include(include).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
         expect(violations.map((v) => `${what}: ${v.id} ${v.nodes[0]?.target}`)).toEqual([]);
       }

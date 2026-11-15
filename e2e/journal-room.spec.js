@@ -307,6 +307,41 @@ test("your batches of this oil: Pro sees them on one curve and which rated best;
   await expect(free.locator("[data-oil-svg]")).toHaveCount(0);
 });
 
+test("compare two batches side by side (Pro); Free sees the offer", async ({ page, browser }) => {
+  const rows = () => {
+    const a = { ...batch(6, "Oud Nights", "woody", 60, [["d1", 0, "Raw.", 2, ["harsh"]], ["w1", 7, "Calmer.", 3, ["rounder"]], ["w2", 14, "Round.", 4, ["rounder"]]]), concentration_pct: 20 };
+    const b = { ...batch(7, "Oud Nights", "woody", 40, [["d1", 0, "Raw.", 3, []], ["w1", 7, "Better.", 5, ["sweeter"]]]), concentration_pct: 25 };
+    return [b, a, batch(5, "Amber Room", "oriental", 3)];
+  };
+  await signIn(page);
+  await fakeApi(page, { batches: rows() });
+  await page.goto("/journal?batch=" + id(7));
+  const cmp = page.locator("[data-compare]");
+  const p = en.journal.page;
+  // The same oil comes first in the list.
+  await expect(cmp.locator("select option")).toHaveCount(3);
+  const options = await cmp.locator("select option").allTextContents();
+  expect(options).toEqual([p.cmp.choose, "No. 006, Oud Nights, 20%", "No. 005, Amber Room, 20%"]);
+  await expect(cmp.locator("table")).toHaveCount(0);
+  await cmp.getByLabel(p.cmp.pick).selectOption(id(6));
+  const table = cmp.locator("[data-compare-table]");
+  await expect(table.getByRole("columnheader")).toHaveCount(2);
+  await expect(table.getByRole("row", { name: new RegExp(p.cmp.strength) })).toContainText("25% (EDP Intense)");
+  await expect(table.getByRole("row", { name: new RegExp(p.cmp.strength) })).toContainText("20% (EDP)");
+  await expect(table.getByRole("row", { name: new RegExp(p.cmp.peak) })).toContainText("Week 1, day 7 (5 of 5)");
+  await expect(table.getByRole("row", { name: new RegExp(p.cmp.peak) })).toContainText("Week 2, day 14 (4 of 5)");
+  await expect(table.getByRole("row", { name: new RegExp(p.cmp.tags) })).toContainText(`${p.tag.rounder} ×2, ${p.tag.harsh}`);
+  const axe = await new AxeBuilder({ page }).include("[data-compare]").withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+
+  const free = await browser.newPage();
+  await signIn(free);
+  await fakeApi(free, { plan: "free", batches: rows() });
+  await free.goto("/journal?batch=" + id(7));
+  await expect(free.locator("[data-compare] [data-pro-card]")).toContainText(en.journal.page.cmp.proBody);
+  await expect(free.locator("[data-compare-table]")).toHaveCount(0);
+});
+
 const order = (page) => page.locator("[data-batch]").evaluateAll((els) => els.map((e) => e.getAttribute("data-batch")));
 
 test("the list sorts: needs a note (default), newest, maceration, size; kept on reload", async ({ page }) => {
