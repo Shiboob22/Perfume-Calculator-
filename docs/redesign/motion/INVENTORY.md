@@ -11,11 +11,12 @@ M0 of `docs/redesign/Kyphira-Motion_Brief_v1.md`, 2026-11-15. Every keyframe, ti
 | `gloss-in` | `index.css` | Glossary tooltip fade | keep (now behind reduced motion) |
 | `read` | `index.css` | Reading-progress hairline | keep |
 | `kx-drift` | `index.css` | Smoke loading line | keep (now still under reduced motion) |
-| `sheetUp`, `sheetFade` | `index.css` | The More sheet and its scrim | **merge** into `mo-sheet-in`/`mo-sheet-out` with an exit (M1) |
-| `kx-rise` | `index.css` | Salon header; the confirm card | **merge** into `mo-enter` (M1). It fades text from 0, against rule 4 |
+| `sheetUp`, `sheetFade` | `index.css` | The More sheet's fallback without the motion layer; `sheetFade` also fades every `kx/Sheet` backdrop in | keep (M1: the More sheet's exit is now `mo-sheet-out` in the fast step) |
+| `kx-rise` | `index.css` | Salon profile header | keep. M1: the words are whole by a quarter of the rise (rule 4), its delays are stagger steps; the confirm card moved to `kx-settle` |
 | `kx-tick-draw` | `index.css` | A confirmation tick draws | keep, becomes part of the shared "saved" (M1) |
 | `kx-think` | `index.css` | The Nose's thinking dots (ambient) | keep; replaced by the accord-gathering moment in M4 |
-| `kx-curve-draw`, `kx-track-fill`, `kx-settle` | `index.css` | The Journal's curve, timeline fill, saved note | keep; `kx-settle` becomes the shared "saved" (M1) |
+| `kx-curve-draw`, `kx-track-fill`, `kx-settle` | `index.css` | The Journal's curve, timeline fill; `kx-settle` is the shared arrival of every save state and field error (M1; the words are whole by 60 %) |  keep |
+| `kx-sheet-in`, `kx-sheet-out`, `kx-pop-in`, `kx-pop-out`, `kx-fade-out` | `index.css` | `kx/Sheet`: rises on phones, settles in on wide screens, leaves in the fast step (M1) | new |
 | `kRise`, `kGrow`, `kFade` | `index.css` | Homepage v2 scroll entrances (`.kv*`) | keep (scroll-driven versions of `mo-enter` and `mo-draw`) |
 | `cmp-drift`, `cmp-plate`, `cmp-pan`, `cmp-beam`, `cmp-ember`, `cmp-fill`, `cmp-tick`, `cmp-grams`, `cmp-breath` | `index.css` | The Compounding scroll scene | keep (own report) |
 | `wg-*` (10) | `src/site/compounding/weigh.css` | The weighing scroll scene | keep |

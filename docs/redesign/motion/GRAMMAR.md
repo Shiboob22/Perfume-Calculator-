@@ -46,6 +46,13 @@ Matter on a bench: liquid pours and settles, ink draws and dries, weight lands a
 | Travel between screens (M2) | base | in-out | shared element |
 | Loading mark | ambient | in-out | loop; still under reduced motion |
 
+## Shared pieces (M1)
+
+- **Press**: buttons, `[role="button"]` and links with `mo-press` (the bar, the wide tab row, link chips) step down 1 px and scale to 0.985 at once on press (`motion.css`). No easing: the answer is immediate.
+- **Save state**: `kx/SaveState` (`working`, `saved`, `queued` for saved on this phone, `failed`), each arriving with `kx-settle`; `kx/Confirm` is the saved state. A field's error arrives the same way. No shake anywhere.
+- **Sheets**: `kx/Sheet` rises in `base` and leaves in `fast`, keeping its last title and content while it leaves; the More sheet leaves in `fast` too. At once under reduced motion.
+- **Where you are**: the phone bar has one room rule (`.kx-bar-ind`) that slides by transform to the room you open, toward the left in Arabic; still under reduced motion.
+
 ## Where each piece lives
 
 - Tokens and primitives (site layer): `src/motion/`

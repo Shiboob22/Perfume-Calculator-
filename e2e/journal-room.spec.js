@@ -417,6 +417,84 @@ test("the room's small motions run, and stop under reduced motion", async ({ pag
   expect(await saved.evaluate((el) => getComputedStyle(el).animationName)).toBe("kx-settle");
 });
 
+test("M1: one saved state, a sheet that leaves faster than it came, and none of it under reduced motion", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page);
+  const p = en.journal.page;
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/journal");
+  const strip = page.getByRole("region", { name: p.todayStrip.title });
+  // Records when the sheet starts leaving and when the dialog actually closes.
+  const watch = () => page.evaluate(() => {
+    window.__sheet = [];
+    const d = document.querySelector("dialog.kx-sheet");
+    new MutationObserver(() => window.__sheet.push([performance.now(), d.hasAttribute("data-leaving"), d.open, getComputedStyle(d).animationDuration]))
+      .observe(d, { attributes: true, attributeFilter: ["data-leaving", "open"] });
+  });
+
+  await strip.locator(`[data-today-card="${id(4)}"]`).getByRole("button", { name: p.todayStrip.add }).click();
+  const sheet = page.getByRole("dialog", { name: "No. 004, Week 2" });
+  await expect(sheet).toBeVisible();
+  expect(await sheet.evaluate((d) => [getComputedStyle(d).animationName, getComputedStyle(d).animationDuration]))
+    .toEqual([expect.stringMatching(/^kx-(sheet|pop)-in$/), "0.25s"]);
+  await watch();
+  await sheet.getByRole("button", { name: p.todayStrip.close }).click();
+  await expect(sheet).toBeHidden();
+  // The sheet keeps its name while it leaves, so it is still there during the exit.
+  await expect.poll(() => page.evaluate(() => window.__sheet.some(([, , open]) => !open))).toBe(true);
+  const log = await page.evaluate(() => window.__sheet);
+  const left = log.find(([, leaving]) => leaving);
+  const closed = log.find(([, , open]) => !open);
+  expect(left?.[3]).toBe("0.15s");
+  expect(closed[0] - left[0]).toBeGreaterThanOrEqual(120);
+
+  // Saving through the sheet answers in the shared saved state: the words and a drawn check.
+  await strip.locator(`[data-today-card="${id(4)}"]`).getByRole("button", { name: p.todayStrip.add }).click();
+  await sheet.getByRole("button", { name: p.ratingN.other.replace("{count}", "4") }).click();
+  await sheet.getByRole("button", { name: p.save }).click();
+  const status = strip.locator('[data-save-state="saved"]');
+  await expect(status).toContainText("Noted No. 004, Week 2.");
+  await expect(status.locator("svg.kx-tick")).toBeAttached();
+
+  // Reduced motion: the sheet closes at once, with no leaving step.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await strip.locator("[data-today-card]").first().getByRole("button", { name: p.todayStrip.add }).click();
+  const again = page.locator("dialog.kx-sheet[open]");
+  await expect(again).toBeVisible();
+  expect(await again.evaluate((d) => getComputedStyle(d).animationName)).toBe("none");
+  await watch();
+  await again.getByRole("button", { name: p.todayStrip.close }).click();
+  await expect(again).toBeHidden();
+  expect((await page.evaluate(() => window.__sheet)).some(([, leaving]) => leaving)).toBe(false);
+});
+
+test("M1: the phone bar has one room rule; it sits under the room you are in and travels to the next (EN and AR)", async ({ page }, info) => {
+  test.skip(info.project.name !== "phone", "the bar is the phone layout");
+  await signIn(page);
+  await fakeApi(page);
+  await page.emulateMedia({ reducedMotion: "reduce" }); // measure the resting place, not the slide
+  const under = () => page.evaluate(() => {
+    const ind = document.querySelector('[data-mo-ind="bar"]').getBoundingClientRect();
+    const cur = document.querySelector('nav[data-mo-chrome="bar"] [aria-current="page"]').getBoundingClientRect();
+    return Math.abs((ind.left + ind.width / 2) - (cur.left + cur.width / 2));
+  });
+  for (const [path, msgs] of [["/journal", en], ["/ar/journal", ar]]) {
+    await page.goto(path);
+    const bar = page.getByRole("navigation", { name: msgs.app.barLabel });
+    await expect(bar.locator('[aria-current="page"]')).toBeVisible();
+    await expect(page.locator('[data-mo-ind="bar"]')).toHaveCount(1);
+    expect(await under()).toBeLessThan(2);
+    await page.evaluate(() => { window.__ind = document.querySelector('[data-mo-ind="bar"]'); });
+    await bar.getByRole("link").first().click();
+    await expect(bar.getByRole("link").first()).toHaveAttribute("aria-current", "page");
+    expect(await under()).toBeLessThan(2);
+    // The same rule moved: it was not drawn again.
+    expect(await page.evaluate(() => window.__ind === document.querySelector('[data-mo-ind="bar"]'))).toBe(true);
+  }
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  expect(await page.locator('[data-mo-ind="bar"]').evaluate((e) => getComputedStyle(e).transitionProperty)).toContain("transform");
+});
+
 test("Pro can switch web push on for this device; Free is not offered it", async ({ page, browser }) => {
   const stub = () => {
     let sub = null;

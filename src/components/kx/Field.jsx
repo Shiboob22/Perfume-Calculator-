@@ -18,7 +18,7 @@ export default function Field({ label, hint, error, mono = false, className = ""
         {...rest}
       />
       {hint && <p id={`${id}-hint`} className="text-xs mt-1.5" style={{ color: COLORS.dim }}>{hint}</p>}
-      {error && <p id={`${id}-err`} role="alert" className="text-xs mt-1.5" style={{ color: COLORS.danger }}>{error}</p>}
+      {error && <p key={error} id={`${id}-err`} role="alert" className="kx-settle text-xs mt-1.5" style={{ color: COLORS.danger }}>{error}</p>}
     </div>
   );
 }

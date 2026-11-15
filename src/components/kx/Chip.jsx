@@ -9,7 +9,7 @@ import { COLORS } from "../../lib/theme";
 export default function Chip({ to, onToggle, pressed = false, count, children, className = "" }) {
   if (to) {
     return (
-      <Link to={to} className={`inline-flex items-center min-h-[44px] px-3 text-[13px] border hover:underline underline-offset-4 ${className}`}
+      <Link to={to} className={`mo-press inline-flex items-center min-h-[44px] px-3 text-[13px] border hover:underline underline-offset-4 ${className}`}
         style={{ borderColor: COLORS.field, color: COLORS.ink }}>{children}</Link>
     );
   }
