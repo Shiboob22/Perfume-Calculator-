@@ -325,7 +325,7 @@ function CardSkeleton({ count = 4 }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="rounded animate-pulse" style={{ height: 220, background: COLORS.cardHi, border: `1px solid ${COLORS.line}` }} />
+        <div key={i} className="rounded motion-safe:animate-pulse" style={{ height: 220, background: COLORS.cardHi, border: `1px solid ${COLORS.line}` }} />
       ))}
     </div>
   );
@@ -584,7 +584,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
             style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }}
           />
           {loading && (
-            <span aria-hidden="true" className="absolute end-3 top-3.5 text-xs font-mono animate-pulse" style={{ color: COLORS.inkSoft }}>
+            <span aria-hidden="true" className="absolute end-3 top-3.5 text-xs font-mono motion-safe:animate-pulse" style={{ color: COLORS.inkSoft }}>
               {t('search.searching')}
             </span>
           )}

@@ -106,7 +106,7 @@ export default function PerfumerChat() {
           </div>
         ))}
         {sending && (
-          <p className="text-xs font-mono animate-pulse" style={{ color: COLORS.inkSoft }}>{t("chat.thinking")}</p>
+          <p className="text-xs font-mono motion-safe:animate-pulse" style={{ color: COLORS.inkSoft }}>{t("chat.thinking")}</p>
         )}
         <div ref={endRef} />
       </div>

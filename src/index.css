@@ -117,7 +117,8 @@ html[dir="rtl"] .dropcap::before, html[dir="rtl"] .guide-body > p:first-of-type:
 .gloss-pop { position: relative; }
 .gloss-pop[data-def]::after { content: attr(data-def); display: none; position: absolute; inset-inline-start: 0; top: calc(100% + 6px); z-index: 20; width: max-content; max-width: min(22rem, 80vw); padding: 10px 12px; font: 400 14px/1.5 var(--font-ui, inherit); text-align: start; white-space: normal; color: var(--c-ink); background: var(--c-card); border: 1px solid var(--c-line); pointer-events: none; }
 /* display:none keeps the hidden tip out of layout: an absolute box near the right edge widened the page on phones. */
-.gloss-pop[data-def]:hover::after, .gloss-pop[data-def]:focus-visible::after { display: block; animation: gloss-in var(--mo-fast, 150ms) ease-out; }
+.gloss-pop[data-def]:hover::after, .gloss-pop[data-def]:focus-visible::after { display: block; }
+@media (prefers-reduced-motion: no-preference) { .gloss-pop[data-def]:hover::after, .gloss-pop[data-def]:focus-visible::after { animation: gloss-in var(--dur-fast) var(--ease-out); } }
 @keyframes gloss-in { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 640px) {
   .gloss-pop[data-def]::after { position: fixed; inset-inline: 16px; top: auto; bottom: calc(16px + env(safe-area-inset-bottom)); width: auto; max-width: none; }
@@ -131,7 +132,7 @@ html[dir="rtl"] .read-progress { transform-origin: right; }
 @supports not (animation-timeline: scroll()) { .read-progress { display: none; } }
 
 /* Motion tokens (Kyphira board): fast 150, base 250, slow 600, ambient 2 s+, one ease-out, one ease-in-out. Mirrors MOTION in theme.js. */
-:root { --dur-fast: 150ms; --dur-base: 250ms; --dur-slow: 600ms; --dur-ambient: 2000ms; --ease-out: cubic-bezier(.22,1,.36,1); --ease-in-out: cubic-bezier(.65,0,.35,1); --offset-shadow: 8px 8px 0 var(--c-sand); }
+:root { --dur-fast: var(--mo-fast); --dur-base: var(--mo-base); --dur-slow: var(--mo-slow); --dur-ambient: var(--mo-ambient); --ease-out: var(--mo-ease); --ease-in-out: var(--mo-ease-io); --offset-shadow: 8px 8px 0 var(--c-sand); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --offset-shadow: none; } }
 :root[data-theme="dark"] { --offset-shadow: none; }
 
@@ -166,7 +167,8 @@ summary::-webkit-details-marker { display: none; }
 
 /* Kyphira smoke line: a slow horizontal drift (a divider is still; a loading line moves). */
 .kx-smoke { display: block; overflow: visible; }
-.kx-smoke--loading path { stroke-dasharray: 120 60; animation: kx-drift 2400ms linear infinite; }
+.kx-smoke--loading path { stroke-dasharray: 120 60; }
+@media (prefers-reduced-motion: no-preference) { .kx-smoke--loading path { animation: kx-drift calc(var(--dur-ambient) * 1.2) linear infinite; } }
 @keyframes kx-drift { to { stroke-dashoffset: -180; } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -297,7 +299,7 @@ summary::-webkit-details-marker { display: none; }
 .kx-think i { width: 6px; height: 6px; border-radius: 50%; background: var(--c-action-text); display: block; opacity: .6; }
 @media (prefers-reduced-motion: no-preference) {
   .kx-think i { animation: kx-think var(--dur-ambient) var(--ease-in-out) infinite alternate; }
-  .kx-think i:nth-child(2) { animation-delay: 250ms; } .kx-think i:nth-child(3) { animation-delay: 500ms; }
+  .kx-think i:nth-child(2) { animation-delay: calc(var(--dur-ambient) / 8); } .kx-think i:nth-child(3) { animation-delay: calc(var(--dur-ambient) / 4); }
 }
 @keyframes kx-think { from { opacity: .25; } to { opacity: 1; } }
 @keyframes cmp-breath { from { opacity: .7; transform: scale(.94); } to { opacity: 1; transform: scale(1.08); } }
@@ -307,8 +309,6 @@ summary::-webkit-details-marker { display: none; }
 @keyframes kRise { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
 @keyframes kGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes kFade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes kDrift { from { background-position: 0 0; } to { background-position: 200% 0; } }
-@keyframes kPulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
     .kv { animation: kRise both var(--ease-out); animation-timeline: view(); animation-range: entry 0% entry 45%; }
@@ -358,7 +358,7 @@ summary::-webkit-details-marker { display: none; }
 @media (prefers-reduced-motion: reduce) { .kx-flacon, .kx-cap { transition: none !important; } }
 
 /* Bench tour (Phase 7): the cost card's Pro preview unblurs. */
-.kx-cost-body { transition: filter 600ms var(--ease-out, ease-out), opacity 600ms var(--ease-out, ease-out); }
+.kx-cost-body { transition: filter var(--dur-slow) var(--ease-out), opacity var(--dur-slow) var(--ease-out); }
 @media (prefers-reduced-motion: reduce) { .kx-cost-body, .kx-tour-spot, .kx-tour-card { transition: none !important; } }
 
 /* The Journal's maturation curve is drawn once when it appears; nothing moves under reduced motion. */

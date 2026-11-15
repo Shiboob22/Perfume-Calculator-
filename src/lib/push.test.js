@@ -1,4 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+// push.js reaches the Supabase client through fragranceApi; the client throws
+// without its env, which CI does not set.
+vi.mock("./fragranceApi", () => ({ authHeaders: async () => ({}), apiError: async () => new Error("x") }));
 import { keyToBytes } from "./push";
 
 describe("keyToBytes", () => {
