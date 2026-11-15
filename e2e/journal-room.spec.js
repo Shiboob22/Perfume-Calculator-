@@ -212,6 +212,37 @@ test("a note written offline waits on the phone and is sent when the connection 
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("sh-outbox")).length)).toBe(0);
 });
 
+test("Smell today: due batches, a quick note in three taps, and a quiet day", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page);
+  await page.goto("/journal");
+  const p = en.journal.page;
+  const strip = page.getByRole("region", { name: p.todayStrip.title });
+
+  // Day 20 Neroli owes Week 2; Amber (day 3, noted at Day 1) owes nothing.
+  await expect(strip.locator(`[data-today-card="${id(4)}"]`)).toContainText("Smell No. 004, Week 2");
+  await expect(strip.locator(`[data-today-card="${id(5)}"]`)).toHaveCount(0);
+  // Closing soonest first: Neroli's Week 2 (10 days left) before Santal's Month 1 (40).
+  const cards = await strip.locator("[data-today-card]").evaluateAll((els) => els.map((e) => e.getAttribute("data-today-card")));
+  expect(cards.indexOf(id(4))).toBeLessThan(cards.indexOf(id(3)));
+
+  await strip.locator(`[data-today-card="${id(4)}"]`).getByRole("button", { name: p.todayStrip.add }).click();
+  const sheet = page.getByRole("dialog", { name: "No. 004, Week 2" });
+  await sheet.getByRole("button", { name: p.ratingN.other.replace("{count}", "4") }).click();
+  await sheet.getByRole("button", { name: p.tag.rounder }).click();
+  await sheet.getByRole("button", { name: p.save }).click();
+  await expect(strip.getByRole("status").filter({ hasText: "Noted No. 004, Week 2." })).toBeVisible();
+  await expect(strip.locator(`[data-today-card="${id(4)}"]`)).toHaveCount(0);
+  expect(sent.checkins[0]).toMatchObject({ batch_id: id(4), day: 20, scheduled_day: 14, rating: 4, tags: ["rounder"], upsert: true });
+
+  // A quiet day says what comes next.
+  const quiet = await page.context().newPage();
+  await signIn(quiet);
+  await fakeApi(quiet, { batches: [batch(5, "Amber Room", "oriental", 3, [["d1", 0, "Loud.", 2, ["harsh"]]])] });
+  await quiet.goto("/journal");
+  await expect(quiet.getByRole("region", { name: p.todayStrip.title })).toContainText("Nothing to smell today. Next: No. 005 on");
+});
+
 const order = (page) => page.locator("[data-batch]").evaluateAll((els) => els.map((e) => e.getAttribute("data-batch")));
 
 test("the list sorts: needs a note (default), newest, maceration, size; kept on reload", async ({ page }) => {

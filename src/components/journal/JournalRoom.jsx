@@ -4,8 +4,8 @@ import { Link } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { listBatches } from "../../lib/fragranceApi";
-import { upsertNote, toggleRemind } from "../../lib/benchApi";
-import { enqueueCheckIn, isOffline } from "../../lib/outbox";
+import { toggleRemind } from "../../lib/benchApi";
+import { saveNote, TAGS } from "../../lib/journalNotes";
 import { useEntitlements } from "../../lib/useEntitlements";
 import { can, journalOpen } from "../../lib/entitlements";
 import { batchStartedAt } from "../../lib/batchTiming";
@@ -19,6 +19,7 @@ import {
 import { useStartTrial } from "../plan/Upgrade";
 import { IconBell } from "../icons";
 import Chip from "../kx/Chip";
+import TodayStrip from "./TodayStrip";
 
 // The Journal room (Bench SaaS Phase 5, prototype Journal.dc.html): every
 // logged batch rests 90 days and is noted at five milestones. Built on the
@@ -29,7 +30,6 @@ import Chip from "../kx/Chip";
 // (journal_window, the same rule the API applies to notes), Pro all of them.
 // The batch records (edit, share, delete) stay at /bench/journal.
 
-const TAGS = ["harsh", "sharp", "rounder", "sweeter", "woodier", "fading", "ready"];
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const SORT_KEY = "kyphira.journalSort";
@@ -163,6 +163,13 @@ export default function JournalRoom() {
           <p>{t("journal.page.empty")}</p>
           <Link to="/bench" className="mt-3 inline-flex min-h-[44px] items-center underline" style={{ color: COLORS.actionText }}>{t("journal.page.emptyAction")}</Link>
         </div>
+      )}
+
+      {batches && visible.length > 0 && (
+        <TodayStrip items={visible.map((x) => ({
+          b: x, day: dayOf(x), no: Number(x.batch_no) || 0, start: batchStartedAt(x)?.getTime() ?? NaN, checkins: x.batch_checkins,
+        }))} onSaved={(batch, checkin) => replaceBatch({ id: batch.id, batch_checkins: [...(batch.batch_checkins ?? []).filter((c) => c.id !== checkin.id), checkin] })}
+        onOpen={pick} noOf={noOf} locale={locale} t={t} />
       )}
 
       {b && (
@@ -368,20 +375,12 @@ function NoteEditor({ b, m, day, note, onSaved, t }) {
     if (!text.trim() && !rating) { setStatus("empty"); return; }
     setStatus("saving");
     try {
-      const draft = {
+      const { checkin, queued } = await saveNote({
         id: note?.id ?? crypto.randomUUID(), batch_id: b.id, day, scheduled_day: note ? note.scheduled_day ?? null : m.days,
         note: text.trim() || null, rating: rating || null, tags: TAGS.filter((x) => tags.includes(x)),
-      };
-      try {
-        onSaved(await upsertNote(draft));
-        setStatus("saved");
-      } catch (e) {
-        // No connection: keep the note on this phone; the app sends it when the connection returns.
-        if (!isOffline(e)) throw e;
-        enqueueCheckIn({ ...draft, upsert: true });
-        onSaved({ ...draft, created_at: new Date().toISOString() });
-        setStatus("queued");
-      }
+      });
+      onSaved(checkin);
+      setStatus(queued ? "queued" : "saved");
     } catch {
       setStatus("error");
     }
