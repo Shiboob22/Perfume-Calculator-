@@ -184,3 +184,29 @@ describe("M2: carry", () => {
     expect(nav).toContain('const SHARE = "mo-share"');
   });
 });
+
+describe("M3: hold", () => {
+  const src = (p) => readFileSync(new URL(p, import.meta.url), "utf8");
+  it("slides re-sorted rows on the base step and the in-out curve, by transform, with no literal timing", () => {
+    const flip = src("./flip.js");
+    expect(flip).toContain("duration: TOKENS.duration.base, easing: TOKENS.ease.inOut");
+    expect(flip).toMatch(/transform: `translate\(\$\{dx\}px, \$\{dy\}px\)`/);
+    expect(flip).not.toMatch(/\b\d+\s*ms\b|duration: \d/);
+    // A new row arrives as text does everywhere: whole by 60 % of the base step.
+    expect(flip).toContain("{ opacity: 1, offset: 0.6 }");
+  });
+  it("keeps loading in the shape of the list, still under reduced motion (the sweep is the only motion)", () => {
+    const sk = src("../components/kx/ListSkeleton.jsx");
+    expect(sk).toContain('role="status"');
+    expect(sk).toContain('aria-hidden="true"');
+    expect(sk).not.toMatch(/animate-|animation/);
+    for (const f of ["../components/journal/JournalRoom.jsx", "../components/Batches.jsx", "../components/Inventory.jsx", "../components/orders/OrderQueue.jsx"]) {
+      expect(src(f), f).toContain("<ListSkeleton");
+    }
+  });
+  it("lets a count settle in, out of the flow, instead of swapping or pushing its neighbours", () => {
+    const nav = src("../components/AppNav.jsx");
+    expect(nav).toMatch(/<span key=\{count\} data-badge=\{count\} className="kx-settle/);
+    expect(nav).not.toMatch(/badgeFor\(id\) && <span className="relative">/);
+  });
+});
