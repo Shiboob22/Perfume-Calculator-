@@ -6,6 +6,7 @@ export { motionOn, reduced, lowPower, supportsViewTransitions } from "./env.js";
 export { Reveal, Stagger, TextReveal, DrawLine, Pin, CountUp, Skeleton, PageTransition, Link, useNavigate } from "./components.jsx";
 export { startNav, carry } from "./nav.js";
 export { navDirection } from "./carry.js";
+export { useFlip, flipDeltas, flipEntered } from "./flip.js";
 export { useExit } from "./useExit.js";
 export { Light, Magnetic, Tilt, pointerMotion } from "./pointer.jsx";
 export { Progress } from "./Progress.jsx";

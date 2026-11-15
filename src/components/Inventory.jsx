@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { COLORS } from "../lib/theme";
 import { TIERS } from "../lib/tiers";
 import { listInventory, adjustInventory, setLowStockThreshold } from "../lib/fragranceApi";
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
 import EmptyState from "./EmptyState";
+import ListSkeleton from "./kx/ListSkeleton";
+import { useFlip } from "../motion";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -17,6 +19,9 @@ export default function Inventory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [restockAmounts, setRestockAmounts] = useState({});
+  // A row added or removed: the others slide to their places (motion M3).
+  const listRef = useRef(null);
+  useFlip(listRef, rows.map((r) => r.fragrance_id).join(","));
 
   async function refresh() {
     setLoading(true);
@@ -69,7 +74,7 @@ export default function Inventory() {
         {t("inventory.intro")}
       </p>
 
-      {loading && <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
+      {loading && <ListSkeleton label={t("app.loading")} rows={3} framed />}
       {error && <p className="text-sm" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && rows.length === 0 && (
         <EmptyState text={t("inventory.empty")} action={t("inventory.emptyAction")} to="/app/search" />
@@ -81,11 +86,11 @@ export default function Inventory() {
         </div>
       )}
 
-      <div className="space-y-3">
+      <div ref={listRef} className="space-y-3">
         {rows.map((r) => {
           const low = r.stock_g <= r.low_stock_threshold_g;
           return (
-            <div key={r.fragrance_id} className="p-4 border rounded" style={{ borderColor: low ? COLORS.danger : COLORS.line, backgroundColor: COLORS.card }}>
+            <div key={r.fragrance_id} data-flip={r.fragrance_id} className="p-4 border rounded" style={{ borderColor: low ? COLORS.danger : COLORS.line, backgroundColor: COLORS.card }}>
               <div className="flex items-start justify-between">
                 <div>
                   <div className="text-sm font-serif font-semibold" style={{ color: COLORS.forestDeep }}>

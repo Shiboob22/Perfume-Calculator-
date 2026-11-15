@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Link, startNav } from "../../motion";
+import { Link, startNav, useFlip } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { listBatches } from "../../lib/fragranceApi";
@@ -23,6 +23,7 @@ import {
 import { useStartTrial } from "../plan/Upgrade";
 import { IconBell } from "../icons";
 import Chip from "../kx/Chip";
+import ListSkeleton from "../kx/ListSkeleton";
 import TodayStrip from "./TodayStrip";
 import MaturationCurve from "./MaturationCurve";
 import OilOverlay from "./OilOverlay";
@@ -136,6 +137,9 @@ export default function JournalRoom() {
     b: x, day: todayFor(x, now), no: Number(x.batch_no) || 0, ml: Number(x.total_ml),
     start: batchStartedAt(x)?.getTime() ?? NaN, checkins: x.batch_checkins,
   })), sort, dir).map((r) => r.b), [visible, sort, dir, now]);
+  // A new sort or direction: the rows slide to their new places (motion M3).
+  const listRef = useRef(null);
+  useFlip(listRef, sorted.map((x) => x.id).join(","));
   const pickSort = (k) => {
     store(SORT_KEY, k);
     store(DIR_KEY, null);
@@ -197,10 +201,10 @@ export default function JournalRoom() {
         {can(entitlements, "reminders") && <div className="mt-3"><PushToggle t={t} /></div>}
       </div>
 
-      {batches === null && <p role="status" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
+      {batches === null && <ListSkeleton label={t("app.loading")} rows={5} bar className="max-w-[300px] w-full" />}
 
       {batches && !visible.length && (
-        <div className="p-6 rounded" style={{ border: `1px solid ${COLORS.line}` }}>
+        <div className="kx-settle p-6 rounded" style={{ border: `1px solid ${COLORS.line}` }}>
           <p>{t("journal.page.empty")}</p>
           <Link to="/bench" className="mt-3 inline-flex min-h-[44px] items-center underline" style={{ color: COLORS.actionText }}>{t("journal.page.emptyAction")}</Link>
         </div>
@@ -209,7 +213,10 @@ export default function JournalRoom() {
       {batches && visible.length > 0 && (
         <TodayStrip items={visible.map((x) => ({
           b: x, day: dayOf(x), no: Number(x.batch_no) || 0, start: batchStartedAt(x)?.getTime() ?? NaN, checkins: x.batch_checkins,
-        }))} onSaved={(batch, checkin) => replaceBatch({ id: batch.id, batch_checkins: [...(batch.batch_checkins ?? []).filter((c) => c.id !== checkin.id), checkin] })}
+        }))} onSaved={(batch, checkin) => setBatches((list) => list.map((x) => (x.id === batch.id
+          ? { ...x, batch_checkins: [...(x.batch_checkins ?? []).filter((c) => c.id !== checkin.id), checkin] } : x)))}
+        onUndo={(batch, checkinId) => setBatches((list) => list.map((x) => (x.id === batch.id
+          ? { ...x, batch_checkins: (x.batch_checkins ?? []).filter((c) => c.id !== checkinId) } : x)))}
         onOpen={pick} noOf={noOf} locale={locale} t={t} />
       )}
 
@@ -230,7 +237,7 @@ export default function JournalRoom() {
                   <SwapIcon />{t(`journal.page.dir.${sort}.${dir}`)}
                 </button>
               )}
-              <ul aria-labelledby="journal-batches" className="mt-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+              <ul ref={listRef} aria-labelledby="journal-batches" className="mt-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
                 {sorted.map((x) => {
                   const on = x.id === b.id;
                   const day = dayOf(x);
@@ -238,7 +245,7 @@ export default function JournalRoom() {
                   const p = restProgress(day);
                   const due = sort === "note" ? needsNote(x.batch_checkins, day) : null;
                   return (
-                    <li key={x.id}>
+                    <li key={x.id} data-flip={x.id}>
                       <button type="button" onClick={(e) => pick(x.id, e.currentTarget)} aria-pressed={on} data-batch={x.id}
                         className="w-full flex items-center gap-3 px-2 py-3 text-start" style={{ borderBottom: `1px solid ${COLORS.line}`, background: on ? COLORS.sand : "transparent" }}>
                         <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: swatchOf(x) }} />

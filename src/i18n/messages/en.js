@@ -832,6 +832,8 @@ export default {
         none: "Nothing to smell today.",
         next: "Next: {no} on {date}.",
         allDone: "Every batch has passed its last milestone.",
+        saving: "Saving the note for {no}, {milestone}…",
+        failed: "Couldn't save the note for {no}, {milestone}. Add it again: your words are kept.",
       },
       savedOffline: "Saved on this phone. It will be sent when you are back online.",
       needSomething: "Write a line or give a rating.",

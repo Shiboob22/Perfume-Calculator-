@@ -24,6 +24,7 @@ import SharePanel from "./SharePanel";
 import BatchEdit from "./BatchEdit";
 import WaitlistButton from "./WaitlistButton";
 import { makeAgainHref } from "../lib/oilHistory";
+import ListSkeleton from "./kx/ListSkeleton";
 
 // The engine's rounding, so a stored batch reads as the calculator showed it.
 function round2(n) {
@@ -436,7 +437,7 @@ export default function Batches() {
       <JournalDue due={due} onDone={handleCheckIn} />
       {!loading && batches.length > 0 && <JournalPatterns version={patternsVersion} />}
 
-      {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
+      {loading && <ListSkeleton label={t("app.loading")} rows={5} bar className="max-w-[22rem]" />}
       {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && batches.length === 0 && (
         <EmptyState text={t("batches.empty")} action={t("batches.emptyAction")} to="/bench" />

@@ -9,9 +9,15 @@ import SaveState from "../kx/SaveState";
 // quick note in a sheet (rating, tags, one line, Save: three taps). The full
 // editor stays in the batch detail. Quiet when nothing is due, and says what
 // comes next.
-export default function TodayStrip({ items, onSaved, onOpen, noOf, locale, t }) {
+//
+// Saving is optimistic (motion M3): the note is in the Journal and the sheet
+// closes at once, with "Saving…"; the server's answer turns it into saved (or
+// saved on this phone, through the outbox). If the server refuses it, the note
+// comes back out, the card returns and its draft is kept for the next try.
+export default function TodayStrip({ items, onSaved, onUndo, onOpen, noOf, locale, t }) {
   const [target, setTarget] = useState(null); // { item, k }
   const [done, setDone] = useState(null); // { state, text }
+  const [drafts, setDrafts] = useState({}); // `${batchId}:${k}` → a draft the server refused
   const due = dueToday(items);
   const next = due.length ? null : nextUp(items);
   const name = (k) => t(`journal.page.milestones.${k}`);
@@ -52,11 +58,23 @@ export default function TodayStrip({ items, onSaved, onOpen, noOf, locale, t }) 
       <Sheet open={!!target} onClose={() => setTarget(null)} closeLabel={t("journal.page.todayStrip.close")}
         title={target ? t("journal.page.todayStrip.sheet", { no: no(target.item), milestone: name(target.k) }) : ""}>
         {target && (
-          <QuickNote key={`${target.item.b.id}:${target.k}`} target={target} t={t}
-            onSaved={(checkin, queued) => {
-              onSaved(target.item.b, checkin);
-              setDone({ state: queued ? "queued" : "saved", text: t(queued ? "journal.page.savedOffline" : "journal.page.todayStrip.saved", { no: no(target.item), milestone: name(target.k) }) });
+          <QuickNote key={`${target.item.b.id}:${target.k}`} target={target} initial={drafts[`${target.item.b.id}:${target.k}`]} t={t}
+            onSubmit={(draft, kept) => {
+              const { item, k } = target;
+              const words = { no: no(item), milestone: name(k) };
+              const slot = `${item.b.id}:${k}`;
+              onSaved(item.b, { ...draft, skipped: false, created_at: new Date().toISOString() });
+              setDrafts((d) => { const n = { ...d }; delete n[slot]; return n; });
+              setDone({ state: "working", text: t("journal.page.todayStrip.saving", words) });
               setTarget(null);
+              saveNote(draft).then(({ checkin, queued }) => {
+                onSaved(item.b, checkin);
+                setDone({ state: queued ? "queued" : "saved", text: t(queued ? "journal.page.savedOffline" : "journal.page.todayStrip.saved", words) });
+              }, () => {
+                onUndo?.(item.b, draft.id);
+                setDrafts((d) => ({ ...d, [slot]: kept }));
+                setDone({ state: "failed", text: t("journal.page.todayStrip.failed", words) });
+              });
             }} />
         )}
       </Sheet>
@@ -64,27 +82,21 @@ export default function TodayStrip({ items, onSaved, onOpen, noOf, locale, t }) 
   );
 }
 
-function QuickNote({ target, onSaved, t }) {
+function QuickNote({ target, initial, onSubmit, t }) {
   const { item, k } = target;
-  const [rating, setRating] = useState(0);
-  const [tags, setTags] = useState([]);
-  const [text, setText] = useState("");
+  const [rating, setRating] = useState(initial?.rating ?? 0);
+  const [tags, setTags] = useState(initial?.tags ?? []);
+  const [text, setText] = useState(initial?.text ?? "");
   const [status, setStatus] = useState(null);
   const chip = (on) => ({ border: `1px solid ${on ? COLORS.ink : COLORS.line}`, background: on ? COLORS.ink : "transparent", color: on ? COLORS.paper : COLORS.inkSoft });
   const days = { d1: 0, w1: 7, w2: 14, m1: 30, m3: 90 }[k];
 
-  async function save() {
+  function save() {
     if (!text.trim() && !rating) { setStatus("empty"); return; }
-    setStatus("saving");
-    try {
-      const { checkin, queued } = await saveNote({
-        id: crypto.randomUUID(), batch_id: item.b.id, day: item.day, scheduled_day: days,
-        note: text.trim() || null, rating: rating || null, tags: TAGS.filter((x) => tags.includes(x)),
-      });
-      onSaved(checkin, queued);
-    } catch {
-      setStatus("error");
-    }
+    onSubmit({
+      id: crypto.randomUUID(), batch_id: item.b.id, day: item.day, scheduled_day: days,
+      note: text.trim() || null, rating: rating || null, tags: TAGS.filter((x) => tags.includes(x)),
+    }, { rating, tags, text });
   }
 
   return (
@@ -117,12 +129,11 @@ function QuickNote({ target, onSaved, t }) {
           style={{ borderColor: COLORS.field, background: COLORS.cardHi, color: COLORS.ink }} />
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" onClick={save} disabled={status === "saving"}
-          className="min-h-[48px] px-5 text-[15px] font-medium rounded disabled:opacity-60" style={{ background: COLORS.ink, color: COLORS.paper }}>
-          {status === "saving" ? t("journal.page.saving") : t("journal.page.save")}
+        <button type="button" onClick={save}
+          className="min-h-[48px] px-5 text-[15px] font-medium rounded" style={{ background: COLORS.ink, color: COLORS.paper }}>
+          {t("journal.page.save")}
         </button>
         <p role="status" className="text-sm empty:hidden" style={{ color: COLORS.danger }}>
-          {status === "error" && t("journal.page.saveFailed")}
           {status === "empty" && t("journal.page.needSomething")}
         </p>
       </div>

@@ -60,6 +60,14 @@ Matter on a bench: liquid pours and settles, ink draws and dries, weight lands a
 - **Coming back**: browser back and forward return to where that page was scrolled (kept per history entry for the tab), waiting for a list that loads after the route, and giving up if the reader scrolls first.
 - **Fallbacks**: reduced motion is a cut; a browser without View Transitions gets the page fade it had; a low-power phone gets the cross-fade without travel or shared element.
 
+## Hold (M3)
+
+- **Loading keeps the shape**: `kx/ListSkeleton` is one ruled row per expected item (a mark, a name, a line of facts, the rest bar for batches), in the Journal, Batches, Inventory and Orders. It holds the height, so nothing jumps when the rows arrive; its lines sweep on the ambient loop with the motion layer on and are still under reduced motion. Screen readers hear "Loading" only.
+- **A change of order is shown**: `useFlip()` (`src/motion/flip.js`) slides each row that moved from its old place to its new one, on `base` with the in-out curve, by transform; a new row settles in like text (whole by 60 % of `base`). Only rows on screen before or after move, so a long list costs a screenful. Used by the Journal's sorts, Inventory rows and the shop cart. A cut under reduced motion.
+- **A count settles**: the nav's due badge settles in when its number changes (`kx-settle`), sitting in the tab's corner so it moves nothing. Never the calculator figures.
+- **Optimistic where the outbox makes it safe**: a quick note from Smell today is in the Journal at once ("Saving…"), then saved or saved on this phone; a busy server (429, 5xx) queues it like no connection; a refusal takes it back out and keeps the words for the next try.
+- **Empty states arrive like content** (`kx-settle`, or the `Stagger` of `EmptyState`).
+
 ## Where each piece lives
 
 - Tokens and primitives (site layer): `src/motion/`
