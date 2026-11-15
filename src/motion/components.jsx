@@ -16,7 +16,8 @@ const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayout
 /**
  * A block that fades and rises once as it is reached. `eager` is for content
  * that appears after load (client-rendered): it plays on mount even in view.
- * Never use `eager` in prerendered markup. `from`: "up" (default), "start", "end".
+ * Never use `eager` in prerendered markup. `from`: "up" (default), "start", "end",
+ * "down" (set down from above: the Wardrobe's answer).
  */
 export function Reveal({ as: Tag = "div", from = "up", eager = false, className, children, ...rest }) {
   const ref = useRef(null);
