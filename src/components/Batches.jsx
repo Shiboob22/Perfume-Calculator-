@@ -282,6 +282,10 @@ export default function Batches() {
               </div>
               <div className="flex flex-wrap items-center gap-3 shrink-0 sm:ms-3">
                 <BatchEdit batch={b} onSaved={handleEdited} onStatus={setStatus} />
+                <button type="button" onClick={() => navigate(`${locale === "ar" ? "/ar" : ""}/journal?batch=${b.id}`)}
+                  className="text-xs font-mono underline min-h-[24px]" style={{ color: COLORS.forest }}>
+                  {t("batches.openJournal")}
+                </button>
                 <button type="button" onClick={() => navigate(makeAgainHref(b))}
                   className="text-xs font-mono underline min-h-[24px]" style={{ color: COLORS.forest }}>
                   {t("batches.again")}

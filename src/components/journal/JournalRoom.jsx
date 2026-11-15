@@ -11,6 +11,9 @@ import { can, journalOpen } from "../../lib/entitlements";
 import { batchStartedAt } from "../../lib/batchTiming";
 import { notesDue, todayFor, JOURNAL_CHANGED } from "../../lib/journal";
 import { makeAgainHref } from "../../lib/oilHistory";
+import { useProfile } from "../../lib/useProfile";
+import { flagOn } from "../../lib/flags";
+import { listOrders } from "../../lib/ordersApi";
 import { TIER_COLORS, TIERS } from "../../lib/tiers";
 import { UNIT_LABELS } from "../../lib/calcPrefill";
 import {
@@ -24,6 +27,7 @@ import TodayStrip from "./TodayStrip";
 import MaturationCurve from "./MaturationCurve";
 import OilOverlay from "./OilOverlay";
 import BatchCompare from "./BatchCompare";
+import BatchRecord from "./BatchRecord";
 
 // The Journal room (Bench SaaS Phase 5, prototype Journal.dc.html): every
 // logged batch rests 90 days and is noted at five milestones. Built on the
@@ -95,6 +99,22 @@ export default function JournalRoom() {
   useEffect(load, [load]);
 
   const pro = can(entitlements, "fullJournal");
+
+  // Sellers (Pro, the orders flag): bottles promised to buyers per batch, from the order queue.
+  const { profile } = useProfile();
+  const sellerLine = flagOn("orders") && Boolean(profile?.sells) && entitlements.loaded && can(entitlements, "orders");
+  const [promised, setPromised] = useState(() => new Map());
+  useEffect(() => {
+    if (!sellerLine) return undefined;
+    let live = true;
+    listOrders().then((rows) => {
+      if (!live) return;
+      const m = new Map();
+      for (const o of rows) if (o.batch_id && ["resting", "ready", "bottled"].includes(o.status)) m.set(o.batch_id, (m.get(o.batch_id) ?? 0) + 1);
+      setPromised(m);
+    }).catch(() => {});
+    return () => { live = false; };
+  }, [sellerLine]);
   const all = useMemo(() => [...(batches ?? [])].sort((a, b) => (Number(b.batch_no) || 0) - (Number(a.batch_no) || 0)
     || String(b.created_at ?? "").localeCompare(String(a.created_at ?? ""))), [batches]);
   const open = useMemo(() => journalOpen(entitlements, all), [entitlements, all]);
@@ -131,6 +151,10 @@ export default function JournalRoom() {
   const selId = params.get("batch");
   const b = visible.find((x) => x.id === selId) ?? sorted[0] ?? null;
   const pick = (id) => setParams((p) => { const q = new URLSearchParams(p); q.set("batch", id); return q; }, { replace: true });
+  const removeBatch = (id) => {
+    setBatches((list) => list.filter((x) => x.id !== id));
+    setParams((p) => { const q = new URLSearchParams(p); q.delete("batch"); return q; }, { replace: true });
+  };
   const replaceBatch = (next) => setBatches((list) => list.map((x) => (x.id === next.id ? { ...x, ...next } : x)));
 
   if (loadError) {
@@ -249,7 +273,7 @@ export default function JournalRoom() {
               </Link>
             </aside>
             <BatchDetail key={b.id} b={b} day={dayOf(b)} pro={pro} canRemind={can(entitlements, "reminders")}
-              oilBatches={oilBatches} canCompare={can(entitlements, "journal.insights")}
+              oilBatches={oilBatches} canCompare={can(entitlements, "journal.insights")} onDeleted={removeBatch} promised={promised.get(b.id) ?? 0}
               dateAt={dateAt} metaOf={metaOf} onChange={replaceBatch} t={t} locale={locale} />
           </div>
         </>
@@ -258,7 +282,7 @@ export default function JournalRoom() {
   );
 }
 
-function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, dateAt, metaOf, onChange, t }) {
+function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised, dateAt, metaOf, onChange, onDeleted, t }) {
   const notes = notesByMilestone(b.batch_checkins);
   const reachedAt = MILESTONES[milestoneIndex(day)].k;
   const [ms, setMs] = useState(reachedAt);
@@ -359,6 +383,7 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, dateAt, m
         lockedCard={<ProCard title={t("journal.page.oil.proTitle")} body={t("journal.page.oil.proBody")} t={t} />} />
       <BatchCompare batches={oilBatches} selectedId={b.id} locked={!canCompare} t={t}
         lockedCard={<ProCard title={t("journal.page.cmp.proTitle")} body={t("journal.page.cmp.proBody")} t={t} />} />
+      <BatchRecord b={b} onChange={onChange} onDeleted={onDeleted} promised={promised} readyOn={dateAt(b, 90)} />
 
       <div className="mt-7 pt-5" style={{ borderTop: `1px solid ${COLORS.line}` }}>
         <div className="flex flex-wrap items-center justify-between gap-3">

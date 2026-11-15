@@ -5,7 +5,7 @@ import ar from "../src/i18n/messages/ar.js";
 import { FEATURES } from "../src/lib/entitlements.js";
 import { USER, json, signIn } from "./helpers.js";
 
-// The Journal's maturation curve, "your batches of this oil" (J3) and the batch compare (J4), in
+// The Journal's maturation curve, "your batches of this oil" (J3) the batch compare (J4) and the batch record (J5), in
 // English and Arabic, light and dark: axe on both sections, no overflow, and
 // (with SHOT_DIR set) the screenshots for the PR. Run at phone and desktop widths.
 test.use({ serviceWorkers: "block" });
@@ -66,8 +66,9 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
         await curve.screenshot({ path: `${base}-curve.png` });
         await oil.screenshot({ path: `${base}-oil.png` });
         await cmp.screenshot({ path: `${base}-compare.png` });
+        await page.locator("[data-record]").screenshot({ path: `${base}-record.png` });
       }
-      for (const [what, include] of [["curve", "[data-curve]"], ["oil", "[data-oil]"], ["compare", "[data-compare]"]]) {
+      for (const [what, include] of [["curve", "[data-curve]"], ["oil", "[data-oil]"], ["compare", "[data-compare]"], ["record", "[data-record]"]]) {
         const { violations } = await new AxeBuilder({ page }).include(include).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
         expect(violations.map((v) => `${what}: ${v.id} ${v.nodes[0]?.target}`)).toEqual([]);
       }

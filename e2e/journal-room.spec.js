@@ -342,6 +342,57 @@ test("compare two batches side by side (Pro); Free sees the offer", async ({ pag
   await expect(free.locator("[data-compare-table]")).toHaveCount(0);
 });
 
+test("the batch record lives in the Journal: weights, the actions, and delete", async ({ page }) => {
+  await signIn(page);
+  let deleted = null;
+  await fakeApi(page);
+  await page.route("**/api/batches?id=*", (route) => {
+    if (route.request().method() !== "DELETE") return route.fallback();
+    deleted = new URL(route.request().url()).searchParams.get("id");
+    return json(route, { success: true });
+  });
+  await page.goto("/journal?batch=" + id(4));
+  const rec = page.locator("[data-record]");
+  const p = en.journal.page;
+  await expect(rec.getByRole("heading", { name: p.record.title })).toBeVisible();
+  await expect(rec).toContainText("9.5 g");
+  await expect(rec).toContainText("41.90 g");
+  await expect(rec.getByRole("link", { name: en.batches.again })).toHaveAttribute("href", /\/bench\?size=50&unit=ml&conc=20&family=fresh&name=Neroli\+Eau/);
+  await expect(rec.getByRole("button", { name: en.batches.exportCard })).toBeVisible();
+  await expect(rec.getByRole("button", { name: en.batches.edit.open, exact: true })).toBeVisible();
+
+  // Delete takes a second tap, then the batch leaves the list.
+  await rec.getByRole("button", { name: en.batches.delete }).click();
+  await rec.getByRole("button", { name: en.batches.delete }).click();
+  await expect(page.locator(`[data-batch="${id(4)}"]`)).toHaveCount(0);
+  expect(deleted).toBe(id(4));
+});
+
+test("a seller sees the bottles promised on a batch; the records page links to the Journal", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page);
+  await page.route(/\/rest\/v1\/profiles/, (route) => json(route, [{ locale: "en", default_unit: "ml", default_bottle: 100, digits: "latn", onboarded_at: "2026-10-01T00:00:00Z", sells: true, currency: "EGP" }]));
+  await page.route("**/api/batches?resource=orders", (route) => json(route, { orders: [
+    { id: "o1", status: "resting", batch_id: id(4), scent_text: "Neroli", size_ml: 30, strength_pct: 20, buyer_name: "A" },
+    { id: "o2", status: "bottled", batch_id: id(4), scent_text: "Neroli", size_ml: 30, strength_pct: 20, buyer_name: "B" },
+    { id: "o3", status: "handed_over", batch_id: id(4), scent_text: "Neroli", size_ml: 30, strength_pct: 20, buyer_name: "C" },
+    { id: "o4", status: "resting", batch_id: id(3), scent_text: "Santal", size_ml: 30, strength_pct: 20, buyer_name: "D" },
+  ] }));
+  await page.goto("/journal?batch=" + id(4));
+  await expect(page.locator("[data-promised]")).toContainText("2 bottles promised, ready on");
+  await page.goto("/journal?batch=" + id(3));
+  await expect(page.locator("[data-promised]")).toContainText("1 bottle promised, ready on");
+  await page.goto("/journal?batch=" + id(5));
+  await expect(page.locator("[data-record]")).toBeVisible();
+  await expect(page.locator("[data-promised]")).toHaveCount(0);
+
+  // The records page sends a batch to its home in the Journal.
+  await page.goto("/bench/journal");
+  await page.getByRole("button", { name: en.batches.openJournal }).first().click();
+  await expect(page).toHaveURL(/\/journal\?batch=/);
+  await expect(page.locator("[data-record]")).toBeVisible();
+});
+
 const order = (page) => page.locator("[data-batch]").evaluateAll((els) => els.map((e) => e.getAttribute("data-batch")));
 
 test("the list sorts: needs a note (default), newest, maceration, size; kept on reload", async ({ page }) => {

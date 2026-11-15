@@ -573,6 +573,7 @@ export default {
   batches: {
     again: "Make again",
     recipe: "Recipe: {label}",
+    openJournal: "Open in the Journal",
     edit: {"open": "Edit", "title": "Edit this batch", "name": "Fragrance name", "date": "Blend date", "lot": "Lot", "blendedBy": "Blended by", "supplier": "Supplier", "actualOil": "Oil actually poured (g)", "actualAlcohol": "Alcohol actually poured (g)", "notes": "Notes", "dateNote": "Changing the date moves this batch's journal schedule.", "recipeNote": "The recipe itself can't change. To blend it differently, use Make again.", "save": "Save changes", "saving": "Saving…", "cancel": "Cancel", "saved": "Batch updated.", "failed": "Could not save the changes."},
     lot: "Lot {lot}",
     title: "Batch history",
@@ -773,6 +774,7 @@ export default {
       save: "Save note",
       saving: "Saving…",
       saved: "Note saved",
+      record: { title: "The record", promised: { one: "{count} bottle promised, ready on {date}", other: "{count} bottles promised, ready on {date}" } },
       cmp: {
         title: "Compare two batches",
         pick: "Compare with",
