@@ -28,6 +28,10 @@ export const LEGAL = {
         { id: "device", h: "Stored on your device", p: [
           "Your browser keeps your sign-in session, your language and digit choices, batches you logged while offline until they are sent, and, for the open tab only, the calculator's inputs and a bench run in progress. These stay on your device and are cleared when you sign out or clear site data.",
         ] },
+        { id: "reminders", h: "Journal reminder emails", p: [
+          "If you switch the reminder on for a batch (a Pro feature), we email you at your account address when that batch reaches a Journal milestone and has no note yet. At most one email a morning, only when something is due, and each milestone once.",
+          "To send it we record which batch and milestone we emailed (so it is not sent twice) and pass your email address, the batch number and fragrance name to our email provider, Resend. Every email has a link that switches reminders off on all your batches. Turning the bell off on a batch stops them for that batch.",
+        ] },
         { id: "ai", h: "Ask (AI)", p: [
           "Ask is a Pro feature that sends your question, the conversation so far, and your 30 most recent batches (date, fragrance name, family, strength, size, oil weight, oil type, price and cost fields, and notes) to Google's Gemini API to write an answer. Your email address is not sent.",
           "Google processes this under its Gemini API terms. [OWNER: confirm the API tier in use. On Gemini's free tier Google may use prompts to improve its products; on the paid tier it does not.]",
@@ -36,6 +40,7 @@ export const LEGAL = {
         { id: "processors", h: "Who processes your data", p: [
           "Supabase (database and sign-in), hosted in the EU (Ireland).",
           "Vercel (hosting and the server functions), which run in the EU (Dublin). Vercel Web Analytics counts page views without cookies and without storing personal data.",
+          "Resend (email), only to send the Journal reminder emails described above.",
           "Google (Gemini) only when you use Ask, as described above. Google, if you choose it to sign in.",
         ] },
         { id: "rights", h: "Your data, your choice", p: [
@@ -69,6 +74,10 @@ export const LEGAL = {
         { id: "device", h: "ما يُحفظ على جهازك", p: [
           "يحتفظ متصفحك بجلسة تسجيل الدخول، واختيارك للغة وشكل الأرقام، والخلطات التي سجّلتها دون اتصال حتى تُرسَل، ولعلامة التبويب المفتوحة فقط مدخلات الحاسبة وجلسة العمل الجارية. تبقى هذه على جهازك وتُمسح عند تسجيل الخروج أو مسح بيانات الموقع.",
         ] },
+        { id: "reminders", h: "رسائل تذكير الدفتر", p: [
+          "إن فعّلت التذكير على دفعة (ميزة Pro) نراسلك على عنوان حسابك حين تبلغ تلك الدفعة محطة في الدفتر ولا ملاحظة لها بعد. رسالة واحدة في الصباح كحدٍّ أقصى، ولا تصلك إلا حين يحين موعد، ولكل محطة رسالة واحدة فقط.",
+          "لإرسالها نسجّل أي دفعة وأي محطة راسلناك عنها (كي لا تُرسل مرتين)، ونمرّر بريدك ورقم الدفعة واسم العطر إلى مزوّد البريد لدينا Resend. في كل رسالة رابط يوقف التذكيرات على كل دفعاتك. وإيقاف الجرس على دفعة يوقفها لتلك الدفعة.",
+        ] },
         { id: "ai", h: "اسأل (الذكاء الاصطناعي)", p: [
           "ميزة «اسأل» جزء من Pro، وهي ترسل سؤالك والمحادثة حتى الآن وآخر 30 خلطة لك (التاريخ واسم العطر والعائلة والتركيز والحجم ووزن الزيت ونوعه وحقول السعر والتكلفة والملاحظات) إلى واجهة Gemini من Google لكتابة الإجابة. لا يُرسَل بريدك الإلكتروني.",
           "تعالج Google هذه البيانات وفق شروط واجهة Gemini. [OWNER: أكّد فئة الواجهة المستخدمة. في الفئة المجانية قد تستخدم Google الطلبات لتحسين منتجاتها، وفي الفئة المدفوعة لا تفعل.]",
@@ -77,6 +86,7 @@ export const LEGAL = {
         { id: "processors", h: "من يعالج بياناتك", p: [
           "Supabase (قاعدة البيانات وتسجيل الدخول)، مستضافة في الاتحاد الأوروبي (أيرلندا).",
           "Vercel (الاستضافة ووظائف الخادم)، وتعمل في الاتحاد الأوروبي (دبلن). تحصي تحليلات Vercel زيارات الصفحات دون ملفات تعريف ارتباط ودون حفظ بيانات شخصية.",
+          "Resend (البريد الإلكتروني)، فقط لإرسال رسائل تذكير الدفتر الموصوفة أعلاه.",
           "Google ‏(Gemini) عند استخدامك «اسأل» فقط كما وُصف أعلاه. وGoogle إن اخترته لتسجيل الدخول.",
         ] },
         { id: "rights", h: "بياناتك، واختيارك", p: [
