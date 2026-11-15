@@ -242,8 +242,8 @@ test("Arabic: bottling has no axe violations", async ({ page }) => {
   await signIn(page);
   await fakeApi(page, {
     locale: "ar",
-    orders: [{ id: "a", user_id: USER.id, buyer_name: "سارة", scent_text: "عود", size_ml: 50, strength_pct: 25, status: "bottled", family: "woody", batch_id: "b1", batches: { batch_no: 12, blend_date: "2026-09-01" }, group_mode: "mix" },
-      { id: "h", user_id: USER.id, buyer_name: "عمر", scent_text: "عود", size_ml: 30, strength_pct: 25, status: "handed_over", batch_id: "b1", batches: { batch_no: 12, blend_date: "2026-09-01" }, group_mode: "mix" }],
+    orders: [{ id: "a", user_id: USER.id, buyer_name: "سارة", scent_text: "عود", size_ml: 50, strength_pct: 25, status: "bottled", family: "woody", batch_id: "b1", batches: { batch_no: 12, blend_date: "2026-07-01" }, group_mode: "mix" },
+      { id: "h", user_id: USER.id, buyer_name: "عمر", scent_text: "عود", size_ml: 30, strength_pct: 25, status: "handed_over", batch_id: "b1", batches: { batch_no: 12, blend_date: "2026-07-01" }, group_mode: "mix" }],
   });
   await page.goto("/ar/bench/orders");
   await expect(page.getByText(ar.orders.bottle.title, { exact: true })).toBeVisible();

@@ -21,7 +21,7 @@ import { UpgradeProvider, PlanBadge } from "./components/plan/Upgrade";
 import { fetchPopular, warmUp } from "./lib/searchApi";
 import { flush } from "./lib/outbox";
 import { logBatch, listBatches, saveCheckIn } from "./lib/fragranceApi";
-import { dueNow, JOURNAL_CHANGED } from "./lib/journal";
+import { notesDue, JOURNAL_CHANGED } from "./lib/journal";
 import { installGlobalHandlers } from "./lib/reportError";
 import { PageTransition, Progress, Skeleton, motionOn } from "./motion";
 
@@ -254,7 +254,7 @@ function CountDueCheckIns() {
     listBatches(100)
       .then((b) => {
         const open = journalOpen(entitlements, b);
-        window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: dueNow(b.filter((x) => open.has(x.id))).length } }));
+        window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: notesDue(b.filter((x) => open.has(x.id))) } }));
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps -- recount when the plan loads or changes

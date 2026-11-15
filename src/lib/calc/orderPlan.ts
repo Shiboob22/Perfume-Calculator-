@@ -110,10 +110,11 @@ export interface RestWindow {
 /**
  * The rest window: ready from the family's shortest rest, fully rested at its
  * longest, never past MAX_REST_DAYS. Unknown family: 90 days for both. The
- * per-family ranges are formulation.ts's `sources.htmlTool.restDays`.
+ * family ranges are formulation.ts's `active.restDays` (90 for every family since
+ * 2026-10-29), the same numbers the Bench and the Journal use.
  */
 export function restWindow(family: string | null | undefined, blendDate: string): RestWindow {
-  const days = (isFamily(family) && FAMILIES[family].sources.htmlTool.restDays) || [MAX_REST_DAYS, MAX_REST_DAYS];
+  const days = (isFamily(family) && FAMILIES[family].active.restDays) || [MAX_REST_DAYS, MAX_REST_DAYS];
   const minDays = Math.min(days[0], MAX_REST_DAYS);
   const maxDays = Math.min(days[1], MAX_REST_DAYS);
   return { minDays, maxDays, readyFrom: addDays(blendDate, minDays), fullyRested: addDays(blendDate, maxDays) };

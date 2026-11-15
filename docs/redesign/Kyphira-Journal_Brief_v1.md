@@ -12,7 +12,7 @@ What works:
 
 What stops it being award-level. These are the real problems, in order of harm:
 
-1. **Two rest clocks.** The room says every batch is ready at day 90. The Bench's resting line, the old journal, the nav badge (`dueNow()`) and the order queue use the family rest days from `formulation.ts` (capped at 90). A user can see "ready" on the Bench and "Ready in 61 days" in the Journal for the same bottle. Nothing award-level can sit on two answers to "is it ready?".
+1. **Two rest clocks (corrected in J0).** Since 2026-10-29 every family rests 90 days in the app (`restDays` [90, 90]), so the Journal, the Bench line, the nav badge and the old journal agreed on 90. Two things still disagreed: the order queue, which kept the older per-family ranges (7–42 days), and the nav badge, which counted the older check-in schedule (day 1, 90, 104) instead of the room's "Needs a note".
 2. **The reminder does nothing.** The bell stores `batches.remind` and stops (`TODO(reminders)` in `api/batches.ts`). The Journal's whole value is coming back on the right day; today nothing brings anyone back.
 3. **Notes are lost offline.** Batch logs go through the outbox; notes (`upsertNote`) do not. The Journal is used at a bench, often with poor signal.
 4. **No picture of change.** The data exists (ratings over days, tags over days) but the room shows text cards. The question users actually have, "when did this one peak?", has no visual answer.
@@ -48,9 +48,9 @@ Each phase: own branch, PR, preview, EN + AR strings together, Vitest for pure c
 
 ### J0 — One truth (foundation, no migration)
 
-- One rest model in `restTracker.ts`: the ready day comes from the batch's family rest days (`formulation.ts`), capped at 90, the same function the Bench and the order queue use. Milestones become relative: **Day 0, Week 1, Ready day, Ready + 14, Day 90** (the older family schedule, already mapped by `notesByMilestone()`). *Owner decision D1.*
-- The nav badge counts the room's own "needs a note", not `dueNow()` (closes the open item from the Journal sort brief).
-- A test that Bench, Journal, order queue and nav badge give the same ready date for the same batch.
+- One rest model: 90 days for every family, from `formulation.ts` `active.restDays`. The order queue's `restWindow()` now reads the same numbers. Milestones stay Day 0, Week 1, Week 2, Month 1, Day 90. *Owner decision D1: 90 days for all, 2026-11-15.*
+- The nav badge counts the room's own "needs a note" (`notesDue()`), not `dueNow()` (closes the open item from the Journal sort brief).
+- A test that Journal, Bench line and order queue give the same ready date for the same batch, for every family.
 - Notes through the outbox with client ids (`api/checkins.ts` is already idempotent on id); a "saved on this phone, will send" state.
 - Acceptance: one ready date everywhere; a note written in airplane mode arrives after reconnect; no change to stored data.
 
@@ -113,7 +113,7 @@ Measured from the database (no new tracking needed; Vercel custom events need a 
 
 ## 6. Decisions for the owner
 
-- **D1** Rest model: **decided 2026-11-14: family rest days, capped at 90** (matches the Bench and order queue). The prototype's flat 90 days goes away.
+- **D1** Rest model: **decided 2026-11-15: 90 days for every family** (the owner's 2026-10-29 rule). The order queue moves onto it; its older per-family ranges go away.
 - **D2** The tasting tag list, in your words, EN and AR.
 - **D3** Which QC checks from your checklist belong in the Journal.
 - **D4** Fold `/bench/journal` into `/journal` (keeps every feature, removes the second room).
@@ -125,5 +125,5 @@ Measured from the database (no new tracking needed; Vercel custom events need a 
 
 - Hobby function limit: reminders must ride on an existing function. If a 13th is ever needed, it is a paid plan.
 - Push on iPhone works only for home-screen installs; email stays the main channel.
-- Changing the milestones (D1) moves where old notes appear; `notesByMilestone()` already maps them, and a test will pin every existing note to a milestone before the change ships.
+- D1 does not change the milestones, so no old note moves. The order queue's ready dates shift later (Fresh from 14 days to 90).
 - Curves on one or two notes mean little: the curve shows only from three notes, with a plain line before that.

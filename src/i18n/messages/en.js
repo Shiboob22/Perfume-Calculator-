@@ -773,6 +773,7 @@ export default {
       save: "Save note",
       saving: "Saving…",
       saved: "Note saved",
+      savedOffline: "Saved on this phone. It will be sent when you are back online.",
       needSomething: "Write a line or give a rating.",
       saveFailed: "Couldn't save the note. Try again.",
       future: "Opens {date}",

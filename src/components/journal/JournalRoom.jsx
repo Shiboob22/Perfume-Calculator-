@@ -5,10 +5,11 @@ import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { listBatches } from "../../lib/fragranceApi";
 import { upsertNote, toggleRemind } from "../../lib/benchApi";
+import { enqueueCheckIn, isOffline } from "../../lib/outbox";
 import { useEntitlements } from "../../lib/useEntitlements";
 import { can, journalOpen } from "../../lib/entitlements";
 import { batchStartedAt } from "../../lib/batchTiming";
-import { dueNow, todayFor, JOURNAL_CHANGED } from "../../lib/journal";
+import { notesDue, todayFor, JOURNAL_CHANGED } from "../../lib/journal";
 import { TIER_COLORS, TIERS } from "../../lib/tiers";
 import { UNIT_LABELS } from "../../lib/calcPrefill";
 import {
@@ -120,7 +121,7 @@ export default function JournalRoom() {
   // The header's "due" badge follows the notes made here.
   useEffect(() => {
     if (!batches) return;
-    window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: dueNow(visible).length } }));
+    window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: notesDue(visible) } }));
   }, [batches, visible]);
 
   const selId = params.get("batch");
@@ -367,12 +368,20 @@ function NoteEditor({ b, m, day, note, onSaved, t }) {
     if (!text.trim() && !rating) { setStatus("empty"); return; }
     setStatus("saving");
     try {
-      const checkin = await upsertNote({
+      const draft = {
         id: note?.id ?? crypto.randomUUID(), batch_id: b.id, day, scheduled_day: note ? note.scheduled_day ?? null : m.days,
         note: text.trim() || null, rating: rating || null, tags: TAGS.filter((x) => tags.includes(x)),
-      });
-      onSaved(checkin);
-      setStatus("saved");
+      };
+      try {
+        onSaved(await upsertNote(draft));
+        setStatus("saved");
+      } catch (e) {
+        // No connection: keep the note on this phone; the app sends it when the connection returns.
+        if (!isOffline(e)) throw e;
+        enqueueCheckIn({ ...draft, upsert: true });
+        onSaved({ ...draft, created_at: new Date().toISOString() });
+        setStatus("queued");
+      }
     } catch {
       setStatus("error");
     }
@@ -413,6 +422,7 @@ function NoteEditor({ b, m, day, note, onSaved, t }) {
         </button>
         <p role="status" className="text-sm" style={{ color: status === "error" || status === "empty" ? COLORS.danger : COLORS.actionText }}>
           {status === "saved" && t("journal.page.saved")}
+          {status === "queued" && t("journal.page.savedOffline")}
           {status === "error" && t("journal.page.saveFailed")}
           {status === "empty" && t("journal.page.needSomething")}
         </p>

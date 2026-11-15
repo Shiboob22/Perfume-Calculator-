@@ -187,6 +187,31 @@ test("a note at a milestone, two notes compared, and the reminder (Pro)", async 
   expect(axe.violations).toEqual([]);
 });
 
+test("a note written offline waits on the phone and is sent when the connection returns", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page);
+  let offline = true;
+  // Registered after the fake API, so it answers first; fallback() hands the call on.
+  await page.route("**/api/checkins", (route) => (offline && route.request().method() === "POST" ? route.abort("internetdisconnected") : route.fallback()));
+  await page.goto("/journal");
+  const p = en.journal.page;
+
+  await page.locator(`[data-batch="${id(4)}"]`).click();
+  const detail = page.getByRole("region", { name: "Neroli Eau" });
+  await detail.getByLabel(p.note, { exact: true }).fill("Smoother after a fortnight.");
+  await detail.getByRole("button", { name: p.save }).click();
+  await expect(detail.getByRole("status").filter({ hasText: p.savedOffline })).toBeVisible();
+  await expect(detail.locator('[data-node="w2"]')).toHaveAttribute("aria-label", new RegExp(p.dots.note));
+  expect(sent.checkins).toEqual([]);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("sh-outbox")).length)).toBe(1);
+
+  offline = false;
+  await page.evaluate(() => window.dispatchEvent(new Event("online")));
+  await expect.poll(() => sent.checkins.length).toBe(1);
+  expect(sent.checkins[0]).toMatchObject({ batch_id: id(4), scheduled_day: 14, note: "Smoother after a fortnight.", upsert: true });
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("sh-outbox")).length)).toBe(0);
+});
+
 const order = (page) => page.locator("[data-batch]").evaluateAll((els) => els.map((e) => e.getAttribute("data-batch")));
 
 test("the list sorts: needs a note (default), newest, maceration, size; kept on reload", async ({ page }) => {

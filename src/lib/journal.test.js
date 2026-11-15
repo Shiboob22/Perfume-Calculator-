@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { dueNow, todayFor, restingBatch, suggestedRestDays, shareOf, restTimeline, nextReady } from "./journal";
+import { restWindow, addDays } from "./calc";
+import { FAMILIES } from "./formulation";
+import { dueNow, notesDue, todayFor, restingBatch, suggestedRestDays, shareOf, restTimeline, nextReady } from "./journal";
 
 const made = new Date(2026, 8, 1, 10, 0);
 const batch = (extra = {}) => ({ id: "b1", tier: "woody", created_at: made.toISOString(), blend_date: "2026-09-01", ...extra });
@@ -73,5 +75,32 @@ describe("nextReady", () => {
     expect(nextReady([batch()], day(90))).toBeNull();
     expect(nextReady([batch({ tier: "unknown" })], day(3))).toBeNull();
     expect(nextReady([], day(3))).toBeNull();
+  });
+});
+
+describe("one ready date everywhere", () => {
+  it("Journal, Bench line and order queue give the same ready day for every family", () => {
+    for (const tier of Object.keys(FAMILIES)) {
+      const b = batch({ tier });
+      const tl = restTimeline(b, day(10));
+      const w = restWindow(tier, "2026-09-01");
+      expect(tl.target).toBe(w.maxDays);
+      expect(w.minDays).toBe(w.maxDays);
+      expect(w.readyFrom).toBe(addDays("2026-09-01", tl.target));
+    }
+  });
+});
+
+describe("nav badge counts the room's needs-a-note", () => {
+  it("one per batch whose reached milestone has no note", () => {
+    const noted = batch({ id: "b2", batch_checkins: [{ id: "n", day: 8, scheduled_day: 7, note: "x" }] });
+    expect(notesDue([batch(), noted], day(8))).toBe(1); // b1: Week 1 reached, no note; b2: noted
+    expect(notesDue([batch(), noted], day(31))).toBe(2); // Month 1 owes a note on both
+    expect(notesDue([{ id: "x" }], day(8))).toBe(0); // no start time
+  });
+  it("follows the room's milestones, not the older family schedule", () => {
+    const noted = batch({ batch_checkins: [{ id: "n", day: 8, scheduled_day: 7, note: "x" }] });
+    expect(notesDue([noted], day(8))).toBe(0); // Week 1 is noted
+    expect(dueNow([noted], day(8))).toHaveLength(1); // the older schedule still asks for its day 1
   });
 });

@@ -3,7 +3,7 @@
 // schedule and pattern rules themselves live in src/lib/calc/journal.ts.
 import { TIERS } from "./tiers";
 import { batchStartedAt } from "./batchTiming";
-import { dueCheckIns, restDay, peakDay } from "./calc";
+import { dueCheckIns, restDay, peakDay, needsNote } from "./calc";
 
 export function restingBatch(batch) {
   return { id: batch.id, startedAt: batchStartedAt(batch), rest: TIERS[batch.tier]?.restDays ?? null };
@@ -14,6 +14,15 @@ export function dueNow(batches, now = new Date()) {
   const checkins = batches.flatMap((b) => (b.batch_checkins || []).map((c) => ({ ...c, batch_id: b.id })));
   const byId = new Map(batches.map((b) => [b.id, b]));
   return dueCheckIns(batches.map(restingBatch), checkins, now).map((d) => ({ ...d, batch: byId.get(d.batchId) }));
+}
+
+/**
+ * Batches owing a note in the Journal room (the milestone they have reached
+ * has no note): what the nav badge counts, so it always matches the room's
+ * "Needs a note". Batches with no start time are skipped.
+ */
+export function notesDue(batches, now = new Date()) {
+  return batches.filter((b) => batchStartedAt(b) && needsNote(b.batch_checkins, todayFor(b, now))).length;
 }
 
 /** Today's rest day for a batch (what an ad-hoc check-in records). */
