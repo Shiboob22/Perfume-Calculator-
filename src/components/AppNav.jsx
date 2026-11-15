@@ -58,7 +58,8 @@ export function tabRow(tabs, seller) {
 function DueBadge({ count, t, label = "journal.tabBadge" }) {
   if (!count) return null;
   return (
-    <span className="inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-semibold leading-none"
+    // Keyed by the count: a new number settles in (kx-settle, motion M3) instead of swapping.
+    <span key={count} data-badge={count} className="kx-settle inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-semibold leading-none"
       style={{ background: COLORS.amber, color: COLORS.onAmber }}>
       <span aria-hidden="true">{count}</span>
       <span className="sr-only">{t(label, { count })}</span>
@@ -114,7 +115,8 @@ export default function AppNav({ active, tabs: baseTabs, dueCount, flags: baseFl
                     <span aria-hidden="true" data-mo-ind="tab" data-on={on ? "" : undefined} className="absolute inset-0" style={{ background: on ? COLORS.ink : "transparent" }} />
                     <I size={18} accent={on ? COLORS.oil : undefined} className="relative" />
                     <span className="relative">{d.label}</span>
-                    {badgeFor(id) && <span className="relative">{badgeFor(id)}</span>}
+                    {/* In the corner, out of the flow: a badge that arrives with the data moves nothing (motion M3). */}
+                    {badgeFor(id) && <span className="absolute top-1 end-1">{badgeFor(id)}</span>}
                   </Dest>
                 </li>
               );
