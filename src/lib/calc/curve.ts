@@ -14,6 +14,8 @@ export interface CurveBox {
   height: number;
   /** Space kept free on each side for the points and their labels. */
   pad?: { top: number; right: number; bottom: number; left: number };
+  /** Days the axis spans at least (default CURVE_DAYS); overlays share one. */
+  span?: number;
 }
 
 export interface CurvePoint {
@@ -86,7 +88,7 @@ export function buildCurve(checkins: readonly JournalNote[] | null | undefined, 
     if (!prev || String(c.created_at ?? "") >= String(prev.created_at ?? "")) byDay.set(c.day, c);
   }
   const notes = [...byDay.values()].sort((a, b) => a.day - b.day);
-  const span = Math.max(CURVE_DAYS, ...notes.map((n) => n.day));
+  const span = Math.max(box.span ?? CURVE_DAYS, ...notes.map((n) => n.day));
   const points: CurvePoint[] = notes.map((n) => ({
     id: n.id, day: n.day, rating: n.rating as number, tags: n.tags ?? [],
     k: MILESTONES[milestoneIndex(n.day)].k,
@@ -101,4 +103,51 @@ export function buildCurve(checkins: readonly JournalNote[] | null | undefined, 
     ticks: MILESTONES.map((m) => ({ k: m.k, days: m.days, x: xOf(m.days, span, box.width, pad) })),
     span,
   };
+}
+
+// ----------------------------------------------------- your batches of one oil
+
+export interface OilBatch {
+  id: string;
+  /** Batch number, the tie-break and the name shown. */
+  no: number;
+  /** Same fragrance: the catalog id when there is one, else the typed name. */
+  oil: string;
+  pct: number;
+  checkins?: readonly JournalNote[] | null;
+}
+
+/** What makes two batches "the same oil": the catalog fragrance, else the name, trimmed and lowercased. */
+export function oilKey(b: { fragrance_id?: string | null; fragrance_name?: string | null }): string {
+  return b.fragrance_id ? `id:${b.fragrance_id}` : `name:${String(b.fragrance_name ?? "").trim().toLowerCase()}`;
+}
+
+export interface OilCurve { batch: OilBatch; curve: Curve }
+
+/**
+ * Every batch of the same oil as `selectedId`, oldest number first, each with
+ * its curve on one shared axis. Null unless at least two batches of that oil
+ * have a rated note: one batch has nothing to be compared with.
+ */
+export function oilOverlay(batches: readonly OilBatch[], selectedId: string, box: CurveBox): OilCurve[] | null {
+  const me = batches.find((b) => b.id === selectedId);
+  if (!me) return null;
+  const same = batches.filter((b) => b.oil === me.oil).sort((a, b) => a.no - b.no);
+  const rated = (b: OilBatch) => (b.checkins ?? []).some((c) => !c.skipped && c.rating != null && c.rating >= 1);
+  const withNotes = same.filter(rated);
+  if (withNotes.length < 2 || !rated(me)) return null;
+  const span = Math.max(box.span ?? CURVE_DAYS, ...withNotes.flatMap((b) => (b.checkins ?? []).filter((c) => !c.skipped).map((c) => c.day)));
+  return withNotes.map((batch) => ({ batch, curve: buildCurve(batch.checkins, { ...box, span }) }));
+}
+
+/**
+ * The batch of the group that rated best: the highest peak rating, the
+ * earliest peak day among those, then the newer batch. Only batches with a
+ * peak (two or more ratings) can win; null when none has one.
+ */
+export function bestOf(curves: readonly OilCurve[]): OilCurve | null {
+  const ranked = curves.filter((c) => c.curve.peak);
+  if (!ranked.length) return null;
+  return [...ranked].sort((a, b) =>
+    (b.curve.peak!.rating - a.curve.peak!.rating) || (a.curve.peak!.day - b.curve.peak!.day) || (b.batch.no - a.batch.no))[0];
 }

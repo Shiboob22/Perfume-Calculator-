@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildCurve, peakOf, MIN_CURVE_NOTES, CURVE_DAYS } from "./curve";
+import { buildCurve, peakOf, MIN_CURVE_NOTES, CURVE_DAYS, oilKey, oilOverlay, bestOf } from "./curve";
 import { peakDay } from "./journal";
 
 const box = { width: 300, height: 120, pad: { top: 10, right: 10, bottom: 20, left: 10 } };
@@ -45,5 +45,40 @@ describe("maturation curve", () => {
   it("clamps ratings and days to the box", () => {
     const c = buildCurve([n("a", 3, 5)], { width: 100, height: 50 });
     expect(c.points[0].y).toBe(12);
+  });
+});
+
+describe("your batches of one oil", () => {
+  const b = (id: string, no: number, oil: string, pct: number, checkins: any[]) => ({ id, no, oil, pct, checkins });
+  const A = [n("a1", 0, 2), n("a2", 14, 4), n("a3", 30, 5)];
+  const B = [n("b1", 0, 3), n("b2", 14, 5), n("b3", 30, 4)];
+
+  it("keys an oil by catalog id, else by trimmed lowercase name", () => {
+    expect(oilKey({ fragrance_id: "f1", fragrance_name: "X" })).toBe("id:f1");
+    expect(oilKey({ fragrance_name: "  Oud Nights " })).toBe(oilKey({ fragrance_name: "oud nights" }));
+    expect(oilKey({ fragrance_id: "f1" })).not.toBe(oilKey({ fragrance_name: "f1" }));
+  });
+  it("overlays the batches of the same oil that have ratings, on one axis", () => {
+    const all = [b("1", 31, "o", 25, A), b("2", 40, "o", 20, B), b("3", 41, "other", 25, A), b("4", 42, "o", 30, [])];
+    const o = oilOverlay(all, "2", box)!;
+    expect(o.map((x) => x.batch.no)).toEqual([31, 40]);
+    expect(o[0].curve.span).toBe(o[1].curve.span);
+  });
+  it("shares a longer axis when one batch ran past the full rest", () => {
+    const long = [n("l1", 0, 2), n("l2", 120, 4)];
+    const o = oilOverlay([b("1", 1, "o", 25, A), b("2", 2, "o", 20, long)], "1", box)!;
+    expect(o.map((x) => x.curve.span)).toEqual([120, 120]);
+    expect(o[0].curve.points[2].x).toBeLessThan(150);
+  });
+  it("is null with one batch of the oil, or when the shown batch has no ratings", () => {
+    expect(oilOverlay([b("1", 1, "o", 25, A), b("2", 2, "p", 25, A)], "1", box)).toBeNull();
+    expect(oilOverlay([b("1", 1, "o", 25, A), b("2", 2, "o", 25, [])], "1", box)).toBeNull();
+    expect(oilOverlay([b("1", 1, "o", 25, A), b("2", 2, "o", 25, B)], "1", box)).not.toBeNull();
+    expect(oilOverlay([b("1", 1, "o", 25, [n("x", 0, null)]), b("2", 2, "o", 25, B)], "1", box)).toBeNull();
+    expect(oilOverlay([], "x", box)).toBeNull();
+  });
+  it("the best batch has the highest peak, the earliest day, then the newer number", () => {
+    const o = oilOverlay([b("1", 1, "o", 25, A), b("2", 2, "o", 20, B)], "1", box)!;
+    expect(bestOf(o)?.batch.id).toBe("2"); // both peak at 5; B on day 14, A on day 30: B is earlier
   });
 });

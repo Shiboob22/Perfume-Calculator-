@@ -270,6 +270,37 @@ test("the curve: a plain line before three rated notes, then the drawing, its pe
   expect(axe.violations).toEqual([]);
 });
 
+test("your batches of this oil: Pro sees them on one curve and which rated best; Free sees the offer", async ({ page, browser }) => {
+  const rows = () => {
+    const a = { ...batch(6, "Oud Nights", "woody", 60, [["d1", 0, "Raw.", 2, []], ["w1", 7, "Calmer.", 3, []], ["w2", 14, "Round.", 4, []]]), concentration_pct: 20 };
+    const b = { ...batch(7, "oud nights ", "woody", 40, [["d1", 0, "Raw.", 3, []], ["w1", 7, "Better.", 5, []], ["m1", 30, "Still good.", 4, []]]), concentration_pct: 25 };
+    return [b, a, batch(5, "Amber Room", "oriental", 3)];
+  };
+  await signIn(page);
+  await fakeApi(page, { batches: rows() });
+  await page.goto("/journal?batch=" + id(7));
+  const oil = page.locator("[data-oil]");
+  await expect(oil).toContainText("Of your 2 batches of this oil, No. 007 at 25% (EDP Intense) rated best, at Week 1 (5 of 5).");
+  await expect(oil.locator("[data-oil-svg] path")).toHaveCount(2);
+  await expect(oil.locator("[data-oil-row]")).toHaveCount(2);
+  await expect(oil.locator(`[data-oil-row="${id(6)}"]`)).toContainText("No. 006 at 20% (EDP)");
+  await expect(oil.locator("[data-pro-card]")).toHaveCount(0);
+  if (process.env.SHOT_DIR) await oil.screenshot({ path: `${process.env.SHOT_DIR}/oil-${test.info().project.name}.png` });
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+
+  // A batch of another oil has no overlay.
+  await page.goto("/journal?batch=" + id(5));
+  await expect(page.locator("[data-oil]")).toHaveCount(0);
+
+  const free = await browser.newPage();
+  await signIn(free);
+  await fakeApi(free, { plan: "free", batches: rows() });
+  await free.goto("/journal?batch=" + id(7));
+  await expect(free.locator("[data-oil] [data-pro-card]")).toContainText(en.journal.page.oil.proBody);
+  await expect(free.locator("[data-oil-svg]")).toHaveCount(0);
+});
+
 const order = (page) => page.locator("[data-batch]").evaluateAll((els) => els.map((e) => e.getAttribute("data-batch")));
 
 test("the list sorts: needs a note (default), newest, maceration, size; kept on reload", async ({ page }) => {

@@ -14,13 +14,14 @@ import { TIER_COLORS, TIERS } from "../../lib/tiers";
 import { UNIT_LABELS } from "../../lib/calcPrefill";
 import {
   MILESTONES, DOT_GLYPH, notesByMilestone, milestoneDots, milestoneIndex, restProgress, trackPosition, isFresh, tierFor,
-  JOURNAL_SORTS, journalSort, journalSortKey, journalSortDir, needsNote,
+  JOURNAL_SORTS, journalSort, journalSortKey, journalSortDir, needsNote, oilKey,
 } from "../../lib/calc";
 import { useStartTrial } from "../plan/Upgrade";
 import { IconBell } from "../icons";
 import Chip from "../kx/Chip";
 import TodayStrip from "./TodayStrip";
 import MaturationCurve from "./MaturationCurve";
+import OilOverlay from "./OilOverlay";
 
 // The Journal room (Bench SaaS Phase 5, prototype Journal.dc.html): every
 // logged batch rests 90 days and is noted at five milestones. Built on the
@@ -139,6 +140,7 @@ export default function JournalRoom() {
     );
   }
 
+  const oilBatches = all.map((x) => ({ id: x.id, no: Number(x.batch_no) || 0, oil: oilKey(x), pct: Number(x.concentration_pct), checkins: x.batch_checkins }));
   const dayOf = (x) => todayFor(x, now);
   const dateAt = (x, days) => {
     const start = batchStartedAt(x);
@@ -242,6 +244,7 @@ export default function JournalRoom() {
               </Link>
             </aside>
             <BatchDetail key={b.id} b={b} day={dayOf(b)} pro={pro} canRemind={can(entitlements, "reminders")}
+              oilBatches={oilBatches} canCompare={can(entitlements, "journal.insights")}
               dateAt={dateAt} metaOf={metaOf} onChange={replaceBatch} t={t} locale={locale} />
           </div>
         </>
@@ -250,7 +253,7 @@ export default function JournalRoom() {
   );
 }
 
-function BatchDetail({ b, day, pro, canRemind, dateAt, metaOf, onChange, t }) {
+function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, dateAt, metaOf, onChange, t }) {
   const notes = notesByMilestone(b.batch_checkins);
   const reachedAt = MILESTONES[milestoneIndex(day)].k;
   const [ms, setMs] = useState(reachedAt);
@@ -347,6 +350,8 @@ function BatchDetail({ b, day, pro, canRemind, dateAt, metaOf, onChange, t }) {
       </div>
 
       <MaturationCurve checkins={b.batch_checkins} t={t} />
+      <OilOverlay batches={oilBatches} selectedId={b.id} locked={!canCompare} t={t}
+        lockedCard={<ProCard title={t("journal.page.oil.proTitle")} body={t("journal.page.oil.proBody")} t={t} />} />
 
       <div className="mt-7 pt-5" style={{ borderTop: `1px solid ${COLORS.line}` }}>
         <div className="flex flex-wrap items-center justify-between gap-3">

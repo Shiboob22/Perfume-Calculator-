@@ -773,6 +773,16 @@ export default {
       save: "Save note",
       saving: "Saving…",
       saved: "Note saved",
+      oil: {
+        title: "Your batches of this oil",
+        best: "Of your {count} batches of this oil, {who} rated best, at {milestone} ({rating} of 5).",
+        none: "You have {count} batches of this oil. Rate two notes on a batch to see where it peaked.",
+        who: "No. {no} at {pct}% ({tier})",
+        peak: "best at {milestone} ({rating} of 5)",
+        few: "not enough ratings to say yet",
+        proTitle: "Compare your batches of this oil",
+        proBody: "Pro lays every batch of the same oil on one curve, so you can see which strength and rest rated best.",
+      },
       curve: {
         title: "How it changed",
         few: "{have} rated notes so far. The curve draws from {need}.",
