@@ -98,6 +98,9 @@ test("motion numbers: response, layout shift, signature frame rate (4x CPU)", as
   const cdp = await page.context().newCDPSession(page);
   const rooms = {};
   page.setDefaultTimeout(8000);
+  // A returning visitor: the Bench has been opened on this device before (it remembers whether to hold the resting card's place).
+  await page.goto("/bench");
+  await page.waitForTimeout(1500);
   for (const [name, url, act] of ROOMS) {
     await page.goto(url);
     await page.waitForTimeout(1200);
