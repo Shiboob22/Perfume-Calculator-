@@ -1632,6 +1632,18 @@ export default {
   },
   settings: {
     theme: { label: "Switch between light and dark", light: "Light", dark: "Dark" },
+    motion: {
+      label: "Motion",
+      full: "Full",
+      calm: "Calm",
+      off: "Off",
+      hint: {
+        full: "Everything moves as designed: pages slide, lists re-sort, a logged batch is filed into the Journal.",
+        calm: "Presses, saved marks and fades only. Nothing travels across the screen.",
+        off: "Nothing moves. Every change is a cut.",
+      },
+      system: "Your device asks for reduced motion, so Kyphira stays still whatever you choose here.",
+    },
   },
   site: {
     nav: { shop: "Shop", main: "Main", atlas: "Atlas", salon: "Salon", nose: "Nose", wardrobe: "Wardrobe", calculator: "Calculator", journal: "Journal", privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "Kyphira, home", language: "العربية", languageLabel: "Read this page in Arabic" },

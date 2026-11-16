@@ -248,9 +248,9 @@ summary::-webkit-details-marker { display: none; }
 /* While the home bench card is in view it sets data-sync and --cg-sync (its
    rolling total, in hundredths of a gram) on the live gauge: the reading and
    the fill follow the card instead of the scroll. */
-[data-compounding] .cmp-live[data-sync] .cmp-read { animation: none; --cg: var(--cg-sync, 0); }
-[data-compounding] .cmp-live[data-sync] .cmp-fill { animation: none; transform: scaleY(min(1, var(--cg-sync, 0) / var(--cg-max))); }
-[data-compounding] .cmp-live[data-sync] .cmp-tickbox { animation: none; transform: translateY(calc((1 - min(1, var(--cg-sync, 0) / var(--cg-max))) * 100%)); }
+html:not([data-mo-level]) [data-compounding] .cmp-live[data-sync] .cmp-read { animation: none; --cg: var(--cg-sync, 0); }
+html:not([data-mo-level]) [data-compounding] .cmp-live[data-sync] .cmp-fill { animation: none; transform: scaleY(min(1, var(--cg-sync, 0) / var(--cg-max))); }
+html:not([data-mo-level]) [data-compounding] .cmp-live[data-sync] .cmp-tickbox { animation: none; transform: translateY(calc((1 - min(1, var(--cg-sync, 0) / var(--cg-max))) * 100%)); }
 /* Phones: the strip ends 88 px above the foot of the screen (and inside the
    safe area), so its reading clears the browser's bottom bar and the
    screen's rounded corners: on an iPhone the reading, 24 px from the foot,
@@ -320,21 +320,21 @@ summary::-webkit-details-marker { display: none; }
 
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
-    [data-compounding] .m { animation: var(--kf) var(--m-ease) both; animation-timeline: --v; animation-range: cover calc(var(--a) * 100%) cover calc(var(--b) * 100%); }
-    [data-compounding] .cmp-live { display: block; }
-    [data-compounding] .cmp-static { display: none; }
+    html:not([data-mo-level]) [data-compounding] .m { animation: var(--kf) var(--m-ease) both; animation-timeline: --v; animation-range: cover calc(var(--a) * 100%) cover calc(var(--b) * 100%); }
+    html:not([data-mo-level]) [data-compounding] .cmp-live { display: block; }
+    html:not([data-mo-level]) [data-compounding] .cmp-static { display: none; }
     /* The scale follows the whole scene: 0 with its top at the top of the screen, 1 with its foot at the foot. */
-    [data-compounding] .cmp-fill, [data-compounding] .cmp-tickbox, [data-compounding] .cmp-read { animation-timing-function: linear; animation-fill-mode: both; animation-timeline: --cmp-scene; animation-range: cover 100vh cover calc(100% - 100vh); }
-    [data-compounding] .cmp-fill { animation-name: cmp-fill; }
-    [data-compounding] .cmp-tickbox { animation-name: cmp-tick; }
-    [data-compounding] .cmp-read { animation-name: cmp-grams; animation-duration: 1ms; }
+    html:not([data-mo-level]) [data-compounding] .cmp-fill, html:not([data-mo-level]) [data-compounding] .cmp-tickbox, html:not([data-mo-level]) [data-compounding] .cmp-read { animation-timing-function: linear; animation-fill-mode: both; animation-timeline: --cmp-scene; animation-range: cover 100vh cover calc(100% - 100vh); }
+    html:not([data-mo-level]) [data-compounding] .cmp-fill { animation-name: cmp-fill; }
+    html:not([data-mo-level]) [data-compounding] .cmp-tickbox { animation-name: cmp-tick; }
+    html:not([data-mo-level]) [data-compounding] .cmp-read { animation-name: cmp-grams; animation-duration: 1ms; }
   }
-  [data-compounding][data-fallback] .m { animation: var(--kf) 1s var(--m-ease) both paused; animation-delay: calc(-1s * clamp(0, (var(--vp, 0) - var(--a)) / (var(--b) - var(--a)), 1)); }
-  [data-compounding][data-fallback] .cmp-live { display: block; }
-  [data-compounding][data-fallback] .cmp-static { display: none; }
-  [data-compounding][data-fallback] .cmp-fill { transform: scaleY(var(--progress, 0)); }
-  [data-compounding][data-fallback] .cmp-tickbox { transform: translateY(calc((1 - var(--progress, 0)) * 100%)); }
-  [data-compounding][data-fallback] .cmp-read { --cg: calc(var(--progress, 0) * var(--cg-max)); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .m { animation: var(--kf) 1s var(--m-ease) both paused; animation-delay: calc(-1s * clamp(0, (var(--vp, 0) - var(--a)) / (var(--b) - var(--a)), 1)); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .cmp-live { display: block; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .cmp-static { display: none; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .cmp-fill { transform: scaleY(var(--progress, 0)); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .cmp-tickbox { transform: translateY(calc((1 - var(--progress, 0)) * 100%)); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .cmp-read { --cg: calc(var(--progress, 0) * var(--cg-max)); }
 }
 
 /* The beam across the top of a room: twelve ruled ticks, the current room's
@@ -407,3 +407,17 @@ summary::-webkit-details-marker { display: none; }
 }
 @keyframes kx-track-fill { from { transform: scaleX(0); } }
 @keyframes kx-settle { 0% { opacity: 0; transform: translateY(4px); } 60% { opacity: 1; } 100% { transform: none; } }
+
+/* Motion setting (M6; src/motion/level.js, chosen in More and Account, applied before
+   first paint as <html data-mo-level>).
+   Off: nothing moves, whatever the system says: no animation, no transition, no View
+   Transition (the scroll scenes and the 3D pour are already off, see their gates).
+   Calm: feedback and cross-fades stay; travel goes. The medium and large distances are
+   zero, so entrances and page changes are fades; small settles and the press keep their
+   few pixels; words fade in place instead of rising. */
+html[data-mo-level="off"] *, html[data-mo-level="off"] *::before, html[data-mo-level="off"] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+html[data-mo-level="off"]::view-transition-group(*), html[data-mo-level="off"]::view-transition-old(*), html[data-mo-level="off"]::view-transition-new(*) { animation: none !important; }
+html[data-mo-level="calm"] { --mo-d-m: 0px; --mo-d-l: 0px; }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-mo-level="calm"] .mo-text[data-mo] .mo-wi { translate: none; animation-name: mo-fade; }
+}

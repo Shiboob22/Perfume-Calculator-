@@ -6,6 +6,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { tabPath } from "../routes";
 import LanguageToggle from "./LanguageToggle";
 import ThemeToggle from "./ThemeToggle";
+import MotionSetting from "./MotionSetting";
 import { useProfile } from "../lib/useProfile";
 import { useReadyToBottle } from "./orders/OrdersCard";
 import {
@@ -237,6 +238,7 @@ function MoreSheet({ items, active, to, onGo, onSignOut, onClose: close }) {
         <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-4">
           <LanguageToggle className="min-h-[44px] text-sm" />
           <ThemeToggle />
+          <MotionSetting compact className="basis-full order-last pt-2" />
           <button type="button" onClick={onSignOut}
             className="ms-auto inline-flex items-center gap-2 min-h-[44px] text-sm" style={{ color: COLORS.inkSoft }}>
             <IconExit size={18} />{t("app.signOut")}

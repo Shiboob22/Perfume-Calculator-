@@ -181,3 +181,24 @@ test("a re-sort of 60 batches on a 4x slower CPU: frame rate measured", async ({
   // A measurement for the report (headless, software rendering, shared CPU), not a pass mark: it must keep moving.
   expect(slide.length).toBeGreaterThan(5);
 });
+
+test("the Bench holds the resting card's place while batches load, so the formula does not move", async ({ page }) => {
+  await motion(page);
+  await signIn(page);
+  await page.addInitScript(() => localStorage.setItem("kyphira.restingShown", "1")); // it showed on this device before
+  await fakeApi(page, { batches: [batch(1, 20)], batchesDelay: 900 });
+  await page.goto("/bench?size=50&unit=ml&conc=25&family=woody&name=Oud%20Nights");
+  const holder = page.locator("[data-resting-placeholder]");
+  await expect(holder).toBeVisible();
+  expect(await holder.getAttribute("aria-hidden")).toBe("true");
+  // What comes after the card (the formula) is measured from the card's own top, so header and font settling elsewhere do not count.
+  const below = (sel) => page.locator(sel).evaluate((e) => { const r = e.getBoundingClientRect(); return { h: r.height, next: e.nextElementSibling?.getBoundingClientRect().top - r.top }; });
+  const held = await below("[data-resting-placeholder]");
+  const card = page.getByRole("link", { name: /Batch 1/ });
+  await expect(card).toBeVisible();
+  await expect(holder).toHaveCount(0);
+  await page.waitForTimeout(300); // the card's entrance has finished
+  const shown = await page.evaluate(() => { const a = [...document.querySelectorAll("main a[href='/journal']")].find((x) => /Batch 1/.test(x.getAttribute("aria-label") || "")); const box = a.closest(".mo-reveal") ?? a; const r = box.getBoundingClientRect(); return { h: a.getBoundingClientRect().height, next: box.nextElementSibling?.getBoundingClientRect().top - r.top }; });
+  expect(Math.abs(shown.h - held.h)).toBeLessThan(1);
+  expect(Math.abs(shown.next - held.next)).toBeLessThan(1);
+});

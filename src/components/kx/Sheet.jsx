@@ -9,7 +9,9 @@ import { TOKENS, reduced } from "../../motion";
 // `tourKey` marks it as a stop of the Bench tour ([data-tour]).
 // Closing plays a short exit (the fast duration) before the dialog closes; at once
 // under reduced motion. Opening again during the exit cancels it.
-export default function Sheet({ open, onClose, title, closeLabel, wide = false, children, headerExtra, tourKey }) {
+// `keepMounted` keeps the contents built while closed (a closed <dialog> is not
+// laid out, so it costs nothing until it opens): opening is then only showing it.
+export default function Sheet({ open, onClose, title, closeLabel, wide = false, children, headerExtra, tourKey, keepMounted = false }) {
   const ref = useRef(null);
   const opener = useRef(null);
   const [leaving, setLeaving] = useState(false);
@@ -49,7 +51,7 @@ export default function Sheet({ open, onClose, title, closeLabel, wide = false, 
       onClick={(e) => { if (e.target === ref.current) onClose(); }}
       className={`kx-sheet p-0 mx-0 mt-auto mb-0 md:m-auto w-full max-w-none ${wide ? "md:max-w-[44rem]" : "md:max-w-[32rem]"} md:w-[calc(100%-2rem)]`}
       style={{ background: COLORS.paper, color: COLORS.ink, border: `1px solid ${COLORS.ink}`, borderRadius: 2 }}>
-      {(open || leaving) && (
+      {(open || leaving || keepMounted) && (
         <div className="max-h-[88vh] md:max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 z-10 flex items-center gap-3 px-5 py-3" style={{ background: COLORS.paper, borderBottom: `1px solid ${COLORS.line}` }}>
             <h2 className="font-serif italic text-2xl leading-tight me-auto">{shown.title}</h2>

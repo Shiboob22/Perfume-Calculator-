@@ -1,4 +1,4 @@
-import { motionOn, reduced, lowPower } from "./env.js";
+import { motionOn, calm, lowPower } from "./env.js";
 
 // Smooth wheel scrolling (Lenis) for the public home page only. It is loaded
 // on demand, so no other route pays for it, and it is switched off whenever
@@ -8,7 +8,7 @@ import { motionOn, reduced, lowPower } from "./env.js";
 // (focus included) behave exactly as they do without it.
 
 /** Pure gate, so the rules are testable: the layer on, motion allowed, a device with headroom. */
-export function smoothAllowed({ on = motionOn(), isReduced = reduced(), low = lowPower() } = {}) {
+export function smoothAllowed({ on = motionOn(), isReduced = calm(), low = lowPower() } = {}) {
   return Boolean(on) && !isReduced && !low;
 }
 

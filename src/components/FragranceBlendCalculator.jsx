@@ -23,7 +23,7 @@ import StrengthTiers from "./calc/StrengthTiers";
 import BlendEditor, { BlendBreakdown, newIngredient } from "./calc/BlendEditor";
 import CostCard from "./calc/CostCard";
 import { useFormulas, FormulaLibrary, FormulasButton, FormulaLink } from "./calc/Formulas";
-import { useUpgrade } from "./plan/Upgrade";
+import { useUpgradeActions } from "./plan/Upgrade";
 import OilHistory from "./calc/OilHistory";
 import WaitlistButton from "./WaitlistButton";
 import Source from "./calc/Source";
@@ -282,7 +282,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [blend, setBlend] = useState(() => (Array.isArray(draft?.blend) && draft.blend.length ? draft.blend : null));
   const blendOn = formulaType === "blend" && Array.isArray(blend) && blend.length > 0;
   const mix = useMemo(() => (blendOn ? blendMix(blend) : null), [blendOn, blend]);
-  const { open: openUpgrade, close: closeUpgrade, state: upgradeState } = useUpgrade();
+  // Actions only (and peek() for the tour): the Bench does not re-render when the sheet opens.
+  const { open: openUpgrade, close: closeUpgrade, peek: peekUpgrade } = useUpgradeActions();
   const [ethanolPricePerL, setEthanolPricePerL] = useState(draft?.ethanolPricePerL ?? "");
   const [bottleCost, setBottleCost] = useState(draft?.bottleCost ?? "");
   const [bottles, setBottles] = useState(draft?.bottles ?? "1");
@@ -451,7 +452,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const clearTourBits = () => { cancelAnimationFrame(countRaf.current); setTourPour(null); setCostPreview(false); setCostK(null); };
   const tour = useBenchTour({
     profile: profileState,
-    capture: () => ({ concPct, mode, formulaType, blend, measured: measuredDensityValue, chosenConc: chosen.current.conc, upgrade: upgradeState }),
+    capture: () => ({ concPct, mode, formulaType, blend, measured: measuredDensityValue, chosenConc: chosen.current.conc, upgrade: peekUpgrade() }),
     show: (key, snap) => {
       clearTourBits();
       closeUpgrade();

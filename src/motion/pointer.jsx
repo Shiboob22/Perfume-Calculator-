@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { motionOn, reduced, lowPower } from "./env.js";
+import { motionOn, calm, lowPower } from "./env.js";
 
 // Pointer-driven marks. Everything here is for a fine pointer only (a mouse or
 // a trackpad): on touch, under reduced motion and on low power the markup is
@@ -10,7 +10,7 @@ const cx = (...a) => a.filter(Boolean).join(" ");
 
 /** A fine pointer, the layer on, the reader fine with motion. Read at use. */
 export function pointerMotion() {
-  return typeof window !== "undefined" && motionOn() && !reduced() && !lowPower() && matchMedia("(pointer: fine)").matches;
+  return typeof window !== "undefined" && motionOn() && !calm() && !lowPower() && matchMedia("(pointer: fine)").matches;
 }
 
 /**
