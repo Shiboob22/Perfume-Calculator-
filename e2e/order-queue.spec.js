@@ -234,7 +234,7 @@ test("an order whose batch was removed goes back to the queue", async ({ page })
   await page.goto("/bench/orders");
   await expect(page.getByText(fill(o.bottle.lost, { name: "Lina", scent: "Rose" }))).toBeVisible();
   await page.getByRole("button", { name: o.bottle.requeue }).click();
-  expect(sent.patches.at(-1)).toMatchObject({ id: "a", status: "queued" });
+  await expect.poll(() => sent.patches.at(-1)).toMatchObject({ id: "a", status: "queued" });
   await expect(page.getByRole("article").filter({ hasText: fill(o.mix.group, { scent: "Rose", pct: 20 }) })).toBeVisible();
 });
 
