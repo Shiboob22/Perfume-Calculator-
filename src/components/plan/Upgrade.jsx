@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { useI18n } from "../../i18n/I18nProvider";
 import { COLORS } from "../../lib/theme";
 import { useEntitlements } from "../../lib/useEntitlements";
@@ -11,19 +11,31 @@ import Sheet from "../kx/Sheet";
 // 14-day trial. Any screen opens it with useUpgrade().open(reason), where
 // reason ("blend" | "cost" | "reminders" | null) picks the
 // headline (`state` is what is open, for the Bench tour to put back). No payment is taken: the trial is the only way in for now.
-const UpgradeContext = createContext({ open: () => {}, close: () => {}, state: { open: false, reason: null } });
+const CLOSED = { open: false, reason: null };
+const UpgradeContext = createContext({ open: () => {}, close: () => {}, state: CLOSED });
+// The same open and close, plus peek() for what is open now, in a value that never
+// changes: a screen that only opens the sheet does not re-render when it opens (M6).
+const UpgradeActions = createContext({ open: () => {}, close: () => {}, peek: () => CLOSED });
 
 export const useUpgrade = () => useContext(UpgradeContext);
+export const useUpgradeActions = () => useContext(UpgradeActions);
 
 export function UpgradeProvider({ children }) {
   const [state, setState] = useState({ open: false, reason: null });
   const open = useCallback((reason = null) => setState({ open: true, reason }), []);
   const close = useCallback(() => setState((s) => ({ ...s, open: false })), []);
+  const now = useRef(state);
+  now.current = state;
+  // One value per state (motion M6: a new object on every render re-rendered every reader of the context when the sheet opened).
+  const value = useMemo(() => ({ open, close, state }), [open, close, state]);
+  const actions = useMemo(() => ({ open, close, peek: () => now.current }), [open, close]);
   return (
-    <UpgradeContext.Provider value={{ open, close, state }}>
-      {children}
-      <UpgradeSheet open={state.open} reason={state.reason} onClose={close} />
-    </UpgradeContext.Provider>
+    <UpgradeActions.Provider value={actions}>
+      <UpgradeContext.Provider value={value}>
+        {children}
+        <UpgradeSheet open={state.open} reason={state.reason} onClose={close} />
+      </UpgradeContext.Provider>
+    </UpgradeActions.Provider>
   );
 }
 
@@ -97,7 +109,7 @@ function UpgradeSheet({ open, reason, onClose }) {
   });
 
   return (
-    <Sheet open={open} onClose={onClose} title={t("upgrade.title")} closeLabel={t("upgrade.close")} wide tourKey="upgrade">
+    <Sheet open={open} onClose={onClose} title={t("upgrade.title")} closeLabel={t("upgrade.close")} wide tourKey="upgrade" keepMounted>
       <div className="flex flex-col gap-5">
         <div>
           <p className="font-serif text-[28px] leading-tight" style={{ textWrap: "balance" }}>{headline}</p>
