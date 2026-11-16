@@ -84,9 +84,13 @@ describe("one ready date everywhere", () => {
       const b = batch({ tier });
       const tl = restTimeline(b, day(10));
       const w = restWindow(tier, "2026-09-01");
+      // Fully rested is 90 days for every family, in the Journal and in the queue.
       expect(tl.target).toBe(w.maxDays);
-      expect(w.minDays).toBe(w.maxDays);
-      expect(w.readyFrom).toBe(addDays("2026-09-01", tl.target));
+      expect(w.fullyRested).toBe(addDays("2026-09-01", tl.target));
+      // Only Aromatic Fougère has a shorter recommended rest (28 days): the queue's
+      // "ready from" is that date, the Journal's ready mark stays at the full rest.
+      if (tier === "fougere") expect(w.minDays).toBe(28);
+      else expect(w.readyFrom).toBe(addDays("2026-09-01", tl.target));
     }
   });
 });

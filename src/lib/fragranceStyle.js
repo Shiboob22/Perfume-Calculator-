@@ -141,7 +141,7 @@ export const GENDER_GLYPH = { women: '♀', men: '♂', unisex: '⚥' };
 /* ---------------- Character estimates ----------------
  * No per-bottle longevity/season votes exist in the data, so they are
  * estimated from the perfume's own accords: each accord maps to one of the
- * app's five families, family profiles are blended by accord rank, then the
+ * app's families, family profiles are blended by accord rank, then the
  * concentration in the name nudges longevity and sillage. Rows without
  * accords fall back to their family's profile. */
 const ACCORD_FAMILY = {
@@ -161,6 +161,8 @@ export const FAMILY_PROFILES = {
   fresh:    { radar: [3, 4, 3, 2, 2, 2, 5, 9], lon: 5, sil: 4, seasons: { Winter: 20, Spring: 90, Summer: 95, Fall: 45, Day: 95, Night: 40 } },
   floral:   { radar: [5, 4, 3, 3, 3, 4, 9, 5], lon: 6, sil: 5, seasons: { Winter: 40, Spring: 90, Summer: 70, Fall: 60, Day: 85, Night: 60 } },
   woody:    { radar: [3, 6, 9, 5, 6, 3, 3, 4], lon: 8, sil: 7, seasons: { Winter: 80, Spring: 55, Summer: 35, Fall: 90, Day: 70, Night: 80 } },
+  // Estimate for the fougère family (draft, not catalog data): fresh-aromatic top, woody-mossy dry-down.
+  fougere:  { radar: [2, 6, 7, 3, 4, 2, 3, 7], lon: 7, sil: 6, seasons: { Winter: 55, Spring: 80, Summer: 65, Fall: 80, Day: 85, Night: 60 } },
   gourmand: { radar: [9, 5, 3, 4, 6, 9, 3, 3], lon: 8, sil: 7, seasons: { Winter: 90, Spring: 45, Summer: 25, Fall: 85, Day: 60, Night: 85 } },
   oriental: { radar: [8, 7, 6, 7, 9, 6, 4, 3], lon: 9, sil: 8, seasons: { Winter: 95, Spring: 40, Summer: 20, Fall: 88, Day: 55, Night: 90 } },
 };
