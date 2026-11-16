@@ -58,7 +58,7 @@ test("the motion film", async ({ page }, info) => {
   });
   await signIn(page);
   await fakeApi(page, () => locale);
-  const still = (n, name) => page.screenshot({ path: `${OUT}/${n}-${name}.png` });
+  const still = (n, name) => page.screenshot({ path: `${OUT}/${n}-${name}.jpg`, type: "jpeg", quality: 82 });
   const hold = (ms) => page.waitForTimeout(ms);
 
   // 1. Home: the page settles, the scene scrolls.
@@ -72,7 +72,7 @@ test("the motion film", async ({ page }, info) => {
   // 2. The Bench: a strength chosen, the batch logged and filed into the Journal.
   await page.goto("/bench?size=50&unit=ml&conc=25&family=woody&name=Oud%20Nights");
   await hold(1500);
-  await page.getByRole("button", { name: /^30\s*%/ }).first().click().catch(() => {});
+  await page.getByRole("group", { name: en.calc.tiers.label }).first().getByRole("button").nth(3).click();
   await hold(900);
   const log = page.getByRole("button", { name: en.calc.log, exact: true });
   await log.scrollIntoViewIfNeeded();
@@ -118,10 +118,16 @@ test("the motion film", async ({ page }, info) => {
   await page.getByRole("button", { name: en.site.guides.tabs.essays }).click();
   await hold(1200);
 
-  // 6. The same Journal in Arabic: everything mirrored.
+  // 6. The same Journal in Arabic, switched from the More sheet: everything mirrored.
   locale = "ar";
   await page.goto("/journal");
-  await hold(1600);
+  await hold(1200);
+  await page.getByRole("navigation", { name: en.app.barLabel }).getByRole("button", { name: en.app.more }).click();
+  await hold(600);
+  await page.getByRole("dialog").getByRole("button", { name: en.language.switchTo }).click();
+  await hold(900);
+  await page.keyboard.press("Escape");
+  await hold(900);
   const chipsAr = page.getByRole("group", { name: ar.journal.page.sort.label });
   await chipsAr.getByRole("button", { name: ar.journal.page.sort.size, exact: true }).click();
   await hold(150);

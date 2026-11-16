@@ -66,15 +66,18 @@ const read = (page) => page.evaluate(() => ({
 // Each room: where it opens, and the taps a person makes there.
 const ROOMS = [
   ["bench", "/bench?size=50&unit=ml&conc=25&family=woody&name=Oud%20Nights", async (page) => {
-    for (const n of ["20", "30", "15"]) await page.getByRole("button", { name: new RegExp(`^${n}\\s*%`) }).first().click().catch(() => {});
+    // The four strength tiers: tap three of them.
+    const tiers = page.getByRole("group", { name: en.calc.tiers.label }).first().getByRole("button");
+    for (const i of [1, 3, 0]) await tiers.nth(i).click();
   }],
   ["journal", "/journal", async (page) => {
     const chips = page.getByRole("group", { name: en.journal.page.sort.label });
     await chips.getByRole("button", { name: en.journal.page.sort.size, exact: true }).click();
-    await chips.getByRole("button", { name: en.journal.page.sort.newest, exact: true }).click();
+    await chips.getByRole("button", { name: en.journal.page.sort.new, exact: true }).click();
     await page.locator(`button[data-batch="${bid(5)}"]`).click();
   }],
-  ["records", "/bench/journal", async (page) => { await page.locator("button").first().click().catch(() => {}); }],
+  // The header's plan badge opens the upgrade sheet (a modal <dialog> rising).
+  ["planSheet", "/bench/journal", async (page) => { await page.locator("button[data-plan]").first().click(); await page.waitForTimeout(500); await page.keyboard.press("Escape"); }],
   ["account", "/app/account", async (page) => {
     const g = page.getByRole("group", { name: en.settings.motion.label }).last();
     await g.getByText(en.settings.motion.calm, { exact: true }).click();
@@ -84,7 +87,6 @@ const ROOMS = [
     await page.getByRole("button", { name: en.site.guides.tabs.glossary }).click();
     await page.getByRole("button", { name: en.site.guides.tabs.essays }).click();
   }],
-  ["pricing", "/pricing", async (page) => { await page.mouse.click(10, 300); }],
 ];
 
 test("motion numbers: response, layout shift, signature frame rate (4x CPU)", async ({ page, browserName }, info) => {
@@ -95,14 +97,16 @@ test("motion numbers: response, layout shift, signature frame rate (4x CPU)", as
   await fakeApi(page);
   const cdp = await page.context().newCDPSession(page);
   const rooms = {};
+  page.setDefaultTimeout(8000);
   for (const [name, url, act] of ROOMS) {
     await page.goto(url);
-    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1200);
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
     await act(page);
     await page.waitForTimeout(800);
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
     rooms[name] = await read(page);
+    console.log(name, JSON.stringify(rooms[name]));
   }
 
   // The signature, from a log on the Bench: frame gaps while the bottle is on screen.
