@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { TOKENS } from "./config.js";
-import { motionOn, reduced } from "./env.js";
+import { calm, motionOn } from "./env.js";
 
 // Motion M3, hold: a list that changes order shows the change. FLIP: the
 // rows' places are read before the change (First), after it (Last), and each
@@ -59,7 +59,7 @@ export function useFlip(ref, order) {
     places.current = new Map();
     const first = last.current === null;
     last.current = order;
-    if (first || !root || !before.size || !motionOn() || reduced() || !root.animate) return;
+    if (first || !root || !before.size || !motionOn() || calm() || !root.animate) return;
     const els = new Map([...root.querySelectorAll("[data-flip]")].map((el) => [el.getAttribute("data-flip"), el]));
     const after = new Map([...els].map(([k, el]) => [k, place(el)]));
     const h = [...after.values()][0]?.h ?? 0;

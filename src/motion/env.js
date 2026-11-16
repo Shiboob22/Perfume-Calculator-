@@ -1,4 +1,5 @@
 import { TOKENS } from "./config.js";
+import { pageLevel } from "./level.js";
 
 // What the motion layer may do on this device. Everything reads at use, so
 // /dev/motion can override reduced motion and low power (window.__motion) and
@@ -9,12 +10,20 @@ const root = () => (typeof document === "undefined" ? null : document.documentEl
 /** The layer is switched on (the `motion` flag sets <html data-motion>). Always false on the server. */
 export const motionOn = () => Boolean(root()?.hasAttribute("data-motion"));
 
-/** The reader asked for less motion (or /dev/motion says so). */
+/** The reader asked for no motion: the system's Reduce motion, Motion: Off in Kyphira (M6), or /dev/motion. */
 export function reduced() {
   if (typeof window === "undefined") return true;
   const o = window.__motion?.reduce;
-  return o ?? (typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  if (o != null) return o;
+  return pageLevel() === "off" || (typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches);
 }
+
+/**
+ * Motion: Calm (M6), or anything quieter: feedback and cross-fades only. No
+ * travel (page slides, rows sliding), no signature, no pointer effects, no
+ * scroll scenes or smooth scrolling.
+ */
+export const calm = () => reduced() || pageLevel() !== "full";
 
 /** Save-Data, or few cores (or /dev/motion says so). */
 export function lowPower() {

@@ -255,3 +255,32 @@ describe("M5: the public site", () => {
     for (const f of ["../site/shop/ShopPage.jsx", "../site/shop/Checkout.jsx"]) expect(src(f), f).toContain("<ListSkeleton");
   });
 });
+
+describe("M6: control", () => {
+  const app = read("../index.css");
+  const src = (p) => readFileSync(new URL(p, import.meta.url), "utf8");
+  it("stills everything under Off, whatever the system says", () => {
+    expect(app).toContain('html[data-mo-level="off"] *, html[data-mo-level="off"] *::before, html[data-mo-level="off"] *::after { animation: none !important; transition: none !important;');
+    expect(app).toMatch(/html\[data-mo-level="off"\]::view-transition-group\(\*\)/);
+    expect(src("./env.js")).toContain('pageLevel() === "off"');
+  });
+  it("keeps feedback under Calm and drops travel: medium and large distances are zero", () => {
+    expect(app).toContain('html[data-mo-level="calm"] { --mo-d-m: 0px; --mo-d-l: 0px; }');
+    for (const [f, needle] of [["./signature.js", "!calm()"], ["./flip.js", "calm()"], ["./nav.js", "lowPower() || calm()"], ["./pointer.jsx", "!calm()"], ["./smooth.js", "isReduced = calm()"]]) {
+      expect(src(f), f).toContain(needle);
+    }
+  });
+  it("stills the home scroll scene under Calm and Off: every scene rule needs no level on <html>", () => {
+    for (const f of ["../index.css", "../site/compounding/rooms.css", "../site/compounding/weigh.css"]) {
+      const css = src(f);
+      const bare = css.split("\n").filter((l) => /^\s*\[data-compounding\][^{]*\{[^}]*(animation|position: sticky|display: (block|flex|inline))/.test(l));
+      expect(bare, f).toEqual([]);
+    }
+    expect(src("../site/compounding/env.js")).toContain('hasAttribute("data-mo-level")');
+  });
+  it("applies the choice before first paint", () => {
+    const html = readFileSync(new URL("../../index.html", import.meta.url), "utf8");
+    expect(html).toContain('localStorage.getItem("kyphira.motion")');
+    expect(html).toContain('setAttribute("data-mo-level",l)');
+  });
+});

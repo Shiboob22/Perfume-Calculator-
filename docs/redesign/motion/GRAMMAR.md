@@ -85,6 +85,10 @@ Matter on a bench: liquid pours and settles, ink draws and dries, weight lands a
 - **3D pour (D3)**: not switched on. Stills for the owner's review in `docs/redesign/motion/m5/hero3d/` (README there).
 - Not done: the check on a real mid-range Android phone (owner, with M6's recorded check); a Lighthouse run (the home page did not change).
 
+## Control (M6)
+
+- **Motion: Full, Calm, Off** (`src/motion/level.js`, `<html data-mo-level="calm|off">` before first paint; More sheet and Account). Calm keeps the answer and the hold (press, settle, saved states, sheets, skeletons, cross-fades) and drops travel: `--mo-d-m` and `--mo-d-l` are 0, `calm()` turns off the directional page slide and the shared element, row slides, the signature, pointer effects, smooth scrolling and the home scene (whose rules need `html:not([data-mo-level])`). Off stills everything with one rule (`animation` and `transition` none, no View Transition) and `reduced()` is true. A device asking for reduced motion starts on Calm. Report and numbers: `docs/redesign/motion/m6/REPORT.md`.
+
 ## Where each piece lives
 
 - Tokens and primitives (site layer): `src/motion/`

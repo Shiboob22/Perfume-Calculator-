@@ -12,25 +12,25 @@
 
 @media (prefers-reduced-motion: no-preference) and (min-width: 1024px) {
   @supports (animation-timeline: view()) {
-    [data-compounding] .rs { view-timeline: --rs block; height: 310svh; }
-    [data-compounding] .rs-stage { position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column; justify-content: center; overflow: clip; container-type: inline-size; }
-    [data-compounding] .rs-track { --rs-gap: 1.25rem; --rs-pad: 5rem; padding-inline: var(--rs-pad); }
-    [data-compounding] .rs-track ul { display: flex; gap: var(--rs-gap); width: max-content; background: none; border: 0; animation: rs-slide linear both; animation-timeline: --rs; animation-range: contain 0% contain 100%; }
-    [data-compounding] .rs-track li { width: var(--rs-w); min-height: 46svh; border: 1px solid var(--c-line); }
-    [data-compounding] .rs-track li .rs-fig { font-size: clamp(3rem, 6vw, 5.5rem); }
-    [data-compounding] .rs-track li .m { animation: none; }
-    [data-compounding] .rs-meter { display: block; height: 2px; margin-top: 2.25rem; background: var(--c-line); transform-origin: 0 50%; }
-    [data-compounding] .rs-meter i { display: block; height: 100%; background: var(--c-action-text); transform-origin: 0 50%; animation: mo-progress linear both; animation-timeline: --rs; animation-range: contain 0% contain 100%; }
-    :root[dir="rtl"] [data-compounding] .rs-meter i { transform-origin: 100% 50%; }
+    html:not([data-mo-level]) [data-compounding] .rs { view-timeline: --rs block; height: 310svh; }
+    html:not([data-mo-level]) [data-compounding] .rs-stage { position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column; justify-content: center; overflow: clip; container-type: inline-size; }
+    html:not([data-mo-level]) [data-compounding] .rs-track { --rs-gap: 1.25rem; --rs-pad: 5rem; padding-inline: var(--rs-pad); }
+    html:not([data-mo-level]) [data-compounding] .rs-track ul { display: flex; gap: var(--rs-gap); width: max-content; background: none; border: 0; animation: rs-slide linear both; animation-timeline: --rs; animation-range: contain 0% contain 100%; }
+    html:not([data-mo-level]) [data-compounding] .rs-track li { width: var(--rs-w); min-height: 46svh; border: 1px solid var(--c-line); }
+    html:not([data-mo-level]) [data-compounding] .rs-track li .rs-fig { font-size: clamp(3rem, 6vw, 5.5rem); }
+    html:not([data-mo-level]) [data-compounding] .rs-track li .m { animation: none; }
+    html:not([data-mo-level]) [data-compounding] .rs-meter { display: block; height: 2px; margin-top: 2.25rem; background: var(--c-line); transform-origin: 0 50%; }
+    html:not([data-mo-level]) [data-compounding] .rs-meter i { display: block; height: 100%; background: var(--c-action-text); transform-origin: 0 50%; animation: mo-progress linear both; animation-timeline: --rs; animation-range: contain 0% contain 100%; }
+    :root[dir="rtl"]:not([data-mo-level]) [data-compounding] .rs-meter i { transform-origin: 100% 50%; }
   }
-  [data-compounding][data-fallback] .rs { height: 310svh; }
-  [data-compounding][data-fallback] .rs-stage { position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column; justify-content: center; overflow: clip; container-type: inline-size; }
-  [data-compounding][data-fallback] .rs-track { --rs-gap: 1.25rem; --rs-pad: 5rem; padding-inline: var(--rs-pad); }
-  [data-compounding][data-fallback] .rs-track ul { display: flex; gap: var(--rs-gap); width: max-content; background: none; border: 0; animation: rs-slide 1s linear both paused; animation-delay: calc(-1s * var(--pp, 0)); }
-  [data-compounding][data-fallback] .rs-track li { width: var(--rs-w); min-height: 46svh; border: 1px solid var(--c-line); }
-  [data-compounding][data-fallback] .rs-track li .rs-fig { font-size: clamp(3rem, 6vw, 5.5rem); }
-  [data-compounding][data-fallback] .rs-track li .m { animation: none; }
-  [data-compounding][data-fallback] .rs-meter { display: block; height: 2px; margin-top: 2.25rem; background: var(--c-line); }
-  [data-compounding][data-fallback] .rs-meter i { display: block; height: 100%; background: var(--c-action-text); transform-origin: 0 50%; transform: scaleX(var(--pp, 0)); }
-  :root[dir="rtl"] [data-compounding][data-fallback] .rs-meter i { transform-origin: 100% 50%; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .rs { height: 310svh; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .rs-stage { position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column; justify-content: center; overflow: clip; container-type: inline-size; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .rs-track { --rs-gap: 1.25rem; --rs-pad: 5rem; padding-inline: var(--rs-pad); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .rs-track ul { display: flex; gap: var(--rs-gap); width: max-content; background: none; border: 0; animation: rs-slide 1s linear both paused; animation-delay: calc(-1s * var(--pp, 0)); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .rs-track li { width: var(--rs-w); min-height: 46svh; border: 1px solid var(--c-line); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .rs-track li .rs-fig { font-size: clamp(3rem, 6vw, 5.5rem); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .rs-track li .m { animation: none; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .rs-meter { display: block; height: 2px; margin-top: 2.25rem; background: var(--c-line); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .rs-meter i { display: block; height: 100%; background: var(--c-action-text); transform-origin: 0 50%; transform: scaleX(var(--pp, 0)); }
+  :root[dir="rtl"]:not([data-mo-level]) [data-compounding][data-fallback] .rs-meter i { transform-origin: 100% 50%; }
 }

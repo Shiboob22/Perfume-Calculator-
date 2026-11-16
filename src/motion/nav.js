@@ -1,5 +1,5 @@
 import { flushSync } from "react-dom";
-import { lowPower, motionOn, reduced, supportsViewTransitions } from "./env.js";
+import { calm, lowPower, motionOn, reduced, supportsViewTransitions } from "./env.js";
 import { onScreen } from "./carry.js";
 
 // Route changes. React Router's `viewTransition` option does nothing under
@@ -52,7 +52,8 @@ function handOver(src, key) {
 function run(update, { direction = "fade", share = null, from = null } = {}) {
   if (!canTransition()) { update(() => {}); return false; }
   const el = document.documentElement;
-  const low = lowPower();
+  // Low power and Motion: Calm cross-fade only: no direction, no shared element travelling.
+  const low = lowPower() || calm();
   el.setAttribute("data-mo-vt", "");
   el.setAttribute("data-mo-nav", low ? "fade" : direction);
   const src = share && !low ? shareSource(share, from) : null;
@@ -96,7 +97,7 @@ export function startNav(go, opts) {
  * just the update (no cross-fade of a page that did not change).
  */
 export function carry(update, { share, from } = {}) {
-  if (!canTransition() || lowPower() || !share || !shareSource(share, from)) { update(); return false; }
+  if (!canTransition() || lowPower() || calm() || !share || !shareSource(share, from)) { update(); return false; }
   return run((resolve) => { flushSync(update); resolve(); }, { direction: "fade", share, from });
 }
 

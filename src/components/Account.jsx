@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import RoomBeam from "./kx/RoomBeam";
 import { COLORS, SHAPE } from "../lib/theme";
+import MotionSetting from "./MotionSetting";
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
@@ -187,6 +188,8 @@ function Preferences({ profile, save, locale, setLocale }) {
           </select>
         </label>
       )}
+      {/* On this device only (M6), so it is not one of the saved profile fields. */}
+      <div className="py-3 border-b" style={{ borderColor: COLORS.line }}><MotionSetting /></div>
       <p role="status" className="text-xs mt-2 min-h-[1rem]" style={{ color: status === "failed" ? COLORS.danger : COLORS.inkSoft }}>
         {status === "saved" && t("account.prefs.saved")}
         {status === "failed" && t("account.prefs.saveFailed")}

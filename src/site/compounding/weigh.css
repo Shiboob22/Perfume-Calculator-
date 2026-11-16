@@ -74,40 +74,40 @@
 /* Pinned: native scroll timelines. */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
-    [data-compounding] .wg { view-timeline: --wg block; height: var(--wg-h, 360svh); }
-    [data-compounding] .wg-stage { position: sticky; top: 0; height: 100svh; padding-block: 0; display: flex; align-items: center; }
-    [data-compounding] .wg-stage > div { width: 100%; }
-    [data-compounding] .wg-copy { position: relative; min-height: 17rem; }
-    [data-compounding] .wg-beat { position: absolute; inset-inline: 0; top: 0; }
-    [data-compounding] .wg-beat + .wg-beat { margin-top: 0; }
-    [data-compounding] .wg-alc { color: var(--wg-on-dusk); }
-    [data-compounding] .wg-alc .wg-soft { color: var(--wg-soft-dusk); }
-    [data-compounding] .wg-alc .wg-dim { color: var(--wg-soft-dusk); }
-    [data-compounding] .wg-fig-static { display: none; }
-    [data-compounding] .wg-read { display: inline; }
-    [data-compounding] :is(.wg-beat, .wg-stage, .wg-read, .wg-seg, .wg-row, .wg-glow) { animation: var(--wgk) linear both; animation-timeline: --wg; animation-range: contain 0% contain 100%; }
+    html:not([data-mo-level]) [data-compounding] .wg { view-timeline: --wg block; height: var(--wg-h, 360svh); }
+    html:not([data-mo-level]) [data-compounding] .wg-stage { position: sticky; top: 0; height: 100svh; padding-block: 0; display: flex; align-items: center; }
+    html:not([data-mo-level]) [data-compounding] .wg-stage > div { width: 100%; }
+    html:not([data-mo-level]) [data-compounding] .wg-copy { position: relative; min-height: 17rem; }
+    html:not([data-mo-level]) [data-compounding] .wg-beat { position: absolute; inset-inline: 0; top: 0; }
+    html:not([data-mo-level]) [data-compounding] .wg-beat + .wg-beat { margin-top: 0; }
+    html:not([data-mo-level]) [data-compounding] .wg-alc { color: var(--wg-on-dusk); }
+    html:not([data-mo-level]) [data-compounding] .wg-alc .wg-soft { color: var(--wg-soft-dusk); }
+    html:not([data-mo-level]) [data-compounding] .wg-alc .wg-dim { color: var(--wg-soft-dusk); }
+    html:not([data-mo-level]) [data-compounding] .wg-fig-static { display: none; }
+    html:not([data-mo-level]) [data-compounding] .wg-read { display: inline; }
+    html:not([data-mo-level]) [data-compounding] :is(.wg-beat, .wg-stage, .wg-read, .wg-seg, .wg-row, .wg-glow) { animation: var(--wgk) linear both; animation-timeline: --wg; animation-range: contain 0% contain 100%; }
     @media (max-width: 1023px) {
-      [data-compounding] .wg-grid { grid-template-rows: auto auto; gap: 1.5rem; align-content: center; }
-      [data-compounding] .wg-copy { min-height: 15rem; }
+      html:not([data-mo-level]) [data-compounding] .wg-grid { grid-template-rows: auto auto; gap: 1.5rem; align-content: center; }
+      html:not([data-mo-level]) [data-compounding] .wg-copy { min-height: 15rem; }
     }
   }
   /* Pinned: the script fallback holds the same keyframes at --pp. */
-  [data-compounding][data-fallback] .wg { height: var(--wg-h, 360svh); }
-  [data-compounding][data-fallback] .wg-stage { position: sticky; top: 0; height: 100svh; padding-block: 0; display: flex; align-items: center; }
-  [data-compounding][data-fallback] .wg-stage > div { width: 100%; }
-  [data-compounding][data-fallback] .wg-copy { position: relative; min-height: 17rem; }
-  [data-compounding][data-fallback] .wg-beat { position: absolute; inset-inline: 0; top: 0; }
-  [data-compounding][data-fallback] .wg-beat + .wg-beat { margin-top: 0; }
-  [data-compounding][data-fallback] .wg-alc { color: var(--wg-on-dusk); }
-  [data-compounding][data-fallback] .wg-alc .wg-soft, [data-compounding][data-fallback] .wg-alc .wg-dim { color: var(--wg-soft-dusk); }
-  [data-compounding][data-fallback] .wg-fig-static { display: none; }
-  [data-compounding][data-fallback] .wg-read { display: inline; }
-  [data-compounding][data-fallback] :is(.wg-beat, .wg-stage, .wg-seg, .wg-row, .wg-glow) { animation: var(--wgk) 1s linear both paused; animation-delay: calc(-1s * var(--pp, 0)); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .wg { height: var(--wg-h, 360svh); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .wg-stage { position: sticky; top: 0; height: 100svh; padding-block: 0; display: flex; align-items: center; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .wg-stage > div { width: 100%; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .wg-copy { position: relative; min-height: 17rem; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .wg-beat { position: absolute; inset-inline: 0; top: 0; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .wg-beat + .wg-beat { margin-top: 0; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .wg-alc { color: var(--wg-on-dusk); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .wg-alc .wg-soft, html:not([data-mo-level]) [data-compounding][data-fallback] .wg-alc .wg-dim { color: var(--wg-soft-dusk); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .wg-fig-static { display: none; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .wg-read { display: inline; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] :is(.wg-beat, .wg-stage, .wg-seg, .wg-row, .wg-glow) { animation: var(--wgk) 1s linear both paused; animation-delay: calc(-1s * var(--pp, 0)); }
   /* Firefox does not interpolate a registered integer inside keyframes, so the fallback computes the counter from --pp itself (same stops as wg-count). */
-  [data-compounding][data-fallback] .wg-read { --wgg: calc(var(--wg-oil) * clamp(0, var(--pp, 0) / 0.34, 1) + (var(--wg-tot) - var(--wg-oil)) * clamp(0, (var(--pp, 0) - 0.46) / 0.24, 1)); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .wg-read { --wgg: calc(var(--wg-oil) * clamp(0, var(--pp, 0) / 0.34, 1) + (var(--wg-tot) - var(--wg-oil)) * clamp(0, (var(--pp, 0) - 0.46) / 0.24, 1)); }
   @media (max-width: 1023px) {
-    [data-compounding][data-fallback] .wg-grid { gap: 1.5rem; align-content: center; }
-    [data-compounding][data-fallback] .wg-copy { min-height: 15rem; }
+    html:not([data-mo-level]) [data-compounding][data-fallback] .wg-grid { gap: 1.5rem; align-content: center; }
+    html:not([data-mo-level]) [data-compounding][data-fallback] .wg-copy { min-height: 15rem; }
   }
 }
 
