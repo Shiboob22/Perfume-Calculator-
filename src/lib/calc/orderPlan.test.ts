@@ -89,8 +89,8 @@ describe("rest window", () => {
       expect(w.minDays).toBeLessThanOrEqual(w.maxDays);
     }
   });
-  it("every family rests 90 days, as the Bench and the Journal do", () => {
-    for (const k of Object.keys(FAMILIES)) expect(restWindow(k, "2026-01-01")).toMatchObject({ minDays: 90, maxDays: 90 });
+  it("every family is fully rested at 90 days, as the Bench and the Journal say; only Aromatic Fougère is ready from 28", () => {
+    for (const k of Object.keys(FAMILIES)) expect(restWindow(k, "2026-01-01")).toMatchObject({ minDays: k === "fougere" ? 28 : 90, maxDays: 90 });
   });
   it("unknown family: 90 days for both", () => {
     expect(restWindow(undefined, "2026-11-13")).toEqual({ minDays: 90, maxDays: 90, readyFrom: "2027-02-11", fullyRested: "2027-02-11" });

@@ -10,7 +10,7 @@
 // The handbook's rule stands regardless: reference densities are starting
 // points, and a measured density always wins.
 
-export type TierKey = "fresh" | "floral" | "woody" | "oriental" | "gourmand";
+export type TierKey = "fresh" | "floral" | "woody" | "fougere" | "oriental" | "gourmand";
 export type Range = readonly [number, number];
 
 export interface FamilyValues {
@@ -99,6 +99,19 @@ export const FAMILIES: Record<TierKey, Family> = {
       handbook: handbookOil,
       htmlTool: { density: 0.93, defaultConc: 22, restDays: [21, 28] },
       ratiosJson: { name: "Woody / Chypre / Leather", range: [20, 24] },
+    },
+  },
+  fougere: {
+    key: "fougere",
+    label: "Aromatic Fougère",
+    sub: "Lavender · Herbs · Oakmoss · Coumarin — the barbershop family (Kouros)",
+    note: "Rest at least 4 weeks (28 days) in a cool, dark place; up to 3 months rounds the lavender, herbs and moss together.",
+    // Owner's numbers, 2026-11-16: 0.95 g/mL, 25 %, recommended rest 28 days, 90 as the maximum.
+    active: { density: 0.95, defaultConc: 25, restDays: [28, 90], range: null },
+    sources: {
+      handbook: handbookOil,
+      htmlTool: {},
+      ratiosJson: {},
     },
   },
   oriental: {

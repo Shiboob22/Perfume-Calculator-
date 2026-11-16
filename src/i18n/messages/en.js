@@ -102,6 +102,7 @@ export default {
     fresh: { label: "Fresh", sub: "Aromatic · Citrus · Water · Green · Fruity", note: "Rest 3 months in a cool, dark place — even light citrus and aromatic tops round out with time." },
     floral: { label: "Floral", sub: "Floral · Soft Floral · Floral Amber", note: "Rest 3 months in a cool, dark place before wearing — the classic all-purpose strength." },
     woody: { label: "Woody", sub: "Woods · Mossy Woods · Dry Woods", note: "Rest 3 months in a cool, dark place — dry woods and mosses need time to round out." },
+    fougere: { label: "Aromatic Fougère", sub: "Lavender · Herbs · Oakmoss · Coumarin — the barbershop family (Kouros)", note: "Rest at least 4 weeks (28 days) in a cool, dark place; up to 3 months rounds the lavender, herbs and moss together." },
     oriental: { label: "Amber (Oriental)", sub: "Soft Amber · Amber · Woody Amber", note: "Rest 3 months in a cool, dark place — dense resins need a long maceration." },
     gourmand: { label: "Gourmand", sub: "Vanilla · Praline · Tobacco-Honey — practical addition, not part of the classic wheel", note: "Rest 3 months — sweet resinous bases round out and lose the raw alcohol edge." },
   },

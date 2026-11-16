@@ -1,7 +1,7 @@
 // @ts-ignore: plain JS shared with the browser
 import { cleanText, textLang } from '../../src/lib/publicText.js';
 
-const FAMILIES = ['fresh', 'floral', 'woody', 'oriental', 'gourmand'];
+const FAMILIES = ['fresh', 'floral', 'woody', 'fougere', 'oriental', 'gourmand'];
 
 // The row a shared recipe stores (0013): a snapshot of the batch's PUBLIC
 // fields only, picked one by one. Cost, price, supplier, the private notes

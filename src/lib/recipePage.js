@@ -14,7 +14,7 @@ import { BRAND, brandName } from "../brand.js";
 
 const CATALOGS = { en, ar };
 const OG_LOCALE = { en: "en_US", ar: "ar_EG" };
-const FAMILIES = ["fresh", "floral", "woody", "oriental", "gourmand"];
+const FAMILIES = ["fresh", "floral", "woody", "fougere", "oriental", "gourmand"];
 
 export function esc(value) {
   return String(value ?? "")

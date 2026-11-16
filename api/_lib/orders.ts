@@ -7,7 +7,7 @@ import { UUID } from './http.js';
 
 /** Most orders one user may keep (any status), a runaway guard. */
 export const ORDER_CAP = 1000;
-export const FAMILIES = ['fresh', 'floral', 'woody', 'oriental', 'gourmand'];
+export const FAMILIES = ['fresh', 'floral', 'woody', 'fougere', 'oriental', 'gourmand'];
 export const GROUP_MODES = ['mix', 'separate'];
 
 /** Columns a client may write; everything else is the server's. */

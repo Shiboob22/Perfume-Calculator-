@@ -11,6 +11,7 @@ describe("formulation module", () => {
         fresh: [0.87, 20, [90, 90]],
         floral: [0.95, 25, [90, 90]],
         woody: [0.93, 22, [90, 90]],
+        fougere: [0.95, 25, [28, 90]],
         oriental: [1.02, 30, [90, 90]],
         gourmand: [1.0, 25, [90, 90]],
       });
@@ -24,7 +25,7 @@ describe("formulation module", () => {
 
   it("serves tiers.js the same shape as before", () => {
     expect(TIERS.oriental).toMatchObject({ label: "Amber (Oriental)", density: 1.02, defaultConc: 30, restDays: [90, 90] });
-    expect(Object.keys(TIERS)).toEqual(["fresh", "floral", "woody", "oriental", "gourmand"]);
+    expect(Object.keys(TIERS)).toEqual(["fresh", "floral", "woody", "fougere", "oriental", "gourmand"]);
   });
 
   it("lists every disagreement between the sources", () => {
@@ -32,6 +33,11 @@ describe("formulation module", () => {
     // Handbook 0.95 vs the family densities; ranges only in the JSON.
     expect(d).toEqual(expect.arrayContaining(["fresh.density", "woody.density", "oriental.density", "gourmand.density", "fresh.range"]));
     expect(d).not.toContain("floral.density"); // both say 0.95
+  });
+
+  it("gives Aromatic Fougère the owner's numbers: 0.95 g/mL, 25 %, rest 28 days recommended, 90 at most", () => {
+    expect(FAMILIES.fougere).toMatchObject({ label: "Aromatic Fougère", active: { density: 0.95, defaultConc: 25, restDays: [28, 90] } });
+    expect(familyGuide()).toContain("rest 28–90 days.");
   });
 
   it("builds the AI family guide from the active values", () => {
