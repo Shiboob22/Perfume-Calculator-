@@ -16,3 +16,7 @@ coverage/
 # The owner's handbook PDFs: private source material, never committed.
 content-src/
 .claude/
+
+# graphify: machine-local files (graph.json, graph.html, GRAPH_REPORT.md and manifest.json are committed)
+graphify-out/cache/
+graphify-out/.graphify_*
