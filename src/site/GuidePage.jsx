@@ -78,7 +78,7 @@ function Block({ block, rule, marked, defs }) {
   }
   if (block.formula) {
     return (
-      <pre dir="ltr" className="my-8 py-5 font-mono text-[15px] leading-8 overflow-x-auto text-left"
+      <pre dir="auto" className="my-8 py-5 font-mono text-[15px] leading-8 overflow-x-auto text-start"
         style={{ borderBlock: `1px solid ${COLORS.ink}`, color: COLORS.ink }}>
         {block.formula.join("\n")}
       </pre>

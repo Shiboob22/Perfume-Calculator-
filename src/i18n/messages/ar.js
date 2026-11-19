@@ -138,7 +138,7 @@ export default {
       note: "الاقتراحات آراء مستمدّة من المنهج وليست قواعد. أنت أدرى بالمكان.",
       wore: "ارتديتها",
       wearOf: "سجّل {name}",
-      sprays: "عدد الرشّات",
+      sprays: "عدد البخّات",
       noteField: "ملاحظة (اختياري)",
       save: "احفظ الارتداء",
       cancel: "إلغاء",
@@ -161,7 +161,7 @@ export default {
     },
     spray: {
       lessThanInstinct: "ضع أقل قليلًا مما يدفعك إليه حدسك الأول.",
-      fewerInHeat: "الجو حار: استعمل رشّات أقل وتركيبات أخف. الحرارة تضخّم التبخّر والانتشار والحلاوة المحسوسة.",
+      fewerInHeat: "الجو حار: استعمل بخّات أقل وتركيبات أخف. الحرارة تضخّم التبخّر والانتشار والحلاوة المحسوسة.",
     },
     bands: { hot: "حار (30°م فأكثر)", warm: "دافئ (20–30°م)", mild: "معتدل (15–20°م)", cool: "بارد (أقل من 15°م)" },
     times: { morning: "الصباح", day: "النهار", evening: "المساء", night: "آخر الليل" },
@@ -278,7 +278,7 @@ export default {
     fields: {
       name: "الاسم", status: "الحالة", kind: "النوع", family: "العائلة", projection: "المدى", clusters: "الخزائن",
       size_ml: "الحجم", fill_pct: "مستوى الامتلاء", price: "السعر", currency: "العملة", purchase_date: "تاريخ الشراء", note: "الملاحظة",
-      worn_on: "اليوم", occasion: "المناسبة", time_of_day: "وقت اليوم", temp_c: "الحرارة", sprays: "الرشّات", bottle_id: "الزجاجة",
+      worn_on: "اليوم", occasion: "المناسبة", time_of_day: "وقت اليوم", temp_c: "الحرارة", sprays: "البخّات", bottle_id: "الزجاجة",
     },
   },
   nose: {
@@ -1390,7 +1390,7 @@ export default {
     base: "نوتات القاعدة",
     whenToWear: { accords: "متى تضعه · تقدير من الأكوردات", family: "متى تضعه · تقدير من العائلة" },
     longevity: "الثبات",
-    sillage: "الفوحان",
+    sillage: "الأثر",
     longevityLevels: { long: "ثبات طويل", moderate: "متوسط", weak: "ضعيف", veryWeak: "ضعيف جدًا" },
     sillageLevels: { strong: "قوي", moderate: "متوسط", soft: "ناعم", intimate: "قريب من الجلد" },
     popularInFamily: "عطور {family} الأكثر شهرة",
@@ -1547,7 +1547,7 @@ export default {
       notStated: "غير محددة",
       identityName: "{families} {modifier}",
       familyBars: "ملف العائلات",
-      projection: "الانتشار",
+      projection: "الفوحان",
       topMatches: "أقرب النتائج إليك",
       matchPercent: "تطابق {percent}%",
       byBrand: "من {brand}",
@@ -1585,7 +1585,7 @@ export default {
       moodFit: "يناسب المزاج الذي تريده",
       occasionFit: "يناسب: {use}",
       climateFit: "مناسب للسياق في الطقس: {climate}",
-      intensityFit: "يطابق الانتشار الذي تريده: {projection}",
+      intensityFit: "يطابق الفوحان الذي تريده: {projection}",
     },
     caution: {
       avoidTrait: "فيه شيء من {trait} مما تفضّل تجنّبه",
