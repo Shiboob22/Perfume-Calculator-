@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { COLORS, SHAPE } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { errorText } from "../../i18n/errorText";
@@ -13,7 +14,7 @@ import { Link } from "../../motion";
 import ListSkeleton from "../kx/ListSkeleton";
 import { listRecipes, listInventory } from "../../lib/fragranceApi";
 import { listOrders, addOrder, editOrder, setOrderStatus, setGroupMode } from "../../lib/ordersApi";
-import { scentOptions, toPlanOrder, stockMap, weighLink, toBottlingOrder, readyToBottle, ORDERS_CHANGED } from "../../lib/orders";
+import { scentOptions, toPlanOrder, stockMap, weighLink, toBottlingOrder, readyToBottle, orderFromQuery, ORDERS_CHANGED } from "../../lib/orders";
 import { CURRENCIES } from "../../lib/currencies";
 
 // The order queue (Phases A and B, docs/order-queue/Kyphira-Order-Queue_Brief_v2.md):
@@ -51,8 +52,13 @@ export default function OrderQueue() {
   const [recipes, setRecipes] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [error, setError] = useState(null);
-  const [editing, setEditing] = useState(null); // null = closed, {} = new, row = edit
+  const [searchParams, setSearchParams] = useSearchParams();
+  // A friend price sent from the Bench's cost card opens a new order filled in (never saved by itself).
+  const [editing, setEditing] = useState(() => orderFromQuery(searchParams)); // null = closed, {} = new, row = edit
   const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (searchParams.get("new") === "1") setSearchParams({}, { replace: true }); // a reload doesn't open it again
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     listOrders().then(setRows).catch((e) => { setRows([]); setError(errorText(t, e)); });

@@ -1150,6 +1150,7 @@ export default {
         label: "سعر لصديق", none: "بلا خصم", off: "خصم {pct}%", typed: "أو اكتب سعرًا", unit: "{cur} / زجاجة",
         result: "يدفع صديقك {price} {cur}، وربحك {profit} {cur} عن كل زجاجة.",
         loss: "أقل من التكلفة: تخسر {loss} {cur} عن كل زجاجة.",
+        order: "أضف طلبًا بهذا السعر",
       },
     },
     heading: "زِن تركيبة.",

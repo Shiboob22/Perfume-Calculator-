@@ -78,3 +78,26 @@ describe("readyToBottle", () => {
     expect(localToday(new Date(2026, 0, 5))).toBe("2026-01-05");
   });
 });
+
+import { friendOrderLink, orderFromQuery } from "./orders";
+
+describe("friend price → new order", () => {
+  const base = { locale: "en", name: " Oud Wood ", family: "woody", sizeMl: 50, strengthPct: 25, price: 320, retail: 400 };
+  const back = (link) => orderFromQuery(new URL(link, "https://x.test").searchParams);
+
+  it("carries the scent, size, strength and both prices", () => {
+    const link = friendOrderLink(base);
+    expect(link.startsWith("/bench/orders?new=1")).toBe(true);
+    expect(back(link)).toEqual({ scent_text: "Oud Wood", family: "woody", size_ml: 50, strength_pct: 25, price: 320, list_price: 400 });
+  });
+  it("opens the Arabic queue in Arabic", () => {
+    expect(friendOrderLink({ ...base, locale: "ar" }).startsWith("/ar/bench/orders?")).toBe(true);
+  });
+  it("sends a price above retail as a plain price", () => {
+    expect(back(friendOrderLink({ ...base, price: 450 }))).toMatchObject({ price: 450, list_price: null });
+  });
+  it("is not a new order without new=1, and ignores bad numbers", () => {
+    expect(orderFromQuery(new URLSearchParams("scent=x"))).toBeNull();
+    expect(orderFromQuery(new URLSearchParams("new=1&price=-3&list=abc&ml=0"))).toMatchObject({ price: null, list_price: null, size_ml: null });
+  });
+});

@@ -50,6 +50,8 @@ import { useEntitlements } from "../lib/useEntitlements";
 import { useProfile } from "../lib/useProfile";
 import { CURRENCIES } from "../lib/currencies";
 import { can, limit, canAddIngredient } from "../lib/entitlements";
+import { flagOn } from "../lib/flags";
+import { friendOrderLink } from "../lib/orders";
 import { blendTips } from "../lib/aiApi";
 
 function todayISO() {
@@ -295,6 +297,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   // Cost, packaging, labour and sale price are Pro. A draft from before a
   // downgrade keeps its values but they are neither shown, costed nor sent.
   const sellerOn = can(entitlements, "calculator.advanced");
+  const ordersOn = flagOn("orders") && can(entitlements, "orders");
   const [oilType, setOilType] = useState(draft?.oilType ?? "");
   const [pricePerGram, setPricePerGram] = useState(draft?.pricePerGram ?? "");
   const [notes, setNotes] = useState(draft?.notes ?? "");
@@ -1169,7 +1172,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         <CostCard unlocked={sellerOn} preview={costPreview} countK={costK} onUnlock={() => openUpgrade("cost")} t={t} currency={currency}
           oilG={result.shown.oilG} ethMl={result.shown.ethanolMl} totMl={result.shown.totalMl}
           oilPrice={blendOn ? Number(priceUsed) || 0 : pricePerGram} onOilPrice={setPricePerGram} oilReadOnly={blendOn}
-          ethPrice={ethanolPricePerL} onEthPrice={setEthanolPricePerL} pack={packagingCost} onPack={setPackagingCost} />
+          ethPrice={ethanolPricePerL} onEthPrice={setEthanolPricePerL} pack={packagingCost} onPack={setPackagingCost}
+          orderLink={ordersOn ? (o) => friendOrderLink({ ...o, locale, name: fragName, family: tierKey, strengthPct: concPct }) : null} />
         </div>
       )}
       {tourPour && (

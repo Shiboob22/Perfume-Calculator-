@@ -1148,6 +1148,7 @@ export default {
         label: "Friend price", none: "None", off: "{pct}% off", typed: "Or type a price", unit: "{cur} / bottle",
         result: "Friend pays {price} {cur}, your profit {profit} {cur} a bottle.",
         loss: "Below cost: you lose {loss} {cur} a bottle.",
+        order: "Add an order at this price",
       },
     },
     heading: "Weigh a formula.",

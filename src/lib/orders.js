@@ -103,3 +103,33 @@ export function readyToBottle(rows = [], today = localToday()) {
     .filter((g) => g.ready)
     .reduce((n, g) => n + g.orders.filter((o) => o.status === "resting").length, 0);
 }
+
+/**
+ * The cost card's friend price as a new order's link: scent, family, bottle
+ * size, strength, what the friend pays and the normal price (the suggested
+ * retail). A typed price above retail goes as a plain price: an order's normal
+ * price can't be under what the buyer pays (0039).
+ */
+export function friendOrderLink({ locale, name, family, sizeMl, strengthPct, price, retail }) {
+  const q = new URLSearchParams({ new: "1" });
+  if (name?.trim()) q.set("scent", name.trim());
+  if (family) q.set("family", family);
+  q.set("ml", String(sizeMl));
+  q.set("pct", String(strengthPct));
+  q.set("price", String(price));
+  if (retail > price) q.set("list", String(retail));
+  return `${locale === "ar" ? "/ar" : ""}/bench/orders?${q}`;
+}
+
+/** A new order's fields from friendOrderLink()'s query, or null when it isn't one. */
+export function orderFromQuery(params) {
+  if (params.get("new") !== "1") return null;
+  const num = (k) => { const v = Number(params.get(k)); return params.get(k) != null && Number.isFinite(v) && v >= 0 ? v : null; };
+  const price = num("price");
+  const list = num("list");
+  return {
+    scent_text: (params.get("scent") ?? "").slice(0, 120), family: params.get("family") || null,
+    size_ml: num("ml") || null, strength_pct: num("pct") || null,
+    price, list_price: price != null && list != null && list > price ? list : null,
+  };
+}

@@ -367,3 +367,37 @@ test("a friend price is saved on the order and adds up in History", async ({ pag
   await page.getByText(fill(o.history.one, { count: 1 })).click();
   await expect(page.getByText(fill(o.cost.discounts.one, { count: 1, given: "100.00", currency: "EGP" }))).toBeVisible();
 });
+
+for (const locale of ["en", "ar"]) {
+  test(`the cost card's friend price opens a new order filled in (${locale})`, async ({ page }) => {
+    const m = locale === "ar" ? ar : en;
+    const fillM = (s, vars) => fill(s, vars);
+    await signIn(page);
+    const sent = await fakeApi(page, { locale });
+    await page.goto("/bench?name=Oud%20Nights&family=woody&size=100&unit=ml&conc=20"); // the Bench reads the language from the profile
+    const cost = page.locator('[data-tour="cost"]');
+    await cost.getByRole("spinbutton", { name: m.calc.costCard.oilPrice }).fill("5");
+    await cost.getByRole("spinbutton", { name: m.calc.costCard.ethPrice }).fill("150");
+    await cost.getByRole("spinbutton", { name: m.calc.costCard.pack }).fill("45");
+    await cost.getByRole("button", { name: "30 mL" }).click();
+    // No friend price, no link.
+    await expect(cost.locator("[data-friend-order]")).toHaveCount(0);
+    await cost.locator('[data-friend-off="20"]').click();
+    const retail = Number(await cost.locator('[data-cost="retail"] dd span').first().textContent());
+    const friend = Math.round(retail * 80) / 100;
+    await cost.getByRole("link", { name: m.calc.costCard.friend.order }).click();
+
+    await expect(page).toHaveURL(new RegExp(`${locale === "ar" ? "/ar" : ""}/bench/orders$`)); // the query is gone: a reload won't reopen it
+    const sheet = page.getByRole("dialog", { name: m.orders.form.title });
+    await expect(sheet.getByLabel(m.orders.form.scent)).toHaveValue("Oud Nights");
+    await expect(sheet.getByLabel(m.orders.form.sizeCustom)).toHaveValue("30");
+    await expect(sheet.getByLabel(fillM(m.orders.form.price, { currency: "EGP" }), { exact: true })).toHaveValue(String(friend));
+    await expect(sheet.getByLabel(m.orders.form.friend)).toBeChecked();
+    await expect(sheet.getByLabel(fillM(m.orders.form.listPrice, { currency: "EGP" }))).toHaveValue(String(retail));
+    expect(sent.posts).toHaveLength(0); // nothing saved until Save
+    await sheet.getByLabel(m.orders.form.buyer).fill("Sara");
+    await sheet.getByRole("button", { name: m.orders.form.save }).click();
+    await expect(sheet).toBeHidden();
+    expect(sent.posts.at(-1)).toMatchObject({ buyer_name: "Sara", scent_text: "Oud Nights", size_ml: 30, strength_pct: 20, price: friend, list_price: retail });
+  });
+}

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { COLORS } from "../../lib/theme";
+import { Link } from "../../motion";
 import { costFor, fmt2, friendPrice, FRIEND_OFFS } from "../../lib/calc";
 import { COST_BOTTLES, COST_DEFAULTS, COST_MARGINS, COST_SAMPLE } from "../../lib/plansConfig";
 
@@ -13,7 +14,10 @@ import { COST_BOTTLES, COST_DEFAULTS, COST_MARGINS, COST_SAMPLE } from "../../li
 // the three results count up, `countK` of the way (0 → 1; null = final).
 // Blank prices show the sample prices (COST_SAMPLE), and nothing can be
 // typed: the plan is not changed, only shown.
-export default function CostCard({ unlocked, preview = false, countK = null, onUnlock, oilG, ethMl, totMl, oilPrice, onOilPrice, oilReadOnly, ethPrice, onEthPrice, pack, onPack, currency, t }) {
+//
+// `orderLink({ sizeMl, price, retail })` (sellers with the order queue): the
+// friend price becomes a link to a new order filled in at that price.
+export default function CostCard({ unlocked, preview = false, countK = null, onUnlock, oilG, ethMl, totMl, oilPrice, onOilPrice, oilReadOnly, ethPrice, onEthPrice, pack, onPack, currency, orderLink, t }) {
   const [bottleMl, setBottleMl] = useState(COST_DEFAULTS.bottleMl);
   const [margin, setMargin] = useState(COST_DEFAULTS.margin);
   const [friendOff, setFriendOff] = useState(0);
@@ -112,6 +116,10 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
             ? t("calc.costCard.friend.loss", { loss: fmt2(-friend.profit), cur: currency })
             : t("calc.costCard.friend.result", { price: fmt2(friend.price), profit: fmt2(friend.profit), cur: currency }))}
         </p>
+        {friend && orderLink && (
+          <Link to={orderLink({ sizeMl: bottleMl, price: friend.price, retail: Math.round(c.retail * 100) / 100 })} data-friend-order
+            className="self-start min-h-[44px] inline-flex items-center text-sm underline underline-offset-4" style={{ color: COLORS.ink }}>{t("calc.costCard.friend.order")}</Link>
+        )}
       </div>
       {!shown && (
         <div className="absolute inset-x-0 bottom-0 top-14 flex items-center justify-center p-6">
