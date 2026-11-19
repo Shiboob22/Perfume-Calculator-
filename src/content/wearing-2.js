@@ -1,6 +1,6 @@
 // Wearing guides, part 2: The Scent Handbook, Vol. I Application, Parts VI–IX
 // and XI–XV (Part X, the author's own collection, is excluded). English
-// follows the handbook; Arabic is a draft (needsReview).
+// follows the handbook; Arabic reviewed 2026-11-19 (needsReview: false).
 
 export const WEARING_2 = [
   {
@@ -27,7 +27,7 @@ export const WEARING_2 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "الثبات والفوحان والأثر",
       summary: "ما الذي يطيل بقاء العطر فعلًا، وعلامَ يعتمد الفوحان، وكيف يُبنى أثر منضبط.",
       body: [
@@ -67,7 +67,7 @@ export const WEARING_2 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "وضع العطر طبقات",
       summary: "ما الذي يصلح طبقةً تحت العطر، والمبدأ الحاكم لعطر فوق عطر: وظائف مختلفة، لا هويات متنافسة.",
       body: [
@@ -108,7 +108,7 @@ export const WEARING_2 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "العطر في الأجواء الحارة",
       summary: "إطار مناخ القاهرة: بخّات أقل كلما ارتفعت الحرارة، ومشكلة البيئتين، وألّا تبخّ أبدًا على جلد متعرّق.",
       body: [
@@ -145,7 +145,7 @@ export const WEARING_2 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "إطار أنواع العطور",
       summary: "بخّات البداية والمواضع وخطر الإفراط حسب النوع — من الحمضيات المنعشة إلى الإكستريه الثقيل.",
       body: [
@@ -186,7 +186,7 @@ export const WEARING_2 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "أكبر 15 خطأ",
       summary: "مرتّبة حسب الأثر العملي — وكلها صورة من صور إضافة المزيد بدل التطبيق الأفضل.",
       body: [
@@ -239,7 +239,7 @@ export const WEARING_2 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "مثبت، معقول، تجارب فردية، خرافة",
       summary: "ادعاءات شائعة عن وضع العطر، ولكلٍّ منها حكم الكتيّب.",
       body: [
@@ -297,7 +297,7 @@ export const WEARING_2 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "بروتوكول الستين ثانية",
       summary: "بروتوكول وضع العطر في أقل من دقيقة، وثلاثة أنماط للارتداء، والقاعدة الختامية مع نطاق الرائحة.",
       body: [

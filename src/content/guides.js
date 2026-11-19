@@ -1,6 +1,7 @@
 // Guides drawn from The Scent Handbook, Vol. III Formulation, by Hisham
-// Shiboob. The English follows the handbook's own wording; the Arabic is a
-// draft translation (needsReview) until the author approves it.
+// Shiboob. The English follows the handbook's own wording. The Arabic was
+// reviewed and published 2026-11-19; set needsReview: true to take a guide's
+// Arabic back to draft (noindex, no hreflang, a draft line on the page).
 //
 // Body blocks:
 //   { h2, id }                        section heading (id = stable anchor, same in every language)
@@ -59,7 +60,7 @@ const BLENDING = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "لماذا نزن ولا نقيس بالحجم",
       summary: "التركيب الاحترافي يكون بالكتلة. الكثافتان المرجعيتان، وحدود كلٍّ منهما.",
       body: [
@@ -104,7 +105,7 @@ const BLENDING = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "الحساب",
       summary: "من الحجم والتركيز المستهدفين إلى رقمين على الميزان — مع جدول المرجع السريع والأمثلة المحلولة.",
       body: [
@@ -183,7 +184,7 @@ const BLENDING = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "على طاولة الخلط",
       summary: "التجهيز، ووزن الزيت والكحول، والخلط، وقواعد الدقة الخمس، وفحص الجودة: الطريقة كاملة في صفحة واحدة.",
       body: [

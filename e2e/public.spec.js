@@ -90,8 +90,8 @@ test.describe("without JavaScript", () => {
   test("public pages are complete HTML", async ({ page }) => {
     await page.goto("/library/the-calculation");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("The calculation");
-    // The Arabic guides await the author's review: noindex and no hreflang until then.
-    await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveCount(0);
+    // The Arabic guides are reviewed (2026-11-19): each English guide names its Arabic edition.
+    await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveCount(1);
     await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveCount(1);
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
   });

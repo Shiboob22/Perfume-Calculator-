@@ -1,5 +1,5 @@
 // Wearing guides, part 1: The Scent Handbook, Vol. I Application, Parts I–V.
-// English follows the handbook; Arabic is a draft (needsReview).
+// English follows the handbook; Arabic reviewed 2026-11-19 (needsReview: false).
 // { evidence: { label, tone }, title, text } shows the handbook's own
 // evidence label verbatim; `tone` only picks the badge colour.
 
@@ -32,7 +32,7 @@ export const WEARING_1 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "كيف يعمل العطر فعلًا",
       summary: "الأداء الذي نلمسه حاصل ضرب التركيبة والتركيز والجرعة والجلد والحرارة وحركة الهواء — وإن شددت أي رافعة أكثر من اللازم تأثرت البقية.",
       body: [
@@ -80,7 +80,7 @@ export const WEARING_1 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "تجهيز الجلد",
       summary: "التسلسل قبل البخّة الأولى، وما تفعله فعلًا المرطّبات والفازلين والزيوت وحرارة الاستحمام.",
       body: [
@@ -133,7 +133,7 @@ export const WEARING_1 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "أين تبخّ العطر",
       summary: "عدد قليل من المواضع عالية القيمة يتفوّق على التغطية الواسعة: الصدر والرقبة والكتفان وبخّة واحدة منضبطة على الملابس.",
       body: [
@@ -183,7 +183,7 @@ export const WEARING_1 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "نظام عدد البخّات",
       summary: "جرعات البداية حسب القوة، وكيف يعدّلها الموقف. عدد البخّات جرعة بداية لا قياس.",
       body: [
@@ -224,7 +224,7 @@ export const WEARING_1 = [
       ],
     },
     ar: {
-      needsReview: true,
+      needsReview: false,
       title: "الجلد أم الملابس",
       summary: "ما يمنحه كل سطح، ومتى تختار أحدهما، والنظام الهجين: 2–3 بخّات على الجلد وواحدة على الملابس.",
       body: [
