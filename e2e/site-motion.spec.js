@@ -78,6 +78,8 @@ test("pricing: the plan links answer a press", async ({ page }) => {
   const links = page.locator("a.mo-press");
   await expect(links).toHaveCount(2);
   const link = links.first();
+  // Only the press is under test: releasing is a tap on phones, and following it left the context hanging.
+  await link.evaluate((el) => el.addEventListener("click", (e) => e.preventDefault()));
   await link.scrollIntoViewIfNeeded();
   const box = await link.boundingBox();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
