@@ -344,3 +344,26 @@ test("someone who doesn't sell keeps the bar as it was", async ({ page, isMobile
   await expect(nav.getByRole("link", { name: new RegExp(`^${o.title}`) })).toHaveCount(0);
   if (isMobile) await expect(nav.getByRole("link", { name: THIRD })).toBeVisible();
 });
+
+test("a friend price is saved on the order and adds up in History", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page, {
+    batches: [BATCH],
+    orders: [joined({ id: "h", buyer_name: "Omar", size_ml: 50, price: 300, list_price: 400, status: "handed_over" })],
+  });
+  await page.goto("/bench/orders");
+  await page.getByRole("button", { name: o.add }).click();
+  const sheet = page.getByRole("dialog", { name: o.form.title });
+  await sheet.getByLabel(o.form.buyer).fill("Sara");
+  await sheet.getByLabel(o.form.scent).fill("Oud Nights");
+  await sheet.getByLabel(fill(o.form.price, { currency: "EGP" })).fill("320");
+  await sheet.getByLabel(o.form.friend).check();
+  await sheet.getByLabel(fill(o.form.listPrice, { currency: "EGP" })).fill("400");
+  await sheet.getByRole("button", { name: o.form.save }).click();
+  await expect(sheet).toBeHidden();
+  expect(sent.posts.at(-1)).toMatchObject({ buyer_name: "Sara", price: 320, list_price: 400 });
+  await expect(page.getByText(fill(o.row.friend, { price: "320.00", currency: "EGP", list: "400.00", pct: 20 }))).toBeVisible();
+
+  await page.getByText(fill(o.history.one, { count: 1 })).click();
+  await expect(page.getByText(fill(o.cost.discounts.one, { count: 1, given: "100.00", currency: "EGP" }))).toBeVisible();
+});

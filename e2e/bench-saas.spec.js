@@ -141,6 +141,14 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     await cost.getByRole("spinbutton", { name: m.calc.costCard.pack }).fill("45");
     await cost.getByRole("button", { name: "30 mL" }).click();
     await expect(cost.locator('[data-cost="retail"]')).not.toContainText(/^0\.00/);
+    // A friend price: 20 % off says what they pay; a price under cost says what it loses.
+    const friend = cost.locator("[data-friend-result]");
+    await expect(friend).toHaveText("");
+    await cost.locator('[data-friend-off="20"]').click();
+    await expect(friend).not.toHaveText("");
+    await cost.getByRole("spinbutton", { name: m.calc.costCard.friend.typed }).fill("1");
+    await expect(friend).toContainText(m.calc.costCard.friend.loss.split("{")[0].trim());
+    await expect(cost.locator('[data-friend-off="20"]')).toHaveAttribute("aria-pressed", "false");
     // And a fourth material is allowed on Pro.
     await add.click();
     await expect(page.getByRole("textbox", { name: m.calc.blend.nameN.replace("{n}", "4") })).toBeVisible();

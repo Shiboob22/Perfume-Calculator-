@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   blendMix, ingredientAmounts, balanceShares, densityOf, INGREDIENT_TYPES, INGREDIENT_KEYS,
-  costFor, MAX_MARGIN_PCT, pourScaleAt, ingredientTarget, blendEthanolTarget, POUR_BAND,
+  costFor, friendPrice, MAX_MARGIN_PCT, pourScaleAt, ingredientTarget, blendEthanolTarget, POUR_BAND,
   byVolume, byWeight, alcoholForOil, round2, STRENGTH_TIERS, tierFor,
 } from "./index";
 import { ETHANOL_DENSITY } from "../formulation";
@@ -229,5 +229,16 @@ describe("strength tiers (handbook strengths)", () => {
     expect(tierFor(0).name).toBe("EDT");
     expect(tierFor(-5).name).toBe("EDT");
     expect(tierFor("22").name).toBe("EDP Intense");
+  });
+});
+
+describe("friendPrice", () => {
+  it("takes % off the suggested retail, or a typed price, and flags a loss", () => {
+    expect(friendPrice({ perBottle: 86.55, retail: 220, off: 0 })).toBeNull();
+    expect(friendPrice({ perBottle: 0, retail: 0, off: 20 })).toBeNull();
+    expect(friendPrice({ perBottle: 86.55, retail: 220, off: 20 })).toEqual({ price: 176, profit: 89.45, belowCost: false });
+    expect(friendPrice({ perBottle: 86.55, retail: 220, off: 20, price: "80" })).toEqual({ price: 80, profit: -6.55, belowCost: true });
+    expect(friendPrice({ perBottle: 86.55, retail: 220, price: "" })).toBeNull();
+    expect(friendPrice({ perBottle: 86.55, retail: 220, off: 10, price: "-5" }).price).toBe(198);
   });
 });

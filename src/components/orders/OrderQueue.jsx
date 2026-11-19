@@ -8,7 +8,7 @@ import Card from "../kx/Card";
 import Sheet from "../kx/Sheet";
 import Chip from "../kx/Chip";
 import Button from "../kx/Button";
-import { fmt2, planMixes, restWindow, bottlingGroups, orderCost, shortMix, profitTotals, MIX_ALLOWANCE_PCT, STRENGTH_TIERS } from "../../lib/calc";
+import { fmt2, planMixes, restWindow, bottlingGroups, orderCost, shortMix, profitTotals, discountTotals, MIX_ALLOWANCE_PCT, STRENGTH_TIERS } from "../../lib/calc";
 import { Link } from "../../motion";
 import ListSkeleton from "../kx/ListSkeleton";
 import { listRecipes, listInventory } from "../../lib/fragranceApi";
@@ -73,10 +73,11 @@ export default function OrderQueue() {
   const [early, setEarly] = useState(null); // an order asked to bottle before its ready-from date
   const costOf = (r) => orderCost(r?.batches, Number(r?.size_ml), r?.price == null ? null : Number(r.price));
   const profit = useMemo(() => profitTotals(handed.map(costOf)), [handed]); // eslint-disable-line react-hooks/exhaustive-deps
+  const given = useMemo(() => discountTotals(handed), [handed]);
   // An order copied into a new one ("Order again"): same buyer, scent, size, strength and price.
   const again = (r) => setEditing({
     buyer_name: r.buyer_name, buyer_contact: r.buyer_contact, scent_text: r.scent_text, family: r.family,
-    size_ml: r.size_ml, strength_pct: r.strength_pct, price: r.price, note: r.note,
+    size_ml: r.size_ml, strength_pct: r.strength_pct, price: r.price, list_price: r.list_price, note: r.note,
   });
   const open = plan.groups.reduce((n, g) => n + g.orders.length, 0) + plan.unplanned.length;
 
@@ -293,6 +294,11 @@ export default function OrderQueue() {
               {profit.missing > 0 && ` ${t("orders.cost.missing", { count: profit.missing })}`}
             </p>
           )}
+          {given.length > 0 && (
+            <p data-friend-given className="text-sm pb-2" style={{ color: COLORS.inkSoft }}>
+              {given.map((x) => t("orders.cost.discounts", { count: x.count, given: fmt2(x.given), currency: x.currency })).join(" ")}
+            </p>
+          )}
           <ul>{handed.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 border-t" style={{ borderColor: COLORS.line }}>
               <span className="me-auto">
@@ -331,7 +337,9 @@ function OrderRow({ row, date, t, busy, onEdit, onCancel, onRestore }) {
   const details = [
     t("orders.row.size", { ml: Number(row.size_ml), pct: Number(row.strength_pct) }),
     row.wanted_by && t("orders.row.wanted", { date: date(row.wanted_by) }),
-    row.price != null && t("orders.row.price", { price: fmt2(Number(row.price)), currency: row.currency ?? "" }),
+    row.price != null && (row.list_price != null && Number(row.list_price) > Number(row.price)
+      ? t("orders.row.friend", { price: fmt2(Number(row.price)), currency: row.currency ?? "", list: fmt2(Number(row.list_price)), pct: Math.round((1 - Number(row.price) / Number(row.list_price)) * 100) })
+      : t("orders.row.price", { price: fmt2(Number(row.price)), currency: row.currency ?? "" })),
   ].filter(Boolean);
   return (
     <li className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 border-t" style={{ borderColor: COLORS.line }}>
@@ -354,6 +362,7 @@ function OrderForm({ row, options, currency, busy, error, onSave, t }) {
     buyer_name: row.buyer_name ?? "", buyer_contact: row.buyer_contact ?? "", scent_text: row.scent_text ?? "",
     size_ml: row.size_ml != null ? String(Number(row.size_ml)) : "50", strength_pct: row.strength_pct != null ? String(Number(row.strength_pct)) : "25",
     price: row.price != null ? String(Number(row.price)) : "", wanted_by: row.wanted_by ?? "", note: row.note ?? "",
+    friend: row.list_price != null, list_price: row.list_price != null ? String(Number(row.list_price)) : "",
   }));
   const [id] = useState(() => row.id ?? newId());
   const set = (k) => (e) => setF((p) => ({ ...p, [k]: e.target.value }));
@@ -365,7 +374,7 @@ function OrderForm({ row, options, currency, busy, error, onSave, t }) {
       buyer_name: f.buyer_name, buyer_contact: f.buyer_contact, scent_text: f.scent_text,
       recipe_version_id: match?.recipe_version_id ?? null, fragrance_id: match?.fragrance_id ?? null, family: match?.family ?? row.family ?? null,
       size_ml: Number(f.size_ml), strength_pct: Number(f.strength_pct),
-      price: f.price === "" ? null : Number(f.price), currency: f.price === "" ? null : (CURRENCIES.includes(currency) ? currency : row.currency ?? null),
+      price: f.price === "" ? null : Number(f.price), list_price: f.friend && f.price !== "" && f.list_price !== "" ? Number(f.list_price) : null, currency: f.price === "" ? null : (CURRENCIES.includes(currency) ? currency : row.currency ?? null),
       wanted_by: f.wanted_by || null, note: f.note,
     };
     onSave({ id, edit });
@@ -402,6 +411,15 @@ function OrderForm({ row, options, currency, busy, error, onSave, t }) {
         <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.wanted")}</span>
           <input type="date" value={f.wanted_by} onChange={set("wanted_by")} className={inputClass} style={inputStyle} /></label>
       </div>
+      <label className="flex items-center gap-3 min-h-[44px]">
+        <input type="checkbox" checked={f.friend} onChange={(e) => setF((p) => ({ ...p, friend: e.target.checked }))} className="w-5 h-5" />
+        <span style={{ color: COLORS.ink }}>{t("orders.form.friend")}</span>
+      </label>
+      {f.friend && (
+        <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.listPrice", { currency: CURRENCIES.includes(currency) ? currency : "" })}</span>
+          <input type="number" inputMode="decimal" min={f.price || "0"} step="any" required value={f.list_price} onChange={set("list_price")} className={`${inputClass} sm:w-60`} style={inputStyle} />
+          <span className="block text-xs mt-1" style={{ color: COLORS.dim }}>{t("orders.form.friendHint")}</span></label>
+      )}
       <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.contact")}</span>
         <input maxLength={120} value={f.buyer_contact} onChange={set("buyer_contact")} className={inputClass} style={inputStyle} autoComplete="off" /></label>
       <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.note")}</span>

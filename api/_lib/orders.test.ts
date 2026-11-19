@@ -43,6 +43,11 @@ describe('orderRow', () => {
   ])('refuses %s = %s', (f, v) => {
     expect(orderRow({ ...NEW, [f]: v })).toMatchObject({ field: f });
   });
+  it('keeps a friend price under its normal price', () => {
+    expect((orderRow({ ...NEW, price: 300, list_price: 400 }) as any).row).toMatchObject({ price: 300, list_price: 400 });
+    expect(orderRow({ ...NEW, price: 300, list_price: 250 })).toMatchObject({ field: 'list_price' });
+    expect(orderRow({ ...NEW, list_price: -1 })).toMatchObject({ field: 'list_price' });
+  });
   it('an edit takes only the fields given', () => {
     expect(orderRow({ size_ml: 100 }, true)).toEqual({ row: { size_ml: 100 } });
     expect(orderRow({}, true)).toEqual({ error: 'Nothing to change.', field: 'edit' });

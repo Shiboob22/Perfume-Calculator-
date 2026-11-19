@@ -13,7 +13,7 @@ export const GROUP_MODES = ['mix', 'separate'];
 /** Columns a client may write; everything else is the server's. */
 const EDITABLE = [
   'buyer_name', 'buyer_contact', 'recipe_version_id', 'fragrance_id', 'scent_text', 'family',
-  'size_ml', 'strength_pct', 'price', 'currency', 'wanted_by', 'note', 'group_mode',
+  'size_ml', 'strength_pct', 'price', 'list_price', 'currency', 'wanted_by', 'note', 'group_mode',
 ] as const;
 
 const REQUIRED: readonly string[] = ['buyer_name', 'scent_text', 'size_ml', 'strength_pct'];
@@ -50,7 +50,8 @@ function field(name: (typeof EDITABLE)[number], v: unknown): { value: unknown } 
       const n = Number(v);
       return Number.isFinite(n) && n > 0 && n < 100 ? { value: Math.round(n * 100) / 100 } : { error: 'Strength must be between 0 and 100 %.' };
     }
-    case 'price': {
+    case 'price':
+    case 'list_price': {
       if (v == null || v === '') return { value: null };
       const n = Number(v);
       return Number.isFinite(n) && n >= 0 && n <= 1_000_000 ? { value: Math.round(n * 100) / 100 } : { error: 'Price must be a positive number.' };
@@ -83,6 +84,9 @@ export function orderRow(input: unknown, partial = false): Result {
     const out = field(name, b[name]);
     if ('error' in out) return { error: out.error, field: name };
     row[name] = out.value;
+  }
+  if (row.list_price != null && row.price != null && (row.list_price as number) < (row.price as number)) {
+    return { error: 'The normal price can’t be below the friend price.', field: 'list_price' };
   }
   if (partial && Object.keys(row).length === 0) return { error: 'Nothing to change.', field: 'edit' };
   return { row };

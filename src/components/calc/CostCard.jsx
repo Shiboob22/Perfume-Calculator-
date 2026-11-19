@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { COLORS } from "../../lib/theme";
-import { costFor, fmt2 } from "../../lib/calc";
+import { costFor, fmt2, friendPrice, FRIEND_OFFS } from "../../lib/calc";
 import { COST_BOTTLES, COST_DEFAULTS, COST_MARGINS, COST_SAMPLE } from "../../lib/plansConfig";
 
 // Cost per bottle (Bench SaaS, Pro: calculator.advanced). Three prices, a
@@ -16,6 +16,8 @@ import { COST_BOTTLES, COST_DEFAULTS, COST_MARGINS, COST_SAMPLE } from "../../li
 export default function CostCard({ unlocked, preview = false, countK = null, onUnlock, oilG, ethMl, totMl, oilPrice, onOilPrice, oilReadOnly, ethPrice, onEthPrice, pack, onPack, currency, t }) {
   const [bottleMl, setBottleMl] = useState(COST_DEFAULTS.bottleMl);
   const [margin, setMargin] = useState(COST_DEFAULTS.margin);
+  const [friendOff, setFriendOff] = useState(0);
+  const [friendTyped, setFriendTyped] = useState("");
   const shown = unlocked || preview;
   const sample = (v, k) => (preview && !unlocked && !(Number(v) > 0) ? COST_SAMPLE[k] : v);
   oilPrice = sample(oilPrice, "oilPrice");
@@ -23,6 +25,7 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
   pack = sample(pack, "pack");
   const c = costFor({ oilG, ethMl, totMl, bottleMl, oilPrice: Number(oilPrice) || 0, ethPrice: Number(ethPrice) || 0, pack: Number(pack) || 0, margin });
   const k = countK == null ? 1 : countK;
+  const friend = unlocked ? friendPrice({ perBottle: c.perBottle, retail: c.retail, off: friendOff, price: friendTyped }) : null;
 
   const chip = (on) => ({ borderColor: on ? COLORS.actionText : COLORS.line, background: on ? COLORS.amber : COLORS.cardHi, color: on ? COLORS.onAmber : COLORS.ink });
   const price = (id, label, value, onChange, unit, readOnly, hint) => (
@@ -76,7 +79,20 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
               ))}
             </div>
           </div>
+          <div role="group" aria-label={t("calc.costCard.friend.label")}>
+            <span aria-hidden="true" className="block mb-1.5 text-[13px]" style={{ color: COLORS.inkSoft }}>{t("calc.costCard.friend.label")}</span>
+            <div className="flex flex-wrap gap-1.5">
+              {[0, ...FRIEND_OFFS].map((o) => {
+                const on = friendTyped === "" && friendOff === o;
+                return (
+                  <button key={o} type="button" data-friend-off={o} aria-pressed={on} onClick={() => { setFriendOff(o); setFriendTyped(""); }} tabIndex={unlocked ? undefined : -1}
+                    className="min-h-[44px] px-3 text-sm tabular-nums rounded border" style={chip(on)}>{o ? t("calc.costCard.friend.off", { pct: o }) : t("calc.costCard.friend.none")}</button>
+                );
+              })}
+            </div>
+          </div>
         </div>
+        {price("cost-friend", t("calc.costCard.friend.typed"), friendTyped, setFriendTyped, t("calc.costCard.friend.unit", { cur: currency }), false)}
         <dl className="grid grid-cols-3" style={{ border: `1px solid ${COLORS.ink}` }}>
           {results.map(([key, value, hi], i) => (
             <div key={key} data-cost={key} className="p-3.5 min-w-0" style={{ borderInlineStart: i ? `1px solid ${COLORS.line}` : 0, background: hi ? COLORS.amber : "transparent", color: hi ? COLORS.onAmber : COLORS.ink }}>
@@ -90,6 +106,11 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
         </dl>
         <p className="text-sm" style={{ color: COLORS.inkSoft }}>
           {c.bottles > 0 ? t("calc.costCard.bottles", { count: c.bottles, size: bottleMl }) : t("calc.costCard.fewer", { size: bottleMl })}
+        </p>
+        <p data-friend-result aria-live="polite" className="text-sm" style={{ color: friend?.belowCost ? COLORS.danger : COLORS.ink }}>
+          {friend && (friend.belowCost
+            ? t("calc.costCard.friend.loss", { loss: fmt2(-friend.profit), cur: currency })
+            : t("calc.costCard.friend.result", { price: fmt2(friend.price), profit: fmt2(friend.profit), cur: currency }))}
         </p>
       </div>
       {!shown && (

@@ -374,3 +374,22 @@ export function profitTotals(items: Array<OrderCost | null>): { totals: { curren
   }
   return { totals: [...by.values()], missing };
 }
+
+/**
+ * What friend prices gave away, per currency: the normal price (list_price)
+ * minus what the buyer paid, over orders that have both and a real discount.
+ */
+export function discountTotals(rows: Array<{ price?: number | string | null; list_price?: number | string | null; currency?: string | null }>) {
+  const by = new Map<string, { currency: string; given: number; count: number }>();
+  for (const r of rows) {
+    if (r.price == null || r.list_price == null) continue;
+    const off = Number(r.list_price) - Number(r.price);
+    if (!(off > 0)) continue;
+    const cur = r.currency ?? "";
+    const t = by.get(cur) ?? { currency: cur, given: 0, count: 0 };
+    t.given = round2(t.given + off);
+    t.count += 1;
+    by.set(cur, t);
+  }
+  return [...by.values()];
+}

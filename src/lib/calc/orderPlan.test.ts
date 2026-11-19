@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  MIX_ALLOWANCE_PCT, MAX_REST_DAYS, planMixes, restWindow, addDays, orderDensities, oilNeeds, type PlanOrder,
+  MIX_ALLOWANCE_PCT, MAX_REST_DAYS, planMixes, restWindow, addDays, orderDensities, oilNeeds, discountTotals, type PlanOrder,
 } from "./index";
 import { FAMILIES, REFERENCE, ETHANOL_DENSITY } from "../formulation";
 
@@ -230,5 +230,23 @@ describe("profit totals", () => {
       totals: [{ currency: "EGP", profit: 150.75, count: 2 }, { currency: "USD", profit: 10, count: 1 }], missing: 2,
     });
     expect(profitTotals([])).toEqual({ totals: [], missing: 0 });
+  });
+});
+
+describe("discountTotals", () => {
+  it("adds up what friend prices gave away, per currency", () => {
+    expect(discountTotals([
+      { price: 300, list_price: 400, currency: "EGP" },
+      { price: "250.5", list_price: "300", currency: "EGP" },
+      { price: 20, list_price: 25, currency: "USD" },
+      { price: 400, list_price: 400, currency: "EGP" },
+      { price: 400, list_price: null, currency: "EGP" },
+      { price: null, list_price: 100 },
+      { price: 10, list_price: 12 },
+    ])).toEqual([
+      { currency: "EGP", given: 149.5, count: 2 },
+      { currency: "USD", given: 5, count: 1 },
+      { currency: "", given: 2, count: 1 },
+    ]);
   });
 });
