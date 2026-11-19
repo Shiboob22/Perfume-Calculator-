@@ -98,7 +98,7 @@ test("search keeps the filters in the URL and opens a fragrance with its notes a
   await page.getByRole("search").getByRole("button", { name: en.atlas.search.submit }).click();
   await expect(page).toHaveURL(/q=citrus/);
   await expect(page.getByRole("link", { name: "Citrus Dawn" })).toBeVisible();
-  await expect(page.getByText(en.atlas.search.results.replace("{count}", "2"))).toBeVisible();
+  await expect(page.getByText(en.atlas.search.results.other.replace("{count}", "2"))).toBeVisible();
   expect(seen.search.at(-1)).toMatchObject({ p_q: "citrus", p_limit: 24, p_offset: 0 });
 
   // Filters come from the URL and go to the function.
@@ -113,7 +113,7 @@ test("search keeps the filters in the URL and opens a fragrance with its notes a
   await expect(figure.getByRole("link", { name: "Lemon" })).toHaveAttribute("href", "/atlas/note/lemon");
   await expect(page.getByRole("link", { name: "Citrus" })).toHaveAttribute("href", "/atlas/accord/citrus");
   await expect(page.getByRole("link", { name: "Ada Test" })).toBeVisible();
-  await expect(page.getByText(en.atlas.fragrance.wear.owners.replace("{n}", "25"))).toBeVisible();
+  await expect(page.getByText(en.atlas.fragrance.wear.owners.other.replace("{n}", "25"))).toBeVisible();
   await expect(page.getByRole("heading", { name: en.atlas.fragrance.similar })).toBeVisible();
   await expect(page.getByText(en.atlas.fragrance.source.replace("{source}", "Perfume dataset"))).toBeVisible();
 });
