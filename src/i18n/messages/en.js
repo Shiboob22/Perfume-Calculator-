@@ -1794,7 +1794,7 @@ export default {
       title: "Guides",
       lead: "The method from The Scent Handbook, free to read.",
       by: "By Hisham Shiboob",
-      from: "From The Scent Handbook, Vol. {volume} — {book}, sections {sections}",
+      from: "From The Scent Handbook, Vol. {volume} — {book}, {sections}",
       openCalc: "Open in calculator",
       benchCta: "Weigh your next batch in the app",
       benchCtaLead: "Set the bottle in the calculator, then Start bench mode: one step per screen, big numbers, for a phone next to the scale.",
@@ -1812,6 +1812,7 @@ export default {
       noResults: "No guide matches that search.",
       minutes: { one: "{count} min read", other: "{count} min read" },
       fromShort: "Vol. {volume} — {book}",
+      sectionList: "sections {n}",
       part: "Part {n}",
       parts: "Parts {n}",
       intro: {

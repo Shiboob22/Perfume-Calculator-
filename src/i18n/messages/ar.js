@@ -1790,13 +1790,13 @@ export default {
     },
     notFound: { title: "الصفحة غير موجودة", home: "العودة إلى الصفحة الرئيسية" },
     guides: {
-      eyebrow: "الدليل {n} من {total} · {minutes} د", tryBench: "جرّبها على طاولة الخلط",
+      eyebrow: "الدليل {n} من {total} · {minutes}", tryBench: "جرّبها على طاولة الخلط",
       metaTitle: "الأدلة — كيفيرا",
       metaDescription: "الطريقة من The Scent Handbook: خلط العطر بالوزن، ووضعه كما ينبغي. بقلم Hisham Shiboob، مجانية للقراءة.",
       title: "الأدلة",
       lead: "الطريقة من The Scent Handbook، مجانية للقراءة.",
       by: "بقلم Hisham Shiboob",
-      from: "من The Scent Handbook، المجلد {volume} — {book}، الأقسام {sections}",
+      from: "من The Scent Handbook، المجلد {volume} — {book}، {sections}",
       openCalc: "افتح في الحاسبة",
       benchCta: "زِن دفعتك التالية في التطبيق",
       benchCtaLead: "حدّد الزجاجة في الحاسبة، ثم ابدأ وضع العمل: خطوة في كل شاشة وأرقام كبيرة، لهاتف بجوار الميزان.",
@@ -1814,6 +1814,7 @@ export default {
       noResults: "لا يوجد دليل يطابق هذا البحث.",
       minutes: { one: "قراءة دقيقة واحدة", two: "قراءة دقيقتين", few: "قراءة {count} دقائق", many: "قراءة {count} دقيقة", other: "قراءة {count} دقيقة" },
       fromShort: "المجلد {volume} — {book}",
+      sectionList: "الأقسام {n}",
       part: "الجزء {n}",
       parts: "الأجزاء {n}",
       intro: {
