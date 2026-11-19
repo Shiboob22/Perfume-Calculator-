@@ -526,6 +526,9 @@ begin
 
   -- Journal reminders (0036): the job writes reminder_sends with the service
   -- role; an owner may read their own rows and write none; anon reads nothing.
+  perform set_config('role', 'none', true);
+  insert into public.reminder_sends (batch_id, user_id, milestone) values (batch_a, a, 'w1');
+  insert into public.push_subscriptions (user_id, endpoint) values (a, 'https://push.example/a-' || a);
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   perform set_config('request.jwt.claim.sub', b::text, true);
   perform set_config('role', 'authenticated', true);
@@ -551,6 +554,15 @@ begin
   begin insert into public.push_subscriptions (user_id, endpoint) values (b, 'https://push.example/x');
   exception when insufficient_privilege then ok := true; end;
   if not ok then raise exception 'RLS_ISOLATION FAILED: B wrote a push_subscriptions row'; end if; checks := checks + 1;
+  select count(*) into n from public.push_subscriptions;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s push subscriptions'; end if; checks := checks + 1;
+  -- The owner can read their own rows (the data export includes both tables).
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', a::text, true);
+  select count(*) into n from public.push_subscriptions;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: A sees % of its push subscriptions, expected 1', n; end if; checks := checks + 1;
+  select count(*) into n from public.reminder_sends;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: A sees % of its reminder rows, expected 1', n; end if; checks := checks + 1;
   perform set_config('role', 'anon', true);
   ok := false;
   begin perform 1 from public.push_subscriptions limit 1;
