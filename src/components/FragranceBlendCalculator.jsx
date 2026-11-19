@@ -700,7 +700,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       <RestingLine />
       {prefill.best && (
         <p data-best-from className="mb-6 text-sm" style={{ color: COLORS.inkSoft }}>
-          {t("journal.page.bestFrom", { no: String(prefill.best.no).padStart(3, "0"), day: prefill.best.day })}
+          {t("journal.page.bestFrom", { no: String(prefill.best.no).padStart(3, "0"), day: prefill.best.day, count: Number(prefill.best.day) })}
         </p>
       )}
       {orderIds.length > 0 ? <OrdersFor count={orderIds.length} linked={ordersLinked} /> : <OrdersCard />}

@@ -176,7 +176,7 @@ describe("reasonText", () => {
     expect(reasonText(t, { key: "cluster", cluster: "dark", inferred: false, points: 3 }, { occasion: "date" })).toContain('"cluster":"wardrobe.clusters.dark"');
   });
   it("passes the days and falls back to a plain key", () => {
-    expect(reasonText(t, { key: "rested", days: 24, points: 1 })).toBe('wardrobe.reason.rested {"days":24}');
+    expect(reasonText(t, { key: "rested", days: 24, points: 1 })).toBe('wardrobe.reason.rested {"days":24,"count":24}');
     expect(reasonText(t, { key: "neverWorn", points: 1 })).toBe("wardrobe.reason.neverWorn");
     expect(reasonText(t, { key: "tooStrong", projection: "statement", ceiling: "personal", points: -8 }, { occasion: "professional" })).toContain("tooStrong");
   });

@@ -120,8 +120,8 @@ export default function FragrancePage({ id, terms }) {
         <section aria-labelledby="atlas-wear-h" className="mt-8 p-5" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
           <h3 id="atlas-wear-h" className="font-serif italic text-xl mb-2" style={{ color: COLORS.ink }}>{t("atlas.fragrance.wear.title")}</h3>
           <ul className="text-sm grid gap-1 list-none p-0 m-0" style={{ color: COLORS.ink }}>
-            <li className="font-mono tabular-nums">{t("atlas.fragrance.wear.owners", { n: wear.owners })}</li>
-            {wear.wearers != null && <li className="font-mono tabular-nums">{t("atlas.fragrance.wear.wearers", { n: wear.wearers })}</li>}
+            <li className="font-mono tabular-nums">{t("atlas.fragrance.wear.owners", { n: wear.owners, count: Number(wear.owners) })}</li>
+            {wear.wearers != null && <li className="font-mono tabular-nums">{t("atlas.fragrance.wear.wearers", { n: wear.wearers, count: Number(wear.wearers) })}</li>}
             {wear.occasions?.length > 0 && <li>{t("atlas.fragrance.wear.occasions")}: {wear.occasions.map((o) => t(`wardrobe.occasions.${o}`)).join(", ")}</li>}
           </ul>
           <p className="text-xs mt-3" style={{ color: COLORS.dim }}>{t("atlas.fragrance.wear.note")}</p>

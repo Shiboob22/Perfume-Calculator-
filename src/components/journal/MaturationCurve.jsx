@@ -30,7 +30,7 @@ export default function MaturationCurve({ checkins, t }) {
       <h3 id="journal-curve" className="font-serif text-xl">{t("journal.page.curve.title")}</h3>
       <p className="mt-1 text-sm" style={{ color: COLORS.inkSoft }}>
         {!enough
-          ? t("journal.page.curve.few", { have: points.length, need: MIN_CURVE_NOTES })
+          ? t("journal.page.curve.few", { have: points.length, need: MIN_CURVE_NOTES, count: points.length })
           : peak
             ? t("journal.page.curve.peak", { milestone: name(peak.k), rating: peak.rating })
             : t("journal.page.curve.drawn")}

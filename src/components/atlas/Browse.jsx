@@ -44,7 +44,7 @@ export default function Browse({ terms }) {
           <li key={r.key}>
             <Link to={entityHref(kind, r.key)} className="flex items-baseline justify-between gap-3 px-4 min-h-[44px] py-2 border" style={{ borderColor: COLORS.line, background: COLORS.card, color: COLORS.ink }}>
               <span>{termName(terms, kind, r.key, locale, r.name)}</span>
-              <span className="font-mono tabular-nums text-xs" dir="ltr" style={{ color: COLORS.inkSoft }}>{t("atlas.browse.count", { n: r.fragrances })}</span>
+              <span className="font-mono tabular-nums text-xs" dir="ltr" style={{ color: COLORS.inkSoft }}>{t("atlas.browse.count", { n: r.fragrances, count: Number(r.fragrances) })}</span>
             </Link>
           </li>
         ))}

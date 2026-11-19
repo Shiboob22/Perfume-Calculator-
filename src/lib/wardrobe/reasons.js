@@ -19,7 +19,7 @@ export function reasonText(t, reason, { occasion } = {}) {
         projection: lower(t(`wardrobe.projections.${reason.projection}`)), ceiling: lower(t(`wardrobe.projections.${reason.ceiling}`)), occasion: lower(t(`wardrobe.occasions.${occasion}`)),
       });
     case "wornRecently": case "rested":
-      return t(`wardrobe.reason.${reason.key}`, { days: reason.days });
+      return t(`wardrobe.reason.${reason.key}`, { days: reason.days, count: reason.days });
     default:
       return t(`wardrobe.reason.${reason.key}`);
   }

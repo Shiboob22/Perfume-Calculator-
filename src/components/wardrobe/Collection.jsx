@@ -96,7 +96,7 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
                     {b.size_ml != null && <Chip><span className="font-mono tabular-nums" dir="ltr">{Number(b.size_ml)} mL</span></Chip>}
                   </div>
                   <ul className="text-sm mt-3 font-mono tabular-nums list-none p-0" style={{ color: COLORS.inkSoft }}>
-                    <li>{wears === 0 ? t("wardrobe.collection.neverWorn") : wears === 1 ? t("wardrobe.collection.wearsOne") : t("wardrobe.collection.wears", { n: wears })}</li>
+                    <li>{wears === 0 ? t("wardrobe.collection.neverWorn") : wears === 1 ? t("wardrobe.collection.wearsOne") : t("wardrobe.collection.wears", { n: wears, count: wears })}</li>
                     {b.size_ml != null && <li dir="ltr">{t("wardrobe.leftOf", { left: (Number(b.size_ml) * Number(b.fill_pct ?? 100) / 100).toFixed(0), size: Number(b.size_ml) })}</li>}
                     {per != null && <li>{t("wardrobe.collection.perWear", { amount: money(per, b.currency) })}</li>}
                   </ul>

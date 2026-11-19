@@ -46,7 +46,7 @@ export default function BatchCompare({ batches, selectedId, locked, lockedCard, 
               [t("journal.page.cmp.poured"), (c) => c.b.poured || none],
               [t("journal.page.cmp.rested"), (c) => t("journal.page.cmp.days", { count: c.b.day })],
               [t("journal.page.cmp.peak"), (c) => peakText(c.s)],
-              [t("journal.page.cmp.notes"), (c) => t("journal.page.cmp.notesVal", { notes: c.s.notes, rated: c.s.rated })],
+              [t("journal.page.cmp.notes"), (c) => t("journal.page.cmp.notesVal", { notes: c.s.notes, rated: c.s.rated, count: c.s.notes })],
               [t("journal.page.cmp.tags"), (c) => tagsText(c.s)],
             ];
             return (

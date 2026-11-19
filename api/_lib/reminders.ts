@@ -21,7 +21,7 @@ const SKIP: ReadonlySet<MilestoneKey> = new Set(['d1']);
 
 export const MILESTONE_NAMES: Record<'en' | 'ar', Record<MilestoneKey, string>> = {
   en: { d1: 'Day 1', w1: 'Week 1', w2: 'Week 2', m1: 'Month 1', m3: 'Month 3' },
-  ar: { d1: 'اليوم 1', w1: 'الأسبوع 1', w2: 'الأسبوع 2', m1: 'الشهر 1', m3: 'الشهر 3' },
+  ar: { d1: 'اليوم الأول', w1: 'الأسبوع الأول', w2: 'الأسبوع الثاني', m1: 'الشهر الأول', m3: 'الشهر الثالث' },
 };
 
 export interface ReminderBatch {
@@ -71,6 +71,10 @@ export function verifyUnsub(value: string, secret: string): string | null {
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
+// Arabic counts: 1 دفعة, 2 دفعتين, 3–10 دفعات, 11+ دفعة.
+const arBatches = (n: number) => n === 1 ? 'حان وقت شمّ دفعة' : n === 2 ? 'حان وقت شمّ دفعتين'
+  : n % 100 >= 3 && n % 100 <= 10 ? `حان وقت شمّ ${n} دفعات` : `حان وقت شمّ ${n} دفعة`;
+
 const no = (b: ReminderBatch) => String(b.batch_no ?? 0).padStart(3, '0');
 
 /** The digest's subject, text and HTML in the owner's language. */
@@ -80,7 +84,7 @@ export function buildDigest(due: readonly Due[], lang: 'en' | 'ar', links: { jou
     ? `رقم ${no(d.batch)}، ${d.batch.fragrance_name}: ${names[d.k]}`
     : `No. ${no(d.batch)}, ${d.batch.fragrance_name}: ${names[d.k]}`);
   const subject = lang === 'ar'
-    ? (due.length === 1 ? 'حان وقت شمّ دفعة' : `حان وقت شمّ ${due.length} دفعات`)
+    ? arBatches(due.length)
     : (due.length === 1 ? 'A batch is ready to smell' : `${due.length} batches are ready to smell`);
   const intro = lang === 'ar' ? 'شمّها وسجّل ملاحظة في دفتر كيفيرا:' : 'Smell it and add a note in your Kyphira Journal:';
   const open = lang === 'ar' ? 'افتح الدفتر' : 'Open the Journal';

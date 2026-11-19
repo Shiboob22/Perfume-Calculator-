@@ -46,7 +46,10 @@ describe('reminders: the digest', () => {
   it('in Arabic, right to left', () => {
     const d = buildDigest(due, 'ar', links);
     expect(d.html).toContain('dir="rtl"');
-    expect(d.text).toContain('الأسبوع 1');
+    expect(d.text).toContain('الأسبوع الأول');
+    expect(d.subject).toBe('حان وقت شمّ دفعتين');
+    expect(buildDigest([...due, ...due], 'ar', links).subject).toBe('حان وقت شمّ 4 دفعات');
+    expect(buildDigest(Array(6).fill(due).flat(), 'ar', links).subject).toBe('حان وقت شمّ 12 دفعة');
   });
 });
 
