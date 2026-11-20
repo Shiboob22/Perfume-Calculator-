@@ -181,6 +181,7 @@ function ReminderTest() {
 function Preferences({ profile, save, locale, setLocale }) {
   const { t } = useI18n();
   const [bottle, setBottle] = useState(profile?.default_bottle ?? "");
+  const [shop, setShop] = useState(profile?.shop_name ?? "");
   const [status, setStatus] = useState(null);
   const unit = profile?.default_unit ?? "ml";
 
@@ -233,6 +234,18 @@ function Preferences({ profile, save, locale, setLocale }) {
             {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </label>
+      )}
+      {profile?.sells && (
+        <div className={row} style={{ borderColor: COLORS.line }}>
+          <label htmlFor="shop-name" className="flex flex-col">
+            <span style={{ color: COLORS.ink }}>{t("account.prefs.shop")}</span>
+            <span className="text-xs" style={{ color: COLORS.inkSoft }}>{t("account.prefs.shopHint")}</span>
+          </label>
+          <input id="shop-name" data-shop-name value={shop} maxLength={60} dir="auto" autoComplete="organization"
+            onChange={(e) => setShop(e.target.value)}
+            onBlur={() => { const v = shop.trim() || null; if (v !== (profile?.shop_name ?? null)) update({ shop_name: v }); }}
+            className="w-full sm:w-64 px-3 py-2 rounded" style={inputStyle} />
+        </div>
       )}
       {/* On this device only (M6), so it is not one of the saved profile fields. */}
       <div className="py-3 border-b" style={{ borderColor: COLORS.line }}><MotionSetting /></div>

@@ -401,3 +401,55 @@ for (const locale of ["en", "ar"]) {
     expect(sent.posts.at(-1)).toMatchObject({ buyer_name: "Sara", scent_text: "Oud Nights", size_ml: 30, strength_pct: 20, price: friend, list_price: retail });
   });
 }
+
+const CODE = "0123456789abcdef0123456789abcdef";
+
+test("QR buyer page, seller side: a buyer's request is accepted, answers show, the label carries the QR", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page, {
+    batches: [BATCH],
+    orders: [
+      { id: "q", user_id: USER.id, buyer_name: "Mona", buyer_contact: "+20 111 222 3333", scent_text: "Oud Nights", family: "woody", size_ml: 50, strength_pct: 25, status: "requested", requested_from: "s", group_mode: "mix" },
+      joined({ id: "s", buyer_name: "Sara", size_ml: 50, price: 450, status: "bottled", buyer_code: CODE, order_feedback: { rating: 4, lasts: "day", tags: ["sweeter"], note: "Lovely at night" } }),
+      joined({ id: "h", buyer_name: "Omar", size_ml: 50, price: 450, status: "handed_over", order_feedback: [{ rating: 5, lasts: null, tags: [], note: null }] }),
+    ],
+  });
+  await page.goto("/bench/orders");
+  const asked = page.locator("[data-orders-requested]");
+  await expect(asked).toContainText(fill(o.requested.who, { name: iso("Mona"), scent: iso("Oud Nights") }));
+  await expect(asked).toContainText("+20 111 222 3333");
+  // Bottled and handed-over orders show what their buyers sent.
+  await expect(page.locator("[data-buyer-answer]").first()).toHaveText(`${o.answer.label}: 4 of 5, lasts all day, Sweeter. Lovely at night`); // the note is a <q>: the browser draws its quotes
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(results.violations.map((v) => v.id)).toEqual([]);
+
+  await asked.getByRole("button", { name: fill(o.requested.acceptFor, { name: "Mona" }) }).click();
+  expect(sent.patches.at(-1)).toEqual({ id: "q", status: "queued" });
+  await expect(page.locator("[data-orders-requested]")).toHaveCount(0);
+
+  await page.getByText(fill(o.history.one, { count: 1 })).click();
+  await expect(page.locator("[data-buyer-answer]").filter({ hasText: "5 of 5" })).toBeVisible();
+
+  await page.getByRole("link", { name: fill(o.bottle.labelFor, { name: "Sara" }) }).click();
+  await expect(page).toHaveURL(new RegExp(`code=${CODE}`));
+  await expect(page.locator("[data-label-qr-note]")).toHaveText(en.labels.qrNote);
+  const qr = page.locator("svg[data-label-qr]").first();
+  await expect(qr).toBeVisible();
+  await expect(qr).toHaveAttribute("aria-label", en.labels.qr);
+  expect(await qr.locator("path").getAttribute("d")).toMatch(/^M2 2h1v1h-1z/);
+});
+
+test("Arabic: a buyer's request reads right to left and can be dismissed", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page, {
+    locale: "ar",
+    orders: [{ id: "q", user_id: USER.id, buyer_name: "منى", buyer_contact: "01112223333", scent_text: "عود", family: "woody", size_ml: 50, strength_pct: 25, status: "requested", group_mode: "mix" }],
+  });
+  await page.goto("/ar/bench/orders");
+  const asked = page.locator("[data-orders-requested]");
+  await expect(asked.getByRole("heading", { name: ar.orders.requested.title })).toBeVisible();
+  await asked.getByRole("button", { name: fill(ar.orders.requested.dismissFor, { name: "منى" }) }).click();
+  expect(sent.patches.at(-1)).toEqual({ id: "q", status: "cancelled" });
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(results.violations.map((v) => v.id)).toEqual([]);
+});

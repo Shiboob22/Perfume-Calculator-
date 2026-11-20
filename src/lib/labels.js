@@ -39,6 +39,16 @@ export function perSheet({ w, h, roll }) {
 // 2 mm padding top and bottom, line height 1.35, name at 1.1.
 const PAD_MM = 4;
 const LINE = 1.35;
+/**
+ * The QR square on an order's label (0040), in mm: as tall as the label
+ * allows inside its padding, at most 20 mm and 40 % of the width; 0 on the
+ * round roll label and on labels under 16 mm high (too small to scan).
+ */
+export function qrMm({ w, h, roll }) {
+  if (roll || h < 16) return 0;
+  return Math.floor(Math.min(h - PAD_MM, 20, w * 0.4) * 10) / 10;
+}
+
 export function typeSizes({ h }, rows) {
   const name = Math.min(6, h / 7);
   const line = Math.min(3.2, (h - PAD_MM - name * 1.1 - 1) / (rows * LINE));

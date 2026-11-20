@@ -6,7 +6,8 @@ import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import { can } from "../lib/entitlements";
 import { listBatches } from "../lib/fragranceApi";
-import { LABEL_SIZES, LABEL_LIMITS, MAX_COPIES, customSize, labelFields, perSheet, typeSizes, compactLayout, estimateEm } from "../lib/labels";
+import { LABEL_SIZES, LABEL_LIMITS, MAX_COPIES, customSize, labelFields, perSheet, typeSizes, compactLayout, estimateEm, qrMm } from "../lib/labels";
+import { SITE_URL } from "../site/meta";
 import ProLocked from "./ProLocked";
 
 const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` };
@@ -28,6 +29,16 @@ export default function Labels() {
   const [custom, setCustom] = useState({ w: "60", h: "35" });
   const [lot, setLot] = useState(null); // null: the batch's stored lot
   const [copies, setCopies] = useState(1);
+  // An order's label carries a QR to its buyer page (?code=, 0040), drawn by a
+  // library loaded only here.
+  const code = /^[0-9a-f]{32}$/.test(params.get("code") ?? "") ? params.get("code") : null;
+  const [qr, setQr] = useState(null);
+  useEffect(() => {
+    if (!code) return undefined;
+    let live = true;
+    import("../lib/qr").then(({ qrSvg, buyerUrl }) => { if (live) setQr(qrSvg(buyerUrl(SITE_URL, code))); }).catch(() => {});
+    return () => { live = false; };
+  }, [code]);
 
   // Real text widths for the roll label: canvas measurement in the page's
   // font, re-run once the fonts have loaded; the estimate if there is no canvas.
@@ -61,12 +72,14 @@ export default function Labels() {
   const roll = batch && size?.roll ? compactLayout(batch, { t, lot, order }, size, em) : null;
   // Type scaled so every line fits the label; mm keeps it true to the printout.
   const type = size && label && !size.roll ? typeSizes(size, label.fields.length) : { name: 5, line: 3 };
+  const qrSize = qr && size ? qrMm(size) : 0;
 
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="no-print">
         <h2 className="font-serif italic text-3xl mb-4" style={{ color: COLORS.forestDeep }}>{t("labels.title")}</h2>
         {!id && <p className="mb-6" style={{ color: COLORS.inkSoft }}>{t("labels.pick")}</p>}
+        {code && <p className="mb-4 text-sm" style={{ color: COLORS.inkSoft }} data-label-qr-note>{t("labels.qrNote")}</p>}
         {error && <p role="alert" style={{ color: COLORS.danger }}>{error}</p>}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -122,14 +135,23 @@ export default function Labels() {
                   ))}
                 </>
               ) : (
-                <>
-                  <p className="print-label-name" style={{ fontSize: `${type.name}mm` }}>{label.name}</p>
-                  <dl style={{ fontSize: `${type.line}mm` }}>
-                    {label.fields.map(([k, v]) => (
-                      <div key={k} className="print-label-row"><dt>{k}</dt><dd dir="ltr">{v}</dd></div>
-                    ))}
-                  </dl>
-                </>
+                <div className="flex gap-[2mm] min-h-0 flex-1">
+                  <div className="flex-1 min-w-0">
+                    <p className="print-label-name" style={{ fontSize: `${type.name}mm` }}>{label.name}</p>
+                    <dl style={{ fontSize: `${type.line}mm` }}>
+                      {label.fields.map(([k, v]) => (
+                        <div key={k} className="print-label-row"><dt>{k}</dt><dd dir="ltr">{v}</dd></div>
+                      ))}
+                    </dl>
+                  </div>
+                  {qrSize > 0 && (
+                    <svg data-label-qr viewBox={`0 0 ${qr.size} ${qr.size}`} width={`${qrSize}mm`} height={`${qrSize}mm`} className="flex-none self-end"
+                      role="img" aria-label={t("labels.qr")} shapeRendering="crispEdges">
+                      <rect width={qr.size} height={qr.size} fill="#fff" />
+                      <path d={qr.d} fill="#000" />
+                    </svg>
+                  )}
+                </div>
               )}
             </div>
           ))}

@@ -127,3 +127,14 @@ describe("sizes", () => {
     expect(customSize("x", 35)).toBeNull();
   });
 });
+
+import { qrMm } from "./labels";
+describe("qrMm", () => {
+  it("fits the label's height, at most 20 mm or 40 % of the width; none on small or round labels", () => {
+    expect(qrMm({ w: 50, h: 30 })).toBe(20);
+    expect(qrMm({ w: 70, h: 20 })).toBe(16);
+    expect(qrMm({ w: 30, h: 30 })).toBe(12);
+    expect(qrMm({ w: 60, h: 15 })).toBe(0);
+    expect(qrMm({ w: 30, h: 30, roll: true })).toBe(0);
+  });
+});

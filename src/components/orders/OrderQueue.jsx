@@ -70,6 +70,7 @@ export default function OrderQueue() {
   const plan = useMemo(() => planMixes((rows || []).map((r) => toPlanOrder(r, { recipes })), stockMap(inventory)), [rows, recipes, inventory]);
   const byId = useMemo(() => new Map((rows || []).map((r) => [r.id, r])), [rows]);
   const cancelled = (rows || []).filter((r) => r.status === "cancelled");
+  const requested = (rows || []).filter((r) => r.status === "requested");
   const handed = (rows || []).filter((r) => r.status === "handed_over");
   const bottling = useMemo(() => bottlingGroups((rows || []).map(toBottlingOrder), today()), [rows]);
   // Keep the Orders tab's badge in step with what this screen shows.
@@ -92,7 +93,7 @@ export default function OrderQueue() {
     for (const c of [].concat(changed)) {
       const i = list.findIndex((r) => r.id === c.id);
       // A write answers without the batch join: keep the one we had while the batch is the same.
-      if (i >= 0) list[i] = { ...c, batches: c.batches ?? (c.batch_id && c.batch_id === list[i].batch_id ? list[i].batches : null) };
+      if (i >= 0) list[i] = { ...c, batches: c.batches ?? (c.batch_id && c.batch_id === list[i].batch_id ? list[i].batches : null), order_feedback: c.order_feedback ?? list[i].order_feedback };
       else list.unshift(c);
     }
     return list;
@@ -120,6 +121,27 @@ export default function OrderQueue() {
       </div>
       {error && <p role="alert" className="mb-4 text-sm" style={{ color: COLORS.danger }}>{error}</p>}
       {rows === null && !error && <ListSkeleton label={t("orders.loading")} rows={3} framed className="mb-8" />}
+
+      {requested.length > 0 && (
+        <section aria-labelledby="orders-requested" className="mb-8" data-orders-requested>
+          <h2 id="orders-requested" className="font-serif italic text-2xl" style={{ color: COLORS.ink }}>{t("orders.requested.title")}</h2>
+          <p className="text-sm mt-1 mb-3" style={{ color: COLORS.inkSoft }}>{t("orders.requested.lead")}</p>
+          <ul>{requested.map((r) => (
+            <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 border-t" style={{ borderColor: COLORS.line }}>
+              <span className="me-auto">
+                <span className="block" style={{ color: COLORS.ink }}>{t("orders.requested.who", { name: iso(r.buyer_name), scent: iso(r.scent_text) })}</span>
+                <span className="block text-sm" style={{ color: COLORS.inkSoft }}>
+                  {t("orders.row.size", { ml: Number(r.size_ml), pct: Number(r.strength_pct) })}
+                  {r.buyer_contact && <>, <span dir="ltr">{t("orders.requested.contact", { phone: r.buyer_contact })}</span></>}
+                </span>
+              </span>
+              <Button disabled={busy} onClick={() => run(() => setOrderStatus(r.id, "queued"))} aria-label={t("orders.requested.acceptFor", { name: r.buyer_name })}>{t("orders.requested.accept")}</Button>
+              <button type="button" disabled={busy} onClick={() => run(() => setOrderStatus(r.id, "cancelled"))} className="min-h-[44px] px-2 text-sm underline underline-offset-4"
+                style={{ color: COLORS.danger }} aria-label={t("orders.requested.dismissFor", { name: r.buyer_name })}>{t("orders.requested.dismiss")}</button>
+            </li>
+          ))}</ul>
+        </section>
+      )}
 
       {(bottling.groups.length > 0 || bottling.orphaned.length > 0) && (
         <section aria-labelledby="orders-bottle" className="mb-8">
@@ -156,8 +178,9 @@ export default function OrderQueue() {
                           <span className="block" style={{ color: COLORS.ink }}>{t("orders.bottle.fill", { ml: Number(row.size_ml), name: iso(name) })}</span>
                           <span className="block text-sm" style={{ color: COLORS.inkSoft }}>{o.status === "bottled" ? t("orders.bottle.bottled") : t("orders.bottle.notYet")}</span>
                           <CostLine c={costOf(row)} t={t} />
+                          <BuyerAnswer row={row} t={t} />
                         </span>
-                        <Link to={`/app/labels?${new URLSearchParams({ batch: g.batchId, ml: String(Number(row.size_ml)), for: name })}`}
+                        <Link to={`/app/labels?${new URLSearchParams({ batch: g.batchId, ml: String(Number(row.size_ml)), for: name, ...(row.buyer_code ? { code: row.buyer_code } : {}) })}`}
                           className="min-h-[44px] px-2 text-sm underline underline-offset-4 inline-flex items-center" style={{ color: COLORS.ink }}
                           aria-label={t("orders.bottle.labelFor", { name })}>{t("orders.bottle.label")}</Link>
                         {o.status === "resting" && early !== o.id && (
@@ -310,6 +333,7 @@ export default function OrderQueue() {
               <span className="me-auto">
                 <span className="block" style={{ color: COLORS.ink }}>{t("orders.row.who", { name: iso(r.buyer_name), scent: iso(r.scent_text) })}</span>
                 <CostLine c={costOf(r)} t={t} />
+                <BuyerAnswer row={r} t={t} />
               </span>
               <button type="button" disabled={busy} onClick={() => again(r)} className="min-h-[44px] px-2 text-sm underline underline-offset-4"
                 style={{ color: COLORS.ink }} aria-label={t("orders.row.againFor", { name: r.buyer_name })}>{t("orders.row.again")}</button>
@@ -324,6 +348,23 @@ export default function OrderQueue() {
         {editing !== null && <OrderForm row={editing} options={options} currency={profile?.currency} busy={busy} error={error} onSave={save} t={t} />}
       </Sheet>
     </div>
+  );
+}
+
+/** What the buyer sent from their bottle's QR page (0040), when they sent anything. */
+function BuyerAnswer({ row, t }) {
+  const fb = Array.isArray(row?.order_feedback) ? row.order_feedback[0] : row?.order_feedback;
+  if (!fb) return null;
+  const parts = [
+    fb.rating && t("orders.answer.rating", { count: fb.rating }),
+    fb.lasts && t(`orders.answer.lasts.${fb.lasts}`),
+    ...(fb.tags ?? []).map((g) => t(`journal.page.tag.${g}`)),
+  ].filter(Boolean);
+  return (
+    <span className="block text-sm" style={{ color: COLORS.inkSoft }} data-buyer-answer>
+      <span style={{ color: COLORS.actionText }}>{t("orders.answer.label")}:</span> {parts.join(", ")}
+      {fb.note && <>{parts.length ? ". " : ""}<q dir="auto">{fb.note}</q></>}
+    </span>
   );
 }
 

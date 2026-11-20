@@ -17,6 +17,8 @@ import { flagOn } from "./lib/flags";
 const App = lazy(() => import("./App"));
 // The Shop is public (no sign-in) but loaded on demand: the cart, checkout and image code stay out of the home page.
 const ShopRoutes = lazy(() => import("./site/shop/ShopRoutes"));
+// The QR buyer page (/o/<code>): public, no sign-in, its own small chunk.
+const BuyerPage = lazy(() => import("./site/buyer/BuyerPage"));
 // Dev-only screen previews; `import.meta.env.DEV` is false in production
 // builds, so this route and its chunk are dropped there.
 const DevScreens = import.meta.env.DEV ? lazy(() => import("./dev/DevScreens")) : null;
@@ -76,6 +78,8 @@ export default function Root() {
       <Route path="/salon/*" element={appElement} />
       <Route path="/salon" element={appElement} />
       <Route path="/nose" element={appElement} />
+      <Route path="/o/:code" element={<I18nProvider locale="en"><Suspense fallback={<AppLoading />}><BuyerPage /></Suspense></I18nProvider>} />
+      <Route path="/ar/o/:code" element={<I18nProvider locale="ar"><Suspense fallback={<AppLoading />}><BuyerPage /></Suspense></I18nProvider>} />
       {DevScreens && (
         <Route path="/dev/:screen?" element={<I18nProvider><Suspense fallback={<AppLoading />}><DevScreens /></Suspense></I18nProvider>} />
       )}

@@ -1,7 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
-    { "path": "/api/checkins?job=reminders", "schedule": "0 6 * * *" }
+    {
+      "path": "/api/checkins?job=reminders",
+      "schedule": "0 6 * * *"
+    }
   ],
   "regions": [
     "dub1"
@@ -50,6 +53,14 @@
     {
       "source": "/sitemap-recipes.xml",
       "destination": "/api/recipe?sitemap=1"
+    },
+    {
+      "source": "/o/:code",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/ar/o/:code",
+      "destination": "/app/index.html"
     },
     {
       "source": "/shop",
@@ -163,6 +174,32 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/o/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
+      ]
+    },
+    {
+      "source": "/ar/o/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
         }
       ]
     }
