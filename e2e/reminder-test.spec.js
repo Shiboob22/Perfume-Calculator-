@@ -43,7 +43,7 @@ test("an admin sends a test and reads what went where", async ({ page }) => {
   await page.getByRole("button", { name: en.account.reminderTest.button }).click();
   const status = page.locator("#reminder-test [role=status]");
   await expect(status).toContainText(en.account.reminderTest.email.sent);
-  await expect(status).toContainText("Notification sent to 1 of 2 devices.");
+  await expect(status).toContainText("Notification sent. Devices reached: 1 of 2.");
   expect(sent).toHaveLength(1);
 });
 
