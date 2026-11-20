@@ -570,6 +570,34 @@ begin
   if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read push_subscriptions'; end if; checks := checks + 1;
   perform set_config('role', 'none', true);
 
+  -- QR buyer page (0040): a buyer's feedback is read only by that order's
+  -- seller; nobody writes it except the API; anon reads nothing.
+  insert into public.order_feedback (order_id, user_id, rating)
+  select id, user_id, 5 from public.seller_orders where user_id in (a, b);
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', b::text, true);
+  perform set_config('role', 'authenticated', true);
+  select count(*) into n from public.order_feedback;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B sees % feedback rows, expected its own 1', n; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.order_feedback (order_id, user_id, rating) select id, b, 1 from public.seller_orders where user_id = b;
+  exception when insufficient_privilege or unique_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B wrote feedback around the API'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.order_feedback set rating = 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B changed a buyer''s feedback'; end if; checks := checks + 1;
+  perform set_config('role', 'anon', true);
+  ok := false;
+  begin perform 1 from public.order_feedback limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read order_feedback'; end if; checks := checks + 1;
+  ok := false;
+  begin perform buyer_code from public.seller_orders limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read buyer codes'; end if; checks := checks + 1;
+  perform set_config('role', 'none', true);
+
   raise exception 'RLS_ISOLATION PASSED: % checks (rolled back, nothing kept)', checks;
 end
 $$;
