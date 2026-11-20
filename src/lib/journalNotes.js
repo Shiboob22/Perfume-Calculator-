@@ -18,4 +18,4 @@ export async function saveNote(draft) {
 }
 
 /** The tasting tags (stored as these keys, so old notes keep reading). */
-export const TAGS = ["harsh", "sharp", "rounder", "sweeter", "woodier", "fading", "ready"];
+export { TAGS } from "./noteTags";

@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { loadEntitlements, canLogBatch, can, lockedFeature } from './_lib/entitlements.js';
-import { overLimit } from './_lib/rateLimit.js';
+import { overLimit, clientIp } from './_lib/rateLimit.js';
 import { randomBytes } from 'node:crypto';
 import { shareRow } from './_lib/share.js';
 import { orderRow, statusRow, idList, ORDER_CAP, LINKABLE } from './_lib/orders.js';
+import { BUYER_CODE, SHOWN, REQUESTED_CAP, feedbackRow, reorderRow, requestedOrder, feedbackOpen, publicOrder } from './_lib/buyer.js';
 import { setCors, serviceClient, requireUser, isTimeout, SLOW_READ, SLOW_WRITE, UUID } from './_lib/http.js';
 // @ts-ignore: plain JS shared with the browser
 import { recipeSlug } from '../src/lib/publicText.js';
@@ -223,6 +224,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  // The QR buyer page (0040) is the one anonymous route here: the order's
+  // code in the URL is its only key.
+  if (req.query.resource === 'buyer') return buyer(req, res, serviceClient());
 
   const userId = await requireUser(req, res);
   if (!userId) return;
@@ -470,7 +475,7 @@ async function orders(req: VercelRequest, res: VercelResponse, supabase: ReturnT
       // rest window counts from the day it was really mixed, and (P1a) the
       // grams weighed and prices, for the short-mix check and the order's cost.
       const { data, error } = await supabase
-        .from('seller_orders').select('*, batches ( batch_no, blend_date, total_ml, oil_g, actual_oil_g, actual_ethanol_g, ethanol_ml, oil_density, ethanol_density, price_per_gram, ethanol_price_per_l, bottle_cost, packaging_cost, labour_minutes, labour_rate_per_hour, currency )').eq('user_id', userId)
+        .from('seller_orders').select('*, batches ( batch_no, blend_date, total_ml, oil_g, actual_oil_g, actual_ethanol_g, ethanol_ml, oil_density, ethanol_density, price_per_gram, ethanol_price_per_l, bottle_cost, packaging_cost, labour_minutes, labour_rate_per_hour, currency ), order_feedback ( rating, note, lasts, tags, created_at, updated_at )').eq('user_id', userId)
         .order('created_at', { ascending: false }).limit(ORDER_CAP);
       if (error) throw error;
       return res.status(200).json({ orders: data ?? [] });
@@ -568,5 +573,76 @@ async function linkOrders(supabase: ReturnType<typeof serviceClient>, userId: st
   } catch (err: any) {
     console.error(JSON.stringify({ at: 'api/batches', context: 'link_orders', message: String(err?.message ?? err) }));
     return { orders_linked: 0 };
+  }
+}
+
+// ------------------------------------------------------- QR buyer page (0040)
+// GET  /api/batches?resource=buyer&code=<32 hex>                → { order } (what the page may show)
+// POST /api/batches?resource=buyer&code=…  { feedback: {…} }    → { order } (rating, note, lasts, tags)
+// POST /api/batches?resource=buyer&code=…  { reorder: { name, phone } } → { requested: true }
+// Anonymous. An unknown code, a cancelled or requested order, or a seller no
+// longer on a plan with the order queue all answer 404, so the page says
+// "not found" and nothing tells a stranger which codes exist.
+async function buyer(req: VercelRequest, res: VercelResponse, supabase: ReturnType<typeof serviceClient>) {
+  res.setHeader('Cache-Control', 'no-store');
+  const write = req.method === 'POST';
+  try {
+    if (!['GET', 'POST'].includes(req.method || '')) return fail(res, 405, 'method_not_allowed', 'Method not allowed.');
+    const code = String(req.query.code ?? '');
+    const notFound = () => fail(res, 404, 'not_found', 'This bottle was not found.');
+    if (!BUYER_CODE.test(code)) return notFound();
+    const ip = clientIp(req);
+    if (write && (await overLimit(supabase, res, 'buyer', ip))) return;
+
+    const { data: order, error } = await supabase
+      .from('seller_orders')
+      .select('id, user_id, status, scent_text, family, size_ml, strength_pct, price, list_price, currency, group_mode, recipe_version_id, fragrance_id, bottled_at, order_feedback ( rating, note, lasts, tags, created_at )')
+      .eq('buyer_code', code).maybeSingle();
+    if (error) throw error;
+    if (!order || !SHOWN.includes(order.status)) return notFound();
+    if (!can(await loadEntitlements(supabase, order.user_id), 'orders')) return notFound();
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles').select('shop_name').eq('user_id', order.user_id).maybeSingle();
+    if (profileError) throw profileError;
+    const fb = (Array.isArray(order.order_feedback) ? order.order_feedback[0] : order.order_feedback) ?? null;
+
+    if (req.method === 'GET') return res.status(200).json({ order: publicOrder(order, profile?.shop_name, fb) });
+
+    const b = req.body || {};
+    if (b.feedback !== undefined) {
+      if (!feedbackOpen(fb?.created_at)) return fail(res, 409, 'feedback_closed', 'This answer can no longer be changed.');
+      const built = feedbackRow(b.feedback);
+      if ('error' in built) return fail(res, 400, 'invalid_feedback', built.error, { field: built.field });
+      const now = new Date().toISOString();
+      const { data: saved, error: saveError } = await supabase
+        .from('order_feedback')
+        .upsert({ order_id: order.id, user_id: order.user_id, ...built.row, updated_at: now }, { onConflict: 'order_id' })
+        .select('rating, note, lasts, tags, created_at').single();
+      if (saveError) throw saveError;
+      return res.status(200).json({ order: publicOrder(order, profile?.shop_name, saved) });
+    }
+
+    if (b.reorder !== undefined) {
+      const built = reorderRow(b.reorder);
+      if ('error' in built) return fail(res, 400, 'invalid_reorder', built.error, { field: built.field });
+      if (await overLimit(supabase, res, 'reorder', code)) return;
+      if (await overLimit(supabase, res, 'reorderIp', ip)) return;
+      const { count, error: countError } = await supabase
+        .from('seller_orders').select('id', { count: 'exact', head: true }).eq('user_id', order.user_id).eq('status', 'requested');
+      if (countError) throw countError;
+      if ((count ?? 0) >= REQUESTED_CAP) return fail(res, 409, 'reorder_full', 'The shop can’t take more requests right now.');
+      const { count: all, error: allError } = await supabase
+        .from('seller_orders').select('id', { count: 'exact', head: true }).eq('user_id', order.user_id);
+      if (allError) throw allError;
+      if ((all ?? 0) >= ORDER_CAP) return fail(res, 409, 'reorder_full', 'The shop can’t take more requests right now.');
+      const { error: insertError } = await supabase
+        .from('seller_orders').insert(requestedOrder(order, built.row as { buyer_name: string; buyer_contact: string }));
+      if (insertError) throw insertError;
+      return res.status(201).json({ requested: true });
+    }
+
+    return fail(res, 400, 'invalid_request', 'Send feedback or reorder.');
+  } catch (err: any) {
+    return failFrom(res, err, write, 'buyer');
   }
 }

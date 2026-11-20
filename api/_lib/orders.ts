@@ -99,6 +99,7 @@ export function orderRow(input: unknown, partial = false): Result {
  */
 export function canMove(from: string, to: string): boolean {
   const moves: Record<string, string[]> = {
+    requested: ['queued', 'cancelled'], // a buyer's Order again (0040): accept or dismiss
     queued: ['cancelled'], planned: ['cancelled'], cancelled: ['queued'],
     resting: ['bottled', 'queued'], bottled: ['handed_over', 'resting'], handed_over: ['bottled'],
   };

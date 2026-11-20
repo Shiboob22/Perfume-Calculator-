@@ -19,7 +19,7 @@ export const MAX_REST_DAYS = 90;
 
 /** Orders still to be weighed. */
 export const OPEN_STATUSES = Object.freeze(["queued", "planned"] as const);
-export const ORDER_STATUSES = Object.freeze(["queued", "planned", "resting", "ready", "bottled", "handed_over", "cancelled"] as const);
+export const ORDER_STATUSES = Object.freeze(["requested", "queued", "planned", "resting", "ready", "bottled", "handed_over", "cancelled"] as const);
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export type GroupMode = "mix" | "separate";
 
@@ -240,8 +240,9 @@ export const ORDER_STEPS: Readonly<Record<string, { next: OrderStatus | null; ba
 
 /** Whether a seller may move an order from `from` to `to` by hand. */
 export function canMove(from: string, to: string): boolean {
-  if (to === "cancelled") return (OPEN_STATUSES as readonly string[]).includes(from);
-  if (to === "queued") return from === "cancelled" || from === "resting";
+  // A buyer's "Order again" (requested, 0040) is accepted into the queue or dismissed.
+  if (to === "cancelled") return from === "requested" || (OPEN_STATUSES as readonly string[]).includes(from);
+  if (to === "queued") return from === "requested" || from === "cancelled" || from === "resting";
   const step = ORDER_STEPS[from];
   return !!step && (step.next === to || step.back === to);
 }
