@@ -4,10 +4,9 @@
 // nothing here ever returns the seller's price, batch weights or the name
 // on the original order.
 
-import { TAGS } from '../../src/lib/noteTags.js';
+import { LASTS, TAGS } from '../../src/lib/noteTags.js';
 
 export const BUYER_CODE = /^[0-9a-f]{32}$/;
-export const LASTS = ['hours', 'half', 'day'] as const;
 /** A buyer may change their answer for this long after first sending it. */
 export const FEEDBACK_EDIT_DAYS = 30;
 /** Most "Order again" requests one seller may have waiting, a runaway guard. */
@@ -29,7 +28,7 @@ export function feedbackRow(input: unknown): Result {
   }
   row.note = text(b.note, 280) || null;
   if (b.lasts != null && b.lasts !== '') {
-    if (!LASTS.includes(b.lasts as (typeof LASTS)[number])) return { error: 'Unknown answer.', field: 'lasts' };
+    if (!LASTS.includes(b.lasts as string)) return { error: 'Unknown answer.', field: 'lasts' };
     row.lasts = b.lasts;
   }
   if (b.tags != null) {

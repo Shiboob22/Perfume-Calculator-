@@ -6,11 +6,10 @@ import SaveState from "../../components/kx/SaveState";
 import { COLORS, TYPE } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { brandName } from "../../brand";
-import { TAGS } from "../../lib/noteTags";
+import { LASTS, TAGS } from "../../lib/noteTags";
 import { tierFor } from "../../lib/calc/strength";
 import { getBottle, sendFeedback, orderAgain } from "../../lib/buyerApi";
 
-const LASTS = ["hours", "half", "day"];
 const ERRORS = ["rate_limited", "invalid_feedback", "invalid_reorder", "feedback_closed", "reorder_full"];
 const errText = (t, code) => (code === "network" ? t("buyer.network") : t(`errors.${ERRORS.includes(code) ? code : "server_error"}`));
 const LANG_KEY = "kyphira.buyerLang";

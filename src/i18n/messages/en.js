@@ -634,7 +634,7 @@ export default {
     answer: {
       label: "Buyer’s answer",
       rating: "{count} of 5",
-      lasts: { hours: "lasts a few hours", half: "lasts half a day", day: "lasts all day" },
+      lasts: { under2: "lasts under 2 hours", h2to4: "lasts 2–4 hours", h4to8: "lasts 4–8 hours", h8to12: "lasts 8–12 hours", over12: "lasts more than 12 hours" },
     },
     tabBadge: { one: "{count} order ready to bottle", other: "{count} orders ready to bottle" },
     title: "Orders",
@@ -1884,7 +1884,7 @@ export default {
     ask: { title: "How is it?", lead: "Your answer goes to the person who made this bottle." },
     rating: "Your rating",
     ratingN: { one: "{count} of 5", other: "{count} of 5" },
-    lasts: { label: "How long does it last on you?", hours: "A few hours", half: "Half a day", day: "All day" },
+    lasts: { label: "How long does it last on you?", under2: "Under 2 hours", h2to4: "2–4 hours", h4to8: "4–8 hours", h8to12: "8–12 hours", over12: "More than 12 hours" },
     tags: "What do you notice?",
     note: "One line (optional)",
     notePh: "Lovely in the evening, a bit strong at first…",

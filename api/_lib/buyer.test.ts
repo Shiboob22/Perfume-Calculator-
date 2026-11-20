@@ -3,13 +3,14 @@ import { feedbackRow, reorderRow, requestedOrder, feedbackOpen, publicOrder, BUY
 
 describe('QR buyer page rules', () => {
   it('takes any of rating, line, lasts and known tags; needs one', () => {
-    expect(feedbackRow({ rating: 4, note: '  lovely   on skin ', lasts: 'day', tags: ['sweeter', 'harsh', 'sweeter'] }))
-      .toEqual({ row: { rating: 4, note: 'lovely on skin', lasts: 'day', tags: ['harsh', 'sweeter'] } });
+    expect(feedbackRow({ rating: 4, note: '  lovely   on skin ', lasts: 'h4to8', tags: ['sweeter', 'harsh', 'sweeter'] }))
+      .toEqual({ row: { rating: 4, note: 'lovely on skin', lasts: 'h4to8', tags: ['harsh', 'sweeter'] } });
     expect(feedbackRow({ tags: ['ready'] })).toEqual({ row: { rating: null, note: null, lasts: null, tags: ['ready'] } });
     expect(feedbackRow({})).toMatchObject({ field: 'feedback' });
     expect(feedbackRow({ rating: 6 })).toMatchObject({ field: 'rating' });
     expect(feedbackRow({ rating: 2.5 })).toMatchObject({ field: 'rating' });
     expect(feedbackRow({ lasts: 'week' })).toMatchObject({ field: 'lasts' });
+    expect(feedbackRow({ lasts: 'day' })).toMatchObject({ field: 'lasts' }); // the old loose answers are gone (0041)
     expect(feedbackRow({ tags: ['<script>'] })).toMatchObject({ field: 'tags' });
     expect((feedbackRow({ note: 'x'.repeat(400) }) as any).row.note).toHaveLength(280);
   });

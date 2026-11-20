@@ -11,7 +11,8 @@ test.use({ serviceWorkers: "block" });
 const CODE = "0123456789abcdef0123456789abcdef";
 const BOTTLE = { shop: "Hisham Blends", scent: "Oud Nights", family: "woody", size_ml: 50, strength_pct: 25, bottled_on: "2026-11-01", feedback: null, can_edit: true };
 const fill = (s, vars) => Object.entries(vars).reduce((x, [k, v]) => x.replaceAll(`{${k}}`, String(v)), s);
-const axe = async (page) => (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map((v) => v.id);
+// Reduced motion first, as the other axe specs do: a status line caught mid-settle reads as low contrast.
+const axe = async (page) => (await page.emulateMedia({ reducedMotion: "reduce" }), await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map((v) => v.id);
 
 async function fakeApi(page, { bottle = BOTTLE, status = 200 } = {}) {
   const sent = [];
@@ -46,12 +47,12 @@ test("English: the buyer rates the bottle, then asks for it again", async ({ pag
   await form.getByRole("button", { name: b.send }).click();
   await expect(form.getByRole("status")).toHaveText(b.empty);
   await form.getByRole("button", { name: fill(b.ratingN.other, { count: 4 }) }).click();
-  await form.getByRole("button", { name: b.lasts.day }).click();
+  await form.getByRole("button", { name: b.lasts.h4to8 }).click();
   await form.getByRole("button", { name: en.journal.page.tag.sweeter }).click();
   await form.getByLabel(b.note).fill("Lovely at night");
   await form.getByRole("button", { name: b.send }).click();
   await expect(form.getByRole("status")).toHaveText(fill(b.sentTo, { shop: "Hisham Blends" }));
-  expect(sent[0]).toEqual({ feedback: { rating: 4, lasts: "day", tags: ["sweeter"], note: "Lovely at night" } });
+  expect(sent[0]).toEqual({ feedback: { rating: 4, lasts: "h4to8", tags: ["sweeter"], note: "Lovely at night" } });
   await expect(form.getByRole("button", { name: b.update })).toBeVisible();
 
   const again = page.locator("[data-buyer-again]");

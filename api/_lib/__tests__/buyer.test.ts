@@ -37,9 +37,9 @@ describe('/api/batches?resource=buyer (QR page, no sign-in)', () => {
   });
 
   it('saves feedback for the seller, and an edit replaces it', async () => {
-    let res = await call('POST', { feedback: { rating: 5, lasts: 'day', tags: ['sweeter'] } });
+    let res = await call('POST', { feedback: { rating: 5, lasts: 'h4to8', tags: ['sweeter'] } });
     expect(res.statusCode).toBe(200);
-    expect(db.rows('order_feedback')).toEqual([expect.objectContaining({ order_id: 'o1', user_id: USER, rating: 5, lasts: 'day', tags: ['sweeter'] })]);
+    expect(db.rows('order_feedback')).toEqual([expect.objectContaining({ order_id: 'o1', user_id: USER, rating: 5, lasts: 'h4to8', tags: ['sweeter'] })]);
     res = await call('POST', { feedback: { rating: 4, note: 'Softer now' } });
     expect(db.rows('order_feedback')).toHaveLength(1);
     expect(db.rows('order_feedback')[0]).toMatchObject({ rating: 4, note: 'Softer now', lasts: null, tags: [] });
