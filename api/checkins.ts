@@ -3,7 +3,7 @@ import { setCors, serviceClient, requireUser, isTimeout, SLOW_READ, SLOW_WRITE, 
 import { overLimit } from './_lib/rateLimit.js';
 import { loadEntitlements, can, limit, journalOpen, lockedFeature } from './_lib/entitlements.js';
 import { parseCheckIn } from './_lib/checkin.js';
-import { runReminders, unsubscribe, pushKey, pushSubscribe, pushUnsubscribe } from './_lib/reminders.js';
+import { runReminders, unsubscribe, pushKey, pushSubscribe, pushUnsubscribe, sendTest } from './_lib/reminders.js';
 import { familyPatterns, MAX_CHECKINS_PER_BATCH } from '../src/lib/calc/journal.js';
 
 // The Resting Journal.
@@ -22,6 +22,7 @@ import { familyPatterns, MAX_CHECKINS_PER_BATCH } from '../src/lib/calc/journal.
 //   GET    /api/checkins?push=key             the public key a browser subscribes to push with
 //   POST   /api/checkins?push=subscribe       { endpoint, keys }  Pro: nudge this browser (web push)
 //   DELETE /api/checkins?push=unsubscribe     { endpoint }        stop nudging this browser
+//   POST   /api/checkins?job=test             admins: send me one reminder now (email + push)
 // Check-ins are read with the batches (GET /api/batches embeds them).
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   setCors(req, res, 'GET, POST, DELETE');
@@ -40,6 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Web push: this browser asks to be nudged (Pro), or stops being.
   if (req.method === 'POST' && req.query.push === 'subscribe') return pushSubscribe(req, res, supabase, userId);
   if (req.method === 'DELETE' && req.query.push === 'unsubscribe') return pushUnsubscribe(req, res, supabase, userId);
+  if (req.method === 'POST' && req.query.job === 'test') return sendTest(req, res, supabase, userId);
 
   if (req.method === 'POST') {
     try {

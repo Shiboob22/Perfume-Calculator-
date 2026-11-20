@@ -6,7 +6,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import { useProfile } from "../lib/useProfile";
-import { deleteAccount, fetchExport, joinWaitlist, onWaitlist } from "../lib/accountApi";
+import { deleteAccount, fetchExport, joinWaitlist, onWaitlist, isAdmin, sendReminderTest } from "../lib/accountApi";
 import { EXPORT_TABLES, toCsv, toJson } from "../lib/exportData";
 import { UNIT_LABELS } from "../lib/calcPrefill";
 import { CURRENCIES } from "../lib/currencies";
@@ -87,6 +87,8 @@ export default function Account({ user }) {
         <Preferences profile={profile} save={save} locale={locale} setLocale={setLocale} />
       </Section>
 
+      <ReminderTest />
+
       <Section title={t("account.data.title")}>
         <ExportData />
       </Section>
@@ -127,6 +129,50 @@ function Waitlist() {
             className="px-5 py-2 rounded text-sm font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
             {t("account.waitlist.join")}
           </button>}
+      {error && <p role="alert" className="text-sm mt-3" style={{ color: COLORS.danger }}>{error}</p>}
+    </Section>
+  );
+}
+
+// Admins only (the server checks too): send yourself one reminder to see what arrives.
+function ReminderTest() {
+  const { t } = useI18n();
+  const [admin, setAdmin] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => { isAdmin().then(setAdmin).catch(() => setAdmin(false)); }, []);
+  if (!admin) return null;
+
+  async function send() {
+    setBusy(true);
+    setError(null);
+    setResult(null);
+    try {
+      setResult(await sendReminderTest());
+    } catch (err) {
+      setError(errorText(t, err));
+    }
+    setBusy(false);
+  }
+
+  const push = result?.push;
+  return (
+    <Section id="reminder-test" title={t("account.reminderTest.title")}>
+      <p className="text-sm mb-4" style={{ color: COLORS.inkSoft }}>{t("account.reminderTest.lead")}</p>
+      <button type="button" disabled={busy} onClick={send} data-reminder-test
+        className="px-5 py-2 rounded text-sm font-semibold disabled:opacity-50" style={buttonStyle}>
+        {busy ? t("account.reminderTest.working") : t("account.reminderTest.button")}
+      </button>
+      {result && (
+        <ul role="status" className="text-sm mt-3 space-y-1" style={{ color: COLORS.ink }}>
+          <li>{t(`account.reminderTest.email.${result.email}`)}</li>
+          <li>{push === "off" ? t("account.reminderTest.push.off")
+            : push.devices === 0 ? t("account.reminderTest.push.none")
+            : t("account.reminderTest.push.sent", { count: push.sent, devices: push.devices })}</li>
+        </ul>
+      )}
       {error && <p role="alert" className="text-sm mt-3" style={{ color: COLORS.danger }}>{error}</p>}
     </Section>
   );

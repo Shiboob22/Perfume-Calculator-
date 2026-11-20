@@ -81,3 +81,17 @@ export async function deleteAccount(confirm) {
   });
   if (!res.ok) throw await apiError(res);
 }
+
+export async function isAdmin() {
+  const { data, error } = await supabase.rpc("is_admin");
+  if (error) throw error;
+  return data === true;
+}
+
+// Admins: one Journal reminder now, by email and to every device with push on.
+// Answers { email: "sent"|"failed"|"off", push: "off" | { devices, sent, gone, failed } }.
+export async function sendReminderTest() {
+  const res = await fetch("/api/checkins?job=test", { method: "POST", headers: await authHeaders() });
+  if (!res.ok) throw await apiError(res);
+  return res.json();
+}

@@ -5,6 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { loadEntitlements, can, lockedFeature } from './entitlements.js';
 import { sendPush, vapidFromEnv, validEndpoint } from './webpush.js';
 import { sendEmail } from './email.js';
+import { overLimit } from './rateLimit.js';
 import { dueToday, type MilestoneKey } from '../../src/lib/calc/restTracker.js';
 
 // Journal reminders (J2). A daily job (Vercel Cron, GET /api/checkins?job=reminders
@@ -99,6 +100,34 @@ function siteUrl(): string {
   return (process.env.SITE_URL || 'https://scent-handbook-app.vercel.app').replace(/\/$/, '');
 }
 
+/** Emails one digest to the owner's sign-in address, in their language. `test` marks the subject. */
+async function mailDigest(supabase: SupabaseClient, userId: string, due: readonly Due[], secret: string, test = false): Promise<boolean> {
+  const { data: u } = await supabase.auth.admin.getUserById(userId);
+  const to = u?.user?.email;
+  if (!to) return false;
+  const { data: profile } = await supabase.from('profiles').select('locale').eq('user_id', userId).maybeSingle();
+  const lang = profile?.locale === 'ar' ? 'ar' : 'en';
+  const base = siteUrl();
+  const unsub = `${base}/api/checkins?unsub=${userId}.${unsubToken(userId, secret)}`;
+  const mail = buildDigest(due, lang, { journal: `${base}${lang === 'ar' ? '/ar' : ''}/journal`, unsub });
+  if (test) mail.subject = `${lang === 'ar' ? '[تجربة]' : '[Test]'} ${mail.subject}`;
+  return sendEmail({
+    to, ...mail, from: process.env.REMINDER_FROM_EMAIL || undefined,
+    headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
+  }, 'journal_reminder');
+}
+
+/** An empty push to each device; subscriptions the push service reports gone are dropped. */
+async function pushAll(supabase: SupabaseClient, userId: string, subs: Array<{ endpoint: string }>, vapid: NonNullable<ReturnType<typeof vapidFromEnv>>) {
+  const out = { sent: 0, gone: 0, failed: 0 };
+  for (const sub of subs) {
+    const r = await sendPush(sub.endpoint, vapid);
+    out[r] += 1;
+    if (r === 'gone') await supabase.from('push_subscriptions').delete().eq('user_id', userId).eq('endpoint', sub.endpoint);
+  }
+  return out;
+}
+
 /**
  * GET /api/checkins?job=reminders (cron). `?dry=1` reports what would be sent and sends nothing.
  * Two channels, each with its own switch: email (REMINDERS_ENABLED=0 turns it off) and web push
@@ -147,32 +176,16 @@ export async function runReminders(req: VercelRequest, res: VercelResponse) {
         const { data: subs } = await supabase.from('push_subscriptions').select('endpoint').eq('user_id', userId);
         if (dry) out.would.push({ user: userId, channel: 'push', items: duePush.map((d) => `${d.batch.id}:${d.k}`) });
         else if (subs?.length) {
-          let delivered = false;
-          for (const sub of subs) {
-            const r = await sendPush(sub.endpoint, vapid!);
-            out.push[r] += 1;
-            if (r === 'sent') delivered = true;
-            if (r === 'gone') await supabase.from('push_subscriptions').delete().eq('user_id', userId).eq('endpoint', sub.endpoint);
-          }
-          if (delivered) await record(duePush, 'push');
+          const r = await pushAll(supabase, userId, subs, vapid!);
+          for (const k of ['sent', 'gone', 'failed'] as const) out.push[k] += r[k];
+          if (r.sent) await record(duePush, 'push');
         }
       }
 
       // Email.
       if (dueEmail.length) {
         if (dry) { out.would.push({ user: userId, channel: 'email', items: dueEmail.map((d) => `${d.batch.id}:${d.k}`) }); continue; }
-        const { data: u } = await supabase.auth.admin.getUserById(userId);
-        const to = u?.user?.email;
-        if (!to) { out.failed += 1; continue; }
-        const { data: profile } = await supabase.from('profiles').select('locale').eq('user_id', userId).maybeSingle();
-        const lang = profile?.locale === 'ar' ? 'ar' : 'en';
-        const base = siteUrl();
-        const unsub = `${base}/api/checkins?unsub=${userId}.${unsubToken(userId, secret)}`;
-        const mail = buildDigest(dueEmail, lang, { journal: `${base}${lang === 'ar' ? '/ar' : ''}/journal`, unsub });
-        const ok = await sendEmail({
-          to, ...mail, from: process.env.REMINDER_FROM_EMAIL || undefined,
-          headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
-        }, 'journal_reminder');
+        const ok = await mailDigest(supabase, userId, dueEmail, secret);
         if (!ok) { out.failed += 1; continue; }
         out.sent += 1;
         await record(dueEmail, 'email');
@@ -235,4 +248,48 @@ export async function unsubscribe(req: VercelRequest, res: VercelResponse) {
   const { error } = await serviceClient().from('batches').update({ remind: false }).eq('user_id', userId).eq('remind', true);
   if (error) return page('Try again', 'We could not switch reminders off just now. Please try the link again.', 503);
   return page('Reminders are off', 'You will not get Journal reminder emails any more. You can switch them back on for a batch in your Journal.');
+}
+
+/** What a test sends: the batches really owing a note, else the newest batch at Week 1, else a sample. */
+export function testDue(batches: readonly ReminderBatch[], now: Date): Due[] {
+  const due = remindersDue(batches, now);
+  if (due.length) return due;
+  const newest = [...batches].sort((a, b) => (Number(b.batch_no) || 0) - (Number(a.batch_no) || 0))[0];
+  return [{ batch: newest ?? { id: 'sample', user_id: '', batch_no: 1, fragrance_name: 'Sample batch' }, k: 'w1' }];
+}
+
+/**
+ * POST /api/checkins?job=test (signed in, admins only): sends the caller one reminder now, by
+ * email and to every device with push on, so the owner can see what arrives. Nothing is
+ * recorded in reminder_sends, so the daily job still announces each milestone.
+ */
+export async function sendTest(_req: VercelRequest, res: VercelResponse, supabase: SupabaseClient, userId: string) {
+  try {
+    const { data: admin, error: adminError } = await supabase.from('admins').select('user_id').eq('user_id', userId).maybeSingle();
+    if (adminError) throw adminError;
+    if (!admin) return res.status(403).json({ error: 'Admins only.', code: 'admin_only' });
+    if (await overLimit(supabase, res, 'reminderTest', userId)) return;
+    const { data: rows, error } = await supabase
+      .from('batches')
+      .select('id, user_id, batch_no, fragrance_name, blend_date, created_at, batch_checkins ( id, day, scheduled_day, skipped, created_at )')
+      .eq('user_id', userId).limit(500);
+    if (error) throw error;
+    const due = testDue((rows ?? []) as ReminderBatch[], new Date());
+
+    const secret = process.env.CRON_SECRET;
+    const email = process.env.REMINDERS_ENABLED === '0' || !secret ? 'off'
+      : (await mailDigest(supabase, userId, due, secret, true)) ? 'sent' : 'failed';
+
+    const vapid = process.env.PUSH_ENABLED === '0' ? null : vapidFromEnv();
+    let push: { devices: number; sent: number; gone: number; failed: number } | 'off' = 'off';
+    if (vapid) {
+      const { data: subs, error: subsError } = await supabase.from('push_subscriptions').select('endpoint').eq('user_id', userId);
+      if (subsError) throw subsError;
+      push = { devices: subs?.length ?? 0, ...(await pushAll(supabase, userId, subs ?? [], vapid)) };
+    }
+    return res.status(200).json({ email, push, items: due.length });
+  } catch (err: any) {
+    console.error(JSON.stringify({ type: 'journal_reminder_test', error: String(err?.message ?? err).slice(0, 300) }));
+    return res.status(500).json({ error: 'The test could not run.' });
+  }
 }
