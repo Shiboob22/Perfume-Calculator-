@@ -27,6 +27,9 @@ function batch(n, name, tier, daysAgo, notes = []) {
   };
 }
 
+// Month 1 opened 3 days ago: inside Smell today's week (Santal's opened 20 days ago, so it stays off the strip).
+const withRecent = () => [...fixtures(), batch(6, "Vetiver Cut", "woody", 33)];
+
 const fixtures = () => [
   batch(5, "Amber Room", "oriental", 3, [["d1", 0, "Alcohol bite on top, loud.", 2, ["harsh", "sharp"]]]),
   batch(4, "Neroli Eau", "fresh", 20, [["d1", 0, "Bright neroli, thin.", 2, ["sharp"]], ["w1", 7, "Petitgrain coming through.", 3, ["rounder"]]]),
@@ -214,7 +217,7 @@ test("a note written offline waits on the phone and is sent when the connection 
 
 test("Smell today: due batches, a quick note in three taps, and a quiet day", async ({ page }) => {
   await signIn(page);
-  const sent = await fakeApi(page);
+  const sent = await fakeApi(page, { batches: withRecent() });
   await page.goto("/journal");
   const p = en.journal.page;
   const strip = page.getByRole("region", { name: p.todayStrip.title });
@@ -222,9 +225,11 @@ test("Smell today: due batches, a quick note in three taps, and a quiet day", as
   // Day 20 Neroli owes Week 2; Amber (day 3, noted at Day 1) owes nothing.
   await expect(strip.locator(`[data-today-card="${id(4)}"]`)).toContainText("Smell No. 004, Week 2");
   await expect(strip.locator(`[data-today-card="${id(5)}"]`)).toHaveCount(0);
-  // Closing soonest first: Neroli's Week 2 (10 days left) before Santal's Month 1 (40).
+  // Only milestones opened in the last 7 days, closing soonest first: Neroli's Week 2 (10 days left) before Vetiver's Month 1 (57).
+  // Santal's Month 1 opened 20 days ago and Tuberose's Month 3 10 days ago: still in the list below, not on the strip.
   const cards = await strip.locator("[data-today-card]").evaluateAll((els) => els.map((e) => e.getAttribute("data-today-card")));
-  expect(cards.indexOf(id(4))).toBeLessThan(cards.indexOf(id(3)));
+  expect(cards).toEqual([id(4), id(6)]);
+  await expect(page.locator(`[data-batch="${id(3)}"]`)).toBeVisible();
 
   await strip.locator(`[data-today-card="${id(4)}"]`).getByRole("button", { name: p.todayStrip.add }).click();
   const sheet = page.getByRole("dialog", { name: "No. 004, Week 2" });
@@ -448,7 +453,7 @@ test("the room's small motions run, and stop under reduced motion", async ({ pag
 
 test("M1: one saved state, a sheet that leaves faster than it came, and none of it under reduced motion", async ({ page }) => {
   await signIn(page);
-  await fakeApi(page);
+  await fakeApi(page, { batches: withRecent() });
   const p = en.journal.page;
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/journal");

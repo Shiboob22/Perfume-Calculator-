@@ -163,6 +163,12 @@ describe("smell today", () => {
     const d = mk(4, 100); // Month 3: never closes
     expect(dueToday([a, b, c, d]).map((x) => [x.item.no, x.k])).toEqual([[2, "w2"], [1, "w1"], [4, "m3"]]);
   });
+  it("withinDays keeps only milestones opened that recently (Smell today: 7)", () => {
+    // Month 1 opens day 30, Month 3 day 90: day 36 is in its week, day 37 is not.
+    const items = [mk(1, 36), mk(2, 37), mk(3, 96), mk(4, 200), mk(5, 13)];
+    expect(dueToday(items, 7).map((x) => x.item.no)).toEqual([5, 1, 3]);
+    expect(dueToday(items).map((x) => x.item.no)).toEqual([5, 2, 1, 4, 3]);
+  });
   it("ties go to the newer batch; unknown start is skipped", () => {
     expect(dueToday([mk(1, 8), mk(2, 8), { no: 3, day: 8, start: NaN }]).map((x) => x.item.no)).toEqual([2, 1]);
   });

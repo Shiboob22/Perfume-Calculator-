@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { COLORS } from "../../lib/theme";
 import { dueToday, nextUp } from "../../lib/calc";
+import { BADGE_WINDOW_DAYS } from "../../lib/journal";
 import { saveNote, TAGS } from "../../lib/journalNotes";
 import Sheet from "../kx/Sheet";
 import SaveState from "../kx/SaveState";
@@ -18,7 +19,8 @@ export default function TodayStrip({ items, onSaved, onUndo, onOpen, noOf, local
   const [target, setTarget] = useState(null); // { item, k }
   const [done, setDone] = useState(null); // { state, text }
   const [drafts, setDrafts] = useState({}); // `${batchId}:${k}` → a draft the server refused
-  const due = dueToday(items);
+  // Only milestones opened in the last week, like the nav badge; older ones stay in the list below.
+  const due = dueToday(items, BADGE_WINDOW_DAYS);
   const next = due.length ? null : nextUp(items);
   const name = (k) => t(`journal.page.milestones.${k}`);
   const no = (item) => t("journal.page.no", { no: noOf(item.b) });

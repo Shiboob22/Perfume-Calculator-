@@ -192,12 +192,14 @@ export interface TodayItem {
 /**
  * Batches owing a note today, the window closing soonest first (batch
  * number, newest first, breaks ties). Each carries its milestone.
+ * `withinDays` keeps only milestones that opened less than that many days ago
+ * (the Journal's Smell today strip uses 7, like the nav badge; reminders use all).
  */
-export function dueToday<T extends TodayItem>(items: readonly T[]): Array<{ item: T; k: MilestoneKey; left: number }> {
+export function dueToday<T extends TodayItem>(items: readonly T[], withinDays = Infinity): Array<{ item: T; k: MilestoneKey; left: number }> {
   const due: Array<{ item: T; k: MilestoneKey; left: number }> = [];
   for (const item of items) {
     const n = Number.isFinite(item.start) ? needsNote(item.checkins, item.day) : null;
-    if (n) due.push({ item, ...n });
+    if (n && item.day - MILESTONES.find((m) => m.k === n.k)!.days < withinDays) due.push({ item, ...n });
   }
   return due.sort((a, b) => a.left - b.left || b.item.no - a.item.no);
 }
