@@ -1,6 +1,6 @@
 import { supabase } from "./supabaseClient";
 import { authHeaders, apiError } from "./fragranceApi";
-import { EXPORT_TABLES } from "./exportData";
+import { EXPORT_TABLES, EXPORT_ORDER } from "./exportData";
 
 // Profile, waitlist and export read and write straight through Supabase:
 // each table is owner-only under RLS (supabase/tests/rls_isolation.sql), so
@@ -46,7 +46,6 @@ const SELECT = { inventory: "*, fragrances(name)", fragrance_notes: "*, fragranc
 // The hosted API returns at most 1000 rows per request; page through, in a
 // stable order (a unique column) so no row moves between pages.
 const PAGE = 1000;
-const ORDER = { batches: "id", batch_checkins: "id", shared_recipes: "batch_id", inventory: "fragrance_id", fragrance_notes: "fragrance_id", calc_presets: "id", recipes: "id", recipe_versions: "id", recipe_ingredients: "id", wardrobe_bottles: "id", wear_log: "id", salon_profiles: "user_id", salon_posts: "id", salon_likes: "post_id", salon_follows: "followee_id", salon_reports: "id", profiles: "user_id", pro_waitlist: "user_id", user_plans: "user_id", fragrances: "id" };
 // The catalog is shared and readable by everyone: only the rows this user added.
 const MINE = { fragrances: "added_by" };
 
@@ -55,7 +54,8 @@ async function fetchAll(table, userId) {
   for (let from = 0; ; from += PAGE) {
     let query = supabase.from(table).select(SELECT[table] || "*");
     if (MINE[table]) query = query.eq(MINE[table], userId);
-    const { data, error } = await query.order(ORDER[table]).range(from, from + PAGE - 1);
+    for (const column of EXPORT_ORDER[table]) query = query.order(column);
+    const { data, error } = await query.range(from, from + PAGE - 1);
     // A table whose migration isn't on this database yet (the app can deploy
     // first) has nothing to export; it must not block the rest.
     if (error && (error.code === "PGRST205" || error.code === "42P01")) return rows;

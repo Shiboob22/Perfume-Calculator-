@@ -5,7 +5,7 @@
 // push service.
 self.addEventListener("push", (event) => {
   const ar = String(self.navigator.language || "").toLowerCase().startsWith("ar");
-  event.waitUntil(self.registration.showNotification(ar ? "كيفيرا" : "Kyphira", {
+  event.waitUntil(self.registration.showNotification(ar ? "تذكير الدفتر" : "Journal reminder", {
     body: ar ? "حان وقت شمّ إحدى دفعاتك. أضف ملاحظة في الدفتر." : "A batch is ready to smell. Add a note in your Journal.",
     icon: "/brand/icon.svg",
     tag: "kyphira-journal",

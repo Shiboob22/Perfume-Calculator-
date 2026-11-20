@@ -7,6 +7,9 @@ import { BRAND } from "../brand.js";
 // outside this database.
 export const EXPORT_TABLES = ["batches", "batch_checkins", "shared_recipes", "inventory", "fragrance_notes", "calc_presets", "recipes", "recipe_versions", "recipe_ingredients", "seller_orders", "reminder_sends", "push_subscriptions", "wardrobe_bottles", "wear_log", "salon_profiles", "salon_posts", "salon_likes", "salon_follows", "salon_reports", "profiles", "pro_waitlist", "user_plans", "fragrances"];
 
+// Each table pages in a stable order: a unique column, or the columns of its key.
+export const EXPORT_ORDER = { batches: ["id"], batch_checkins: ["id"], shared_recipes: ["batch_id"], inventory: ["fragrance_id"], fragrance_notes: ["fragrance_id"], calc_presets: ["id"], recipes: ["id"], recipe_versions: ["id"], recipe_ingredients: ["id"], seller_orders: ["id"], reminder_sends: ["batch_id", "milestone", "channel"], push_subscriptions: ["id"], wardrobe_bottles: ["id"], wear_log: ["id"], salon_profiles: ["user_id"], salon_posts: ["id"], salon_likes: ["post_id"], salon_follows: ["followee_id"], salon_reports: ["id"], profiles: ["user_id"], pro_waitlist: ["user_id"], user_plans: ["user_id"], fragrances: ["id"] };
+
 // A catalog id means nothing outside this database either: rows fetched
 // with their fragrance ({ fragrances: { name } }) get a fragrance_name
 // column next to the id instead of the nested object.
