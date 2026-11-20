@@ -756,6 +756,7 @@ export default {
       progress: "اليوم {n} من 90",
       batches: "الدفعات",
       records: "كل سجلات الدفعات",
+      backToList: "كل الدفعات",
       newBadge: "جديد",
       meta: "{size} {unit} · {pct}% · {tier}",
       no: "رقم {no}",

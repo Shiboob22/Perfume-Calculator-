@@ -754,6 +754,7 @@ export default {
       progress: "Day {n} of 90",
       batches: "Batches",
       records: "All batch records",
+      backToList: "All batches",
       newBadge: "New",
       meta: "{size} {unit} · {pct}% · {tier}",
       no: "No. {no}",

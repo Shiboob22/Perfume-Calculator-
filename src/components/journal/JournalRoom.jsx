@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Link, startNav, useFlip } from "../../motion";
+import { useLocation, useSearchParams } from "react-router-dom";
+import { Link, startNav, useFlip, useNavigate } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { listBatches } from "../../lib/fragranceApi";
@@ -93,6 +93,8 @@ export default function JournalRoom() {
   const { t, locale } = useI18n();
   const entitlements = useEntitlements();
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [batches, setBatches] = useState(null); // null = loading
   const [loadError, setLoadError] = useState(false);
   const [now] = useState(() => new Date());
@@ -159,10 +161,25 @@ export default function JournalRoom() {
   }, [batches, visible]);
 
   const selId = params.get("batch");
-  const b = visible.find((x) => x.id === selId) ?? sorted[0] ?? null;
+  const chosen = visible.find((x) => x.id === selId) ?? null;
+  const b = chosen ?? sorted[0] ?? null;
+  // Phones (below lg) show the list, or one batch's record on its own screen
+  // when a row was picked; wide screens keep both side by side.
+  const phoneList = chosen ? "hidden lg:block" : "";
+  const phoneRecord = chosen ? "" : "hidden lg:block";
   // Picking a batch carries its name from the row into the detail (motion M2) when both are on screen.
-  const pick = (id, from) => startNav(() => setParams((p) => { const q = new URLSearchParams(p); q.set("batch", id); return q; }, { replace: true }),
-    { share: `batch-${id}`, from });
+  // From the list it is a new history entry, so the phone's back gesture returns to the list.
+  const pick = (id, from) => startNav(() => setParams((p) => { const q = new URLSearchParams(p); q.set("batch", id); return q; },
+    chosen ? { replace: true, state: location.state } : { state: { fromList: true } }),
+  { share: `batch-${id}`, from });
+  const backToList = () => {
+    if (location.state?.fromList) navigate(-1);
+    else setParams((p) => { const q = new URLSearchParams(p); q.delete("batch"); return q; }, { replace: true });
+  };
+  // A record opened on a phone starts at its top.
+  useEffect(() => {
+    if (chosen && typeof window.matchMedia === "function" && !window.matchMedia("(min-width: 1024px)").matches) window.scrollTo(0, 0);
+  }, [chosen?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const removeBatch = (id) => {
     setBatches((list) => list.filter((x) => x.id !== id));
     setParams((p) => { const q = new URLSearchParams(p); q.delete("batch"); return q; }, { replace: true });
@@ -184,15 +201,17 @@ export default function JournalRoom() {
     if (!start) return "";
     return new Date(start.getTime() + days * DAY_MS).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric", numberingSystem: "latn" });
   };
-  const metaOf = (x) => t("journal.page.meta", { size: x.amount ?? "", unit: UNIT_LABELS[x.unit] ?? "mL", pct: x.concentration_pct, tier: tierFor(Number(x.concentration_pct)).name });
+  // Batches logged before the typed size was kept (No. 1–36) fall back to their volume in mL.
+  const sizeOf = (x) => (x.amount != null ? { size: x.amount, unit: UNIT_LABELS[x.unit] ?? "mL" } : { size: x.total_ml ?? "", unit: "mL" });
+  const metaOf = (x) => t("journal.page.meta", { ...sizeOf(x), pct: x.concentration_pct, tier: tierFor(Number(x.concentration_pct)).name });
   const oilBatches = all.map((x) => ({
     id: x.id, no: Number(x.batch_no) || 0, oil: oilKey(x), pct: Number(x.concentration_pct), checkins: x.batch_checkins, again: makeAgainHref(x),
-    name: x.fragrance_name, size: x.amount ? `${x.amount} ${UNIT_LABELS[x.unit] ?? "mL"}` : "", poured: dateAt(x, 0), day: dayOf(x),
+    name: x.fragrance_name, size: sizeOf(x).size !== "" ? `${sizeOf(x).size} ${sizeOf(x).unit}` : "", poured: dateAt(x, 0), day: dayOf(x),
   }));
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-6 sm:pt-10 flex flex-col gap-6 sm:gap-9 min-h-[100svh]">
-      <div>
+      <div className={phoneList}>
         <p className="flex items-center gap-3 text-[12px] uppercase tracking-[0.18em] rtl:tracking-normal" style={{ color: COLORS.actionText }}>
           <span dir="ltr" className="tabular-nums">II</span><span>{t("journal.page.room")}</span>
         </p>
@@ -211,19 +230,19 @@ export default function JournalRoom() {
       )}
 
       {batches && visible.length > 0 && (
-        <TodayStrip items={visible.map((x) => ({
+        <div className={phoneList}><TodayStrip items={visible.map((x) => ({
           b: x, day: dayOf(x), no: Number(x.batch_no) || 0, start: batchStartedAt(x)?.getTime() ?? NaN, checkins: x.batch_checkins,
         }))} onSaved={(batch, checkin) => setBatches((list) => list.map((x) => (x.id === batch.id
           ? { ...x, batch_checkins: [...(x.batch_checkins ?? []).filter((c) => c.id !== checkin.id), checkin] } : x)))}
         onUndo={(batch, checkinId) => setBatches((list) => list.map((x) => (x.id === batch.id
           ? { ...x, batch_checkins: (x.batch_checkins ?? []).filter((c) => c.id !== checkinId) } : x)))}
-        onOpen={pick} noOf={noOf} locale={locale} t={t} />
+        onOpen={pick} noOf={noOf} locale={locale} t={t} /></div>
       )}
 
       {b && (
         <>
           <div className="flex flex-wrap gap-6 sm:gap-8 items-start">
-            <aside className="flex-[1_1_100%] lg:flex-[0_0_300px] min-w-0">
+            <aside className={`flex-[1_1_100%] lg:flex-[0_0_300px] min-w-0 ${phoneList}`}>
               <h2 id="journal-batches" className="font-serif text-2xl">{t("journal.page.batches")}</h2>
               <div role="group" aria-label={t("journal.page.sort.label")} className="mt-3 flex flex-wrap gap-2">
                 {JOURNAL_SORTS.map((k) => (
@@ -288,9 +307,15 @@ export default function JournalRoom() {
                 {t("journal.page.records")}
               </Link>
             </aside>
+            <div className={`flex-[1_1_100%] lg:flex-1 min-w-0 ${phoneRecord}`} data-journal-record>
+              <button type="button" onClick={backToList} data-journal-back
+                className="lg:hidden mb-4 inline-flex items-center gap-2 min-h-[44px] text-sm underline underline-offset-4" style={{ color: COLORS.actionText }}>
+                <span aria-hidden="true" className="rtl:-scale-x-100">←</span>{t("journal.page.backToList")}
+              </button>
             <BatchDetail key={b.id} b={b} day={dayOf(b)} pro={pro} canRemind={can(entitlements, "reminders")}
               oilBatches={oilBatches} canCompare={can(entitlements, "journal.insights")} onDeleted={removeBatch} promised={promised.get(b.id) ?? 0}
               dateAt={dateAt} metaOf={metaOf} onChange={replaceBatch} t={t} locale={locale} />
+            </div>
           </div>
         </>
       )}
@@ -343,7 +368,7 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised,
   }
 
   return (
-    <section aria-labelledby="journal-batch" className="flex-[1_1_420px] min-w-0 p-[18px] sm:p-7 rounded" style={{ background: COLORS.card, border: `1px solid ${COLORS.ink}` }}>
+    <section aria-labelledby="journal-batch" className="min-w-0 p-[18px] sm:p-7 rounded" style={{ background: COLORS.card, border: `1px solid ${COLORS.ink}` }}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[12px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.actionText }}>

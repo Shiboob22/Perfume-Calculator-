@@ -342,6 +342,35 @@ test("compare two batches side by side (Pro); Free sees the offer", async ({ pag
   await expect(free.locator("[data-compare-table]")).toHaveCount(0);
 });
 
+test("phone: a tapped batch opens its record on its own screen; back returns to the list", async ({ page }, info) => {
+  test.skip(info.project.name !== "phone", "wide screens show the list and the record side by side");
+  await signIn(page);
+  const old = { ...batch(1, "Old Oud", "oriental", 70), amount: null, unit: null, total_ml: 100 };
+  await fakeApi(page, { batches: [...fixtures().filter((x) => x.batch_no !== 1), old] });
+  await page.goto("/journal");
+  const p = en.journal.page;
+  const record = page.locator("[data-journal-record]");
+  // The list alone, with a size for a batch logged before the typed size was kept.
+  await expect(page.locator(`[data-batch="${id(1)}"]`)).toContainText("100 mL");
+  await expect(record).toBeHidden();
+  await page.locator(`[data-batch="${id(4)}"]`).click();
+  await expect(record.getByRole("heading", { level: 2, name: "Neroli Eau" })).toBeVisible();
+  await expect(page.locator("[data-record]")).toContainText("9.5 g");
+  await expect(page.locator("[data-batch]").first()).toBeHidden();
+  expect(await page.evaluate(() => window.scrollY)).toBeLessThan(400);
+  // The back button, then the phone's own back gesture, both return to the list.
+  await page.getByRole("button", { name: p.backToList }).click();
+  await expect(page.locator(`[data-batch="${id(4)}"]`)).toBeVisible();
+  await expect(record).toBeHidden();
+  await page.locator(`[data-batch="${id(4)}"]`).click();
+  await expect(record).toBeVisible();
+  await page.goBack();
+  await expect(page.locator(`[data-batch="${id(4)}"]`)).toBeVisible();
+  await expect(page).toHaveURL(/\/journal$/);
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});
+
 test("the batch record lives in the Journal: weights, the actions, and delete", async ({ page }) => {
   await signIn(page);
   let deleted = null;
@@ -652,7 +681,7 @@ test("ar: the sort chips and direction at 320 px", async ({ page }) => {
 });
 
 for (const [locale, m, path] of [["en", en, "/journal"], ["ar", ar, "/ar/journal"]]) {
-  test(`${locale}: Free sees its newest 3 batches, a locked card, and the trial opens the rest`, async ({ page }) => {
+  test(`${locale}: Free sees its newest 3 batches, a locked card, and the trial opens the rest`, async ({ page }, info) => {
     await signIn(page);
     const sent = await fakeApi(page, { plan: "free", locale });
     await page.goto(path);
@@ -664,10 +693,13 @@ for (const [locale, m, path] of [["en", en, "/journal"], ["ar", ar, "/ar/journal
     const locked = page.locator("[data-pro-card]").filter({ hasText: title });
     await expect(locked).toContainText(p.lockedBody);
 
-    // A reminder is Pro: Free gets the Pro card, nothing is sent.
+    // A reminder is Pro: Free gets the Pro card, nothing is sent. (On a phone the record is its own screen.)
+    const phone = info.project.name === "phone";
+    if (phone) await page.locator("[data-batch]").first().click();
     await page.getByRole("button", { name: new RegExp(p.remind) }).click();
     await expect(page.locator("[data-pro-card]").filter({ hasText: p.remindPro })).toContainText(p.remindBody);
     expect(sent.reminds).toEqual([]);
+    if (phone) await page.getByRole("button", { name: p.backToList }).click();
 
     await settle(page);
     const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

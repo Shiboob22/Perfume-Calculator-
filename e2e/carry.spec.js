@@ -94,6 +94,7 @@ const lastVt = async (page) => {
 const cls = (page) => page.evaluate(() => window.__shifts.filter((s) => !s.recent && s.t >= (window.__firstTap ?? Infinity)).reduce((a, s) => a + s.value, 0));
 
 test("a batch picked in the Journal carries its name into the detail", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "phones open the record on its own screen (journal-room spec), with no row beside it to carry from");
   await setup(page);
   await signIn(page);
   const batches = await fakeApi(page);
