@@ -102,6 +102,12 @@ describe("nav badge counts the room's needs-a-note", () => {
     expect(notesDue([batch(), noted], day(31))).toBe(2); // Month 1 owes a note on both
     expect(notesDue([{ id: "x" }], day(8))).toBe(0); // no start time
   });
+  it("counts a milestone for its first 7 days only (owner, 2026-11-20)", () => {
+    expect(notesDue([batch()], day(36))).toBe(1); // Month 1 opened 6 days ago
+    expect(notesDue([batch()], day(37))).toBe(0); // 7 days: quietly missed
+    expect(notesDue([batch()], day(96))).toBe(1); // Month 3 opens a new week
+    expect(notesDue([batch()], day(200))).toBe(0); // and never counts forever
+  });
   it("follows the room's milestones, not the older family schedule", () => {
     const noted = batch({ batch_checkins: [{ id: "n", day: 8, scheduled_day: 7, note: "x" }] });
     expect(notesDue([noted], day(8))).toBe(0); // Week 1 is noted

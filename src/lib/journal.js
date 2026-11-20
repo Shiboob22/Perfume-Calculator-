@@ -3,7 +3,7 @@
 // schedule and pattern rules themselves live in src/lib/calc/journal.ts.
 import { TIERS } from "./tiers";
 import { batchStartedAt } from "./batchTiming";
-import { dueCheckIns, restDay, peakDay, needsNote } from "./calc";
+import { dueCheckIns, restDay, peakDay, needsNote, MILESTONES } from "./calc";
 
 export function restingBatch(batch) {
   return { id: batch.id, startedAt: batchStartedAt(batch), rest: TIERS[batch.tier]?.restDays ?? null };
@@ -16,13 +16,22 @@ export function dueNow(batches, now = new Date()) {
   return dueCheckIns(batches.map(restingBatch), checkins, now).map((d) => ({ ...d, batch: byId.get(d.batchId) }));
 }
 
+/** A milestone counts on the nav badge for this many days after it opens (owner, 2026-11-20). */
+export const BADGE_WINDOW_DAYS = 7;
+
 /**
  * Batches owing a note in the Journal room (the milestone they have reached
- * has no note): what the nav badge counts, so it always matches the room's
- * "Needs a note". Batches with no start time are skipped.
+ * has no note) whose milestone opened in the last BADGE_WINDOW_DAYS: what the
+ * nav badge counts. Older ones stay open in the room's "Needs a note" and can
+ * still get a note; they just stop counting. Batches with no start time are skipped.
  */
 export function notesDue(batches, now = new Date()) {
-  return batches.filter((b) => batchStartedAt(b) && needsNote(b.batch_checkins, todayFor(b, now))).length;
+  return batches.filter((b) => {
+    if (!batchStartedAt(b)) return false;
+    const day = todayFor(b, now);
+    const owed = needsNote(b.batch_checkins, day);
+    return owed && day - MILESTONES.find((m) => m.k === owed.k).days < BADGE_WINDOW_DAYS;
+  }).length;
 }
 
 /** Today's rest day for a batch (what an ad-hoc check-in records). */
