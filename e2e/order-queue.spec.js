@@ -380,12 +380,16 @@ for (const locale of ["en", "ar"]) {
     await cost.getByRole("spinbutton", { name: m.calc.costCard.ethPrice }).fill("150");
     await cost.getByRole("spinbutton", { name: m.calc.costCard.pack }).fill("45");
     await cost.getByRole("button", { name: "30 mL" }).click();
-    // No friend price, no link.
+    // No friend price: the link fills in the suggested retail as a plain price.
     await expect(cost.locator("[data-friend-order]")).toHaveCount(0);
+    const normal = Number(await cost.locator('[data-cost="retail"] dd span').first().textContent());
+    await expect(cost.locator("[data-retail-order]")).toHaveAttribute("href", new RegExp(`price=${normal}(&|$)`));
+    await expect(cost.locator("[data-retail-order]")).not.toHaveAttribute("href", /list=/);
     await cost.locator('[data-friend-off="20"]').click();
     const retail = Number(await cost.locator('[data-cost="retail"] dd span').first().textContent());
     const friend = Math.round(retail * 80) / 100;
-    await cost.getByRole("link", { name: m.calc.costCard.friend.order }).click();
+    await expect(cost.locator("[data-retail-order]")).toHaveCount(0);
+    await cost.locator("[data-friend-order]").click();
 
     await expect(page).toHaveURL(new RegExp(`${locale === "ar" ? "/ar" : ""}/bench/orders$`)); // the query is gone: a reload won't reopen it
     const sheet = page.getByRole("dialog", { name: m.orders.form.title });

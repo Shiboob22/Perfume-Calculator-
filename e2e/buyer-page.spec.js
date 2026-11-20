@@ -74,6 +74,8 @@ test.describe("a phone set to Arabic", () => {
     await expect(page.locator("[dir=rtl]").first()).toBeVisible();
     await expect(page.getByRole("heading", { name: ar.buyer.ask.title })).toBeVisible();
     await expect(page.locator("[data-buyer-shop]")).toHaveText(fill(ar.buyer.from, { shop: "Hisham Blends" }));
+    // A Latin scent name in the Arabic heading uses the site's serif, not a system face.
+    await expect(page.locator("[data-buyer-scent]")).toHaveCSS("font-family", /^"Reem Kufi Variable", "Instrument Serif"/);
     expect(await axe(page)).toEqual([]);
     await page.locator("[data-buyer-lang]").click();
     await expect(page).toHaveURL(new RegExp(`/o/${CODE}$`));

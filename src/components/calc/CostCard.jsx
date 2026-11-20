@@ -16,7 +16,8 @@ import { COST_BOTTLES, COST_DEFAULTS, COST_MARGINS, COST_SAMPLE } from "../../li
 // typed: the plan is not changed, only shown.
 //
 // `orderLink({ sizeMl, price, retail })` (sellers with the order queue): the
-// friend price becomes a link to a new order filled in at that price.
+// friend price becomes a link to a new order filled in at that price; with no
+// friend price, the link fills in the suggested retail.
 export default function CostCard({ unlocked, preview = false, countK = null, onUnlock, oilG, ethMl, totMl, oilPrice, onOilPrice, oilReadOnly, ethPrice, onEthPrice, pack, onPack, currency, orderLink, t }) {
   const [bottleMl, setBottleMl] = useState(COST_DEFAULTS.bottleMl);
   const [margin, setMargin] = useState(COST_DEFAULTS.margin);
@@ -118,6 +119,10 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
         </p>
         {friend && orderLink && (
           <Link to={orderLink({ sizeMl: bottleMl, price: friend.price, retail: Math.round(c.retail * 100) / 100 })} data-friend-order
+            className="self-start min-h-[44px] inline-flex items-center text-sm underline underline-offset-4" style={{ color: COLORS.ink }}>{t("calc.costCard.friend.order")}</Link>
+        )}
+        {!friend && unlocked && orderLink && c.retail > 0 && (
+          <Link to={orderLink({ sizeMl: bottleMl, price: Math.round(c.retail * 100) / 100, retail: 0 })} data-retail-order
             className="self-start min-h-[44px] inline-flex items-center text-sm underline underline-offset-4" style={{ color: COLORS.ink }}>{t("calc.costCard.friend.order")}</Link>
         )}
       </div>
