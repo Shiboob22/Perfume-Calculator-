@@ -86,7 +86,8 @@ function Bottle({ code, bottle, onSaved, t, locale }) {
         {bottle.shop && <p className="text-sm" style={{ color: COLORS.actionText }} data-buyer-shop><bdi>{t("buyer.from", { shop: bottle.shop })}</bdi></p>}
         <h1 className={`${TYPE.title} mt-2`} dir="auto">{bottle.scent}</h1>
         <p className="mt-3" style={{ color: COLORS.inkSoft }}>
-          <bdi dir="ltr">{t("buyer.bottle", { size: bottle.size_ml, pct: bottle.strength_pct, tier: tierFor(bottle.strength_pct).name })}</bdi>
+          {/* The tier name stays Latin in Arabic: isolate it so the Arabic sentence keeps its order. */}
+          <bdi>{t("buyer.bottle", { size: bottle.size_ml, pct: bottle.strength_pct, tier: `\u2068${tierFor(bottle.strength_pct).name}\u2069` })}</bdi>
         </p>
         {bottle.bottled_on && <p className="text-sm mt-1" style={{ color: COLORS.dim }}>{t("buyer.bottled", { date: date(bottle.bottled_on) })}</p>}
       </div>

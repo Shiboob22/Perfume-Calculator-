@@ -35,7 +35,7 @@ test("English: the buyer rates the bottle, then asks for it again", async ({ pag
   const b = en.buyer;
   await expect(page.getByRole("heading", { level: 1, name: "Oud Nights" })).toBeVisible();
   await expect(page.locator("[data-buyer-shop]")).toHaveText(fill(b.from, { shop: "Hisham Blends" }));
-  await expect(page.getByText("50 mL at 25% (EDP Intense)")).toBeVisible();
+  await expect(page.getByText(/50 mL at 25% \(\u2068?EDP Intense\u2069?\)/)).toBeVisible();
   // No site menu, the price or the original buyer: the shop, the bottle, and a quiet line at the foot.
   await expect(page.getByRole("link", { name: en.site.nav.pricing })).toHaveCount(0);
   await expect(page.getByRole("link", { name: fill(b.madeWith, { brand: "Kyphira" }) })).toBeVisible();
