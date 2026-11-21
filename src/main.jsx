@@ -43,7 +43,13 @@ const el = document.getElementById("root");
 loadCatalog(/^\/ar(\/|$)/.test(location.pathname) ? "ar" : initialLocale())
   .catch(() => {})
   .then(() => {
-    if (el.hasChildNodes()) hydrateRoot(el, tree);
+    const html = document.documentElement;
+    if (html.hasAttribute("data-relocale")) {
+      // The English 404 under /ar (scripts/prerender.mjs): draw it in Arabic, then show it.
+      el.replaceChildren();
+      createRoot(el).render(tree);
+      requestAnimationFrame(() => requestAnimationFrame(() => html.removeAttribute("data-relocale")));
+    } else if (el.hasChildNodes()) hydrateRoot(el, tree);
     else createRoot(el).render(tree);
   });
 

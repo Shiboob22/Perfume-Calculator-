@@ -65,7 +65,10 @@ for (const url of paths) {
 
 // Not-found page for any other URL (Vercel serves 404.html).
 const notFound = { ...headFor("/"), title: "Page not found — Kyphira" };
-write(join(DIST, "404.html"), page("/this-page-does-not-exist", notFound).replace("<head>", '<head>\n    <meta name="robots" content="noindex" />'));
+// It is prerendered in English; under /ar it is drawn fresh in Arabic, hidden until
+// then (hydrating the English markup as Arabic failed and shifted the page).
+const relocale = `<script>if(/^\\/ar(\\/|$)/.test(location.pathname)){var h=document.documentElement;h.lang="ar";h.dir="rtl";h.setAttribute("data-relocale","")}</script><style>html[data-relocale] #root{visibility:hidden}</style>`;
+write(join(DIST, "404.html"), page("/this-page-does-not-exist", notFound).replace("<head>", `<head>\n    <meta name="robots" content="noindex" />\n    ${relocale}`));
 
 const site = headFor("/").canonical.replace(/\/$/, "");
 const today = new Date().toISOString().slice(0, 10);
