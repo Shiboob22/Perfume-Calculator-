@@ -13,9 +13,10 @@ describe("Pro prices and offers", () => {
     expect(yearlySavingPct("USD")).toBe(30);
     expect(yearlySavingPct("EGP")).toBe(33);
   });
-  it("runs the founding offer, and the lower price when Ramadan overlaps", () => {
+  it("runs the founding offer, and Ramadan instead during its dates", () => {
     expect(activeOffer("USD", "2026-11-21")).toMatchObject({ id: "founding", yearly: 35, seats: 100, pct: 41 });
-    expect(activeOffer("EGP", "2027-02-10")).toMatchObject({ id: "founding", yearly: 699 });
+    expect(activeOffer("EGP", "2027-02-10")).toMatchObject({ id: "ramadan", yearly: 839 });
+    expect(activeOffer("USD", "2027-03-16")).toMatchObject({ id: "founding" });
   });
   it("shows Ramadan only inside its dates once the founding places are gone", () => {
     const later = OFFERS.map((o) => (o.id === "founding" ? { ...o, open: false } : o));

@@ -13,7 +13,8 @@ export const PRICES = Object.freeze({
 // Yearly offers (owner, 2026-11-21). Founding members: the first 100, 40 % off
 // for as long as they stay; set `open: false` once the 100 are taken (nothing
 // counts them until payments exist). Ramadan and Eid: 30 % off between the
-// dates. When both run, the lower price shows.
+// dates. A dated (seasonal) offer shows during its dates even when another is
+// lower (owner, 2026-11-21); otherwise the lowest running one shows.
 export const OFFERS = Object.freeze([
   Object.freeze({ id: "founding", open: true, seats: 100, yearly: Object.freeze({ USD: 35, EGP: 699 }) }),
   Object.freeze({ id: "ramadan", from: "2027-02-01", to: "2027-03-15", yearly: Object.freeze({ USD: 41, EGP: 839 }) }),
@@ -28,11 +29,12 @@ export const yearlyPerMonth = (cur = "USD") => Math.round((PRICES[cur].yearly / 
 /** What paying yearly saves against twelve months, in whole per cent. */
 export const yearlySavingPct = (cur = "USD") => Math.round((1 - PRICES[cur].yearly / (PRICES[cur].monthly * 12)) * 100);
 
-/** The yearly offer running on `today` (YYYY-MM-DD), the lowest if several, or null. */
+/** The yearly offer running on `today` (YYYY-MM-DD): a dated one first, else the lowest; null when none. */
 export function activeOffer(cur = "USD", today = new Date().toISOString().slice(0, 10), offers = OFFERS) {
   const live = offers.filter((o) => o.open !== false && (!o.from || today >= o.from) && (!o.to || today <= o.to));
   if (!live.length) return null;
-  const best = live.reduce((a, b) => (b.yearly[cur] < a.yearly[cur] ? b : a));
+  const pool = live.some((o) => o.from) ? live.filter((o) => o.from) : live;
+  const best = pool.reduce((a, b) => (b.yearly[cur] < a.yearly[cur] ? b : a));
   return { id: best.id, yearly: best.yearly[cur], seats: best.seats ?? null, to: best.to ?? null, pct: Math.round((1 - best.yearly[cur] / PRICES[cur].yearly) * 100) };
 }
 
