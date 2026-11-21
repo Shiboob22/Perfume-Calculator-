@@ -15,6 +15,14 @@ describe("renameNoticeVisible", () => {
   it("is not shown before the rebrand ships", () => {
     expect(renameNoticeVisible(at("2026-10-13"), false, cfg)).toBe(false);
   });
+  it("is not shown to an account made after the rename", () => {
+    expect(renameNoticeVisible(at("2026-10-20"), false, cfg, "2026-10-15T09:00:00Z")).toBe(false);
+    expect(renameNoticeVisible(at("2026-10-20"), false, cfg, "2026-10-14T00:00:00Z")).toBe(false);
+  });
+  it("is shown to an older account, and when the creation time is unknown", () => {
+    expect(renameNoticeVisible(at("2026-10-20"), false, cfg, "2026-09-27T09:00:00Z")).toBe(true);
+    expect(renameNoticeVisible(at("2026-10-20"), false, cfg, undefined)).toBe(true);
+  });
   it("stays hidden once dismissed", () => {
     expect(renameNoticeVisible(at("2026-10-20"), true, cfg)).toBe(false);
   });

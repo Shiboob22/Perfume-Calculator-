@@ -171,7 +171,7 @@ export default function App() {
         onSignOut={() => signOut()} />
 
       <Progress />
-      <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-4 empty:hidden"><RenameNotice /></div>
+      <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-4 empty:hidden"><RenameNotice createdAt={user?.created_at} /></div>
       {/* At least one screen tall: a room that is empty for a moment while it loads
           never pulls the footer up into view (layout shift; motion M2). */}
       <PageTransition as="main" className="pb-16 min-h-[100svh]">
