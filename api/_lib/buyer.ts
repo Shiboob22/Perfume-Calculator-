@@ -4,7 +4,7 @@
 // nothing here ever returns the seller's price, batch weights or the name
 // on the original order.
 
-import { LASTS, TAGS } from '../../src/lib/noteTags.js';
+import { BUYER_TAGS, LASTS } from '../../src/lib/noteTags.js';
 
 export const BUYER_CODE = /^[0-9a-f]{32}$/;
 /** A buyer may change their answer for this long after first sending it. */
@@ -32,8 +32,8 @@ export function feedbackRow(input: unknown): Result {
     row.lasts = b.lasts;
   }
   if (b.tags != null) {
-    if (!Array.isArray(b.tags) || !b.tags.every((t) => TAGS.includes(t))) return { error: 'Unknown tag.', field: 'tags' };
-    row.tags = TAGS.filter((t) => (b.tags as unknown[]).includes(t));
+    if (!Array.isArray(b.tags) || !b.tags.every((t) => BUYER_TAGS.includes(t))) return { error: 'Unknown tag.', field: 'tags' };
+    row.tags = BUYER_TAGS.filter((t) => (b.tags as unknown[]).includes(t));
   }
   if (row.rating == null && row.note == null && row.lasts == null && (row.tags as string[]).length === 0) {
     return { error: 'Nothing to send.', field: 'feedback' };

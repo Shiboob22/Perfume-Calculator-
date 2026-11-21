@@ -15,6 +15,7 @@ import ListSkeleton from "../kx/ListSkeleton";
 import { listRecipes, listInventory } from "../../lib/fragranceApi";
 import { listOrders, addOrder, editOrder, setOrderStatus, setGroupMode } from "../../lib/ordersApi";
 import { scentOptions, toPlanOrder, stockMap, weighLink, toBottlingOrder, readyToBottle, orderFromQuery, ORDERS_CHANGED } from "../../lib/orders";
+import { BUYER_TAGS } from "../../lib/noteTags";
 import { CURRENCIES } from "../../lib/currencies";
 
 // The order queue (Phases A and B, docs/order-queue/Kyphira-Order-Queue_Brief_v2.md):
@@ -358,7 +359,8 @@ function BuyerAnswer({ row, t }) {
   const parts = [
     fb.rating && t("orders.answer.rating", { count: fb.rating }),
     fb.lasts && t(`orders.answer.lasts.${fb.lasts}`),
-    ...(fb.tags ?? []).map((g) => t(`journal.page.tag.${g}`)),
+    // Buyer tags since 2026-11-21; older answers carry the Journal's tags.
+    ...(fb.tags ?? []).map((g) => t(BUYER_TAGS.includes(g) ? `buyer.tag.${g}` : `journal.page.tag.${g}`)),
   ].filter(Boolean);
   return (
     <span className="block text-sm" style={{ color: COLORS.inkSoft }} data-buyer-answer>

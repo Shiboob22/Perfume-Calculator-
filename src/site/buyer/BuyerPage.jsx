@@ -6,7 +6,7 @@ import SaveState from "../../components/kx/SaveState";
 import { COLORS, TYPE } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { brandName } from "../../brand";
-import { LASTS, TAGS } from "../../lib/noteTags";
+import { BUYER_TAGS, LASTS } from "../../lib/noteTags";
 import { tierFor } from "../../lib/calc/strength";
 import { getBottle, sendFeedback, orderAgain } from "../../lib/buyerApi";
 
@@ -115,7 +115,7 @@ function Feedback({ code, bottle, onSaved, t }) {
     if (!rating && !lasts && !tags.length && !note.trim()) { setState({ kind: "failed", text: t("buyer.empty") }); return; }
     setState({ kind: "working", text: t("buyer.sending") });
     try {
-      const next = await sendFeedback(code, { rating: rating || null, lasts, tags: TAGS.filter((x) => tags.includes(x)), note: note.trim() || null });
+      const next = await sendFeedback(code, { rating: rating || null, lasts, tags: BUYER_TAGS.filter((x) => tags.includes(x)), note: note.trim() || null });
       onSaved(next);
       setState({ kind: "saved", text: bottle.shop ? t("buyer.sentTo", { shop: bottle.shop }) : t("buyer.sent") });
     } catch (err) {
@@ -151,11 +151,11 @@ function Feedback({ code, bottle, onSaved, t }) {
       <fieldset>
         <legend className="text-sm mb-2" style={{ color: COLORS.inkSoft }}>{t("buyer.tags")}</legend>
         <div className="flex flex-wrap gap-2">
-          {TAGS.map((g) => {
+          {BUYER_TAGS.map((g) => {
             const on = tags.includes(g);
             return (
               <button key={g} type="button" aria-pressed={on} onClick={() => { setTags(on ? tags.filter((x) => x !== g) : [...tags, g]); setState(null); }}
-                className="min-h-[44px] px-3 text-[14px] rounded" style={chip(on)}>{t(`journal.page.tag.${g}`)}</button>
+                className="min-h-[44px] px-3 text-[14px] rounded" style={chip(on)}>{t(`buyer.tag.${g}`)}</button>
             );
           })}
         </div>

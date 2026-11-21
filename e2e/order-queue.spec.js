@@ -414,7 +414,7 @@ test("QR buyer page, seller side: a buyer's request is accepted, answers show, t
     batches: [BATCH],
     orders: [
       { id: "q", user_id: USER.id, buyer_name: "Mona", buyer_contact: "+20 111 222 3333", scent_text: "Oud Nights", family: "woody", size_ml: 50, strength_pct: 25, status: "requested", requested_from: "s", group_mode: "mix" },
-      joined({ id: "s", buyer_name: "Sara", size_ml: 50, price: 450, status: "bottled", buyer_code: CODE, order_feedback: { rating: 4, lasts: "h4to8", tags: ["sweeter"], note: "Lovely at night" } }),
+      joined({ id: "s", buyer_name: "Sara", size_ml: 50, price: 450, status: "bottled", buyer_code: CODE, order_feedback: { rating: 4, lasts: "h4to8", tags: ["compliments", "sweeter"], note: "Lovely at night" } }),
       joined({ id: "h", buyer_name: "Omar", size_ml: 50, price: 450, status: "handed_over", order_feedback: [{ rating: 5, lasts: null, tags: [], note: null }] }),
     ],
   });
@@ -423,7 +423,7 @@ test("QR buyer page, seller side: a buyer's request is accepted, answers show, t
   await expect(asked).toContainText(fill(o.requested.who, { name: iso("Mona"), scent: iso("Oud Nights") }));
   await expect(asked).toContainText("+20 111 222 3333");
   // Bottled and handed-over orders show what their buyers sent.
-  await expect(page.locator("[data-buyer-answer]").first()).toHaveText(`${o.answer.label}: 4 of 5, lasts 4–8 hours, Sweeter. Lovely at night`); // the note is a <q>: the browser draws its quotes
+  await expect(page.locator("[data-buyer-answer]").first()).toHaveText(`${o.answer.label}: 4 of 5, lasts 4–8 hours, Got compliments, Sweeter. Lovely at night`); // a buyer tag, then an older Journal tag; the note is a <q>: the browser draws its quotes
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(results.violations.map((v) => v.id)).toEqual([]);
 

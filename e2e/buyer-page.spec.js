@@ -48,11 +48,11 @@ test("English: the buyer rates the bottle, then asks for it again", async ({ pag
   await expect(form.getByRole("status")).toHaveText(b.empty);
   await form.getByRole("button", { name: fill(b.ratingN.other, { count: 4 }) }).click();
   await form.getByRole("button", { name: b.lasts.h4to8 }).click();
-  await form.getByRole("button", { name: en.journal.page.tag.sweeter }).click();
+  await form.getByRole("button", { name: en.buyer.tag.sweet }).click();
   await form.getByLabel(b.note).fill("Lovely at night");
   await form.getByRole("button", { name: b.send }).click();
   await expect(form.getByRole("status")).toHaveText(fill(b.sentTo, { shop: "Hisham Blends" }));
-  expect(sent[0]).toEqual({ feedback: { rating: 4, lasts: "h4to8", tags: ["sweeter"], note: "Lovely at night" } });
+  expect(sent[0]).toEqual({ feedback: { rating: 4, lasts: "h4to8", tags: ["sweet"], note: "Lovely at night" } });
   await expect(form.getByRole("button", { name: b.update })).toBeVisible();
 
   const again = page.locator("[data-buyer-again]");
