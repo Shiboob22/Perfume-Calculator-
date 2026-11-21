@@ -104,7 +104,7 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
               <dt className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: hi ? COLORS.onAmber : COLORS.dim }}>{t(`calc.costCard.${key}`)}</dt>
               <dd className="mt-2 flex flex-wrap items-baseline gap-1.5">
                 <span dir="ltr" className="tabular-nums" style={{ fontSize: hi ? 28 : 22, fontWeight: hi ? 600 : 400 }}>{fmt2(value)}</span>
-                <span className="text-xs" style={{ opacity: 0.8 }}>{currency}</span>
+                <span className="text-xs" style={hi ? undefined : { opacity: 0.8 }}>{currency}</span>{/* full strength on amber: 0.8 fell to 4.16:1 */}
               </dd>
             </div>
           ))}
