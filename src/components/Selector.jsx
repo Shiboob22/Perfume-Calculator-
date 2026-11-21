@@ -43,7 +43,7 @@ export default function Selector({ onSelectPerfume }) {
     return (
       <div className={wrap}>
         <p className="text-xs uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("selector.intro.kicker")}</p>
-        <h2 ref={heading} tabIndex={-1} className="font-serif italic text-4xl mt-2 outline-none" style={{ color: COLORS.ink }}>{t("selector.title")}</h2>
+        <h1 ref={heading} tabIndex={-1} className="font-serif italic text-4xl mt-2 outline-none" style={{ color: COLORS.ink }}>{t("selector.title")}</h1>
         <p className="mt-4 max-w-prose text-lg leading-relaxed" style={{ color: COLORS.inkSoft }}>{t("selector.intro.lede")}</p>
         <p className="mt-3 max-w-prose text-sm" style={{ color: COLORS.dim }}>{t("selector.intro.note")}</p>
         <div className="mt-6 flex flex-wrap items-center gap-3">

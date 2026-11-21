@@ -12,9 +12,10 @@ export default function ProLocked({ feature }) {
         <p className="text-[11px] font-mono uppercase tracking-wider rtl:tracking-normal mb-2" style={{ color: COLORS.amberDeep }}>
           {t("plan.pro")}
         </p>
-        <h2 className="text-lg font-serif font-semibold mb-2" style={{ color: COLORS.forestDeep }}>
+        {/* The whole page when a feature is locked, so its heading is the page's h1. */}
+        <h1 className="text-lg font-serif font-semibold mb-2" style={{ color: COLORS.forestDeep }}>
           {t(`plan.locked.${feature}`)}
-        </h2>
+        </h1>
         <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("plan.earlyAccess")}</p>
         <WaitlistButton source={`locked.${feature}`.replace(/[^a-z0-9_.-]/gi, "-").toLowerCase().slice(0, 40)} />
       </div>

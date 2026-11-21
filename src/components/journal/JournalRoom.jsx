@@ -189,6 +189,8 @@ export default function JournalRoom() {
   if (loadError) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-8 py-10">
+        {/* The room keeps its name when the list can't load (UI/UX audit M16). */}
+        <h1 className="mb-4 font-serif text-[clamp(2.25rem,7vw,3.5rem)] leading-[1.05]">{t("journal.page.title")}</h1>
         <p role="alert">{t("journal.page.loadFailed")}</p>
         <button type="button" onClick={load} className="mt-3 min-h-[44px] underline" style={{ color: COLORS.actionText }}>{t("journal.page.retry")}</button>
       </div>

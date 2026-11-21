@@ -242,6 +242,7 @@ export default function BenchMode({ demo = null }) {
   if (!plan || !target) {
     return (
       <div className="max-w-xl mx-auto p-6">
+        <h1 className="font-serif text-3xl mb-3">{t("bench.title")}</h1>
         <p style={{ color: COLORS.inkSoft }}>{t("bench.noPlan")}</p>
         <button type="button" onClick={() => navigate("/bench")} className="mt-4 underline" style={{ color: COLORS.actionText }}>{t("app.tabs.calculator")}</button>
       </div>
