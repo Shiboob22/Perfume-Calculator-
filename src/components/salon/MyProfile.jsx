@@ -70,7 +70,7 @@ export default function MyProfile() {
         <Field label={t("salon.me.name")} value={form.displayName} onChange={(e) => set({ displayName: e.target.value })} maxLength={LIMITS.name} />
         <div>
           <label htmlFor="salon-bio" className="block text-sm mb-1.5" style={{ color: COLORS.inkSoft }}>{t("salon.me.bio")}</label>
-          <textarea id="salon-bio" rows={3} maxLength={LIMITS.bio} value={form.bio} onChange={(e) => set({ bio: e.target.value })} className={`${inputClass} py-2`} style={inputStyle} />
+          <textarea dir="auto" id="salon-bio" rows={3} maxLength={LIMITS.bio} value={form.bio} onChange={(e) => set({ bio: e.target.value })} className={`${inputClass} py-2`} style={inputStyle} />
         </div>
         <label className="flex items-start gap-3 min-h-[44px]" style={{ color: COLORS.ink }}>
           <input type="checkbox" className="mt-1.5" checked={form.isPublic} onChange={(e) => set({ isPublic: e.target.checked })} aria-describedby="salon-public-hint" />

@@ -475,7 +475,7 @@ function OrderForm({ row, options, currency, busy, error, onSave, t }) {
       <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.contact")}</span>
         <input maxLength={120} value={f.buyer_contact} onChange={set("buyer_contact")} className={inputClass} style={inputStyle} autoComplete="off" /></label>
       <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.note")}</span>
-        <textarea maxLength={500} rows={2} value={f.note} onChange={set("note")} className={`${inputClass} py-3`} style={inputStyle} /></label>
+        <textarea dir="auto" maxLength={500} rows={2} value={f.note} onChange={set("note")} className={`${inputClass} py-3`} style={inputStyle} /></label>
       <p className="text-xs" style={{ color: COLORS.dim }}>{t("orders.form.privacy")}</p>
       {error && <p role="alert" className="text-sm" style={{ color: COLORS.danger }}>{error}</p>}
       <Button type="submit" loading={busy}>{row.id ? t("orders.form.saveEdit") : t("orders.form.save")}</Button>

@@ -358,7 +358,7 @@ export default function Batches() {
               </div>
             )}
             {b.notes && (
-              <div className="text-sm italic mt-2" style={{ color: COLORS.inkSoft }}>{b.notes}</div>
+              <div dir="auto" className="text-sm italic mt-2" style={{ color: COLORS.inkSoft }}>{b.notes}</div>
             )}
             <BatchJournal batch={b} canAdd={journalIds.has(b.id)} onDone={handleCheckIn} onRemoved={handleCheckInRemoved} />
             <div className="mt-2">

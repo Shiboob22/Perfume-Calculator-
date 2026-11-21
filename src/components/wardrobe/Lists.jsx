@@ -56,7 +56,7 @@ export default function Lists({ bottles, today, setBottles }) {
                       <span className="font-serif text-lg" style={{ color: COLORS.ink }}>{b.name}</span>
                       {b.family && <Chip>{t(`families.${b.family}.label`)}</Chip>}
                     </div>
-                    {b.note && <p className="text-sm mt-1" style={{ color: COLORS.inkSoft }}>{b.note}</p>}
+                    {b.note && <p dir="auto" className="text-sm mt-1" style={{ color: COLORS.inkSoft }}>{b.note}</p>}
                     <div className="flex flex-wrap gap-3 mt-3">
                       <Button variant="secondary" onClick={() => own(b)}>{t("wardrobe.lists.moveToOwned")}</Button>
                       <Button variant="ghost" onClick={() => remove(b)} aria-label={t("wardrobe.collection.remove", { name: b.name })} style={{ color: COLORS.danger }}>×</Button>

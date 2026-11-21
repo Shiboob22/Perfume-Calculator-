@@ -47,7 +47,7 @@ export default function Nose() {
       <form onSubmit={(e) => { e.preventDefault(); ask(question); }} noValidate className="grid gap-3 max-w-3xl">
         <div>
           <label htmlFor="nose-q" className="block text-sm mb-1.5" style={{ color: COLORS.inkSoft }}>{t("nose.label")}</label>
-          <textarea id="nose-q" rows={3} maxLength={MAX} value={question} onChange={(e) => setQuestion(e.target.value)}
+          <textarea dir="auto" id="nose-q" rows={3} maxLength={MAX} value={question} onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(question); } }}
             className={`${inputClass} py-2`} style={inputStyle} aria-describedby="nose-hint nose-privacy" />
           <p id="nose-hint" className="text-xs mt-1" style={{ color: COLORS.dim }}>{t("nose.hint")}</p>

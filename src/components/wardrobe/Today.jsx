@@ -60,7 +60,7 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
       <Field label={t("wardrobe.today.sprays")} mono inputMode="numeric" value={sprays} onChange={(e) => setSprays(e.target.value)} dir="ltr" />
       <div>
         <label htmlFor={`wear-note-${bottle.id}`} className="block text-sm mb-1.5" style={{ color: COLORS.inkSoft }}>{t("wardrobe.today.noteField")}</label>
-        <textarea id={`wear-note-${bottle.id}`} rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} className={`${inputClass} py-2`} style={inputStyle} />
+        <textarea dir="auto" id={`wear-note-${bottle.id}`} rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} className={`${inputClass} py-2`} style={inputStyle} />
       </div>
       <div className="flex flex-wrap gap-3">
         <Button type="submit" loading={busy}>{t("wardrobe.today.save")}</Button>

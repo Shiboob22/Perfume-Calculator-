@@ -114,7 +114,7 @@ export default function PerfumerChat() {
       {error && <p role="alert" className="text-sm mb-2" style={{ color: COLORS.danger }}>{error}</p>}
 
       <div className="flex gap-2 items-end">
-        <textarea
+        <textarea dir="auto"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}

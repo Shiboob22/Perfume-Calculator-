@@ -74,7 +74,7 @@ export default function BatchRecord({ b, onChange, onDeleted, promised = 0, read
           {b.blended_by && <span>{t("batches.by", { name: b.blended_by })}</span>}
         </p>
       )}
-      {b.notes && <p className="mt-2 text-sm italic" style={{ color: COLORS.inkSoft }}>{b.notes}</p>}
+      {b.notes && <p dir="auto" className="mt-2 text-sm italic" style={{ color: COLORS.inkSoft }}>{b.notes}</p>}
 
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1">
         <BatchEdit batch={b} onSaved={(id, row) => onChange({ id, ...row })} onStatus={setStatus} />

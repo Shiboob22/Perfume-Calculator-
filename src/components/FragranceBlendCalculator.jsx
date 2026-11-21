@@ -984,7 +984,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               )}
             </p>
             <label htmlFor="calc-notes" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.notes")}</label>
-            <textarea
+            <textarea dir="auto"
               id="calc-notes"
               value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
               className="w-full px-3 py-2 font-mono text-base border resize-y"

@@ -487,7 +487,7 @@ function NoteEditor({ b, m, day, note, onSaved, t }) {
     <div className="mt-4 flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <label htmlFor={id} className="text-sm" style={{ color: COLORS.inkSoft }}>{t("journal.page.note")}</label>
-        <textarea id={id} rows={3} maxLength={280} value={text} onChange={(e) => { setText(e.target.value); setStatus(null); }}
+        <textarea dir="auto" id={id} rows={3} maxLength={280} value={text} onChange={(e) => { setText(e.target.value); setStatus(null); }}
           placeholder={t("journal.page.notePh")} className="px-3 py-2 rounded border text-base" style={{ borderColor: COLORS.field, background: COLORS.cardHi, color: COLORS.ink, resize: "vertical" }} />
       </div>
       <div role="group" aria-label={t("journal.page.rating")} className="flex flex-wrap items-center gap-2">
@@ -541,7 +541,7 @@ function Compare({ notes, withNotes, b, dateAt, t }) {
     return (
       <article key={k} data-compare={k} className="p-4 rounded flex flex-col gap-2" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper }}>
         <p className="flex justify-between gap-2 text-sm font-medium"><span>{t(`journal.page.milestones.${k}`)}</span><span style={{ color: COLORS.dim }}>{dateAt(b, m.days)}</span></p>
-        {n.note && <p>{n.note}</p>}
+        {n.note && <p dir="auto">{n.note}</p>}
         {r > 0 && <p dir="ltr" className="text-start" role="img" aria-label={t("journal.page.ratingN", { count: r })} style={{ color: COLORS.actionText }}><span aria-hidden="true">{"●".repeat(r) + "○".repeat(5 - r)}</span></p>}
         {n.tags?.length > 0 && <p className="text-sm" style={{ color: COLORS.inkSoft }}>{n.tags.map((g) => t(`journal.page.tag.${g}`)).join(" · ")}</p>}
       </article>
