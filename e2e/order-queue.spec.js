@@ -372,6 +372,7 @@ for (const locale of ["en", "ar"]) {
   test(`the cost card's friend price opens a new order filled in (${locale})`, async ({ page }) => {
     const m = locale === "ar" ? ar : en;
     const fillM = (s, vars) => fill(s, vars);
+    const cur = locale === "ar" ? "ج.م." : "EGP"; // Arabic shows the currency sign (UI/UX audit H6)
     await signIn(page);
     const sent = await fakeApi(page, { locale });
     await page.goto("/bench?name=Oud%20Nights&family=woody&size=100&unit=ml&conc=20"); // the Bench reads the language from the profile
@@ -395,9 +396,9 @@ for (const locale of ["en", "ar"]) {
     const sheet = page.getByRole("dialog", { name: m.orders.form.title });
     await expect(sheet.getByLabel(m.orders.form.scent)).toHaveValue("Oud Nights");
     await expect(sheet.getByLabel(m.orders.form.sizeCustom)).toHaveValue("30");
-    await expect(sheet.getByLabel(fillM(m.orders.form.price, { currency: "EGP" }), { exact: true })).toHaveValue(String(friend));
+    await expect(sheet.getByLabel(fillM(m.orders.form.price, { currency: cur }), { exact: true })).toHaveValue(String(friend));
     await expect(sheet.getByLabel(m.orders.form.friend)).toBeChecked();
-    await expect(sheet.getByLabel(fillM(m.orders.form.listPrice, { currency: "EGP" }))).toHaveValue(String(retail));
+    await expect(sheet.getByLabel(fillM(m.orders.form.listPrice, { currency: cur }))).toHaveValue(String(retail));
     expect(sent.posts).toHaveLength(0); // nothing saved until Save
     await sheet.getByLabel(m.orders.form.buyer).fill("Sara");
     await sheet.getByRole("button", { name: m.orders.form.save }).click();

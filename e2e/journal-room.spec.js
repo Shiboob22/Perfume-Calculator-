@@ -695,7 +695,7 @@ test("ar: the batch line reads as a sentence, units and money in Arabic", async 
   await expect(page.locator(`[data-batch="${id(5)}"]`)).toContainText("رقم 005، 50 مل بتركيز 20%");
   const record = page.locator("section[aria-labelledby=journal-batch]");
   await expect(record).toContainText("50 مل بتركيز 20% (\u2068EDP\u2069)");
-  await expect(record).toContainText("9.50 غ");
+  await expect(record).toContainText("9.5 غ");
   await expect(record).toContainText("ج.م.");
   await expect(record).not.toContainText(" mL");
 });
