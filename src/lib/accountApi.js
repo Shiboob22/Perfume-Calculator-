@@ -95,3 +95,10 @@ export async function sendReminderTest() {
   if (!res.ok) throw await apiError(res);
   return res.json();
 }
+
+// Bring a friend (0042), Pro only: { code, earned, cap, gift_ends_at }; the code is made on first ask.
+export async function inviteInfo() {
+  const res = await fetch("/api/account", { method: "POST", headers: { ...(await authHeaders()), "Content-Type": "application/json" }, body: JSON.stringify({ action: "invite" }) });
+  if (!res.ok) throw await apiError(res);
+  return res.json();
+}

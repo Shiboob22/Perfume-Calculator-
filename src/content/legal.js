@@ -6,7 +6,7 @@
 export const LEGAL = {
   privacy: {
     draft: true,
-    updated: "2026-11-20",
+    updated: "2026-11-21",
     en: {
       title: "Privacy",
       summary: "What Kyphira stores about you, why, who processes it, and how to get it or delete it.",
@@ -19,6 +19,7 @@ export const LEGAL = {
           "What you save in the app: batches (fragrance name, weights, strength, dates, notes, cost fields you fill in), inventory, notes on fragrances, calculator presets, and your preferences (language, units, usual bottle size, digit style).",
           "Your plan (Free or Pro) and, if you join it, your place on the Pro waitlist and the screen you joined it from.",
           "If you signed up from a recipe page, a guide or the home page, which of the three. We only look at it as totals, never per person.",
+          "If you invite a friend, or joined through a friend's invite: your invite code, and which account invited which, so each of you gets the free month of Pro. The person who invited you does not see your email.",
           "Fragrances you add to the shared catalog are stored with a link to your account until an admin approves them. If you delete your account the fragrance stays in the catalog without that link.",
         ] },
         { id: "not", h: "What we do not do", p: [
@@ -73,6 +74,7 @@ export const LEGAL = {
           "ما تحفظه في التطبيق: الخلطات (اسم العطر والأوزان والتركيز والتواريخ والملاحظات وحقول التكلفة التي تملؤها)، والمخزون، وملاحظاتك على العطور، والإعدادات المحفوظة في الحاسبة، وتفضيلاتك (اللغة والوحدات وحجم الزجاجة المعتاد وشكل الأرقام).",
           "خطتك (المجانية أو Pro)، ومكانك في قائمة انتظار Pro إن انضممت إليها والشاشة التي انضممت منها.",
           "إن سجّلت من صفحة وصفة أو دليل أو من الصفحة الرئيسية، فأيّها كان. لا ننظر إلى ذلك إلا كمجاميع، لا لكل شخص.",
+          "إن دعوت صديقًا أو انضممت عبر دعوة صديق: رمز دعوتك، وأيّ حساب دعا أيّ حساب، ليحصل كلٌّ منكما على شهر Pro المجاني. لا يرى من دعاك بريدك الإلكتروني.",
           "العطور التي تضيفها إلى الفهرس المشترك تُحفظ مرتبطة بحسابك حتى يوافق عليها مشرف. إن حذفت حسابك يبقى العطر في الفهرس دون هذا الارتباط.",
         ] },
         { id: "not", h: "ما لا نفعله", p: [

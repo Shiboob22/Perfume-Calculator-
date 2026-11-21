@@ -598,6 +598,36 @@ begin
   if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read buyer codes'; end if; checks := checks + 1;
   perform set_config('role', 'none', true);
 
+  -- Bring a friend (0042): each user reads only their own code and the
+  -- friends they invited; only the API's functions write; anon reads nothing.
+  insert into public.invite_codes (user_id, code) values (a, 'aaaa2222'), (b, 'bbbb3333');
+  insert into public.referrals (user_id, friend_id) values (a, b);
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', b::text, true);
+  perform set_config('role', 'authenticated', true);
+  select count(*) into n from public.invite_codes;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B sees % invite codes, expected its own 1', n; end if; checks := checks + 1;
+  select count(*) into n from public.referrals;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees % referrals made by A', n; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.referrals (user_id, friend_id) values (b, a);
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B wrote a referral around the API'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.invite_codes set code = 'cccc4444';
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B changed an invite code'; end if; checks := checks + 1;
+  ok := false;
+  begin perform public.claim_invite(b, 'aaaa2222');
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B ran claim_invite'; end if; checks := checks + 1;
+  perform set_config('role', 'anon', true);
+  ok := false;
+  begin perform 1 from public.invite_codes limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read invite codes'; end if; checks := checks + 1;
+  perform set_config('role', 'none', true);
+
   raise exception 'RLS_ISOLATION PASSED: % checks (rolled back, nothing kept)', checks;
 end
 $$;

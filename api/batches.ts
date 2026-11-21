@@ -5,6 +5,7 @@ import { randomBytes } from 'node:crypto';
 import { shareRow } from './_lib/share.js';
 import { orderRow, statusRow, idList, ORDER_CAP, LINKABLE } from './_lib/orders.js';
 import { BUYER_CODE, SHOWN, REQUESTED_CAP, feedbackRow, reorderRow, requestedOrder, feedbackOpen, publicOrder } from './_lib/buyer.js';
+import { claimInvite } from './_lib/invite.js';
 import { setCors, serviceClient, requireUser, isTimeout, SLOW_READ, SLOW_WRITE, UUID } from './_lib/http.js';
 // @ts-ignore: plain JS shared with the browser
 import { recipeSlug } from '../src/lib/publicText.js';
@@ -316,7 +317,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const stock = await deductOnLog(supabase, userId, entitlements, row.fragrance_id, b.deduct_oil_g);
       const linked = await linkOrders(supabase, userId, data[0].id, b.order_ids, entitlements);
-      return res.status(201).json({ success: true, batch: data[0], ...(stock ? { stock } : {}), ...linked });
+      const invite = await claimInvite(supabase, userId);
+      return res.status(201).json({ success: true, batch: data[0], ...(stock ? { stock } : {}), ...linked, ...(invite === 'both' || invite === 'friend_only' ? { invite } : {}) });
     } catch (err: any) {
       return failFrom(res, err, true, 'log');
     }

@@ -6,7 +6,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import { useProfile } from "../lib/useProfile";
-import { deleteAccount, fetchExport, joinWaitlist, onWaitlist, isAdmin, sendReminderTest } from "../lib/accountApi";
+import { deleteAccount, fetchExport, joinWaitlist, onWaitlist, isAdmin, sendReminderTest, inviteInfo } from "../lib/accountApi";
 import { EXPORT_TABLES, toCsv, toJson } from "../lib/exportData";
 import { UNIT_LABELS } from "../lib/calcPrefill";
 import { CURRENCIES } from "../lib/currencies";
@@ -82,6 +82,7 @@ export default function Account({ user }) {
       </Section>
 
       {entitlements.plan !== "pro" && <Waitlist />}
+      {entitlements.plan === "pro" && <Invite />}
 
       <Section title={t("account.prefs.title")}>
         <Preferences profile={profile} save={save} locale={locale} setLocale={setLocale} />
@@ -130,6 +131,38 @@ function Waitlist() {
             {t("account.waitlist.join")}
           </button>}
       {error && <p role="alert" className="text-sm mt-3" style={{ color: COLORS.danger }}>{error}</p>}
+    </Section>
+  );
+}
+
+// Bring a friend (0042): the Pro user's invite link, months earned, gifted Pro's end.
+function Invite() {
+  const { t, locale } = useI18n();
+  const [info, setInfo] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => { inviteInfo().then(setInfo).catch(() => setFailed(true)); }, []);
+  const link = info ? `${window.location.origin}${locale === "ar" ? "/ar" : ""}/bench?ref=invite-${info.code}` : "";
+  async function copy() {
+    try { await navigator.clipboard.writeText(link); setCopied(true); } catch { setCopied(false); }
+  }
+  const date = (iso) => new Date(iso).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-GB", { day: "numeric", month: "long", year: "numeric", numberingSystem: "latn" });
+  return (
+    <Section id="invite" title={t("account.invite.title")}>
+      <p className="text-sm mb-4" style={{ color: COLORS.inkSoft }}>{t("account.invite.lead")}</p>
+      {failed && <p role="alert" className="text-sm" style={{ color: COLORS.danger }}>{t("account.invite.failed")}</p>}
+      {info && (
+        <div className="flex flex-col gap-3" data-invite>
+          <div className="flex flex-wrap items-center gap-2">
+            <input readOnly value={link} dir="ltr" aria-label={t("account.invite.title")} onFocus={(e) => e.target.select()}
+              className="flex-1 min-w-0 min-h-[44px] px-3 rounded text-sm font-mono" style={inputStyle} />
+            <button type="button" onClick={copy} className="min-h-[44px] px-5 rounded text-sm font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("account.invite.copy")}</button>
+          </div>
+          <p role="status" className="text-sm" style={{ color: COLORS.actionText }}>{copied ? t("account.invite.copied") : ""}</p>
+          <p className="text-sm" style={{ color: COLORS.ink }}>{t("account.invite.earned", { earned: info.earned, cap: info.cap })}</p>
+          {info.gift_ends_at && <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("account.invite.until", { date: date(info.gift_ends_at) })}</p>}
+        </div>
+      )}
     </Section>
   );
 }
