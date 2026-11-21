@@ -685,6 +685,21 @@ test("ar: the sort chips and direction at 320 px", async ({ page }) => {
   expect(axe.violations).toEqual([]);
 });
 
+// UI/UX audit H6: the batch line is a sentence in each language, with the units in its script.
+test("ar: the batch line reads as a sentence, units and money in Arabic", async ({ page }) => {
+  await signIn(page);
+  const rows = fixtures();
+  Object.assign(rows[0], { oil_cost: 9, price_per_gram: 0.76, bottle_cost: 2.5, bottles: 1, sale_price: 30, currency: "EGP" });
+  await fakeApi(page, { locale: "ar", batches: rows });
+  await page.goto(`/ar/journal?batch=${id(5)}`);
+  await expect(page.locator(`[data-batch="${id(5)}"]`)).toContainText("رقم 005، 50 مل بتركيز 20%");
+  const record = page.locator("section[aria-labelledby=journal-batch]");
+  await expect(record).toContainText("50 مل بتركيز 20% (\u2068EDP\u2069)");
+  await expect(record).toContainText("9.50 غ");
+  await expect(record).toContainText("ج.م.");
+  await expect(record).not.toContainText(" mL");
+});
+
 for (const [locale, m, path] of [["en", en, "/journal"], ["ar", ar, "/ar/journal"]]) {
   test(`${locale}: Free sees its newest 3 batches, a locked card, and the trial opens the rest`, async ({ page }, info) => {
     await signIn(page);

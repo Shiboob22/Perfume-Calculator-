@@ -202,7 +202,8 @@ export default function JournalRoom() {
     return new Date(start.getTime() + days * DAY_MS).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric", numberingSystem: "latn" });
   };
   // Batches logged before the typed size was kept (No. 1–36) fall back to their volume in mL.
-  const sizeOf = (x) => (x.amount != null ? { size: x.amount, unit: UNIT_LABELS[x.unit] ?? "mL" } : { size: x.total_ml ?? "", unit: "mL" });
+  const unitOf = (u) => (UNIT_LABELS[u] ? t(`units.${u}`) : t("units.ml"));
+  const sizeOf = (x) => (x.amount != null ? { size: x.amount, unit: unitOf(x.unit) } : { size: x.total_ml ?? "", unit: unitOf("ml") });
   const metaOf = (x) => t("journal.page.meta", { ...sizeOf(x), pct: x.concentration_pct, tier: tierFor(Number(x.concentration_pct)).name });
   const oilBatches = all.map((x) => ({
     id: x.id, no: Number(x.batch_no) || 0, oil: oilKey(x), pct: Number(x.concentration_pct), checkins: x.batch_checkins, again: makeAgainHref(x),
@@ -276,7 +277,7 @@ export default function JournalRoom() {
                             )}
                           </span>
                           <span className="text-xs truncate" style={{ color: COLORS.dim }}>
-                            <span dir="ltr">{t("journal.page.no", { no: noOf(x) })}</span> · {metaOf(x)}
+                            {t("journal.page.rowLine", { no: noOf(x), ...sizeOf(x), pct: x.concentration_pct })}
                           </span>
                           <span aria-hidden="true" className="relative block h-1.5 mt-2" style={{ background: COLORS.line }}>
                             <span className="absolute inset-y-0 start-0" style={{ width: `${p.fraction * 100}%`, background: p.ready ? COLORS.verdigris : COLORS.amber }} />

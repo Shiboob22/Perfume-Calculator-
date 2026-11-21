@@ -5,6 +5,7 @@ export default {
   brandTagline: "كل قطرة موزونة بعناية.",
   brandSignature: "بقلم Hisham Shiboob",
   language: { switchTo: "English", switchLabel: "التبديل إلى الإنجليزية" },
+  units: { ml: "مل", floz: "أونصة سائلة", g: "غ", oz: "أونصة" },
   notice: {
     dismiss: "إغلاق",
     renamed: { title: "أصبح {former} الآن {name}", text: "طاولة الخلط نفسها والدفعات نفسها والحساب نفسه. تغيّر الاسم والمظهر فقط." },
@@ -777,7 +778,8 @@ export default {
       records: "كل سجلات الدفعات",
       backToList: "كل الدفعات",
       newBadge: "جديد",
-      meta: "{size} {unit} · {pct}% · {tier}",
+      meta: "{size} {unit} بتركيز {pct}% (\u2068{tier}\u2069)",
+      rowLine: "رقم {no}، {size} {unit} بتركيز {pct}%",
       no: "رقم {no}",
       poured: "سُكبت في {date}",
       readyOn: "جاهزة في {date}",

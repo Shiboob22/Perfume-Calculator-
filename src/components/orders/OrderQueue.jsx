@@ -16,7 +16,7 @@ import { listRecipes, listInventory } from "../../lib/fragranceApi";
 import { listOrders, addOrder, editOrder, setOrderStatus, setGroupMode } from "../../lib/ordersApi";
 import { scentOptions, toPlanOrder, stockMap, weighLink, toBottlingOrder, readyToBottle, orderFromQuery, ORDERS_CHANGED } from "../../lib/orders";
 import { BUYER_TAGS } from "../../lib/noteTags";
-import { CURRENCIES } from "../../lib/currencies";
+import { CURRENCIES, currencyLabel } from "../../lib/currencies";
 
 // The order queue (Phases A and B, docs/order-queue/Kyphira-Order-Queue_Brief_v2.md):
 // buyers' orders, grouped into mixes by scent and strength, with the grams
@@ -320,13 +320,13 @@ export default function OrderQueue() {
           <summary className="cursor-pointer min-h-[44px] flex items-center" style={{ color: COLORS.inkSoft }}>{t("orders.history", { count: handed.length })}</summary>
           {profit.totals.length > 0 && (
             <p className="text-sm py-2" style={{ color: COLORS.ink }}>
-              {profit.totals.map((x) => t("orders.cost.total", { count: x.count, profit: fmt2(x.profit), currency: x.currency })).join(" ")}
+              {profit.totals.map((x) => t("orders.cost.total", { count: x.count, profit: fmt2(x.profit), currency: currencyLabel(x.currency, locale) })).join(" ")}
               {profit.missing > 0 && ` ${t("orders.cost.missing", { count: profit.missing })}`}
             </p>
           )}
           {given.length > 0 && (
             <p data-friend-given className="text-sm pb-2" style={{ color: COLORS.inkSoft }}>
-              {given.map((x) => t("orders.cost.discounts", { count: x.count, given: fmt2(x.given), currency: x.currency })).join(" ")}
+              {given.map((x) => t("orders.cost.discounts", { count: x.count, given: fmt2(x.given), currency: currencyLabel(x.currency, locale) })).join(" ")}
             </p>
           )}
           <ul>{handed.map((r) => (
@@ -372,23 +372,25 @@ function BuyerAnswer({ row, t }) {
 
 /** One order's cost and profit from its batch (P1a); says so when the batch has no prices. */
 function CostLine({ c, t }) {
+  const { locale } = useI18n();
   return (
     <span className="block text-sm" style={{ color: COLORS.inkSoft }}>
       {!c ? t("orders.cost.none")
-        : c.profit === null ? t("orders.cost.only", { cost: fmt2(c.cost), currency: c.currency })
-          : t("orders.cost.line", { cost: fmt2(c.cost), profit: fmt2(c.profit), margin: fmt2(c.marginPct), currency: c.currency })}
+        : c.profit === null ? t("orders.cost.only", { cost: fmt2(c.cost), currency: currencyLabel(c.currency, locale) })
+          : t("orders.cost.line", { cost: fmt2(c.cost), profit: fmt2(c.profit), margin: fmt2(c.marginPct), currency: currencyLabel(c.currency, locale) })}
     </span>
   );
 }
 
 function OrderRow({ row, date, t, busy, onEdit, onCancel, onRestore }) {
+  const { locale } = useI18n();
   if (!row) return null;
   const details = [
     t("orders.row.size", { ml: Number(row.size_ml), pct: Number(row.strength_pct) }),
     row.wanted_by && t("orders.row.wanted", { date: date(row.wanted_by) }),
     row.price != null && (row.list_price != null && Number(row.list_price) > Number(row.price)
-      ? t("orders.row.friend", { price: fmt2(Number(row.price)), currency: row.currency ?? "", list: fmt2(Number(row.list_price)), pct: Math.round((1 - Number(row.price) / Number(row.list_price)) * 100) })
-      : t("orders.row.price", { price: fmt2(Number(row.price)), currency: row.currency ?? "" })),
+      ? t("orders.row.friend", { price: fmt2(Number(row.price)), currency: currencyLabel(row.currency, locale), list: fmt2(Number(row.list_price)), pct: Math.round((1 - Number(row.price) / Number(row.list_price)) * 100) })
+      : t("orders.row.price", { price: fmt2(Number(row.price)), currency: currencyLabel(row.currency, locale) })),
   ].filter(Boolean);
   return (
     <li className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 border-t" style={{ borderColor: COLORS.line }}>
@@ -407,6 +409,7 @@ function OrderRow({ row, date, t, busy, onEdit, onCancel, onRestore }) {
 }
 
 function OrderForm({ row, options, currency, busy, error, onSave, t }) {
+  const { locale } = useI18n();
   const [f, setF] = useState(() => ({
     buyer_name: row.buyer_name ?? "", buyer_contact: row.buyer_contact ?? "", scent_text: row.scent_text ?? "",
     size_ml: row.size_ml != null ? String(Number(row.size_ml)) : "50", strength_pct: row.strength_pct != null ? String(Number(row.strength_pct)) : "25",
@@ -455,7 +458,7 @@ function OrderForm({ row, options, currency, busy, error, onSave, t }) {
           aria-label={t("orders.form.strengthCustom")} className={`${inputClass} sm:w-40`} style={inputStyle} />
       </fieldset>
       <div className="grid sm:grid-cols-2 gap-4">
-        <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.price", { currency: CURRENCIES.includes(currency) ? currency : "" })}</span>
+        <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.price", { currency: CURRENCIES.includes(currency) ? currencyLabel(currency, locale) : "" })}</span>
           <input type="number" inputMode="decimal" min="0" step="any" value={f.price} onChange={set("price")} className={inputClass} style={inputStyle} /></label>
         <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.wanted")}</span>
           <input type="date" value={f.wanted_by} onChange={set("wanted_by")} className={inputClass} style={inputStyle} /></label>
@@ -465,7 +468,7 @@ function OrderForm({ row, options, currency, busy, error, onSave, t }) {
         <span style={{ color: COLORS.ink }}>{t("orders.form.friend")}</span>
       </label>
       {f.friend && (
-        <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.listPrice", { currency: CURRENCIES.includes(currency) ? currency : "" })}</span>
+        <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.listPrice", { currency: CURRENCIES.includes(currency) ? currencyLabel(currency, locale) : "" })}</span>
           <input type="number" inputMode="decimal" min={f.price || "0"} step="any" required value={f.list_price} onChange={set("list_price")} className={`${inputClass} sm:w-60`} style={inputStyle} />
           <span className="block text-xs mt-1" style={{ color: COLORS.dim }}>{t("orders.form.friendHint")}</span></label>
       )}

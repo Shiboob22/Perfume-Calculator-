@@ -4,6 +4,7 @@ export default {
   brandTagline: "Every drop, weighed with care.",
   brandSignature: "By Hisham Shiboob",
   language: { switchTo: "العربية", switchLabel: "Switch to Arabic" },
+  units: { ml: "mL", floz: "fl oz", g: "g", oz: "oz" },
   notice: {
     dismiss: "Dismiss",
     renamed: { title: "{former} is now {name}", text: "Same bench, same batches, same account. Only the name and the look have changed." },
@@ -775,7 +776,8 @@ export default {
       records: "All batch records",
       backToList: "All batches",
       newBadge: "New",
-      meta: "{size} {unit} · {pct}% · {tier}",
+      meta: "{size} {unit} at {pct}% ({tier})",
+      rowLine: "No. {no}, {size} {unit} at {pct}%",
       no: "No. {no}",
       poured: "Poured {date}",
       readyOn: "Ready {date}",

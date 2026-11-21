@@ -9,6 +9,7 @@ import { deleteBatch } from "../../lib/fragranceApi";
 import { downloadBatchCard } from "../../lib/batchCard";
 import { batchEconomics, fmt2, shownTotal } from "../../lib/calc";
 import { makeAgainHref } from "../../lib/oilHistory";
+import { currencyLabel } from "../../lib/currencies";
 import BatchEdit from "../BatchEdit";
 import SharePanel from "../SharePanel";
 
@@ -26,11 +27,13 @@ export default function BatchRecord({ b, onChange, onDeleted, promised = 0, read
   const [error, setError] = useState("");
   const prefix = locale === "ar" ? "/ar" : "";
   const econ = batchEconomics(b);
-  const money = (v) => `${fmt2(v)}${econ?.currency ? ` ${econ.currency}` : ""}`;
+  const money = (v) => `${fmt2(v)}${econ?.currency ? ` ${currencyLabel(econ.currency, locale)}` : ""}`;
+  const g = t("units.g");
+  const ml = t("units.ml");
   const rows = [
-    [t("batches.oil"), `${r2(b.oil_g)} g`, `${r2(b.oil_ml)} mL`],
-    [t("batches.ethanol"), `${r2(b.ethanol_g)} g`, `${r2(b.ethanol_ml)} mL`],
-    [t("batches.total"), `${fmt2(shownTotal(Number(b.oil_g), Number(b.ethanol_g)))} g`, null],
+    [t("batches.oil"), `${r2(b.oil_g)} ${g}`, `${r2(b.oil_ml)} ${ml}`],
+    [t("batches.ethanol"), `${r2(b.ethanol_g)} ${g}`, `${r2(b.ethanol_ml)} ${ml}`],
+    [t("batches.total"), `${fmt2(shownTotal(Number(b.oil_g), Number(b.ethanol_g)))} ${g}`, null],
     econ ? [t("batches.costPerBottle"), money(econ.perBottle), null] : null,
     econ && econ.profit != null ? [t(econ.profit < 0 ? "batches.loss" : "batches.profit"), money(Math.abs(econ.profit)), `${fmt2(econ.marginPct)}%`] : null,
   ].filter(Boolean);
