@@ -15,7 +15,7 @@ import EmptyState from "./EmptyState";
 import { refusedBatches, dismissRefused } from "../lib/outbox";
 import { Stagger, useNavigate } from "../motion";
 import { can, journalOpen } from "../lib/entitlements";
-import { dueNow, JOURNAL_CHANGED, restTimeline } from "../lib/journal";
+import { dueNow, JOURNAL_CHANGED, notesDue, restTimeline } from "../lib/journal";
 import { IconHourglass, IconSeal, IconDrop, IconToday, IconPlus } from "./icons";
 import JournalDue from "./journal/JournalDue";
 import JournalPatterns from "./journal/JournalPatterns";
@@ -188,10 +188,12 @@ export default function Batches() {
   const journalIds = journalOpen(entitlements, batches);
   const due = loading || error ? [] : dueNow(batches.filter((b) => journalIds.has(b.id)));
 
-  // The app header shows how many check-ins are due; keep it in step.
+  // The nav badge counts what the Journal room counts (notesDue: milestones in
+  // the last week), not this page's older check-in schedule; keep it in step.
+  const badge = loading || error ? null : notesDue(batches.filter((b) => journalIds.has(b.id)));
   useEffect(() => {
-    if (!loading && !error) window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: due.length } }));
-  }, [due.length, loading, error]);
+    if (badge !== null) window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: badge } }));
+  }, [badge]);
 
   // A check-in saved (or queued offline) on one batch: show it straight
   // away, replacing an earlier answer to the same point.
