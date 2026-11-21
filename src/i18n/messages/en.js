@@ -1425,6 +1425,8 @@ export default {
     notSaved: "Not saved",
     id: "ID {id}",
     mostRated: "Most rated in the library",
+    popularFailed: "The most-rated list didn't load.",
+    retry: "Try again",
     emptyIntro: "Pick one, or search for any perfume to see its bottle, accords, pyramid and similar scents.",
     gender: { women: "for women", men: "for men", unisex: "for women and men" },
     seasons: { Winter: "Winter", Spring: "Spring", Summer: "Summer", Fall: "Fall", Day: "Day", Night: "Night" },

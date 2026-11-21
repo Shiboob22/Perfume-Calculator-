@@ -340,7 +340,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
   const [matchKind, setMatchKind] = useState('exact');
   const [selectedPerfume, setSelectedPerfume] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [popular, setPopular] = useState([]);
+  const [popular, setPopular] = useState(null); // null while loading; [] when it failed or came back empty
   const [related, setRelated] = useState({ loading: false, basis: 'accords', similar: [], sameBrand: [], error: '' });
   const [addingToInventory, setAddingToInventory] = useState(false);
   const [inventoryMsg, setInventoryMsg] = useState('');
@@ -464,6 +464,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
   useEffect(() => {
     fetchPopular().then(setPopular);
   }, []);
+  const retryPopular = () => { setPopular(null); forgetCatalogAnswers(); fetchPopular().then(setPopular); };
 
   // Keep the screen current: every minute while visible, and when the tab comes
   // back to the front, re-read the catalog and swap in the rows only if they
@@ -898,7 +899,14 @@ export function PerfumeSearch({ onSelectPerfume }) {
             <p className="mt-2 mb-6 font-serif italic" style={{ fontSize: 17, color: COLORS.inkSoft }}>
               {t('search.emptyIntro')}
             </p>
-            {popular.length > 0 ? <CardGrid items={popular} onSelect={selectPerfume} /> : <CardSkeleton count={8} />}
+            {popular === null ? <CardSkeleton count={8} />
+              : popular.length > 0 ? <CardGrid items={popular} onSelect={selectPerfume} />
+              : (
+                <p data-popular-empty role="status" className="text-sm" style={{ color: COLORS.inkSoft }}>
+                  {t('search.popularFailed')}{' '}
+                  <button type="button" onClick={retryPopular} className="underline underline-offset-4 min-h-[44px]" style={{ color: COLORS.actionText }}>{t('search.retry')}</button>
+                </p>
+              )}
           </div>
         )}
       </div>

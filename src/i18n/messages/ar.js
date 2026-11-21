@@ -1427,6 +1427,8 @@ export default {
     notSaved: "غير محفوظ",
     id: "المعرّف {id}",
     mostRated: "الأعلى تقييمًا في المكتبة",
+    popularFailed: "لم تُحمَّل قائمة الأعلى تقييمًا.",
+    retry: "حاول مرة أخرى",
     emptyIntro: "اختر واحدًا، أو ابحث عن أي عطر لترى زجاجته وأكورداته وهرمه والعطور المشابهة.",
     gender: { women: "للنساء", men: "للرجال", unisex: "للنساء والرجال" },
     seasons: { Winter: "شتاء", Spring: "ربيع", Summer: "صيف", Fall: "خريف", Day: "نهار", Night: "ليل" },
