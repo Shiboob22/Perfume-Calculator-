@@ -3,7 +3,8 @@ import { useI18n } from "../../i18n/I18nProvider";
 import { COLORS } from "../../lib/theme";
 import { useEntitlements } from "../../lib/useEntitlements";
 import { limit } from "../../lib/entitlements";
-import { COMPARE_ROWS, PRICES, priceText, yearlyPerMonth } from "../../lib/plansConfig";
+import { COMPARE_ROWS, PRICES, activeOffer, offerText, priceCurrency, priceText, yearlyPerMonth, yearlySavingPct } from "../../lib/plansConfig";
+import { useProfile } from "../../lib/useProfile";
 import { startTrial } from "../../lib/benchApi";
 import Sheet from "../kx/Sheet";
 
@@ -92,6 +93,9 @@ function UpgradeSheet({ open, reason, onClose }) {
   const { t, locale } = useI18n();
   const entitlements = useEntitlements();
   const [billing, setBilling] = useState("yearly");
+  const { profile } = useProfile();
+  const cur = priceCurrency({ locale, currency: profile?.currency });
+  const offer = activeOffer(cur);
   const pro = isPro(entitlements);
   const yearly = billing === "yearly";
 
@@ -103,7 +107,7 @@ function UpgradeSheet({ open, reason, onClose }) {
   const trial = () => start().then((ok) => ok && onClose());
 
   const headline = reason && HEADLINES[reason] ? t(HEADLINES[reason]) : t("upgrade.lead");
-  const yearlyText = t("upgrade.billedYearly", { price: priceText(yearlyPerMonth(), locale) });
+  const yearlyText = t("upgrade.billedYearly", { price: priceText(yearlyPerMonth(cur), locale, cur) });
   const toggle = (on) => ({
     background: on ? COLORS.ink : "transparent", color: on ? COLORS.paper : COLORS.ink,
   });
@@ -117,7 +121,7 @@ function UpgradeSheet({ open, reason, onClose }) {
         </div>
         <div role="group" aria-label={t("upgrade.billing")} className="self-start inline-flex rounded" style={{ border: `1px solid ${COLORS.ink}` }}>
           <button type="button" aria-pressed={!yearly} onClick={() => setBilling("monthly")} className="min-h-[44px] px-4 text-sm" style={toggle(!yearly)}>{t("upgrade.monthly")}</button>
-          <button type="button" aria-pressed={yearly} onClick={() => setBilling("yearly")} className="min-h-[44px] px-4 text-sm" style={toggle(yearly)}>{t("upgrade.yearly")} · {t("upgrade.saveYear")}</button>
+          <button type="button" aria-pressed={yearly} onClick={() => setBilling("yearly")} className="min-h-[44px] px-4 text-sm" style={toggle(yearly)}>{t("upgrade.yearly")} · {t("upgrade.saveYear", { pct: yearlySavingPct(cur) })}</button>
         </div>
 
         <table className="w-full text-sm border-collapse" style={{ border: `1px solid ${COLORS.ink}` }}>
@@ -127,15 +131,16 @@ function UpgradeSheet({ open, reason, onClose }) {
               <th scope="col" className="p-3 text-start align-bottom text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal font-normal" style={{ color: COLORS.dim }}>{t("upgrade.feature")}</th>
               <th scope="col" className="p-3 text-start align-top font-normal" style={{ borderInlineStart: `1px solid ${COLORS.line}` }}>
                 <span className="block text-[13px] font-semibold">{t("plan.names.free")}</span>
-                <span dir="ltr" className="block mt-1 text-[26px] leading-none tabular-nums text-start">{priceText(0, locale)}</span>
+                <span dir="ltr" className="block mt-1 text-[26px] leading-none tabular-nums text-start">{priceText(0, locale, cur)}</span>
               </th>
               <th scope="col" className="p-3 text-start align-top font-normal" style={{ background: COLORS.sand, borderInlineStart: `2px solid ${COLORS.amber}` }}>
                 <span className="block text-[13px] font-semibold" style={{ color: COLORS.actionText }}>{t("plan.names.pro")}</span>
                 <span className="mt-1 flex flex-wrap items-baseline gap-1">
-                  <span dir="ltr" className="text-[26px] leading-none tabular-nums">{priceText(yearly ? PRICES.yearly : PRICES.monthly, locale)}</span>
+                  <span dir="ltr" className="text-[26px] leading-none tabular-nums">{priceText(yearly ? PRICES[cur].yearly : PRICES[cur].monthly, locale, cur)}</span>
                   <span className="text-xs" style={{ color: COLORS.dim }}>{t(yearly ? "upgrade.perYear" : "upgrade.perMonth")}</span>
                 </span>
                 {yearly && <span className="block mt-1 text-[11px]" style={{ color: COLORS.dim }}>{yearlyText}</span>}
+                {offer && <span className="block mt-1.5 text-[12px] font-medium" style={{ color: COLORS.actionText }} data-offer={offer.id}>{offerText(offer, t, locale, cur)}</span>}
               </th>
             </tr>
           </thead>

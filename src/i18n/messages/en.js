@@ -31,6 +31,10 @@ export default {
     pro: "Pro",
     names: { free: "Free", pro: "Pro" },
     earlyAccess: "Pro is in early access and not on sale yet.",
+    offer: {
+      founding: "Founding members: {price} a year for the first {seats}, kept for as long as you stay.",
+      ramadan: "Ramadan and Eid offer: {price} a year, until {date}.",
+    },
     locked: {
       ai: { ask: "Ask is part of Pro." },
       inventory: "Inventory is part of Pro.",
@@ -1102,7 +1106,7 @@ export default {
       cost: "Price every bottle before you pour.",
       reminders: "Reminders are a Pro tool.",
     },
-    billing: "Billing period", monthly: "Monthly", yearly: "Yearly", saveYear: "2 months free",
+    billing: "Billing period", monthly: "Monthly", yearly: "Yearly", saveYear: "save {pct}%",
     perMonth: "/ month", perYear: "/ year", billedYearly: "{price} a month, billed yearly",
     compare: "Free and Pro compared", feature: "Feature",
     rows: {
@@ -1798,6 +1802,8 @@ export default {
       tableTitle: "What each plan includes", batchesRow: "Saved batches", included: "Included", notIncluded: "Not included",
       current: "Available now",
       notOnSale: "Not on sale yet",
+      proPrice: "{monthly} a month, or {yearly} a year (save {pct}%)",
+      payback: "For sellers, one bottle sold pays for a year.",
       features: {
         batches: { unlimited: "Unlimited batch history" },
         inventory: "Inventory with low-stock alerts",

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import BUILT_PLANS from "./plans.json";
+import { PRICES, activeOffer, offerText, priceCurrency, priceText, yearlySavingPct } from "../lib/plansConfig";
 import { IconArrow, IconBalance, IconBell, IconCheck, IconNotebook, IconTile } from "../components/icons";
 
 // Free and Pro side by side, from the `plans` table: the build writes it to
@@ -43,6 +44,8 @@ export default function PlanCards() {
   const plans = useLivePlans();
   const free = plans.find((p) => p.id === "free");
   const pro = plans.find((p) => p.id === "pro");
+  const cur = priceCurrency({ locale });
+  const offer = activeOffer(cur);
   const label = "text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal";
 
   return (
@@ -69,6 +72,11 @@ export default function PlanCards() {
               <span className={`${label} px-2 py-1`} style={{ background: COLORS.oil, color: "#100E0A" }}>{t("site.pricing.notOnSale")}</span>
             </div>
             <h2 className="text-3xl font-medium tracking-[-0.03em] rtl:tracking-normal">{t("plan.names.pro")}</h2>
+            <div data-pro-price>
+              <p className="text-lg">{t("site.pricing.proPrice", { monthly: priceText(PRICES[cur].monthly, locale, cur), yearly: priceText(PRICES[cur].yearly, locale, cur), pct: yearlySavingPct(cur) })}</p>
+              {offer && <p className="mt-2 text-sm font-medium" style={{ color: COLORS.oil }} data-offer={offer.id}>{offerText(offer, t, locale, cur)}</p>}
+              <p className="mt-2 text-sm" style={{ opacity: 0.85 }}>{t("site.pricing.payback")}</p>
+            </div>
             <p className="font-serif" style={{ opacity: 0.85 }}>{t("site.pricing.waitlistLead")}</p>
             {/* A plain link: the public site never loads the auth client. The app
                 asks the visitor to sign in, then opens the waitlist section. */}

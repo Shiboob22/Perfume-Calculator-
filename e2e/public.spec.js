@@ -60,6 +60,13 @@ test("a guide opens the calculator at its example", async ({ page }) => {
 test("pricing links to the Pro waitlist in the app", async ({ page }) => {
   await page.goto("/pricing");
   await expect(page.getByRole("link", { name: en.site.pricing.waitlistCta })).toHaveAttribute("href", "/app/account#pro");
+  // Pro's prices and the founding offer, USD in English and EGP in Arabic, in the prerendered page too.
+  await expect(page.locator("[data-pro-price]")).toContainText("$7 a month, or $59 a year (save 30%)");
+  await expect(page.locator("[data-pro-price]")).toContainText(en.site.pricing.payback);
+  await expect(page.locator("[data-offer=founding]")).toContainText("$35");
+  await page.goto("/ar/pricing");
+  await expect(page.locator("[data-pro-price]")).toContainText("1,199");
+  await expect(page.locator("[data-offer=founding]")).toContainText("699");
 });
 
 test("draft legal pages say so and stay out of search", async ({ page, request }) => {

@@ -124,8 +124,12 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     // Monthly / yearly.
     await upgrade.getByRole("button", { name: m.upgrade.monthly, exact: true }).click();
     await expect(upgrade.getByText(m.upgrade.perMonth)).toBeVisible();
-    await upgrade.getByRole("button", { name: new RegExp(m.upgrade.saveYear) }).click();
+    await upgrade.getByRole("button", { name: new RegExp(m.upgrade.yearly) }).click();
     await expect(upgrade.getByText(m.upgrade.billedYearly.split("{price}")[1].trim())).toBeVisible();
+    // The owner's prices: USD in English, EGP in Arabic, with the founding offer.
+    await expect(upgrade.getByRole("button", { name: new RegExp(m.upgrade.yearly) })).toContainText(locale === "ar" ? "33%" : "30%");
+    await expect(upgrade.locator("thead")).toContainText(locale === "ar" ? "1,199" : "$59");
+    await expect(upgrade.locator("[data-offer=founding]")).toContainText(locale === "ar" ? "699" : "$35");
     await expect(upgrade.getByText(m.upgrade.fine)).toBeVisible();
 
     // The trial: Pro now, the sheet closes and the cost card opens.

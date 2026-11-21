@@ -32,6 +32,10 @@ export default {
     pro: "Pro",
     names: { free: "المجانية", pro: "Pro" },
     earlyAccess: "خطة Pro في مرحلة الوصول المبكر وليست متاحة للشراء بعد.",
+    offer: {
+      founding: "الأعضاء المؤسسون: {price} سنويًا لأول {seats} عضو، ويبقى هذا السعر ما دمت مشتركًا.",
+      ramadan: "عرض رمضان والعيد: {price} سنويًا، حتى {date}.",
+    },
     locked: {
       ai: { ask: "ميزة «اسأل» جزء من خطة Pro." },
       inventory: "المخزون جزء من خطة Pro.",
@@ -1104,7 +1108,7 @@ export default {
       cost: "سعّر كل زجاجة قبل أن تسكب.",
       reminders: "التذكيرات من أدوات خطة Pro.",
     },
-    billing: "مدة الفوترة", monthly: "شهري", yearly: "سنوي", saveYear: "شهران مجانًا",
+    billing: "مدة الفوترة", monthly: "شهري", yearly: "سنوي", saveYear: "وفّر {pct}%",
     perMonth: "/ شهر", perYear: "/ سنة", billedYearly: "{price} شهريًا، تُدفع سنويًا",
     compare: "مقارنة بين الخطة المجانية وPro", feature: "الميزة",
     rows: {
@@ -1800,6 +1804,8 @@ export default {
       tableTitle: "ما تتضمنه كل خطة", batchesRow: "الدفعات المحفوظة", included: "مشمول", notIncluded: "غير مشمول",
       current: "متاحة الآن",
       notOnSale: "غير متاحة للشراء بعد",
+      proPrice: "{monthly} شهريًا، أو {yearly} سنويًا (وفّر {pct}%)",
+      payback: "للبائعين: زجاجة واحدة تُباع تغطي اشتراك سنة كاملة.",
       features: {
         batches: { unlimited: "سجل دفعات بلا حد" },
         inventory: "المخزون مع تنبيهات انخفاض الكمية",
