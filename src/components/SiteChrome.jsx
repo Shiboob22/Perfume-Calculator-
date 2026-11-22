@@ -67,7 +67,8 @@ export function SiteHeader({ zone, active, language, extra, badge, wardrobe = fa
   );
 }
 
-export function SiteFooter({ links }) {
+// `safety={false}` on a page that shows the flammability warning itself (the Bench), so it reads once.
+export function SiteFooter({ links, safety = true }) {
   const { t } = useI18n();
   return (
     <footer className="w-full mt-16" style={{ background: COLORS.inkBand, color: COLORS.onInk }}>
@@ -77,7 +78,7 @@ export function SiteFooter({ links }) {
           <p className="font-serif italic text-lg leading-relaxed max-w-[34em]">{t("site.footer.line")}</p>
         </div>
         <div className="flex flex-col gap-3 text-sm">
-          <p className="flex gap-2 items-start"><IconFlameTriangle size={18} className="mt-0.5" />{t("site.footer.safety")}</p>
+          {safety && <p className="flex gap-2 items-start"><IconFlameTriangle size={18} className="mt-0.5" />{t("site.footer.safety")}</p>}
           <p style={{ opacity: 0.85 }}>{t("site.footer.credit")}</p>
           {links && <div className="flex flex-wrap gap-x-5 gap-y-1">{links}</div>}
           <p style={{ opacity: 0.7 }}>{t("site.footer.rights")}</p>

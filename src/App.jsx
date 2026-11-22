@@ -205,7 +205,7 @@ export default function App() {
         )}
         </Suspense>
       </PageTransition>
-      <SiteFooter />
+      <SiteFooter safety={activeTab !== "calculator"} />
     </div>
         )}
         </OnboardingGate>
