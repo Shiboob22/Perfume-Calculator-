@@ -39,7 +39,7 @@ async function open(page, { locale = "en", path = "/bench", sells = true, theme 
 
 const row = (page, m) => page.getByRole("navigation", { name: m.app.tabsLabel });
 
-test.beforeEach(({}, info) => test.skip(info.project.name === "phone", "wide screens; phones keep the bottom bar"));
+test.skip(({ isMobile }) => isMobile, "wide screens; phones keep the bottom bar");
 
 for (const path of ["/bench", "/journal", "/bench/orders"]) {
   test(`${path}: one menu, one "you are here"`, async ({ page }) => {
