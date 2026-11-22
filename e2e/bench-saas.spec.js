@@ -3,6 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import en from "../src/i18n/messages/en.js";
 import ar from "../src/i18n/messages/ar.js";
 import { USER, json, signIn } from "./helpers.js";
+import { COMPARE_ROWS } from "../src/lib/plansConfig.js";
 
 // The Bench SaaS round, Phase 3, against the production build with a fake
 // session and a fake API: load a saved formula, switch to a blend, add
@@ -116,7 +117,7 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     await expect(upgrade.getByText(m.upgrade.why.blend)).toBeVisible();
     await expect(page.getByRole("textbox", { name: m.calc.blend.nameN.replace("{n}", "4") })).toHaveCount(0);
     // Every comparison row, label PNG and share links ticked on Free too.
-    await expect(upgrade.getByRole("row")).toHaveCount(1 + 9);
+    await expect(upgrade.getByRole("row")).toHaveCount(1 + COMPARE_ROWS.length); // the one Free-and-Pro table (H8)
     await expect(upgrade.getByRole("row", { name: new RegExp(m.upgrade.rows.label) }).getByRole("cell").first()).toHaveText("✓");
     await expect(upgrade.getByRole("row", { name: new RegExp(m.upgrade.rows.share) }).getByRole("cell").first()).toHaveText("✓");
     // Saved formulas: the same on both plans (Free kept what it had, 0034).
@@ -132,7 +133,7 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     await expect(upgrade.getByRole("button", { name: new RegExp(m.upgrade.yearly) })).toContainText(locale === "ar" ? "33%" : "30%");
     await expect(upgrade.locator("thead")).toContainText(locale === "ar" ? "1,199" : "$59");
     await expect(upgrade.locator("[data-offer=founding]")).toContainText(locale === "ar" ? "699" : "$35");
-    await expect(upgrade.getByText(m.upgrade.fine)).toBeVisible();
+    await expect(upgrade.getByText(m.plan.trial.terms)).toBeVisible();
 
     // The trial: Pro now, the sheet closes and the cost card opens.
     await upgrade.getByRole("button", { name: m.plan.trial.start }).click();

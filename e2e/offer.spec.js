@@ -64,7 +64,7 @@ for (const locale of ["en", "ar"]) {
     await expect(sheet.locator("tbody th[scope=row]")).toHaveText(rowNames(m));
     await expect(sheet.getByRole("button", { name: m.plan.trial.start })).toBeVisible();
     await expect(sheet.getByText(m.plan.trial.terms)).toBeVisible();
-    const { violations } = await new AxeBuilder({ page }).include("[role=dialog]").withTags(AXE).analyze();
+    const { violations } = await new AxeBuilder({ page }).include("dialog[open]").withTags(AXE).analyze();
     expect(violations.map((v) => `${v.id} ${v.nodes[0]?.target}`)).toEqual([]);
   });
 }
