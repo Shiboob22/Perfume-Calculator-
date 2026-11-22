@@ -191,7 +191,8 @@ export default function App() {
         )}
         </Suspense>
       </PageTransition>
-      <SiteFooter safety={activeTab !== "calculator"} />
+      {/* The flammability line where blending is talked through (audit M9): Ask; the Bench, Pour along and the Salon carry their own. */}
+      <SiteFooter safety={activeTab === "ask"} />
     </div>
         )}
         </OnboardingGate>
