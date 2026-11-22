@@ -98,7 +98,7 @@ test("phone: the setting is in the More sheet, in Arabic too", async ({ page }, 
   await fakeApi(page, { locale: "ar" });
   await page.goto("/journal");
   await page.getByRole("navigation", { name: ar.app.barLabel }).getByRole("button", { name: ar.app.more }).click();
-  const sheet = page.getByRole("dialog", { name: ar.app.moreTitle });
+  const sheet = page.getByRole("dialog", { name: ar.app.more });
   const g = group(page, ar);
   await expect(sheet.locator("[data-motion-setting]")).toBeVisible();
   await g.getByText(ar.settings.motion.off, { exact: true }).click();

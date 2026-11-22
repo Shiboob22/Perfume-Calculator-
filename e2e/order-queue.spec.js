@@ -323,7 +323,7 @@ test("a seller gets an Orders tab with a ready-to-bottle badge", async ({ page, 
     await expect(nav.getByRole("link")).toHaveCount(4);
     await expect(nav.getByRole("link", { name: THIRD })).toHaveCount(0);
     await nav.getByRole("button", { name: en.app.more }).click();
-    await expect(page.getByRole("dialog", { name: en.app.moreTitle }).getByRole("link", { name: THIRD }).first()).toBeVisible();
+    await expect(page.getByRole("dialog", { name: en.app.more }).getByRole("link", { name: THIRD }).first()).toBeVisible();
     await page.getByRole("button", { name: en.app.moreClose }).click();
   }
   await tab.click();

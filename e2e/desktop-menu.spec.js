@@ -62,7 +62,8 @@ test("the row: the four, the rooms from 1024 px, More with the rest; Esc and a t
   await expect(more).toHaveAttribute("aria-expanded", "false");
   await more.click();
   await expect(more).toHaveAttribute("aria-expanded", "true");
-  for (const name of [en.app.tabs.batches, en.app.tabs.selector, en.app.tabs.inventory, en.app.tabs.ask, en.site.nav.guides, en.site.nav.pricing, en.site.nav.nose]) {
+  // More uses each page's own title (audit M12).
+  for (const name of [en.batches.title, en.selector.title, en.inventory.title, en.chat.title, en.site.compounding.rooms.library.name, en.site.nav.pricing, en.nose.title]) {
     await expect(nav.getByRole("link", { name, exact: true })).toBeVisible();
   }
   await page.keyboard.press("Escape");
@@ -73,7 +74,7 @@ test("the row: the four, the rooms from 1024 px, More with the rest; Esc and a t
   await expect(more).toHaveAttribute("aria-expanded", "false");
   // A room picked from More is marked on More.
   await more.click();
-  await nav.getByRole("link", { name: en.app.tabs.inventory, exact: true }).click();
+  await nav.getByRole("link", { name: en.inventory.title, exact: true }).click();
   await expect(page).toHaveURL(/\/app\/inventory/);
   await expect(more).toHaveAttribute("aria-current", "page");
 });
@@ -84,7 +85,7 @@ test("below 1024 px the rooms move into More", async ({ page }) => {
   const nav = row(page, en);
   await expect(nav.getByRole("link", { name: en.site.nav.atlas, exact: true })).toBeHidden();
   await nav.getByRole("button", { name: en.app.more }).click();
-  await expect(nav.getByRole("link", { name: en.site.nav.atlas, exact: true })).toBeVisible();
+  await expect(nav.getByRole("link", { name: en.atlas.title, exact: true })).toBeVisible();
 });
 
 test("the account menu: Account, language, theme, motion and Sign out", async ({ page }) => {
