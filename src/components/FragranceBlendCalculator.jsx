@@ -129,7 +129,7 @@ function AmountWithUnit({ id, label, unitLabel, value, onChange, unit, onUnitCha
           {units.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
         </select>
       </div>
-      <Stepper label={label} hideLabel inputId={id} value={value} unit={name} onStep={bump} onType={onChange}
+      <Stepper compact label={label} hideLabel inputId={id} value={value} unit={name} onStep={bump} onType={onChange}
         decLabel={t("calc.stepper.batchLess", { step, unit: name })} incLabel={t("calc.stepper.batchMore", { step, unit: name })} />
     </>
   );
@@ -145,7 +145,7 @@ function QuickResult({ clock, shown, t }) {
   const f = useBenchFrame(clock, benchTarget(shown));
   return (
     <div aria-hidden="true" data-quick-result
-      className="md:hidden sticky z-30 -mx-4 -mb-4 sm:-mx-6 sm:-mb-6 mt-6 flex px-4 py-2.5"
+      className="md:hidden sticky z-30 -mx-4 -mb-4 sm:-mx-6 sm:-mb-6 mt-6 flex px-4 py-2"
       style={{ bottom: "calc(60px + env(safe-area-inset-bottom))", background: COLORS.inkBand, color: COLORS.onInk }}>
       <ScaleDisplay variant="bar" decorative rows={[
         { key: "oil", label: t("calc.quick.oil"), grams: f.values[0] },
@@ -731,7 +731,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
   return (
     <div className="w-full max-w-6xl xl:max-w-7xl mx-auto px-4 py-5 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
-      <RoomBeam at={0} className="mb-5 lg:mb-8" />
+      <RoomBeam at={0} className="mb-4 lg:mb-8" />
       <RoomHeader numeral="I" name={t("site.compounding.rooms.bench.name")} title={t("calc.heading")}>
         {/* Until the tour is seen or a first batch is logged; then it lives in the More sheet and Account. */}
         {!tour.seen && !(entitlements.batchesUsed > 0) && <TakeTour onStart={tour.start} t={t} />}
@@ -891,6 +891,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                   type="button"
                   aria-pressed={Number(batchSize) === amt}
                   onClick={() => { setBatchSize(amt); }}
+                  dir="ltr"
                   className="px-1 min-h-[44px] text-sm font-mono tabular-nums border"
                   style={{ 
                     borderColor: Number(batchSize) === amt ? COLORS.actionText : COLORS.line,
