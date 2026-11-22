@@ -24,30 +24,38 @@ import {
 
 const site = (locale, p) => (locale === "ar" ? `/ar${p}` : p);
 
-/** Every place the app can go, in menu order. `cross` = a full page load to the public site. */
+/**
+ * Every place the app can go, in menu order. `label` is the short name on the
+ * bar and the wide row; `title` is the page's own title, used in the More menus;
+ * `group` sorts the More menus into rooms, tools, and plan and help (audit M12).
+ */
 function destinations({ t, locale, flags }) {
   const all = [
     { id: "search", label: t("app.tabs.search"), icon: IconSearch },
     { id: "calculator", label: t("app.tabs.calculator"), icon: IconBalance },
-    flags.nose && { id: "nose", label: t("site.nav.nose"), icon: IconDrop },
+    flags.nose && { id: "nose", label: t("site.nav.nose"), title: t("nose.title"), group: "rooms", icon: IconDrop },
     { id: "journal", label: t("app.tabs.journal"), icon: IconHourglass },
-    { id: "batches", label: t("app.tabs.batches"), icon: IconNotebook },
-    flags.orders && { id: "orders", label: t("orders.title"), icon: IconSteps },
-    { id: "selector", label: t("app.tabs.selector"), icon: IconCompass },
-    { id: "inventory", label: t("app.tabs.inventory"), icon: IconShelf },
-    { id: "ask", label: t("app.tabs.ask"), icon: IconChat },
-    flags.wardrobe && { id: "wardrobe", label: t("site.nav.wardrobe"), icon: IconFlacon },
-    flags.atlas && { id: "atlas", label: t("site.nav.atlas"), icon: IconCrosshair },
-    flags.salon && { id: "salon", label: t("site.nav.salon"), icon: IconBookmark },
-    flags.shop && { id: "shop", label: t("site.nav.shop"), icon: IconCart, href: site(locale, "/shop") },
-    { id: "guides", label: t("site.nav.guides"), icon: IconBook, href: site(locale, "/library") },
-    { id: "pricing", label: t("site.nav.pricing"), icon: IconSeal, href: site(locale, "/pricing") },
-    { id: "account", label: t("account.link"), icon: IconPerson, path: "/app/account" },
+    { id: "batches", label: t("app.tabs.batches"), title: t("batches.title"), group: "tools", icon: IconNotebook },
+    flags.orders && { id: "orders", label: t("orders.title"), group: "tools", icon: IconSteps },
+    { id: "selector", label: t("app.tabs.selector"), title: t("selector.title"), group: "tools", icon: IconCompass },
+    { id: "inventory", label: t("app.tabs.inventory"), title: t("inventory.title"), group: "tools", icon: IconShelf },
+    { id: "ask", label: t("app.tabs.ask"), title: t("chat.title"), group: "tools", icon: IconChat },
+    flags.wardrobe && { id: "wardrobe", label: t("site.nav.wardrobe"), title: t("wardrobe.title"), group: "rooms", icon: IconFlacon },
+    flags.atlas && { id: "atlas", label: t("site.nav.atlas"), title: t("atlas.title"), group: "rooms", icon: IconCrosshair },
+    flags.salon && { id: "salon", label: t("site.nav.salon"), title: t("salon.title"), group: "rooms", icon: IconBookmark },
+    flags.shop && { id: "shop", label: t("site.nav.shop"), group: "rooms", icon: IconCart, href: site(locale, "/shop") },
+    { id: "guides", label: t("site.nav.guides"), title: t("site.compounding.rooms.library.name"), group: "rooms", icon: IconBook, href: site(locale, "/library") },
+    { id: "pricing", label: t("site.nav.pricing"), group: "help", icon: IconSeal, href: site(locale, "/pricing") },
+    { id: "account", label: t("account.link"), group: "help", icon: IconPerson, path: "/app/account" },
     // The Bench's tour, once its link has left the Bench (seen, or a batch logged).
-    { id: "tour", label: t("tour.again"), icon: IconScaleDrop, path: "/bench?tour=1" },
+    { id: "tour", label: t("tour.again"), group: "help", icon: IconScaleDrop, path: "/bench?tour=1" },
   ];
   return all.filter(Boolean);
 }
+
+const GROUPS = ["rooms", "tools", "help"];
+/** The More menus' items by group, in menu order, empty groups left out. */
+const grouped = (items) => GROUPS.map((g) => [g, items.filter((d) => d.group === g)]).filter(([, list]) => list.length);
 
 // Four on the bar: the bench's daily rooms. The Nose takes the third place
 // when it is on; otherwise the Selector does. For a seller ("I sell what I
@@ -126,23 +134,26 @@ export default function AppNav({ active, dueCount, flags: baseFlags, onSignOut }
             })}
             <li className="flex-1 min-w-0">
               <DropMenu label={t("app.more")} icon={IconMore} current={rowMore.some((d) => d.id === active)} data-more>
-                {(close) => (
-                  <ul>
-                    {rowMore.map((d) => {
-                      const I = d.icon;
-                      const on = active === d.id;
-                      return (
-                        <li key={d.id}>
-                          <Dest d={d} to={to(d)} current={on} onClick={close}
-                            className="w-full min-h-[44px] px-4 flex items-center gap-3 text-sm"
-                            style={{ background: on ? COLORS.sand : "transparent", color: COLORS.ink, fontWeight: on ? 600 : 400 }}>
-                            <I size={18} /><span>{d.label}</span>
-                          </Dest>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+                {(close) => grouped(rowMore).map(([g, list], i) => (
+                  <section key={g} aria-labelledby={`more-${g}`} className={i ? "mt-1 pt-1" : undefined} style={i ? { borderTop: `1px solid ${COLORS.line}` } : undefined}>
+                    <h3 id={`more-${g}`} className="px-4 pt-2 pb-1 text-[12px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t(`app.groups.${g}`)}</h3>
+                    <ul>
+                      {list.map((d) => {
+                        const I = d.icon;
+                        const on = active === d.id;
+                        return (
+                          <li key={d.id}>
+                            <Dest d={d} to={to(d)} current={on} onClick={close}
+                              className="w-full min-h-[44px] px-4 flex items-center gap-3 text-sm"
+                              style={{ background: on ? COLORS.sand : "transparent", color: COLORS.ink, fontWeight: on ? 600 : 400 }}>
+                              <I size={18} /><span>{d.title ?? d.label}</span>
+                            </Dest>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
+                ))}
               </DropMenu>
             </li>
           </ul>
@@ -232,32 +243,37 @@ function MoreSheet({ items, active, to, onGo, onSignOut, onClose: close }) {
         className="mo-sheet-panel relative max-h-[85vh] overflow-y-auto motion-safe:animate-[sheetUp_var(--dur-base)_var(--ease-out)]"
         style={{ background: COLORS.paper, borderTop: `1px solid ${COLORS.line}`, paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
-          <h2 id={titleId} className="font-serif italic text-2xl" style={{ color: COLORS.ink }}>{t("app.moreTitle")}</h2>
+          <h2 id={titleId} className="font-serif italic text-2xl" style={{ color: COLORS.ink }}>{t("app.more")}</h2>
           <button ref={closeRef} type="button" onClick={onClose} aria-label={t("app.moreClose")}
             className="inline-flex items-center justify-center w-11 h-11" style={{ color: COLORS.ink }}>
             <IconClose size={22} />
           </button>
         </div>
-        <ul className="grid grid-cols-3 gap-px mx-4" style={{ background: COLORS.line, border: `1px solid ${COLORS.line}` }}>
-          {items.map((d) => {
-            const I = d.icon;
-            const on = active === d.id;
-            return (
-              <li key={d.id}>
-                <Dest d={d} to={to(d)} current={on} onClick={onGo}
-                  className="w-full aspect-[1/0.9] flex flex-col items-center justify-center gap-2 px-1 text-sm text-center"
-                  style={{ background: on ? COLORS.sand : COLORS.card, color: COLORS.ink, fontWeight: on ? 600 : 400 }}>
-                  <I size={28} />
-                  <span className="leading-tight">{d.label}</span>
-                </Dest>
-              </li>
-            );
-          })}
-          {/* Fill the last row so the hairline grid stays whole. */}
-          {Array.from({ length: (3 - (items.length % 3)) % 3 }, (_, i) => (
-            <li key={`fill-${i}`} aria-hidden="true" style={{ background: COLORS.card }} />
-          ))}
-        </ul>
+        {grouped(items).map(([g, list]) => (
+          <section key={g} aria-labelledby={`${titleId}-${g}`} className="mx-4 mb-3">
+            <h3 id={`${titleId}-${g}`} className="mb-1.5 text-[12px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t(`app.groups.${g}`)}</h3>
+            <ul className="grid grid-cols-3 gap-px" style={{ background: COLORS.line, border: `1px solid ${COLORS.line}` }}>
+              {list.map((d) => {
+                const I = d.icon;
+                const on = active === d.id;
+                return (
+                  <li key={d.id}>
+                    <Dest d={d} to={to(d)} current={on} onClick={onGo}
+                      className="w-full aspect-[1/0.9] flex flex-col items-center justify-center gap-2 px-1 text-sm text-center"
+                      style={{ background: on ? COLORS.sand : COLORS.card, color: COLORS.ink, fontWeight: on ? 600 : 400 }}>
+                      <I size={28} />
+                      <span className="leading-tight">{d.title ?? d.label}</span>
+                    </Dest>
+                  </li>
+                );
+              })}
+              {/* Fill the last row so the hairline grid stays whole. */}
+              {Array.from({ length: (3 - (list.length % 3)) % 3 }, (_, k) => (
+                <li key={`fill-${k}`} aria-hidden="true" style={{ background: COLORS.card }} />
+              ))}
+            </ul>
+          </section>
+        ))}
         <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-4">
           <LanguageToggle className="min-h-[44px] text-sm" />
           <ThemeToggle />
