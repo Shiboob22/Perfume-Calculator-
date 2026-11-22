@@ -215,13 +215,15 @@ export default function JournalRoom() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-6 sm:pt-10 flex flex-col gap-6 sm:gap-9 min-h-[100svh]">
-      <div className={phoneList}>
-        <p className="flex items-center gap-3 text-[12px] uppercase tracking-[0.18em] rtl:tracking-normal" style={{ color: COLORS.actionText }}>
+      {/* A batch open on a phone hides the header but keeps the page's h1 for screen readers;
+          `contents` so the hidden header takes no gap in the column. */}
+      <div className={chosen ? "max-lg:contents" : ""}>
+        <p className={`${phoneList} flex items-center gap-3 text-[12px] uppercase tracking-[0.18em] rtl:tracking-normal`} style={{ color: COLORS.actionText }}>
           <span dir="ltr" className="tabular-nums">II</span><span>{t("journal.page.room")}</span>
         </p>
-        <h1 className="mt-2 font-serif text-[clamp(2.25rem,7vw,3.5rem)] leading-[1.05]">{t("journal.page.title")}</h1>
-        <p className="mt-2 max-w-[52ch]" style={{ color: COLORS.inkSoft }}>{t("journal.page.lead")}</p>
-        {can(entitlements, "reminders") && <div className="mt-3"><PushToggle t={t} /></div>}
+        <h1 className={`${chosen ? "max-lg:sr-only " : ""}mt-2 font-serif text-[clamp(2.25rem,7vw,3.5rem)] leading-[1.05]`}>{t("journal.page.title")}</h1>
+        <p className={`${phoneList} mt-2 max-w-[52ch]`} style={{ color: COLORS.inkSoft }}>{t("journal.page.lead")}</p>
+        {can(entitlements, "reminders") && <div className={`${phoneList} mt-3`}><PushToggle t={t} /></div>}
       </div>
 
       {batches === null && <ListSkeleton label={t("app.loading")} rows={5} bar className="max-w-[300px] w-full" />}
