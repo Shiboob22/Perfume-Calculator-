@@ -1141,7 +1141,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 <IconDiamondAlert size={18} /> {t("calc.retry")}
               </button>
             ) : (
-              <button ref={logBtn} type="button" onClick={handleLogBatch} disabled={!fragName.trim() || logStatus === "saving" || !(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
+              <button ref={logBtn} type="button" onClick={handleLogBatch} aria-describedby={fragName.trim() ? undefined : "log-needs-name"} disabled={!fragName.trim() || logStatus === "saving" || !(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
                 className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium disabled:opacity-50"
                 style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}>
                 <IconBookmark size={18} /> {logStatus === "saving" ? t("calc.saving") : t("calc.log")}
@@ -1153,6 +1153,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               {formulas.busy ? t("calc.saving") : t("calc.formulas.save")}
             </button>
           </div>
+          {/* Why Log is greyed out (UI/UX audit M8). */}
+          {!fragName.trim() && logStatus !== "saved" && <p id="log-needs-name" data-log-needs-name className="text-xs mt-2" style={{ color: COLORS.inkSoft }}>{t("calc.logNeedsName")}</p>}
           <FormulaLink f={formulas} onPickVersion={formulas.load} t={t} />
           <p role="status" className="text-xs mt-2 empty:hidden" style={{ color: formulas.status.kind === "error" ? COLORS.danger : COLORS.forest }}>{formulas.status.text}</p>
           <button type="button" onClick={copyRecipe}

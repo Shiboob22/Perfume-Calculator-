@@ -1351,6 +1351,7 @@ export default {
     dateCustom: "Custom date",
     datePast: "Rest and check-ins count from {date}.",
     log: "Log this batch",
+    logNeedsName: "Add a name to log this batch.",
     saving: "Saving…",
     saved: "Saved — added to batch history.",
     history: {"title": "Your batches of this oil", "use": "Use these settings", "poured": "poured {pct}%", "peak": "best on day {day}"},
