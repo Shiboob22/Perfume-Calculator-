@@ -296,9 +296,13 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   // Actions only (and peek() for the tour): the Bench does not re-render when the sheet opens.
   const { open: openUpgrade, close: closeUpgrade, peek: peekUpgrade } = useUpgradeActions();
   const [ethanolPricePerL, setEthanolPricePerL] = useState(draft?.ethanolPricePerL ?? "");
-  const [bottleCost, setBottleCost] = useState(draft?.bottleCost ?? "");
   const [bottles, setBottles] = useState(draft?.bottles ?? "1");
-  const [packagingCost, setPackagingCost] = useState(draft?.packagingCost ?? "");
+  // One per-bottle field for the bottle and its packaging (the cost card's). A
+  // draft from when the bottle had its own field adds the two together.
+  const [packagingCost, setPackagingCost] = useState(() => {
+    const glass = Number(draft?.bottleCost) || 0;
+    return glass > 0 ? String(Math.round((glass + (Number(draft?.packagingCost) || 0)) * 100) / 100) : draft?.packagingCost ?? "";
+  });
   const [labourMinutes, setLabourMinutes] = useState(draft?.labourMinutes ?? "");
   const [labourRate, setLabourRate] = useState(draft?.labourRate ?? "");
   const [salePrice, setSalePrice] = useState(draft?.salePrice ?? "");
@@ -321,14 +325,14 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
   useEffect(() => {
     saveDraft({
-      fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles,
+      fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottles,
       packagingCost, labourMinutes, labourRate, salePrice, currency,
       oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities,
       measuredDensity: measuredDensityValue ?? undefined,
       chosenFamily: chosen.current.family, chosenConc: chosen.current.conc,
       formulaType, blend: blend ?? undefined,
     });
-  }, [fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles,
+  }, [fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottles,
     packagingCost, labourMinutes, labourRate, salePrice, currency,
     oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities, measuredDensityValue, formulaType, blend]);
 
@@ -429,9 +433,9 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     actualOilG,
     actualEthanolG: actualEthG,
     pricePerGram: priceUsed,
-    ...(sellerOn ? { ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice } : {}),
+    ...(sellerOn ? { ethanolPricePerL, bottles, packagingCost, labourMinutes, labourRate, salePrice } : {}),
   }), [batchSize, batchUnit, concPct, densities, oilDensity, priceUsed, actualOilG, actualEthG, sellerOn,
-    ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice]);
+    ethanolPricePerL, bottles, packagingCost, labourMinutes, labourRate, salePrice]);
   // One animation clock for the readout's scale, the flacon and the phone's pinned bar.
   const [clock] = useState(createBenchClock);
   useEffect(() => clock.retarget(benchTarget(result.shown)), [clock, result.shown]);
@@ -513,7 +517,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   useEffect(() => { if (toJournal && !tour.tour) navigate("/journal"); }, [toJournal, tour.tour, navigate]);
 
   const money = (v, digits = 2) => `${v.toFixed(digits)} ${currency}`;
-  const seller = sellerOn ? { ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice, currency } : undefined;
+  const seller = sellerOn ? { ethanolPricePerL, bottles, packagingCost, labourMinutes, labourRate, salePrice, currency } : undefined;
 
   // "Use these settings" from an earlier batch of this oil: a user choice,
   // so a later name match won't change it.
@@ -1201,7 +1205,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           ethPrice={ethanolPricePerL} onEthPrice={setEthanolPricePerL} pack={packagingCost} onPack={setPackagingCost}
           orderLink={ordersOn ? (o) => friendOrderLink({ ...o, locale, name: fragName, family: tierKey, strengthPct: concPct }) : null}>
           {/* What a seller records on the batch (Pro): open for people who sell, folded for everyone else.
-              Ethanol and packaging prices are the card's own fields above. */}
+              Ethanol and the bottle-and-packaging prices are the card's own fields above. */}
           <div data-selling className="pt-4 border-t" style={{ borderColor: COLORS.line }}>
             <label htmlFor="calc-currency" className="block text-[13px] mb-1" style={{ color: COLORS.inkSoft }}>{t("calc.cost.currency")}</label>
             <select id="calc-currency" value={currency} onChange={(e) => setCurrency(e.target.value)}
@@ -1213,7 +1217,6 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               <p className="text-xs mb-3" style={{ color: COLORS.inkSoft }}>{t("calc.selling.hint")}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 items-end">
                 {[
-                  ["calc-bottle-cost", "bottleEach", bottleCost, setBottleCost, "0.01"],
                   ["calc-bottles", "bottles", bottles, setBottles, "1"],
                   ["calc-labour-min", "labourMinutes", labourMinutes, setLabourMinutes, "1"],
                   ["calc-labour-rate", "labourPerHour", labourRate, setLabourRate, "0.01"],

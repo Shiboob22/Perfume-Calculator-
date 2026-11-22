@@ -238,7 +238,7 @@ test("a Pro seller prices a batch and sees profit and margin, with no sideways s
   // Pro asks the oil's price once, in the cost card; the selling fields are under it (folded unless selling).
   await page.getByLabel(en.calc.costCard.oilPrice).fill("2");
   await page.locator("[data-selling-fields] summary").click();
-  await page.getByLabel(en.calc.cost.bottleEach).fill("10");
+  await page.locator("#cost-pack").fill("10");
   await page.getByLabel(en.calc.cost.bottles).fill("2");
   await page.getByLabel(en.calc.cost.salePrice).fill("60");
   await expect(page.getByText(/^Profit:/)).toBeVisible();

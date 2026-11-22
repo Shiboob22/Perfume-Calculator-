@@ -1289,7 +1289,6 @@ export default {
     cost: {
       title: "Cost",
       ethanolPerL: "Ethanol price per litre",
-      bottleEach: "Bottle cost (each)",
       bottles: "Bottles filled",
       perBottle: "Per bottle: {cost}",
       perMl: "Per mL: {cost}",

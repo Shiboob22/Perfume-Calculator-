@@ -1291,7 +1291,6 @@ export default {
     cost: {
       title: "التكلفة",
       ethanolPerL: "سعر الإيثانول لكل لتر",
-      bottleEach: "تكلفة الزجاجة (للواحدة)",
       bottles: "الزجاجات المملوءة",
       perBottle: "لكل زجاجة: {cost}",
       perMl: "لكل مل: {cost}",

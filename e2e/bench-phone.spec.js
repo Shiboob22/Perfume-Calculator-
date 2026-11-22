@@ -94,10 +94,10 @@ test("Pro: prices are asked once, in the cost card; the selling fields are open 
   await page.locator("[data-add-details] summary").click();
   await expect(page.getByLabel(en.calc.pricePerGram)).toHaveCount(0);
   await expect(page.getByLabel(en.calc.costCard.oilPrice)).toHaveCount(1);
-  await expect(page.locator("#calc-eth-price, #calc-packaging")).toHaveCount(0);
+  await expect(page.locator("#calc-eth-price, #calc-packaging, #calc-bottle-cost")).toHaveCount(0); // the bottle is priced once, with its packaging
   await expect(page.locator("[data-selling-fields]")).toHaveAttribute("open", "");
   await page.getByLabel(en.calc.costCard.oilPrice).fill("2");
-  await page.getByLabel(en.calc.cost.bottleEach).fill("10");
+  await page.locator("#cost-pack").fill("10");
   await page.getByLabel(en.calc.cost.salePrice).fill("60");
   await expect(page.getByText(/^Profit:/)).toBeVisible();
 });
