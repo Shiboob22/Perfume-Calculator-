@@ -11,7 +11,7 @@ import { useProfile } from "../lib/useProfile";
 import { useReadyToBottle } from "./orders/OrdersCard";
 import {
   IconBalance, IconBook, IconBookmark, IconCart, IconChat, IconClose, IconCompass, IconCrosshair, IconDrop,
-  IconExit, IconFlacon, IconMore, IconNotebook, IconPerson, IconSeal, IconSearch, IconShelf, IconHourglass, IconSteps,
+  IconExit, IconFlacon, IconMore, IconNotebook, IconPerson, IconScaleDrop, IconSeal, IconSearch, IconShelf, IconHourglass, IconSteps,
 } from "./icons";
 
 // The app's own navigation. Phones get one bar at the bottom, in reach of
@@ -40,6 +40,8 @@ function destinations({ t, locale, flags }) {
     { id: "guides", label: t("site.nav.guides"), icon: IconBook, href: site(locale, "/library") },
     { id: "pricing", label: t("site.nav.pricing"), icon: IconSeal, href: site(locale, "/pricing") },
     { id: "account", label: t("account.link"), icon: IconPerson, path: "/app/account" },
+    // The Bench's tour, once its link has left the Bench (seen, or a batch logged).
+    { id: "tour", label: t("tour.again"), icon: IconScaleDrop, path: "/bench?tour=1" },
   ];
   return all.filter(Boolean);
 }

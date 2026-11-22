@@ -11,7 +11,7 @@ import { EXPORT_TABLES, toCsv, toJson } from "../lib/exportData";
 import { UNIT_LABELS } from "../lib/calcPrefill";
 import { CURRENCIES } from "../lib/currencies";
 import { signOut } from "../lib/auth";
-import { Reveal, TextReveal } from "../motion";
+import { Link, Reveal, TextReveal } from "../motion";
 
 function download(name, text, type) {
   const url = URL.createObjectURL(new Blob([text], { type }));
@@ -282,6 +282,9 @@ function Preferences({ profile, save, locale, setLocale }) {
       )}
       {/* On this device only (M6), so it is not one of the saved profile fields. */}
       <div className="py-3 border-b" style={{ borderColor: COLORS.line }}><MotionSetting /></div>
+      <div className={row} style={{ borderColor: COLORS.line }}>
+        <Link to="/bench?tour=1" data-tour-again className="min-h-[44px] inline-flex items-center underline underline-offset-4" style={{ color: COLORS.actionText }}>{t("tour.again")}</Link>
+      </div>
       <p role="status" className="text-xs mt-2 min-h-[1rem]" style={{ color: status === "failed" ? COLORS.danger : COLORS.inkSoft }}>
         {status === "saved" && t("account.prefs.saved")}
         {status === "failed" && t("account.prefs.saveFailed")}
