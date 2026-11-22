@@ -85,12 +85,13 @@ test("journal and sharing work against the real API and database", async ({ page
   }).select().single();
   if (error) throw error;
 
-  await signIn(page, "/bench/journal");
-  const due = page.getByRole("region", { name: "1 batch is due for a check-in" });
-  await due.getByLabel(/How does/).fill("Softer now");
-  await due.getByRole("radio", { name: "4 of 5" }).check({ force: true });
-  await due.getByRole("button", { name: en.journal.save }).click();
-  await expect(due).toBeHidden();
+  // Notes are written in the Journal (audit M3): the batch is 91 days in, so Month 3's note is open.
+  await signIn(page, `/journal?batch=${batch.id}`);
+  const block = page.locator("[data-note-block]");
+  await block.getByLabel(en.journal.page.note).fill("Softer now");
+  await block.getByRole("button", { name: "4 of 5" }).click();
+  await block.getByRole("button", { name: en.journal.page.save }).click();
+  await expect(block.getByRole("status")).toContainText(en.journal.page.saved);
   const { data: checkins } = await admin.from("batch_checkins").select("*").eq("batch_id", batch.id);
   expect(checkins).toMatchObject([{ user_id: user.id, scheduled_day: 90, rating: 4, note: "Softer now" }]);
 

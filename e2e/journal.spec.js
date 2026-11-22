@@ -74,31 +74,17 @@ async function fakeApi(page, { plan = "pro", offline = false } = {}) {
   return sent;
 }
 
-test("journal: a due check-in is saved from the batch records, with the badge on the Journal tab", async ({ page }) => {
+test("journal: Batch history keeps the records and points to the Journal for notes (no second check-in strip)", async ({ page }) => {
   await signIn(page);
-  const sent = await fakeApi(page);
+  await fakeApi(page);
   await page.goto("/bench/journal");
-
-  // The app tabs: the framed row on wide screens, the bottom bar on phones.
+  // The app tabs: the framed row on wide screens, the bottom bar on phones. The badge counts the Journal's notes.
   const tab = page.getByRole("navigation", { name: new RegExp(`^(${en.app.tabsLabel}|${en.app.barLabel})$`) }).getByRole("link", { name: new RegExp(en.app.tabs.journal) });
-  await expect(tab).toContainText("1 check-in due");
-  const due = page.getByRole("region", { name: "1 batch is due for a check-in" });
-  await expect(due).toBeVisible();
-  await expect(due).toContainText("Woody, day 91 of rest");
-
-  await due.getByLabel(/How does .*Oud Nights.* smell today\?/).fill("Softer, the oud is coming forward");
-  // Tap the star the user sees (the label); the radio itself is a visually hidden 1px input.
-  const four = due.getByRole("radio", { name: "4 of 5" });
-  await four.locator("xpath=..").click();
-  await expect(four).toBeChecked();
-  await due.getByRole("button", { name: en.journal.save }).click();
-
-  await expect(page.getByRole("status").filter({ hasText: en.journal.saved })).toBeAttached();
-  await expect(due).toBeHidden();
-  await expect(tab).not.toContainText("check-in due");
-  expect(sent.checkins).toHaveLength(1);
-  expect(sent.checkins[0]).toMatchObject({ batch_id: WOODY, day: 91, scheduled_day: 90, rating: 4, note: "Softer, the oud is coming forward" });
-  await expect(page.getByText("Softer, the oud is coming forward")).toBeVisible();
+  await expect(tab).toBeVisible();
+  await expect(page.getByText("Oud Nights").first()).toBeVisible();
+  await expect(page.getByRole("region", { name: /due for a check-in/ })).toHaveCount(0);
+  await page.locator("[data-notes-in-journal]").click();
+  await expect(page).toHaveURL(/\/journal$/);
 });
 
 test("journal: Pro sees the pattern, worded as the user's own history", async ({ page }) => {
@@ -118,20 +104,6 @@ test("journal: Free sees that a pattern is ready, not the day", async ({ page })
   await expect(patterns).toContainText("Your Woody pattern is ready.");
   await expect(patterns).not.toContainText("day 26");
   await expect(patterns.getByRole("link", { name: en.journal.pattern.waitlist })).toHaveAttribute("href", "/app/account");
-});
-
-test("journal: a check-in made offline waits on the device", async ({ page }) => {
-  await signIn(page);
-  const sent = await fakeApi(page, { offline: true });
-  await page.goto("/bench/journal");
-  const due = page.getByRole("region", { name: "1 batch is due for a check-in" });
-  await due.getByLabel(/How does/).fill("Offline note");
-  await due.getByRole("button", { name: en.journal.save }).click();
-  await expect(page.getByRole("status").filter({ hasText: en.journal.queued })).toBeAttached();
-  const queued = await page.evaluate(() => JSON.parse(localStorage.getItem("sh-outbox") || "[]"));
-  expect(queued).toHaveLength(1);
-  expect(queued[0].checkin).toMatchObject({ batch_id: WOODY, scheduled_day: 90, note: "Offline note" });
-  expect(sent.checkins).toHaveLength(0);
 });
 
 test("sharing: publish with a public note, then stop sharing", async ({ page }) => {

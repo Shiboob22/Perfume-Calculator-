@@ -580,6 +580,7 @@ export default {
     },
   },
   batches: {
+    notesInJournal: "Write notes in the Journal",
     again: "Make again",
     recipe: "Recipe: {label}",
     openJournal: "Open in the Journal",
@@ -776,7 +777,7 @@ export default {
       ready: "Ready",
       progress: "Day {n} of 90",
       batches: "Batches",
-      records: "All batch records",
+      records: "Batch history",
       backToList: "All batches",
       newBadge: "New",
       meta: "{size} {unit} at {pct}% ({tier})",

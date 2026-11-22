@@ -13,11 +13,10 @@ import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import EmptyState from "./EmptyState";
 import { refusedBatches, dismissRefused } from "../lib/outbox";
-import { Stagger, useNavigate } from "../motion";
+import { Link, Stagger, useNavigate } from "../motion";
 import { can, journalOpen } from "../lib/entitlements";
-import { dueNow, JOURNAL_CHANGED, notesDue, restTimeline } from "../lib/journal";
+import { JOURNAL_CHANGED, notesDue, restTimeline } from "../lib/journal";
 import { IconHourglass, IconSeal, IconDrop, IconToday, IconPlus } from "./icons";
-import JournalDue from "./journal/JournalDue";
 import JournalPatterns from "./journal/JournalPatterns";
 import BatchJournal from "./journal/BatchJournal";
 import SharePanel from "./SharePanel";
@@ -186,7 +185,6 @@ export default function Batches() {
   // Free keeps notes on its newest 3 batches, Pro on all (journalOpen); the
   // check-in API refuses the rest on its own.
   const journalIds = journalOpen(entitlements, batches);
-  const due = loading || error ? [] : dueNow(batches.filter((b) => journalIds.has(b.id)));
 
   // The nav badge counts what the Journal room counts (notesDue: milestones in
   // the last week), not this page's older check-in schedule; keep it in step.
@@ -436,7 +434,8 @@ export default function Batches() {
         </div>
       )}
 
-      <JournalDue due={due} onDone={handleCheckIn} />
+      {/* Notes live in the Journal (audit M3, owner 2026-11-22): this page keeps the records, not a second check-in strip. */}
+      <p className="mb-6 text-sm"><Link to="/journal" data-notes-in-journal className="underline underline-offset-4 inline-flex min-h-[44px] items-center" style={{ color: COLORS.actionText }}>{t("batches.notesInJournal")}</Link></p>
       {!loading && batches.length > 0 && <JournalPatterns version={patternsVersion} />}
 
       {loading && <ListSkeleton label={t("app.loading")} rows={5} bar className="max-w-[22rem]" />}

@@ -581,6 +581,7 @@ export default {
     },
   },
   batches: {
+    notesInJournal: "اكتب الملاحظات في الدفتر",
     again: "اخلطها مجددًا",
     recipe: "الوصفة: {label}",
     openJournal: "افتحها في الدفتر",
@@ -778,7 +779,7 @@ export default {
       ready: "جاهز",
       progress: "اليوم {n} من 90",
       batches: "الدفعات",
-      records: "كل سجلات الدفعات",
+      records: "سجل الدفعات",
       backToList: "كل الدفعات",
       newBadge: "جديد",
       meta: "{size} {unit} بتركيز {pct}% (\u2068{tier}\u2069)",
