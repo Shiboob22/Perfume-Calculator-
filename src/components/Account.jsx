@@ -12,6 +12,7 @@ import { UNIT_LABELS } from "../lib/calcPrefill";
 import { CURRENCIES } from "../lib/currencies";
 import { signOut } from "../lib/auth";
 import { Link, Reveal, TextReveal } from "../motion";
+import { useStartTrial } from "./plan/Upgrade";
 
 function download(name, text, type) {
   const url = URL.createObjectURL(new Blob([text], { type }));
@@ -103,6 +104,9 @@ export default function Account({ user }) {
 
 function Waitlist() {
   const { t, locale } = useI18n();
+  const entitlements = useEntitlements();
+  const { start, busy: trialBusy, message } = useStartTrial();
+  const trialUsed = Boolean(entitlements.trial?.used);
   const [joined, setJoined] = useState(null); // null while loading
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -123,6 +127,15 @@ function Waitlist() {
 
   return (
     <Section id="pro" title={t("account.waitlist.title")}>
+      {/* The trial first, the waitlist after (audit H8: the Pricing page sends visitors here). */}
+      <div data-trial className="mb-6">
+        <button type="button" onClick={start} disabled={trialBusy || trialUsed}
+          className="px-5 min-h-[48px] rounded text-sm font-semibold disabled:opacity-50" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+          {trialUsed ? t("plan.trial.used") : trialBusy ? t("upgrade.starting") : t("plan.trial.start")}
+        </button>
+        <p className="text-sm mt-2" style={{ color: COLORS.inkSoft }}>{t("plan.trial.terms")}</p>
+        <p role="status" className="text-sm mt-2 empty:hidden" style={{ color: COLORS.actionText }}>{message}</p>
+      </div>
       <p className="text-sm mb-4" style={{ color: COLORS.inkSoft }}>{t("account.waitlist.lead")}</p>
       {joined
         ? <p role="status" className="text-sm font-semibold" style={{ color: COLORS.actionText }}>✓ {t("account.waitlist.joined")}</p>
