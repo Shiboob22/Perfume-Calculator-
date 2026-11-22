@@ -65,6 +65,8 @@ export default function Nose() {
             </button>
           ))}
         </div>
+        {/* The Nose is the way in; the Selector is the guided route to the same catalog (audit H4). */}
+        <p className="text-sm"><Link to="/app/selector" className="underline underline-offset-4 inline-flex min-h-[44px] items-center" style={{ color: COLORS.actionText }}>{t("nose.quizLink")}</Link></p>
       </form>
 
       <div aria-live="polite" className="mt-6">

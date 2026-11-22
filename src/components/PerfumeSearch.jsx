@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { carry } from '../motion';
+import { carry, Link } from '../motion';
+import { flagOn } from '../lib/flags';
 import { searchCatalog, browseCatalog, fetchPopular, fetchSimilar, forgetCatalogAnswers } from '../lib/searchApi';
 
 // How often an open, visible Search screen re-reads the catalog.
@@ -617,6 +618,10 @@ export function PerfumeSearch({ onSelectPerfume }) {
           <p className="text-sm leading-relaxed" style={{ color: COLORS.inkSoft }}>
             {t('search.intro')}
           </p>
+        )}
+        {/* Search is the quick lookup; the Atlas is where houses, notes and perfumers are browsed (audit H4). */}
+        {!browse && query.trim().length < 2 && flagOn('atlas') && (
+          <p className="text-sm"><Link to="/atlas" className="underline underline-offset-4 inline-flex min-h-[44px] items-center" style={{ color: COLORS.actionText }}>{t('search.atlasLink')}</Link></p>
         )}
 
         {!browse && query.trim().length >= 2 && results.length === 0 && !loading && (

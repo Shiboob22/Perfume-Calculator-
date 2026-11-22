@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { COLORS } from "../lib/theme";
+import { Link } from "../motion";
+import { flagOn } from "../lib/flags";
 import { useI18n } from "../i18n/I18nProvider";
 import { QUESTIONS, QUESTION_COUNT } from "../lib/selector/questions";
 import { clearDraft, LAST_STEP, loadDraft, saveDraft } from "../lib/selector/draft";
@@ -46,6 +48,9 @@ export default function Selector({ onSelectPerfume }) {
         <h1 ref={heading} tabIndex={-1} className="font-serif italic text-4xl mt-2 outline-none" style={{ color: COLORS.ink }}>{t("selector.title")}</h1>
         <p className="mt-4 max-w-prose text-lg leading-relaxed" style={{ color: COLORS.inkSoft }}>{t("selector.intro.lede")}</p>
         <p className="mt-3 max-w-prose text-sm" style={{ color: COLORS.dim }}>{t("selector.intro.note")}</p>
+        {flagOn("nose") && (
+          <p className="mt-2 text-sm"><Link to="/nose" className="underline underline-offset-4 inline-flex min-h-[44px] items-center" style={{ color: COLORS.actionText }}>{t("selector.intro.noseLink")}</Link></p>
+        )}
         <div className="mt-6 flex flex-wrap items-center gap-3">
           {hasDraft ? (
             <>
