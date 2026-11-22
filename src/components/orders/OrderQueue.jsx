@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { COLORS, SHAPE } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { errorText } from "../../i18n/errorText";
+import { loadFailure, recall, remember } from "../../lib/lastLoaded";
 import { useProfile } from "../../lib/useProfile";
 import RoomHeader from "../kx/RoomHeader";
 import Card from "../kx/Card";
@@ -61,11 +62,26 @@ export default function OrderQueue() {
     if (searchParams.get("new") === "1") setSearchParams({}, { replace: true }); // a reload doesn't open it again
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // A failed load says "No connection" when offline and keeps the list from
+  // earlier in this visit if there is one (audit M5); back online, it tries again.
+  const loadOrders = useCallback(() => {
+    listOrders().then((list) => { remember("orders", list); setRows(list); setError(null); }).catch((e) => {
+      const why = loadFailure();
+      const earlier = recall("orders");
+      if (earlier) { setRows((cur) => cur ?? earlier); setError(t(why === "offline" ? "app.load.staleOffline" : "app.load.staleFailed")); return; }
+      setRows([]);
+      setError(why === "offline" ? t("app.load.offline") : errorText(t, e));
+    });
+  }, [t]);
   useEffect(() => {
-    listOrders().then(setRows).catch((e) => { setRows([]); setError(errorText(t, e)); });
+    window.addEventListener("online", loadOrders);
+    return () => window.removeEventListener("online", loadOrders);
+  }, [loadOrders]);
+  useEffect(() => {
+    loadOrders();
     listRecipes().then(setRecipes).catch(() => {});
     listInventory().then(setInventory).catch(() => {});
-  }, [t]);
+  }, [loadOrders]);
 
   const options = useMemo(() => scentOptions(recipes, inventory), [recipes, inventory]);
   const plan = useMemo(() => planMixes((rows || []).map((r) => toPlanOrder(r, { recipes })), stockMap(inventory)), [rows, recipes, inventory]);

@@ -4,6 +4,7 @@ import { Link, startNav, useFlip, useNavigate } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { listBatches } from "../../lib/fragranceApi";
+import { loadFailure, recall, remember } from "../../lib/lastLoaded";
 import { toggleRemind } from "../../lib/benchApi";
 import { saveNote, TAGS } from "../../lib/journalNotes";
 import { useEntitlements } from "../../lib/useEntitlements";
@@ -98,16 +99,30 @@ export default function JournalRoom() {
   const navigate = useNavigate();
   const location = useLocation();
   const [batches, setBatches] = useState(null); // null = loading
-  const [loadError, setLoadError] = useState(false);
+  // A failed load says why ("offline" | "failed"); with a list from earlier in
+  // this visit the page shows that one and says it is not fresh (audit M5).
+  const [loadError, setLoadError] = useState(null);
+  const [stale, setStale] = useState(null);
   const [now] = useState(() => new Date());
 
   const load = useCallback(() => {
-    setLoadError(false);
+    setLoadError(null);
     listBatches(100)
-      .then(setBatches)
-      .catch(() => setLoadError(true));
+      .then((list) => { setBatches(list); setStale(null); })
+      .catch(() => {
+        const why = loadFailure();
+        const earlier = recall("journal");
+        if (earlier) { setBatches((cur) => cur ?? earlier); setStale(why); } else setLoadError(why);
+      });
   }, []);
   useEffect(load, [load]);
+  useEffect(() => { if (batches) remember("journal", batches); }, [batches]);
+  // Back online: try again by itself.
+  useEffect(() => {
+    if (!loadError && !stale) return undefined;
+    window.addEventListener("online", load);
+    return () => window.removeEventListener("online", load);
+  }, [loadError, stale, load]);
 
   const pro = can(entitlements, "fullJournal");
 
@@ -188,13 +203,29 @@ export default function JournalRoom() {
   };
   const replaceBatch = (next) => setBatches((list) => list.map((x) => (x.id === next.id ? { ...x, ...next } : x)));
 
+  // The room's header, the same whether or not the list loaded (audit M5, M16).
+  // A batch open on a phone hides it but keeps the page's h1 for screen readers;
+  // `contents` so the hidden header takes no gap in the column.
+  const header = (
+    <div className={chosen ? "max-lg:contents" : ""}>
+      <p className={`${phoneList} flex items-center gap-3 text-[12px] uppercase tracking-[0.18em] rtl:tracking-normal`} style={{ color: COLORS.actionText }}>
+        <span dir="ltr" className="tabular-nums">II</span><span>{t("journal.page.room")}</span>
+      </p>
+      <h1 className={`${chosen ? "max-lg:sr-only " : ""}mt-2 font-serif text-[clamp(2.25rem,7vw,3.5rem)] leading-[1.05]`}>{t("journal.page.title")}</h1>
+      <p className={`${phoneList} mt-2 max-w-[52ch]`} style={{ color: COLORS.inkSoft }}>{t("journal.page.lead")}</p>
+      {!loadError && can(entitlements, "reminders") && <div className={`${phoneList} mt-3`}><PushToggle t={t} /></div>}
+    </div>
+  );
+  const retry = <button type="button" onClick={load} className="min-h-[44px] underline" style={{ color: COLORS.actionText }}>{t("journal.page.retry")}</button>;
+
   if (loadError) {
     return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-10">
-        {/* The room keeps its name when the list can't load (UI/UX audit M16). */}
-        <h1 className="mb-4 font-serif text-[clamp(2.25rem,7vw,3.5rem)] leading-[1.05]">{t("journal.page.title")}</h1>
-        <p role="alert">{t("journal.page.loadFailed")}</p>
-        <button type="button" onClick={load} className="mt-3 min-h-[44px] underline" style={{ color: COLORS.actionText }}>{t("journal.page.retry")}</button>
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-6 sm:pt-10 flex flex-col gap-6 sm:gap-9 min-h-[100svh]">
+        {header}
+        <div data-load-error={loadError}>
+          <p role="alert">{loadError === "offline" ? t("app.load.offline") : t("journal.page.loadFailed")}</p>
+          <div className="mt-2">{retry}</div>
+        </div>
       </div>
     );
   }
@@ -216,16 +247,12 @@ export default function JournalRoom() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-6 sm:pt-10 flex flex-col gap-6 sm:gap-9 min-h-[100svh]">
-      {/* A batch open on a phone hides the header but keeps the page's h1 for screen readers;
-          `contents` so the hidden header takes no gap in the column. */}
-      <div className={chosen ? "max-lg:contents" : ""}>
-        <p className={`${phoneList} flex items-center gap-3 text-[12px] uppercase tracking-[0.18em] rtl:tracking-normal`} style={{ color: COLORS.actionText }}>
-          <span dir="ltr" className="tabular-nums">II</span><span>{t("journal.page.room")}</span>
+      {header}
+      {stale && (
+        <p role="status" data-stale={stale} className={`${phoneList} flex flex-wrap items-center gap-x-3 text-sm`} style={{ color: COLORS.inkSoft }}>
+          <span>{stale === "offline" ? t("app.load.staleOffline") : t("app.load.staleFailed")}</span>{retry}
         </p>
-        <h1 className={`${chosen ? "max-lg:sr-only " : ""}mt-2 font-serif text-[clamp(2.25rem,7vw,3.5rem)] leading-[1.05]`}>{t("journal.page.title")}</h1>
-        <p className={`${phoneList} mt-2 max-w-[52ch]`} style={{ color: COLORS.inkSoft }}>{t("journal.page.lead")}</p>
-        {can(entitlements, "reminders") && <div className={`${phoneList} mt-3`}><PushToggle t={t} /></div>}
-      </div>
+      )}
 
       {batches === null && <ListSkeleton label={t("app.loading")} rows={5} bar className="max-w-[300px] w-full" />}
 

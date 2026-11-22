@@ -13,6 +13,8 @@ export default {
   },
   app: {
     tabsLabel: "Sections",
+    // A list that could not load or refresh (audit M5).
+    load: { offline: "No connection. Check it and try again.", staleOffline: "No connection. This is the list from earlier in this visit.", staleFailed: "Couldn't refresh. This is the list from earlier in this visit." },
     barLabel: "App menu",
     more: "More",
     accountMenu: "Account and settings",
