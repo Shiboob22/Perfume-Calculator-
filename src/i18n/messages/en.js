@@ -13,6 +13,7 @@ export default {
     tabsLabel: "Sections",
     barLabel: "App menu",
     more: "More",
+    accountMenu: "Account and settings",
     moreTitle: "More rooms",
     moreClose: "Close the menu",
     loading: "Loading…",

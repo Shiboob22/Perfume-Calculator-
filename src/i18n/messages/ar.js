@@ -14,6 +14,7 @@ export default {
     tabsLabel: "الأقسام",
     barLabel: "قائمة التطبيق",
     more: "المزيد",
+    accountMenu: "الحساب والإعدادات",
     moreTitle: "غرف أخرى",
     moreClose: "أغلق القائمة",
     loading: "جارٍ التحميل…",

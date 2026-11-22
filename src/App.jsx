@@ -5,14 +5,13 @@ import { flagOn } from "./lib/flags";
 import { tabFromPath, tabPath } from "./routes";
 import RenameNotice from "./components/kx/RenameNotice";
 import { SiteFooter, SiteHeader } from "./components/SiteChrome";
-import AppNav from "./components/AppNav";
+import AppNav, { AccountMenu } from "./components/AppNav";
 import PerfumeSearch from "./components/PerfumeSearch";
 import { COLORS } from "./lib/theme";
 import { surfaceCss } from "./lib/surfaces";
 import AuthGate from "./components/AuthGate";
 import { signOut } from "./lib/auth";
 import { useI18n, hasLocalChoice } from "./i18n/I18nProvider";
-import LanguageToggle from "./components/LanguageToggle";
 import ProLocked from "./components/ProLocked";
 import { EntitlementsProvider, useEntitlements } from "./lib/useEntitlements";
 import { ProfileProvider, useProfile, needsOnboarding } from "./lib/useProfile";
@@ -151,22 +150,9 @@ export default function App() {
           <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
         ) : (
         <div className="kx-bench-top min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0" style={{ backgroundColor: COLORS.paper }}>
-      <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "journal" || tab === "batches" ? "journal" : tab === "orders" ? "calculator" : tab === "wardrobe" ? "wardrobe" : tab === "atlas" ? "atlas" : tab === "salon" ? "salon" : tab === "nose" ? "nose" : undefined}
-        wardrobe={wardrobeOn} atlas={atlasOn} salon={salonOn} nose={noseOn} shop={shopOn}
-        language={<LanguageToggle />}
-        badge={<PlanBadge />}
-        extra={<>
-          <button type="button" onClick={() => navigate("/app/account")}
-            className="text-sm hover:underline underline-offset-4 min-h-[44px]"
-            style={{ color: tab === "account" ? COLORS.forest : COLORS.inkSoft }}
-            aria-current={tab === "account" ? "page" : undefined}>
-            {t("account.link")}
-          </button>
-          <button type="button" onClick={() => signOut()} className="text-sm hover:underline underline-offset-4 min-h-[44px]" style={{ color: COLORS.inkSoft }}>
-            {t("app.signOut")}
-          </button>
-        </>} />
-      <AppNav active={activeTab ?? tab ?? null} tabs={TABS} dueCount={dueCount}
+      <SiteHeader zone="app" badge={<PlanBadge />}
+        extra={<AccountMenu current={tab === "account"} onSignOut={() => signOut()} />} />
+      <AppNav active={activeTab ?? tab ?? null} dueCount={dueCount}
         flags={{ wardrobe: wardrobeOn, atlas: atlasOn, salon: salonOn, nose: noseOn, shop: shopOn, orders: ordersOn }}
         onSignOut={() => signOut()} />
 

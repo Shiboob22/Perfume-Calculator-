@@ -9,6 +9,7 @@ import ThemeToggle from "./ThemeToggle";
 import MotionSetting from "./MotionSetting";
 import { useProfile } from "../lib/useProfile";
 import { useReadyToBottle } from "./orders/OrdersCard";
+import { useMinWidth } from "../lib/useMinWidth";
 import {
   IconBalance, IconBook, IconBookmark, IconCart, IconChat, IconClose, IconCompass, IconCrosshair, IconDrop,
   IconExit, IconFlacon, IconMore, IconNotebook, IconPerson, IconScaleDrop, IconSeal, IconSearch, IconShelf, IconHourglass, IconSteps,
@@ -17,7 +18,9 @@ import {
 // The app's own navigation. Phones get one bar at the bottom, in reach of
 // the thumb at the bench: four rooms and More, which opens a sheet with the
 // rest (other tabs, flagged rooms, guides, pricing, account and settings).
-// Wider screens keep the site header and get the tabs as one framed row.
+// Wider screens get one framed row: the same four, the rooms from 1024 px,
+// and More as a drop-down; account and settings are the header's AccountMenu
+// (audit H3: the site menu and a second tab grid used to sit on top of each other).
 
 const site = (locale, p) => (locale === "ar" ? `/ar${p}` : p);
 
@@ -50,13 +53,8 @@ function destinations({ t, locale, flags }) {
 // when it is on; otherwise the Selector does. For a seller ("I sell what I
 // blend" in Account) Orders takes that place and the Nose moves to More.
 const PRIMARY = (flags) => ["search", "calculator", flags.seller ? "orders" : flags.nose ? "nose" : "selector", "journal"];
-
-/** The wide screens' tab row: a seller gets Orders after the Calculator. */
-export function tabRow(tabs, seller) {
-  if (!seller || tabs.includes("orders")) return tabs;
-  const i = tabs.indexOf("calculator");
-  return [...tabs.slice(0, i + 1), "orders", ...tabs.slice(i + 1)];
-}
+// On the wide row from 1024 px, after the four; below that they sit in More.
+const ROOMS = ["atlas", "salon", "wardrobe"];
 
 function DueBadge({ count, t, label = "journal.tabBadge" }) {
   if (!count) return null;
@@ -74,12 +72,11 @@ function DueBadge({ count, t, label = "journal.tabBadge" }) {
  * @param {{ active: string | null, tabs: string[], dueCount: number, flags: Record<string, boolean>,
  *   onSignOut: () => void }} p
  */
-export default function AppNav({ active, tabs: baseTabs, dueCount, flags: baseFlags, onSignOut }) {
+export default function AppNav({ active, dueCount, flags: baseFlags, onSignOut }) {
   const { t, locale } = useI18n();
   const { profile } = useProfile() ?? {};
   const seller = Boolean(baseFlags.orders && profile?.sells);
   const flags = { ...baseFlags, seller };
-  const tabs = tabRow(baseTabs, seller);
   const readyCount = useReadyToBottle(seller);
   const badgeFor = (id) => (id === "journal" ? <DueBadge count={dueCount} t={t} />
     : id === "orders" ? <DueBadge count={readyCount} t={t} label="orders.tabBadge" /> : null);
@@ -91,6 +88,10 @@ export default function AppNav({ active, tabs: baseTabs, dueCount, flags: baseFl
   const primary = primaryIds.map((id) => all.find((d) => d.id === id)).filter(Boolean);
   const rest = all.filter((d) => !primaryIds.includes(d.id));
   const moreActive = rest.some((d) => d.id === active);
+  // The wide row: the same four, then the rooms when there is room, then More (account lives in the header).
+  const roomsOnRow = useMinWidth(1024);
+  const row = [...primary, ...(roomsOnRow ? rest.filter((d) => ROOMS.includes(d.id)) : [])];
+  const rowMore = rest.filter((d) => d.id !== "account" && !row.includes(d));
 
   // Leaving the page closes the sheet.
   useEffect(() => { setOpen(false); }, [pathname]);
@@ -101,29 +102,49 @@ export default function AppNav({ active, tabs: baseTabs, dueCount, flags: baseFl
 
   return (
     <>
-      {/* Wide screens: the tabs as one framed row under the site header. */}
-      <div className="hidden md:block max-w-3xl mx-auto px-8 pt-6">
+      {/* Wide screens: one framed row of rooms under the header, More at its end. */}
+      <div className="hidden md:block max-w-5xl mx-auto px-8 pt-6">
         <nav aria-label={t("app.tabsLabel")}>
-          <ul className="flex flex-wrap" style={{ border: `1px solid ${COLORS.line}` }}>
-            {tabs.map((id) => {
-              const d = all.find((x) => x.id === id);
-              const on = active === id;
+          <ul className="flex" style={{ border: `1px solid ${COLORS.line}` }}>
+            {row.map((d) => {
+              const on = active === d.id;
               const I = d.icon;
               return (
-                <li key={id} className="flex-1 min-w-[7.5rem]" style={{ borderInlineEnd: `1px solid ${COLORS.line}` }}>
+                <li key={d.id} className="flex-1 min-w-0" style={{ borderInlineEnd: `1px solid ${COLORS.line}` }}>
                   <Dest d={d} to={to(d)} current={on}
                     className={`mo-press relative w-full min-h-[48px] px-3 inline-flex items-center justify-center gap-2 text-sm whitespace-nowrap transition-colors ${SHAPE.control}`}
                     style={{ color: on ? COLORS.paper : COLORS.inkSoft }}>
                     {/* The active tab's plate is its own element so a route change can slide it (src/motion). */}
                     <span aria-hidden="true" data-mo-ind="tab" data-on={on ? "" : undefined} className="absolute inset-0" style={{ background: on ? COLORS.ink : "transparent" }} />
                     <I size={18} accent={on ? COLORS.oil : undefined} className="relative" />
-                    <span className="relative">{d.label}</span>
+                    <span className="relative truncate">{d.label}</span>
                     {/* In the corner, out of the flow: a badge that arrives with the data moves nothing (motion M3). */}
-                    {badgeFor(id) && <span className="absolute top-1 end-1">{badgeFor(id)}</span>}
+                    {badgeFor(d.id) && <span className="absolute top-1 end-1">{badgeFor(d.id)}</span>}
                   </Dest>
                 </li>
               );
             })}
+            <li className="flex-1 min-w-0">
+              <DropMenu label={t("app.more")} icon={IconMore} current={rowMore.some((d) => d.id === active)} data-more>
+                {(close) => (
+                  <ul>
+                    {rowMore.map((d) => {
+                      const I = d.icon;
+                      const on = active === d.id;
+                      return (
+                        <li key={d.id}>
+                          <Dest d={d} to={to(d)} current={on} onClick={close}
+                            className="w-full min-h-[44px] px-4 flex items-center gap-3 text-sm"
+                            style={{ background: on ? COLORS.sand : "transparent", color: COLORS.ink, fontWeight: on ? 600 : 400 }}>
+                            <I size={18} /><span>{d.label}</span>
+                          </Dest>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </DropMenu>
+            </li>
           </ul>
         </nav>
       </div>
@@ -248,5 +269,69 @@ function MoreSheet({ items, active, to, onGo, onSignOut, onClose: close }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * A drop-down under its button (wide screens): More on the row, and the
+ * header's account menu. Esc, a tap outside or leaving the page closes it.
+ */
+function DropMenu({ label, icon: I, current = false, bare = false, children, ...rest }) {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  const box = useRef(null);
+  const btn = useRef(null);
+  const { pathname } = useLocation();
+  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const down = (e) => { if (!box.current?.contains(e.target)) setOpen(false); };
+    const key = (e) => { if (e.key === "Escape") { setOpen(false); btn.current?.focus(); } };
+    document.addEventListener("pointerdown", down);
+    document.addEventListener("keydown", key);
+    return () => { document.removeEventListener("pointerdown", down); document.removeEventListener("keydown", key); };
+  }, [open]);
+  const on = current || open;
+  return (
+    <div ref={box} className="relative h-full" {...rest}>
+      <button ref={btn} type="button" aria-expanded={open} aria-controls={id} aria-current={current ? "page" : undefined}
+        onClick={() => setOpen((v) => !v)}
+        className={bare
+          ? "inline-flex items-center gap-2 min-h-[44px] text-sm hover:underline underline-offset-4"
+          : `mo-press relative w-full h-full min-h-[48px] px-3 inline-flex items-center justify-center gap-2 text-sm whitespace-nowrap ${SHAPE.control}`}
+        style={bare ? { color: current ? COLORS.forest : COLORS.inkSoft } : { color: on ? COLORS.ink : COLORS.inkSoft, background: on ? COLORS.sand : "transparent", fontWeight: current ? 600 : 400 }}>
+        <I size={18} /><span>{label}</span>
+      </button>
+      <div id={id} hidden={!open} className="absolute top-full end-0 z-50 mt-1 min-w-[15rem] py-2"
+        style={{ background: COLORS.paper, border: `1px solid ${COLORS.line}`, boxShadow: "0 8px 24px rgba(0,0,0,.12)" }}>
+        {children(() => setOpen(false))}
+      </div>
+    </div>
+  );
+}
+
+/** The header's menu on wide screens: Account, language, theme, motion and Sign out (phones have them in More). */
+export function AccountMenu({ current, onSignOut }) {
+  const { t } = useI18n();
+  return (
+    <DropMenu label={t("app.accountMenu")} icon={IconPerson} current={current} bare data-account-menu>
+      {(close) => (
+        <div className="flex flex-col">
+          <Link to="/app/account" onClick={close} aria-current={current ? "page" : undefined}
+            className="min-h-[44px] px-4 flex items-center gap-3 text-sm" style={{ color: COLORS.ink, fontWeight: current ? 600 : 400 }}>
+            <IconPerson size={18} />{t("account.link")}
+          </Link>
+          <div className="px-4 py-2 flex flex-wrap items-center gap-x-5 gap-y-1" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+            <LanguageToggle className="min-h-[44px] text-sm" />
+            <ThemeToggle />
+          </div>
+          <MotionSetting compact className="px-4 pb-2" />
+          <button type="button" onClick={() => { close(); onSignOut(); }}
+            className="min-h-[44px] px-4 flex items-center gap-3 text-sm text-start" style={{ color: COLORS.inkSoft, borderTop: `1px solid ${COLORS.line}` }}>
+            <IconExit size={18} />{t("app.signOut")}
+          </button>
+        </div>
+      )}
+    </DropMenu>
   );
 }

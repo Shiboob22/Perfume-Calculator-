@@ -40,7 +40,9 @@ export function SiteHeader({ zone, active, language, extra, badge, wardrobe = fa
           : <Link to={site(locale, "/")} aria-label={t("site.nav.home")} className="me-auto"><BrandMark brand={t("brand")} sub={t("brandTagline")} signature={t("brandSignature")} /></Link>}
         {/* The plan badge stays visible on phones, where the menu is in the bottom bar. */}
         {badge && <div className="md:order-last">{badge}</div>}
-        <nav aria-label={t("site.nav.main")} className={`${inApp ? "hidden md:flex" : "flex"} items-center gap-x-6 gap-y-1 flex-wrap -mx-1 px-1`}>
+        {/* In the app the rooms are AppNav's row; the header keeps the account menu (audit H3). */}
+        {inApp ? <div className="hidden md:flex items-center">{extra}</div> : (
+        <nav aria-label={t("site.nav.main")} className="flex items-center gap-x-6 gap-y-1 flex-wrap -mx-1 px-1">
           <NavLink to={site(locale, "/library")} cross={inApp} active={active === "guides"} icon={IconBook}>{t("site.nav.guides")}</NavLink>
           <NavLink to="/bench" cross={!inApp} active={active === "calculator"} icon={IconBalance}>{t("site.nav.calculator")}</NavLink>
           <NavLink to={locale === "ar" ? "/ar/journal" : "/journal"} cross={!inApp} active={active === "journal"} icon={IconHourglass}>{t("site.nav.journal")}</NavLink>
@@ -62,6 +64,7 @@ export function SiteHeader({ zone, active, language, extra, badge, wardrobe = fa
           <ThemeToggle />
           {extra}
         </nav>
+        )}
       </div>
     </header>
   );
