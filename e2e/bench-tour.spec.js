@@ -134,8 +134,9 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     expect(await page.evaluate(() => localStorage.getItem("kyphira.benchTourSeen"))).toBe("1");
     await page.evaluate(() => localStorage.removeItem("kyphira.benchTourSeen"));
     await page.reload();
-    await expect(page.getByRole("button", { name: m.tour.take })).toBeVisible();
+    await expect(page.locator("[data-tour=sheet]")).toBeVisible();
     await page.waitForTimeout(1200);
+    await expect(page.getByRole("button", { name: m.tour.take })).toHaveCount(0); // seen: the link lives in More and Account now
     await expect(card(page)).toHaveCount(0); // the server says seen
   });
 }
@@ -153,7 +154,9 @@ test("from the link, in Blend and another mode: Escape skips and puts the blend,
   await page.waitForTimeout(1000);
   await expect(card(page)).toHaveCount(0); // seen: no start by itself
 
-  await page.getByRole("button", { name: en.tour.take }).click();
+  // Seen: started again from Account (the More sheet on phones); the Bench keeps its draft.
+  await page.goto("/app/account");
+  await page.getByRole("link", { name: en.tour.again }).click();
   await expect(card(page)).toHaveAttribute("data-tour-card", "sheet");
   // The arrows step (focus is not in a field).
   await page.keyboard.press("ArrowRight");
