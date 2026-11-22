@@ -54,6 +54,8 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     await open(page, locale);
     const save = page.getByRole("button", { name: m.journal.page.save, exact: true });
     await expect(save).toBeVisible();
+    // The header is hidden on a phone's batch screen, but the page keeps its h1 for screen readers.
+    await expect(page.getByRole("heading", { level: 1, name: m.journal.page.title })).toHaveCount(1);
     if (process.env.MEASURE) console.log(`[measure] ${locale} ${info.project.name} height=${await page.evaluate(() => document.documentElement.scrollHeight)} saveBottom=${Math.round((await save.boundingBox()).y + (await save.boundingBox()).height)} ${JSON.stringify(await page.evaluate(() => Object.fromEntries([["h2", "#journal-batch"], ["remind", "[aria-pressed] svg"], ["timeline", "[data-node]"], ["note", "[data-note-block]"], ["textarea", "[data-note-block] textarea"], ["save", "[data-note-block] button:last-of-type"]].map(([k, q]) => { const r = document.querySelector(q)?.getBoundingClientRect(); return [k, r ? [Math.round(r.top), Math.round(r.bottom)] : null]; }))))}`);
     if (process.env.SHOT_DIR) await page.screenshot({ path: `${process.env.SHOT_DIR}/journal-batch__${locale}__${info.project.name}.png`, fullPage: true });
     // Before every section that follows, in reading order.
