@@ -308,6 +308,8 @@ test("a batch logged without prices says so", async ({ page }) => {
 // with a badge for the orders ready to bottle today.
 // The bar's third room without Orders: the Nose when its flag is on, else the Selector.
 const THIRD = new RegExp(`^(${en.site.nav.nose}|${en.app.tabs.selector})$`);
+// In More the same room carries its page title (audit M12).
+const THIRD_TITLE = new RegExp(`^(${en.nose.title}|${en.selector.title})$`);
 const navOf = (page, isMobile) => page.getByRole("navigation", { name: isMobile ? en.app.barLabel : en.app.tabsLabel });
 const READY = { id: "r", user_id: USER.id, buyer_name: "Sara", scent_text: "Oud Nights", family: "fresh", size_ml: 50, strength_pct: 25, status: "resting", group_mode: "mix", batch_id: "b-1", batches: { batch_no: 71, blend_date: "2026-01-01" } };
 
@@ -323,7 +325,7 @@ test("a seller gets an Orders tab with a ready-to-bottle badge", async ({ page, 
     await expect(nav.getByRole("link")).toHaveCount(4);
     await expect(nav.getByRole("link", { name: THIRD })).toHaveCount(0);
     await nav.getByRole("button", { name: en.app.more }).click();
-    await expect(page.getByRole("dialog", { name: en.app.more }).getByRole("link", { name: THIRD }).first()).toBeVisible();
+    await expect(page.getByRole("dialog", { name: en.app.more }).getByRole("link", { name: THIRD_TITLE }).first()).toBeVisible();
     await page.getByRole("button", { name: en.app.moreClose }).click();
   }
   await tab.click();
