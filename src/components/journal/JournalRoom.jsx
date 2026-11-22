@@ -13,6 +13,7 @@ import { notesDue, todayFor, JOURNAL_CHANGED, READY_SEEN_KEY, readyMomentDue, ma
 import { makeAgainHref } from "../../lib/oilHistory";
 import { useProfile } from "../../lib/useProfile";
 import { flagOn } from "../../lib/flags";
+import { useMinWidth } from "../../lib/useMinWidth";
 import { listOrders } from "../../lib/ordersApi";
 import { TIER_COLORS, TIERS } from "../../lib/tiers";
 import { UNIT_LABELS } from "../../lib/calcPrefill";
@@ -312,7 +313,7 @@ export default function JournalRoom() {
             </aside>
             <div className={`flex-[1_1_100%] lg:flex-1 min-w-0 ${phoneRecord}`} data-journal-record>
               <button type="button" onClick={backToList} data-journal-back
-                className="lg:hidden mb-4 inline-flex items-center gap-2 min-h-[44px] text-sm underline underline-offset-4" style={{ color: COLORS.actionText }}>
+                className="lg:hidden mb-2 inline-flex items-center gap-2 min-h-[44px] text-sm underline underline-offset-4" style={{ color: COLORS.actionText }}>
                 <span aria-hidden="true" className="rtl:-scale-x-100">←</span>{t("journal.page.backToList")}
               </button>
             <BatchDetail key={b.id} b={b} day={dayOf(b)} pro={pro} canRemind={can(entitlements, "reminders")}
@@ -328,6 +329,7 @@ export default function JournalRoom() {
 
 function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised, dateAt, metaOf, onChange, onDeleted, t }) {
   const notes = notesByMilestone(b.batch_checkins);
+  const fold = !useMinWidth(1024);
   const reachedAt = MILESTONES[milestoneIndex(day)].k;
   const [ms, setMs] = useState(reachedAt);
   const m = MILESTONES.find((x) => x.k === ms) ?? MILESTONES[0];
@@ -370,6 +372,23 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised,
     onChange({ id: b.id, batch_checkins: [...list, checkin] });
   }
 
+  // The bell: in the header on wide screens; on phones after the note, which is the page's job (audit H5).
+  const reminder = (
+    <button type="button" onClick={remind} aria-pressed={remindOn} disabled={remindBusy}
+      className="min-h-[44px] px-3.5 inline-flex items-center gap-2 text-sm rounded"
+      style={{ border: `1px solid ${remindOn ? COLORS.verdigris : COLORS.ink}`, background: remindOn ? COLORS.verdigris : "transparent", color: remindOn ? COLORS.paper : COLORS.ink }}>
+      <IconBell size={16} />
+      {!canRemind && <><Lock size={12} /><span className="sr-only">{t("plan.names.pro")}</span></>}
+      <span>{remindOn ? t("journal.page.reminded") : t("journal.page.remind")}</span>
+    </button>
+  );
+  const reminderNote = (
+    <>
+      <p role="status" className="mt-2 text-xs empty:hidden" style={{ color: COLORS.inkSoft }}>{remindMsg}</p>
+      {askPro && !canRemind && <ProCard title={t("journal.page.remindPro")} body={t("journal.page.remindBody")} t={t} />}
+    </>
+  );
+
   return (
     <section aria-labelledby="journal-batch" className="min-w-0 p-[18px] sm:p-7 rounded" style={{ background: COLORS.card, border: `1px solid ${COLORS.ink}` }}>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -386,19 +405,12 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised,
               : t("journal.page.readyOn", { date: dateAt(b, 90) })}
           </p>
         </div>
-        <button type="button" onClick={remind} aria-pressed={remindOn} disabled={remindBusy}
-          className="min-h-[44px] px-3.5 inline-flex items-center gap-2 text-sm rounded"
-          style={{ border: `1px solid ${remindOn ? COLORS.verdigris : COLORS.ink}`, background: remindOn ? COLORS.verdigris : "transparent", color: remindOn ? COLORS.paper : COLORS.ink }}>
-          <IconBell size={16} />
-          {!canRemind && <><Lock size={12} /><span className="sr-only">{t("plan.names.pro")}</span></>}
-          <span>{remindOn ? t("journal.page.reminded") : t("journal.page.remind")}</span>
-        </button>
+        {!fold && reminder}
       </div>
-      <p role="status" className="mt-2 text-xs empty:hidden" style={{ color: COLORS.inkSoft }}>{remindMsg}</p>
-      {askPro && !canRemind && <ProCard title={t("journal.page.remindPro")} body={t("journal.page.remindBody")} t={t} />}
+      {!fold && reminderNote}
 
       {/* The rest timeline: five milestones, filled up to today. */}
-      <div className="mt-7" role="group" aria-label={t("journal.page.timeline")}>
+      <div className="mt-5 lg:mt-7" role="group" aria-label={t("journal.page.timeline")}>
         <p className="sr-only">{t("journal.page.today", { n: day })}</p>
         <div className="relative">
           <div aria-hidden="true" className="absolute top-[18px] h-[3px]" style={{ insetInlineStart: "10%", insetInlineEnd: "10%", background: COLORS.line }}>
@@ -436,14 +448,8 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised,
         </div>
       </div>
 
-      <MaturationCurve checkins={b.batch_checkins} t={t} />
-      <OilOverlay batches={oilBatches} selectedId={b.id} locked={!canCompare} t={t}
-        lockedCard={<ProCard title={t("journal.page.oil.proTitle")} body={t("journal.page.oil.proBody")} t={t} />} />
-      <BatchCompare batches={oilBatches} selectedId={b.id} locked={!canCompare} t={t}
-        lockedCard={<ProCard title={t("journal.page.cmp.proTitle")} body={t("journal.page.cmp.proBody")} t={t} />} />
-      <BatchRecord b={b} onChange={onChange} onDeleted={onDeleted} promised={promised} readyOn={dateAt(b, 90)} />
-
-      <div className="mt-7 pt-5" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+      {/* The milestone's note first: the reminder, the badge and Smell today all send people here to write it (audit H5). */}
+      <div data-note-block className="mt-5 pt-4 lg:mt-7 lg:pt-5" style={{ borderTop: `1px solid ${COLORS.line}` }}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-serif text-xl">{t(`journal.page.milestones.${m.k}`)} · {dateAt(b, m.days)}</h3>
           <button type="button" onClick={() => setCompareOn((v) => !v)} aria-expanded={compareOn}
@@ -453,16 +459,25 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised,
         </div>
         {m.days > day
           ? <p className="mt-3 text-sm" style={{ color: COLORS.inkSoft }}>{t("journal.page.future", { date: dateAt(b, m.days) })}</p>
-          : <NoteEditor key={`${b.id}:${m.k}`} b={b} m={m} day={day} note={notes[m.k]} onSaved={saved} pro={pro} t={t} />}
+          : <NoteEditor key={`${b.id}:${m.k}`} b={b} m={m} day={day} note={notes[m.k]} onSaved={saved} pro={pro} compact={fold} t={t} />}
         {compareOn && (
           <Compare notes={notes} withNotes={withNotes} b={b} dateAt={dateAt} t={t} />
         )}
       </div>
+      {fold && <div data-reminder className="mt-5">{reminder}{reminderNote}</div>}
+
+      {/* On phones the rest folds away under its titles. */}
+      <MaturationCurve checkins={b.batch_checkins} fold={fold} t={t} />
+      <OilOverlay batches={oilBatches} selectedId={b.id} locked={!canCompare} fold={fold} t={t}
+        lockedCard={<ProCard title={t("journal.page.oil.proTitle")} body={t("journal.page.oil.proBody")} t={t} />} />
+      <BatchCompare batches={oilBatches} selectedId={b.id} locked={!canCompare} fold={fold} t={t}
+        lockedCard={<ProCard title={t("journal.page.cmp.proTitle")} body={t("journal.page.cmp.proBody")} t={t} />} />
+      <BatchRecord b={b} onChange={onChange} onDeleted={onDeleted} promised={promised} readyOn={dateAt(b, 90)} fold={fold} />
     </section>
   );
 }
 
-function NoteEditor({ b, m, day, note, onSaved, t }) {
+function NoteEditor({ b, m, day, note, onSaved, compact = false, t }) {
   const [text, setText] = useState(note?.note ?? "");
   const [rating, setRating] = useState(note?.rating ?? 0);
   const [tags, setTags] = useState(() => [...(note?.tags ?? [])]);
@@ -486,10 +501,10 @@ function NoteEditor({ b, m, day, note, onSaved, t }) {
 
   const id = `journal-note-${m.k}`;
   return (
-    <div className="mt-4 flex flex-col gap-4">
+    <div className={`flex flex-col ${compact ? "mt-3 gap-3" : "mt-4 gap-4"}`}>
       <div className="flex flex-col gap-1.5">
         <label htmlFor={id} className="text-sm" style={{ color: COLORS.inkSoft }}>{t("journal.page.note")}</label>
-        <textarea dir="auto" id={id} rows={3} maxLength={280} value={text} onChange={(e) => { setText(e.target.value); setStatus(null); }}
+        <textarea dir="auto" id={id} rows={compact ? 2 : 3} maxLength={280} value={text} onChange={(e) => { setText(e.target.value); setStatus(null); }}
           placeholder={t("journal.page.notePh")} className="px-3 py-2 rounded border text-base" style={{ borderColor: COLORS.field, background: COLORS.cardHi, color: COLORS.ink, resize: "vertical" }} />
       </div>
       <div role="group" aria-label={t("journal.page.rating")} className="flex flex-wrap items-center gap-2">

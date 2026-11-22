@@ -12,6 +12,7 @@ import { makeAgainHref } from "../../lib/oilHistory";
 import { currencyLabel } from "../../lib/currencies";
 import BatchEdit from "../BatchEdit";
 import SharePanel from "../SharePanel";
+import JournalSection from "./JournalSection";
 
 // The batch's record inside the Journal room (J5), so the bottle has one
 // home: what was poured, the notes written at the bench, and every action
@@ -19,7 +20,7 @@ import SharePanel from "../SharePanel";
 // delete. The components are the same ones that page uses.
 const r2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 
-export default function BatchRecord({ b, onChange, onDeleted, promised = 0, readyOn = "" }) {
+export default function BatchRecord({ b, onChange, onDeleted, promised = 0, readyOn = "", fold = false }) {
   const { t, locale } = useI18n();
   const entitlements = useEntitlements();
   const [confirming, setConfirming] = useState(false);
@@ -50,8 +51,7 @@ export default function BatchRecord({ b, onChange, onDeleted, promised = 0, read
   }
 
   return (
-    <section data-record aria-labelledby="journal-record" className="mt-7 pt-5" style={{ borderTop: `1px solid ${COLORS.line}` }}>
-      <h3 id="journal-record" className="font-serif text-xl">{t("journal.page.record.title")}</h3>
+    <JournalSection name="record" id="journal-record" title={t("journal.page.record.title")} fold={fold} className="mt-7 pt-5" style={{ borderTop: `1px solid ${COLORS.line}` }}>
       {promised > 0 && (
         <p data-promised className="mt-2 text-sm font-medium" style={{ color: COLORS.actionText }}>
           {t("journal.page.record.promised", { count: promised, date: readyOn })}
@@ -101,6 +101,6 @@ export default function BatchRecord({ b, onChange, onDeleted, promised = 0, read
       </div>
       <p role="status" className="mt-2 text-sm empty:hidden" style={{ color: COLORS.actionText }}>{status}</p>
       {error && <p role="alert" className="mt-2 text-sm" style={{ color: COLORS.danger }}>{error}</p>}
-    </section>
+    </JournalSection>
   );
 }

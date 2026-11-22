@@ -3,6 +3,7 @@ import { Link } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { oilOverlay, bestOf, tierFor, STRENGTH_TIERS } from "../../lib/calc";
+import JournalSection from "./JournalSection";
 
 // "Your batches of this oil" (Journal J3, Pro): every batch of the same
 // fragrance on one axis, a line per batch, told apart by colour and dash by
@@ -19,7 +20,7 @@ const LOOK = [
 const lookOf = (pct) => LOOK[Math.max(0, STRENGTH_TIERS.findIndex((x) => x.name === tierFor(pct).name))];
 const no = (b) => String(b.no).padStart(3, "0");
 
-export default function OilOverlay({ batches, selectedId, locked, lockedCard, t }) {
+export default function OilOverlay({ batches, selectedId, locked, lockedCard, fold = false, t }) {
   const { locale } = useI18n();
   const rtl = locale === "ar";
   const curves = useMemo(() => oilOverlay(batches, selectedId, { ...BOX, rtl }), [batches, selectedId, rtl]);
@@ -30,8 +31,7 @@ export default function OilOverlay({ batches, selectedId, locked, lockedCard, t 
   const label = (b) => t("journal.page.oil.who", { no: no(b), pct: b.pct, tier: tierFor(b.pct).name });
 
   return (
-    <section data-oil aria-labelledby="journal-oil" className="mt-7">
-      <h3 id="journal-oil" className="font-serif text-xl">{t("journal.page.oil.title")}</h3>
+    <JournalSection name="oil" id="journal-oil" title={t("journal.page.oil.title")} fold={fold}>
       {locked ? (
         lockedCard
       ) : (
@@ -77,6 +77,6 @@ export default function OilOverlay({ batches, selectedId, locked, lockedCard, t 
           </ul>
         </>
       )}
-    </section>
+    </JournalSection>
   );
 }

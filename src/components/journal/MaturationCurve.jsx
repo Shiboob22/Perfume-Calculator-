@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { buildCurve, MIN_CURVE_NOTES } from "../../lib/calc";
+import JournalSection from "./JournalSection";
 
 // A batch's own ratings drawn against rest day (Journal J3). The geometry is
 // buildCurve() in lib/calc/curve.ts; this draws it: ink line, a dot per rated
@@ -13,7 +14,7 @@ import { buildCurve, MIN_CURVE_NOTES } from "../../lib/calc";
 // as their history.
 const BOX = { width: 600, height: 150, pad: { top: 14, right: 18, bottom: 26, left: 18 } };
 
-export default function MaturationCurve({ checkins, t }) {
+export default function MaturationCurve({ checkins, fold = false, t }) {
   const { locale } = useI18n();
   const rtl = locale === "ar";
   const curve = useMemo(() => buildCurve(checkins, { ...BOX, rtl }), [checkins, rtl]);
@@ -26,8 +27,7 @@ export default function MaturationCurve({ checkins, t }) {
   if (!points.length) return null;
 
   return (
-    <section data-curve aria-labelledby="journal-curve" className="mt-7">
-      <h3 id="journal-curve" className="font-serif text-xl">{t("journal.page.curve.title")}</h3>
+    <JournalSection name="curve" id="journal-curve" title={t("journal.page.curve.title")} fold={fold}>
       <p className="mt-1 text-sm" style={{ color: COLORS.inkSoft }}>
         {!enough
           ? t("journal.page.curve.few", { have: points.length, need: MIN_CURVE_NOTES, count: points.length })
@@ -62,6 +62,6 @@ export default function MaturationCurve({ checkins, t }) {
           </li>
         ))}
       </ul>
-    </section>
+    </JournalSection>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { COLORS } from "../../lib/theme";
 import { summarizeBatch } from "../../lib/calc";
+import JournalSection from "./JournalSection";
 
 // Two batches side by side (Journal J4, Pro): strength, size, when poured,
 // how far each has rested, where each rated best, how many notes and the
@@ -9,7 +10,7 @@ import { summarizeBatch } from "../../lib/calc";
 const none = "—";
 const no = (n) => String(n).padStart(3, "0");
 
-export default function BatchCompare({ batches, selectedId, locked, lockedCard, t }) {
+export default function BatchCompare({ batches, selectedId, locked, lockedCard, fold = false, t }) {
   const me = batches.find((x) => x.id === selectedId);
   const others = useMemo(() => batches
     .filter((x) => x.id !== selectedId)
@@ -24,8 +25,7 @@ export default function BatchCompare({ batches, selectedId, locked, lockedCard, 
   const col = (b) => { const s = summarizeBatch(b); return { b, s }; };
 
   return (
-    <section data-compare aria-labelledby="journal-compare" className="mt-7">
-      <h3 id="journal-compare" className="font-serif text-xl">{t("journal.page.cmp.title")}</h3>
+    <JournalSection name="compare" id="journal-compare" title={t("journal.page.cmp.title")} fold={fold}>
       {locked ? lockedCard : (
         <>
           <div className="mt-2 flex flex-col gap-1.5 max-w-md">
@@ -79,6 +79,6 @@ export default function BatchCompare({ batches, selectedId, locked, lockedCard, 
           })()}
         </>
       )}
-    </section>
+    </JournalSection>
   );
 }
