@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import en from "../src/i18n/messages/en.js";
 import ar from "../src/i18n/messages/ar.js";
 import { FEATURES } from "../src/lib/entitlements.js";
-import { USER, json, signIn } from "./helpers.js";
+import { USER, json, signIn, unfold } from "./helpers.js";
 
 // The Journal's maturation curve, "your batches of this oil" (J3) the batch compare (J4) and the batch record (J5), in
 // English and Arabic, light and dark: axe on both sections, no overflow, and
@@ -45,6 +45,7 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
         return json(route, { patterns: {}, locked: false });
       });
       await page.goto(`${locale === "ar" ? "/ar" : ""}/journal?batch=${id(7)}`);
+      await unfold(page);
       const curve = page.locator("[data-curve]");
       const oil = page.locator("[data-oil]");
       await expect(curve.locator("[data-curve-svg]")).toBeVisible();

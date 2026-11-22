@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import en from "../src/i18n/messages/en.js";
 import ar from "../src/i18n/messages/ar.js";
 import { FEATURES } from "../src/lib/entitlements.js";
-import { USER, json, signIn } from "./helpers.js";
+import { USER, json, signIn, unfold } from "./helpers.js";
 
 // The Journal room (Bench SaaS Phase 5), against the production build with a
 // fake session and a fake API: a batch logged on the bench shows up resting
@@ -255,6 +255,7 @@ test("the curve: a plain line before three rated notes, then the drawing, its pe
     batch(6, "Santal Soir", "woody", 40, [["d1", 0, "Raw.", 2, ["harsh"]], ["w1", 7, "Calmer.", 3, ["rounder"]], ["w2", 14, "Warm and round.", 5, ["rounder", "sweeter"]], ["m1", 30, "A touch flatter.", 4, ["fading"]]]),
   ] });
   await page.goto("/journal?batch=" + id(4));
+  await unfold(page);
   const p = en.journal.page;
   const curve = page.locator("[data-curve]");
 
@@ -263,6 +264,8 @@ test("the curve: a plain line before three rated notes, then the drawing, its pe
   await expect(curve.locator("[data-curve-svg]")).toHaveCount(0);
 
   await page.goto("/journal?batch=" + id(6));
+
+  await unfold(page);
   await expect(curve.locator("[data-curve-svg]")).toBeVisible();
   await expect(curve.locator("[data-curve-svg] circle")).toHaveCount(5); // four dots and the ringed peak
   await expect(curve).toContainText("rated best at Week 2 (5 of 5)");
@@ -284,6 +287,7 @@ test("your batches of this oil: Pro sees them on one curve and which rated best;
   await signIn(page);
   await fakeApi(page, { batches: rows() });
   await page.goto("/journal?batch=" + id(7));
+  await unfold(page);
   const oil = page.locator("[data-oil]");
   await expect(oil).toContainText("Of your 2 batches of this oil, No. 007 at 25% (EDP Intense) rated best, at Week 1 (5 of 5).");
   await expect(oil.locator("[data-oil-svg] path")).toHaveCount(2);
@@ -299,15 +303,18 @@ test("your batches of this oil: Pro sees them on one curve and which rated best;
   await expect(page).toHaveURL(/\/bench\?size=50&unit=ml&conc=25&family=woody&name=oud\+nights&best=7:7$/);
   await expect(page.locator("[data-best-from]")).toHaveText("Your best of this oil was No. 007, rested 7 days.");
   await page.goto("/journal?batch=" + id(7));
+  await unfold(page);
 
   // A batch of another oil has no overlay.
   await page.goto("/journal?batch=" + id(5));
+  await unfold(page);
   await expect(page.locator("[data-oil]")).toHaveCount(0);
 
   const free = await browser.newPage();
   await signIn(free);
   await fakeApi(free, { plan: "free", batches: rows() });
   await free.goto("/journal?batch=" + id(7));
+  await unfold(free);
   await expect(free.locator("[data-oil] [data-pro-card]")).toContainText(en.journal.page.oil.proBody);
   await expect(free.locator("[data-oil-svg]")).toHaveCount(0);
 });
@@ -321,6 +328,7 @@ test("compare two batches side by side (Pro); Free sees the offer", async ({ pag
   await signIn(page);
   await fakeApi(page, { batches: rows() });
   await page.goto("/journal?batch=" + id(7));
+  await unfold(page);
   const cmp = page.locator("[data-compare]");
   const p = en.journal.page;
   // The same oil comes first in the list.
@@ -343,6 +351,7 @@ test("compare two batches side by side (Pro); Free sees the offer", async ({ pag
   await signIn(free);
   await fakeApi(free, { plan: "free", batches: rows() });
   await free.goto("/journal?batch=" + id(7));
+  await unfold(free);
   await expect(free.locator("[data-compare] [data-pro-card]")).toContainText(en.journal.page.cmp.proBody);
   await expect(free.locator("[data-compare-table]")).toHaveCount(0);
 });
@@ -386,6 +395,7 @@ test("the batch record lives in the Journal: weights, the actions, and delete", 
     return json(route, { success: true });
   });
   await page.goto("/journal?batch=" + id(4));
+  await unfold(page);
   const rec = page.locator("[data-record]");
   const p = en.journal.page;
   await expect(rec.getByRole("heading", { name: p.record.title })).toBeVisible();
@@ -413,10 +423,13 @@ test("a seller sees the bottles promised on a batch; the records page links to t
     { id: "o4", status: "resting", batch_id: id(3), scent_text: "Santal", size_ml: 30, strength_pct: 20, buyer_name: "D" },
   ] }));
   await page.goto("/journal?batch=" + id(4));
+  await unfold(page);
   await expect(page.locator("[data-promised]")).toContainText("2 bottles promised, ready on");
   await page.goto("/journal?batch=" + id(3));
+  await unfold(page);
   await expect(page.locator("[data-promised]")).toContainText("1 bottle promised, ready on");
   await page.goto("/journal?batch=" + id(5));
+  await unfold(page);
   await expect(page.locator("[data-record]")).toBeVisible();
   await expect(page.locator("[data-promised]")).toHaveCount(0);
 
@@ -436,6 +449,7 @@ test("the room's small motions run, and stop under reduced motion", async ({ pag
   }));
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/journal?batch=" + id(4));
+  await unfold(page);
   await expect(page.locator("[data-track-fill]")).toBeAttached();
   expect((await names()).fill).toBe("kx-track-fill");
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -692,6 +706,7 @@ test("ar: the batch line reads as a sentence, units and money in Arabic", async 
   Object.assign(rows[0], { oil_cost: 9, price_per_gram: 0.76, bottle_cost: 2.5, bottles: 1, sale_price: 30, currency: "EGP" });
   await fakeApi(page, { locale: "ar", batches: rows });
   await page.goto(`/ar/journal?batch=${id(5)}`);
+  await unfold(page);
   await expect(page.locator(`[data-batch="${id(5)}"]`)).toContainText("رقم 005، 50 مل بتركيز 20%");
   const record = page.locator("section[aria-labelledby=journal-batch]");
   await expect(record).toContainText("50 مل بتركيز 20% (\u2068EDP\u2069)");
