@@ -122,7 +122,7 @@ test("loading a saved formula fills the calculator", async ({ page }) => {
   const panel = await formulasPanel(page);
   await panel.getByRole("button", { name: en.calc.formulas.loadName.replace("{name}", "Oud Nights") }).click();
   await expect(page.getByRole("spinbutton", { name: en.calc.batchSize })).toHaveValue("50");
-  await expect(page.getByLabel(en.calc.family)).toHaveValue("woody");
+  await expect(page.getByLabel(en.calc.family, { exact: true })).toHaveValue("woody");
   await expect(page.getByText(en.calc.recipes.linked.replace("{label}", "Oud Nights v1"))).toBeVisible();
 });
 

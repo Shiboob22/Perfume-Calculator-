@@ -68,7 +68,9 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     await expect(page.getByRole("button", { name: m.upgrade.badgeFree })).toBeVisible();
     const cost = page.getByRole("region", { name: m.calc.costCard.title });
     await expect(cost.getByRole("button", { name: m.calc.costCard.unlock })).toBeVisible();
-    await expect(cost.locator("[data-cost-body]")).toHaveAttribute("aria-hidden", "true");
+    // Locked: hidden and blurred on wide screens; on phones the card is its title and the unlock only.
+    if (phone) await expect(cost.locator("[data-cost-body]")).toHaveCount(0);
+    else await expect(cost.locator("[data-cost-body]")).toHaveAttribute("aria-hidden", "true");
 
     // Load the saved formula: the rail on desktop, a bottom sheet on phones.
     if (phone) {

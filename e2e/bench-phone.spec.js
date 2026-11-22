@@ -40,23 +40,25 @@ for (const locale of ["en", "ar"]) {
   const m = msgs[locale];
   test(`${locale}: the bottle's fields are on the first screen, the rest folds below`, async ({ page }, info) => {
     test.skip(info.project.name !== "phone", "the phone layout");
+    // An account from after the rename sees no rename notice (renameNoticeVisible).
+    await page.addInitScript(() => localStorage.setItem("kyphira.renameNoticeDismissed", "1"));
     await signIn(page);
     await fakeApi(page, { locale, me: FREE });
     await page.goto(locale === "ar" ? "/ar/bench" : "/bench");
     const sheet = page.locator("[data-tour=sheet]");
-    await expect(sheet.getByLabel(m.calc.name)).toBeVisible();
+    await expect(sheet.locator("#calc-name")).toBeVisible();
 
     // Above the pinned result strip, with nothing scrolled.
     const strip = await page.locator("[data-quick-result]").boundingBox();
     const last = sheet.getByRole("button", { name: /Extrait/ }).first();
-    for (const el of [sheet.getByLabel(m.calc.name), sheet.getByLabel(m.calc.family), sheet.getByRole("button", { name: "100 mL" }), last]) {
+    for (const el of [sheet.locator("#calc-name"), sheet.locator("#calc-family"), sheet.getByRole("button", { name: "100 mL" }), last]) {
       const box = await el.boundingBox();
       expect(box.y + box.height, await el.evaluate((e) => e.outerHTML.slice(0, 60))).toBeLessThanOrEqual(strip.y);
     }
     expect(await page.evaluate(() => scrollY)).toBe(0);
 
     // Four bottle sizes, any other size by the stepper.
-    await expect(sheet.locator(".grid-cols-4 button")).toHaveCount(4);
+    await expect(sheet.getByRole("button", { name: /^\d+ mL$/ })).toHaveCount(4);
     await expect(sheet.getByRole("button", { name: "200 mL" })).toHaveCount(0);
 
     // The resting batch, orders and formulas: short lines inside the sheet, not cards on top.
