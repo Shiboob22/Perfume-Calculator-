@@ -1121,7 +1121,7 @@ export default {
   },
   // The Bench's guided tour (Bench SaaS Phase 7): [title, line] per stop.
   tour: {
-    take: "Take the tour", next: "Next", back: "Back", skip: "Skip tour", done: "Finish", count: "{n} / {m}", journal: "Open the Journal",
+    take: "Take the tour", again: "Take the Bench tour", next: "Next", back: "Back", skip: "Skip tour", done: "Finish", count: "{n} / {m}", journal: "Open the Journal",
     label: "Bench tour",
     steps: [
       ["Weigh a formula", "Pick a size and a strength. {name} does the weighing."],
@@ -1314,8 +1314,13 @@ export default {
     namePlaceholder: "The name on your oil",
     matched: "Matched in database → {family}",
     notMatched: "Not in database yet — logging a batch will add it as your own entry.",
-    family: "Family (auto-filled — override anytime)",
+    family: "Family",
     batchSize: "Total batch size",
+    otherSize: "Other size",
+    onBench: "On the bench",
+    scaleSaid: "What the scale said",
+    details: { title: "Add details", hint: "Supplier, price, who blended it, notes", hintPro: "Supplier, who blended it, notes", saved: "Saved to your account with the batch." },
+    selling: { title: "Selling these?", hint: "Recorded on the batch: its cost per bottle, profit and margin show in the readout and the Journal." },
     unit: "Unit",
     concentration: "Target concentration — {pct}%",
     familyDefault: "{pct}% is this family's typical default.",

@@ -18,7 +18,12 @@ import { COST_BOTTLES, COST_DEFAULTS, COST_MARGINS, COST_SAMPLE } from "../../li
 // `orderLink({ sizeMl, price, retail })` (sellers with the order queue): the
 // friend price becomes a link to a new order filled in at that price; with no
 // friend price, the link fills in the suggested retail.
-export default function CostCard({ unlocked, preview = false, countK = null, onUnlock, oilG, ethMl, totMl, oilPrice, onOilPrice, oilReadOnly, ethPrice, onEthPrice, pack, onPack, currency, orderLink, t }) {
+//
+// `children` (unlocked only): the Bench's selling fields, recorded on the batch.
+//
+// `compact` (phones): locked, the card is its title and the unlock panel, without the
+// blurred fields under it (about 750 px of page nobody can use).
+export default function CostCard({ unlocked, preview = false, countK = null, onUnlock, oilG, ethMl, totMl, oilPrice, onOilPrice, oilReadOnly, ethPrice, onEthPrice, pack, onPack, currency, orderLink, children, compact = false, t }) {
   const [bottleMl, setBottleMl] = useState(COST_DEFAULTS.bottleMl);
   const [margin, setMargin] = useState(COST_DEFAULTS.margin);
   const [friendOff, setFriendOff] = useState(0);
@@ -58,7 +63,7 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
         <span className="px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] rtl:tracking-normal" style={{ border: `1px solid ${COLORS.amber}`, color: COLORS.actionText }}>{t("plan.names.pro")}</span>
         {shown && <span dir="ltr" className="ms-auto text-[13px]" style={{ color: COLORS.dim }}>{bottleMl} mL · {margin}%</span>}
       </div>
-      <div data-cost-body inert={shown ? undefined : ""} aria-hidden={shown ? undefined : "true"}
+      {!(compact && !shown) && <div data-cost-body inert={shown ? undefined : ""} aria-hidden={shown ? undefined : "true"}
         className="kx-cost-body mt-5 flex flex-col gap-5" style={shown ? { pointerEvents: unlocked ? undefined : "none" } : { filter: "blur(5px)", opacity: 0.55, pointerEvents: "none", userSelect: "none" }}>
         <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(170px,1fr))]">
           {price("cost-oil", t(oilReadOnly ? "calc.costCard.blendPrice" : "calc.costCard.oilPrice"), oilReadOnly ? fmt2(oilPrice) : oilPrice, onOilPrice, t("calc.costCard.perG", { cur: currency }), oilReadOnly, oilReadOnly ? t("calc.costCard.blendHint") : undefined)}
@@ -125,9 +130,10 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
           <Link to={orderLink({ sizeMl: bottleMl, price: Math.round(c.retail * 100) / 100, retail: 0 })} data-retail-order
             className="self-start min-h-[44px] inline-flex items-center text-sm underline underline-offset-4" style={{ color: COLORS.ink }}>{t("calc.costCard.friend.order")}</Link>
         )}
-      </div>
+        {unlocked && children}
+      </div>}
       {!shown && (
-        <div className="absolute inset-x-0 bottom-0 top-14 flex items-center justify-center p-6">
+        <div className={compact ? "mt-5 flex justify-center" : "absolute inset-x-0 bottom-0 top-14 flex items-center justify-center p-6"}>
           <div className="max-w-[380px] p-6 text-center rounded flex flex-col items-center gap-2.5" style={{ background: COLORS.paper, border: `1px solid ${COLORS.ink}` }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={COLORS.actionText} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="1.5" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" /></svg>
             <p className="font-serif text-2xl leading-tight">{t("calc.costCard.lockTitle")}</p>
