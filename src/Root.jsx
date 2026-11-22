@@ -69,6 +69,7 @@ export default function Root() {
       <Route path="/bench" element={appElement} />
       <Route path="/bench/journal" element={appElement} />
       <Route path="/bench/orders" element={appElement} />
+      <Route path="/ar/bench" element={arAppElement} />
       <Route path="/ar/bench/orders" element={arAppElement} />
       <Route path="/journal" element={appElement} />
       <Route path="/ar/journal" element={arAppElement} />

@@ -77,3 +77,12 @@ test("a friend arriving through an invite is told what they get", async ({ page 
   await expect(page.getByRole("heading", { name: en.onboarding.title })).toBeVisible();
   await expect(page.locator("[data-invited]")).toHaveCount(0);
 });
+
+test("the Arabic invite link opens the Arabic app, not the 404 page", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, { me: FREE, onboarded: false, locale: "ar" });
+  const res = await page.goto("/ar/bench?ref=invite-abcd2345");
+  expect(res.status()).toBe(200);
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  await expect(page.locator("[data-invited]")).toHaveText(ar.onboarding.invited);
+});

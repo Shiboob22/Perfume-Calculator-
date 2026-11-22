@@ -95,6 +95,10 @@
       "destination": "/app/index.html"
     },
     {
+      "source": "/ar/bench",
+      "destination": "/app/index.html"
+    },
+    {
       "source": "/ar/bench/orders",
       "destination": "/app/index.html"
     },
