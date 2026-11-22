@@ -132,7 +132,7 @@ function QuickNote({ target, initial, onSubmit, t }) {
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" onClick={save}
-          className="min-h-[48px] px-5 text-[15px] font-medium rounded" style={{ background: COLORS.ink, color: COLORS.paper }}>
+          className="min-h-[48px] px-5 text-[15px] font-medium rounded" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
           {t("journal.page.save")}
         </button>
         <p role="status" className="text-sm empty:hidden" style={{ color: COLORS.danger }}>

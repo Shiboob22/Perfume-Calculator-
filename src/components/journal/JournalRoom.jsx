@@ -531,7 +531,7 @@ function NoteEditor({ b, m, day, note, onSaved, compact = false, t }) {
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" onClick={save} disabled={status === "saving"}
-          className="min-h-[48px] px-5 text-[15px] font-medium rounded disabled:opacity-60" style={{ background: COLORS.ink, color: COLORS.paper }}>
+          className="min-h-[48px] px-5 text-[15px] font-medium rounded disabled:opacity-60" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
           {status === "saving" ? t("journal.page.saving") : t("journal.page.save")}
         </button>
         <SaveState state={SAVE_STATE[status]}>{SAVE_TEXT[status] && t(SAVE_TEXT[status])}</SaveState>
