@@ -56,6 +56,7 @@ export default {
     trial: {
       startedNow: "Pro trial started",
       start: "Start 14-day free trial",
+      terms: "Try Pro free for 14 days. No card, nothing to pay: when the trial ends you go back to Free.",
       started: "Your Pro trial runs until {date}.",
       used: "The free trial has already been used.",
       alreadyPro: "This account is already on Pro.",
@@ -1104,7 +1105,7 @@ export default {
   },
   upgrade: {
     title: "Kyphira Pro", close: "Close", badgeFree: "Free · Upgrade", badgePro: "Pro",
-    lead: "For makers who sell what they pour.",
+    lead: "The bench is free. The full journal is Pro.",
     why: {
       blend: "Free blends hold 3 ingredients. Pro has no limit.",
       cost: "Price every bottle before you pour.",
@@ -1113,13 +1114,9 @@ export default {
     billing: "Billing period", monthly: "Monthly", yearly: "Yearly", saveYear: "save {pct}%",
     perMonth: "/ month", perYear: "/ year", billedYearly: "{price} a month, billed yearly",
     compare: "Free and Pro compared", feature: "Feature",
-    rows: {
-      bench: "Bench calculator & bench mode", presets: "Concentration presets", ingredients: "Blend ingredients", formulas: "Saved formulas",
-      rest: "Rest tracker", reminders: "Ready reminders", cost: "Cost per bottle & retail price", label: "Label PNG export", share: "Share links",
-    },
-    cells: { yes: "✓", no: "—", unlimited: "Unlimited", lastBatches: "Last {n} batches", fullHistory: "Full history" },
+    rows: { bench: "Bench calculator, bench mode and presets", rooms: "The rooms: Journal, Atlas, Nose, Wardrobe, Salon, Selector and the Library", batches: "Saved batches", ingredients: "Blend ingredients", formulas: "Saved formulas", rest: "Rest notes", reminders: "Rest reminders", insights: "Patterns and comparing batches", cost: "Cost per bottle, retail and friend price", orders: "Order queue with a page for buyers", inventory: "Inventory with low-stock alerts", ask: "Ask the perfumer (AI)", share: "Label PNG, batch card and share links", labels: "Printable label sheets" },
+    cells: { yes: "✓", no: "—", unlimited: "Unlimited", batchCap: "Up to {cap}", lastBatches: "Newest {n} batches", fullHistory: "Every batch" },
     current: "Your current plan", starting: "Starting…", trialFailed: "The trial could not start. Please try again.",
-    fine: "No card needed for the trial. Cancel anytime.",
   },
   // The Bench's guided tour (Bench SaaS Phase 7): [title, line] per stop.
   tour: {
@@ -1800,37 +1797,23 @@ export default {
       ],
     },
     pricing: {
-      waitlistTitle: "Want Pro when it opens?",
+      
       waitlistLead: "Join the waitlist from your account. You will hear first when Pro goes on sale; no payment details are asked for.",
-      waitlistCta: "Join the Pro waitlist",
+      
       metaTitle: "Pricing — Kyphira",
       metaDescription: "Free and Pro plans for Kyphira. Pro is in early access and not on sale yet.",
       title: "The bench is free.",
       titleEm: "The full journal is Pro.",
       lead: "Everyone starts on Free. Pro is in early access and not on sale yet.",
       core: "The calculator, the bench method and every guide",
-      cap: "Up to {cap} saved batches",
-      unlimited: "Unlimited saved batches",
-      sharing: "Share a batch as a public recipe page",
-      tableTitle: "What each plan includes", batchesRow: "Saved batches", included: "Included", notIncluded: "Not included",
+      
+      
+      
+      tableTitle: "What each plan includes", included: "Included", notIncluded: "Not included",
       current: "Available now",
       notOnSale: "Not on sale yet",
       proPrice: "{monthly} a month, or {yearly} a year (save {pct}%)",
       payback: "For sellers, one bottle sold pays for a year.",
-      features: {
-        batches: { unlimited: "Unlimited batch history" },
-        inventory: "Inventory with low-stock alerts",
-        ai: { ask: "Ask the perfumer (AI)" },
-        export: { labels: "Printable labels" },
-        calculator: { advanced: "Advanced calculator" },
-        cards: { download: "Batch cards to download and share" },
-        journal: {
-          insights: "Patterns from your own resting journal",
-          checkins: "Rest notes on every batch (Free: your newest 3)",
-          reminders: "Rest reminders",
-        },
-        orders: "Order queue: buyers' orders grouped into mixes, with the oil to weigh",
-      },
     },
     notFound: { title: "Page not found", home: "Back to the home page" },
     guides: {

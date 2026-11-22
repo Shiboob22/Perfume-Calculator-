@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { PRICES, OFFERS, priceCurrency, yearlyPerMonth, yearlySavingPct, activeOffer, priceText } from "./plansConfig";
+import { PRICES, OFFERS, priceCurrency, yearlyPerMonth, yearlySavingPct, activeOffer, priceText, COMPARE_ROWS, compareCell } from "./plansConfig";
+import { FEATURES } from "./entitlements";
+import en from "../i18n/messages/en.js";
+import ar from "../i18n/messages/ar.js";
 
 describe("Pro prices and offers", () => {
   it("shows EGP to Arabic readers and EGP sellers, USD to everyone else", () => {
@@ -31,5 +34,30 @@ describe("Pro prices and offers", () => {
   it("writes prices with Western digits in both languages", () => {
     expect(priceText(7, "en", "USD")).toBe("$7");
     expect(priceText(149, "ar", "EGP")).toMatch(/149/);
+  });
+});
+
+describe("Free and Pro compared (one table for the sheet and the Pricing page)", () => {
+  it("covers every plan feature, and Pro has each one", () => {
+    for (const f of FEATURES) {
+      const row = COMPARE_ROWS.find((r) => r.features?.includes(f));
+      expect(row, f).toBeTruthy();
+      expect(row.pro, f).not.toBe("no");
+    }
+  });
+  it("names every row and cell in English and Arabic", () => {
+    for (const m of [en, ar]) {
+      for (const r of COMPARE_ROWS) {
+        expect(typeof m.upgrade.rows[r.key], r.key).toBe("string");
+        for (const v of [r.free, r.pro]) if (!["batchCap", "ingredientCap"].includes(v)) expect(typeof m.upgrade.cells[v], v).toBe("string");
+      }
+    }
+  });
+  it("reads Free's limits into the cells", () => {
+    const t = (key, vars = {}) => `${key}:${JSON.stringify(vars)}`;
+    const free = { batches: 25, ingredients: 3, journal: 3 };
+    expect(compareCell("batchCap", t, free)).toBe('upgrade.cells.batchCap:{"cap":25}');
+    expect(compareCell("ingredientCap", t, free)).toBe("3");
+    expect(compareCell("lastBatches", t, free)).toBe('upgrade.cells.lastBatches:{"n":3}');
   });
 });

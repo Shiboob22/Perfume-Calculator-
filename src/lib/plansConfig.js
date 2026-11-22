@@ -64,19 +64,33 @@ export const COST_DEFAULTS = Object.freeze({ bottleMl: 50, margin: 60 });
 // Examples only, in the user's currency; never saved.
 export const COST_SAMPLE = Object.freeze({ oilPrice: 8, ethPrice: 150, pack: 45 });
 
-// The upgrade sheet's comparison, row by row (prototype plan.rows). Values
-// are message keys under plan.compare, or numbers/limits read from the
-// entitlements. Label PNG and share links are Free on every plan (owner,
-// Phase 0), so both columns tick them. Saved formulas too: Free could save
-// as many as Pro before this round, so it keeps that (0034).
+// Free and Pro compared, row by row: one list for the upgrade sheet and the
+// Pricing page (audit H8: they used to list different rows). Cells are "yes",
+// "no", "unlimited", or a Free limit read from the plan ("batchCap",
+// "ingredientCap", "lastBatches"). The rows follow the app's gates as they
+// are; label PNG, batch card and share links are Free on every plan (owner,
+// Phase 0), and so are saved formulas (0034). `features` names the plan
+// features a row stands for, so a new feature can't go missing from the table (tested).
 export const COMPARE_ROWS = Object.freeze([
   { key: "bench", free: "yes", pro: "yes" },
-  { key: "presets", free: "yes", pro: "yes" },
-  { key: "ingredients", free: { limit: "ingredients" }, pro: "unlimited" },
+  { key: "rooms", free: "yes", pro: "yes" },
+  { key: "batches", free: "batchCap", pro: "unlimited", features: ["batches.unlimited"] },
+  { key: "ingredients", free: "ingredientCap", pro: "unlimited" },
   { key: "formulas", free: "yes", pro: "yes" },
-  { key: "rest", free: "lastBatches", pro: "fullHistory" },
-  { key: "reminders", free: "no", pro: "yes" },
-  { key: "cost", free: "no", pro: "yes" },
-  { key: "label", free: "yes", pro: "yes" },
-  { key: "share", free: "yes", pro: "yes" },
+  { key: "rest", free: "lastBatches", pro: "fullHistory", features: ["journal.checkins"] },
+  { key: "reminders", free: "no", pro: "yes", features: ["journal.reminders"] },
+  { key: "insights", free: "no", pro: "yes", features: ["journal.insights"] },
+  { key: "cost", free: "no", pro: "yes", features: ["calculator.advanced"] },
+  { key: "orders", free: "no", pro: "yes", features: ["orders"] },
+  { key: "inventory", free: "no", pro: "yes", features: ["inventory"] },
+  { key: "ask", free: "no", pro: "yes", features: ["ai.ask"] },
+  { key: "share", free: "yes", pro: "yes", features: ["cards.download"] },
+  { key: "labels", free: "no", pro: "yes", features: ["export.labels"] },
 ]);
+
+/** A cell's words; `free` holds Free's limits: { batches, ingredients, journal }. */
+export function compareCell(value, t, free) {
+  if (value === "batchCap") return t("upgrade.cells.batchCap", { cap: free.batches });
+  if (value === "ingredientCap") return String(free.ingredients);
+  return t(`upgrade.cells.${value}`, { n: free.journal });
+}

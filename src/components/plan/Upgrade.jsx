@@ -2,8 +2,8 @@ import React, { createContext, useCallback, useContext, useMemo, useRef, useStat
 import { useI18n } from "../../i18n/I18nProvider";
 import { COLORS } from "../../lib/theme";
 import { useEntitlements } from "../../lib/useEntitlements";
-import { limit } from "../../lib/entitlements";
-import { COMPARE_ROWS, PRICES, activeOffer, offerText, priceCurrency, priceText, yearlyPerMonth, yearlySavingPct } from "../../lib/plansConfig";
+import { FALLBACK, limit } from "../../lib/entitlements";
+import { COMPARE_ROWS, PRICES, compareCell, activeOffer, offerText, priceCurrency, priceText, yearlyPerMonth, yearlySavingPct } from "../../lib/plansConfig";
 import { useProfile } from "../../lib/useProfile";
 import { startTrial } from "../../lib/benchApi";
 import Sheet from "../kx/Sheet";
@@ -100,8 +100,8 @@ function UpgradeSheet({ open, reason, onClose }) {
   const yearly = billing === "yearly";
 
   // Free's limits are Free's (limit() with no plan), whatever plan the viewer is on.
-  const freeLimits = { n: limit(undefined, "journalBatches") };
-  const cell = (v) => (v && typeof v === "object" ? String(limit(undefined, v.limit)) : t(`upgrade.cells.${v}`, freeLimits));
+  const freeLimits = { batches: FALLBACK.batchCap, ingredients: limit(undefined, "ingredients"), journal: limit(undefined, "journalBatches") };
+  const cell = (v) => compareCell(v, t, freeLimits);
 
   const { start, busy, message } = useStartTrial();
   const trial = () => start().then((ok) => ok && onClose());
@@ -165,7 +165,7 @@ function UpgradeSheet({ open, reason, onClose }) {
             {pro ? t("upgrade.current") : entitlements.trial?.used ? t("plan.trial.used") : busy ? t("upgrade.starting") : t("plan.trial.start")}
           </button>
           <p role="status" className="text-sm text-center empty:hidden" style={{ color: COLORS.inkSoft }}>{message}</p>
-          <p className="text-xs text-center" style={{ color: COLORS.dim }}>{t("upgrade.fine")}</p>
+          <p className="text-xs text-center" style={{ color: COLORS.dim }}>{t("plan.trial.terms")}</p>
         </div>
       </div>
     </Sheet>

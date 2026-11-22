@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import BUILT_PLANS from "./plans.json";
-import { PRICES, activeOffer, offerText, priceCurrency, priceText, yearlySavingPct } from "../lib/plansConfig";
-import { IconArrow, IconBalance, IconBell, IconCheck, IconNotebook, IconTile } from "../components/icons";
+import { COMPARE_ROWS, PRICES, activeOffer, compareCell, offerText, priceCurrency, priceText, yearlySavingPct } from "../lib/plansConfig";
+import { IconArrow, IconBalance, IconCheck, IconNotebook, IconTile } from "../components/icons";
 
 // Free and Pro side by side, from the `plans` table: the build writes it to
 // plans.json (so the page prerenders), and the browser refreshes it after
@@ -17,7 +17,7 @@ function useLivePlans() {
     // scripts/fetch-plans.mjs.
     if (!url || !key || !/^https:\/\/[a-z0-9]+\.supabase\.co$/.test(url)) return;
     let cancelled = false;
-    fetch(`${url}/rest/v1/plans?select=id,name,features,batch_cap,sort&order=sort`, {
+    fetch(`${url}/rest/v1/plans?select=id,name,features,batch_cap,ingredient_cap,journal_window,sort&order=sort`, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
     })
       .then((r) => (r.ok ? r.json() : null))
@@ -28,15 +28,6 @@ function useLivePlans() {
   return plans;
 }
 
-const ROWS = (plans) => {
-  const features = [...new Set(plans.flatMap((p) => p.features))].filter((f) => f !== "batches.unlimited");
-  return [
-    { key: "core", label: (t) => t("site.pricing.core"), has: () => true },
-    { key: "batches", label: (t) => t("site.pricing.batchesRow"), value: (p, t) => (p.batch_cap == null ? t("site.pricing.unlimited") : t("site.pricing.cap", { cap: p.batch_cap })) },
-    { key: "sharing", label: (t) => t("site.pricing.sharing"), has: () => true },
-    ...features.map((f) => ({ key: f, label: (t) => t(`site.pricing.features.${f}`), has: (p) => p.features.includes(f) })),
-  ];
-};
 
 /** Free (card) beside Pro (ink), then what each plan includes, row by row. */
 export default function PlanCards() {
@@ -47,6 +38,8 @@ export default function PlanCards() {
   const cur = priceCurrency({ locale });
   const offer = activeOffer(cur);
   const label = "text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal";
+  // Free's limits from the plans table (the same numbers the app enforces).
+  const freeLimits = { batches: free?.batch_cap ?? 25, ingredients: free?.ingredient_cap ?? 3, journal: free?.journal_window ?? 3 };
 
   return (
     <>
@@ -77,12 +70,14 @@ export default function PlanCards() {
               {offer && <p className="mt-2 text-sm font-medium" style={{ color: COLORS.oil }} data-offer={offer.id}>{offerText(offer, t, locale, cur)}</p>}
               <p className="mt-2 text-sm" style={{ opacity: 0.85 }}>{t("site.pricing.payback")}</p>
             </div>
-            <p className="font-serif" style={{ opacity: 0.85 }}>{t("site.pricing.waitlistLead")}</p>
+            {/* One offer wherever Pro is offered (audit H8): the trial first, the waitlist after. */}
+            <p className="font-serif" style={{ opacity: 0.85 }}>{t("plan.trial.terms")}</p>
+            <p className="text-sm" style={{ opacity: 0.85 }}>{t("site.pricing.waitlistLead")}</p>
             {/* A plain link: the public site never loads the auth client. The app
-                asks the visitor to sign in, then opens the waitlist section. */}
-            <a href="/app/account#pro" hrefLang={locale} className="mo-press mt-auto inline-flex items-center justify-center gap-2 min-h-[52px] font-medium"
-              style={{ border: `1px solid ${COLORS.onInk}` }}>
-              <IconBell size={18} /> {t("site.pricing.waitlistCta")}
+                asks the visitor to sign in, then opens Account's Pro section (trial and waitlist). */}
+            <a href="/app/account#pro" hrefLang={locale} data-trial-link className="mo-press mt-auto inline-flex items-center justify-center gap-2 min-h-[52px] font-medium"
+              style={{ background: COLORS.amber, color: COLORS.onAmber }}>
+              {t("plan.trial.start")} <IconArrow size={18} />
             </a>
           </section>
         )}
@@ -97,16 +92,19 @@ export default function PlanCards() {
           </tr>
         </thead>
         <tbody>
-          {ROWS(plans).map((r) => (
+          {COMPARE_ROWS.map((r) => (
             <tr key={r.key} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
-              <th scope="row" className="text-start font-normal py-3 pe-4">{r.label(t)}</th>
-              {plans.map((p) => (
-                <td key={p.id} className="py-3 text-center">
-                  {r.value ? <span className="text-xs" style={{ color: COLORS.inkSoft }}>{r.value(p, t)}</span>
-                    : r.has(p) ? <span className="inline-flex" style={{ color: COLORS.forest }}><IconCheck size={18} title={t("site.pricing.included")} /></span>
-                      : <span style={{ color: COLORS.dim }}>—<span className="sr-only">{t("site.pricing.notIncluded")}</span></span>}
-                </td>
-              ))}
+              <th scope="row" className="text-start font-normal py-3 pe-4">{t(`upgrade.rows.${r.key}`)}</th>
+              {plans.map((p) => {
+                const v = r[p.id];
+                return (
+                  <td key={p.id} className="py-3 text-center">
+                    {v === "yes" ? <span className="inline-flex" style={{ color: COLORS.forest }}><IconCheck size={18} title={t("site.pricing.included")} /></span>
+                      : v === "no" ? <span style={{ color: COLORS.dim }}>—<span className="sr-only">{t("site.pricing.notIncluded")}</span></span>
+                        : <span className="text-xs" style={{ color: COLORS.inkSoft }}>{compareCell(v, t, freeLimits)}</span>}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
