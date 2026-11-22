@@ -6,6 +6,7 @@ export default {
   brandSignature: "بقلم Hisham Shiboob",
   language: { switchTo: "English", switchLabel: "التبديل إلى الإنجليزية" },
   units: { ml: "مل", floz: "أونصة سائلة", g: "غ", oz: "أونصة" },
+  rating: { low: "لا يناسبني", high: "أحببته", ends: "1 يعني لا يناسبني، و5 يعني أحببته." },
   notice: {
     dismiss: "إغلاق",
     renamed: { title: "أصبح {former} الآن {name}", text: "طاولة الخلط نفسها والدفعات نفسها والحساب نفسه. تغيّر الاسم والمظهر فقط." },

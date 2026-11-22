@@ -9,6 +9,7 @@ import { brandName } from "../../brand";
 import { BUYER_TAGS, LASTS } from "../../lib/noteTags";
 import { tierFor } from "../../lib/calc/strength";
 import { getBottle, sendFeedback, orderAgain } from "../../lib/buyerApi";
+import RatingRow from "../../components/kx/RatingRow";
 
 const ERRORS = ["rate_limited", "invalid_feedback", "invalid_reorder", "feedback_closed", "reorder_full"];
 const errText = (t, code) => (code === "network" ? t("buyer.network") : t(`errors.${ERRORS.includes(code) ? code : "server_error"}`));
@@ -129,16 +130,7 @@ function Feedback({ code, bottle, onSaved, t }) {
         <h2 id="buyer-ask" className="font-serif text-2xl">{t("buyer.ask.title")}</h2>
         <p className="mt-1 text-sm" style={{ color: COLORS.inkSoft }}>{t("buyer.ask.lead")}</p>
       </div>
-      <div role="group" aria-label={t("buyer.rating")} className="flex flex-wrap items-center gap-2">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button key={n} type="button" aria-pressed={rating >= n} aria-label={t("buyer.ratingN", { count: n })}
-            onClick={() => { setRating(rating === n ? 0 : n); setState(null); }}
-            className="w-12 h-12 rounded-full text-[15px] tabular-nums"
-            style={{ border: `1px solid ${rating >= n ? COLORS.amber : COLORS.line}`, background: rating >= n ? COLORS.amber : "transparent", color: rating >= n ? COLORS.onAmber : COLORS.inkSoft }}>
-            {n}
-          </button>
-        ))}
-      </div>
+      <RatingRow value={rating} onChange={(n) => { setRating(n); setState(null); }} label={t("buyer.rating")} itemLabel={(n) => t("buyer.ratingN", { count: n })} size="lg" />
       <fieldset>
         <legend className="text-sm mb-2" style={{ color: COLORS.inkSoft }}>{t("buyer.lasts.label")}</legend>
         <div className="flex flex-wrap gap-2">

@@ -32,6 +32,7 @@ import BatchCompare from "./BatchCompare";
 import BatchRecord from "./BatchRecord";
 import PushToggle from "./PushToggle";
 import SaveState from "../kx/SaveState";
+import RatingRow from "../kx/RatingRow";
 
 // The note editor's status, in the shared save-state language (kx/SaveState).
 const SAVE_STATE = { saved: "saved", queued: "queued", error: "failed", empty: "failed" };
@@ -509,17 +510,7 @@ function NoteEditor({ b, m, day, note, onSaved, compact = false, t }) {
         <textarea dir="auto" id={id} rows={compact ? 2 : 3} maxLength={280} value={text} onChange={(e) => { setText(e.target.value); setStatus(null); }}
           placeholder={t("journal.page.notePh")} className="px-3 py-2 rounded border text-base" style={{ borderColor: COLORS.field, background: COLORS.cardHi, color: COLORS.ink, resize: "vertical" }} />
       </div>
-      <div role="group" aria-label={t("journal.page.rating")} className="flex flex-wrap items-center gap-2">
-        <span aria-hidden="true" className="text-sm me-1" style={{ color: COLORS.inkSoft }}>{t("journal.page.rating")}</span>
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button key={n} type="button" aria-pressed={rating >= n} aria-label={t("journal.page.ratingN", { count: n })}
-            onClick={() => { setRating(rating === n ? 0 : n); setStatus(null); }}
-            className="w-10 h-10 rounded-full text-[13px] tabular-nums"
-            style={{ border: `1px solid ${rating >= n ? COLORS.amber : COLORS.line}`, background: rating >= n ? COLORS.amber : "transparent", color: rating >= n ? COLORS.onAmber : COLORS.inkSoft }}>
-            {n}
-          </button>
-        ))}
-      </div>
+      <RatingRow value={rating} onChange={(n) => { setRating(n); setStatus(null); }} label={t("journal.page.rating")} itemLabel={(n) => t("journal.page.ratingN", { count: n })} size="sm" lead={t("journal.page.rating")} />
       <div role="group" aria-label={t("journal.page.tags")} className="flex flex-wrap gap-2">
         {TAGS.map((g) => {
           const on = tags.includes(g);

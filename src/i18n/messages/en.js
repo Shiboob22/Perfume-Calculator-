@@ -5,6 +5,8 @@ export default {
   brandSignature: "By Hisham Shiboob",
   language: { switchTo: "العربية", switchLabel: "Switch to Arabic" },
   units: { ml: "mL", floz: "fl oz", g: "g", oz: "oz" },
+  // The two ends of every 1–5 rating row (audit M6).
+  rating: { low: "Not for me", high: "Love it", ends: "1 is not for me, 5 is love it." },
   notice: {
     dismiss: "Dismiss",
     renamed: { title: "{former} is now {name}", text: "Same bench, same batches, same account. Only the name and the look have changed." },
