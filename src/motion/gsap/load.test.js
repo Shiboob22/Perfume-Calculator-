@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { gsapAllowed, loadGsap, peekGsap, _resetGsap } from "./load.js";
+import { gsapAllowed, loadGsap, peekGsap, _resetGsap, __setGsapForTests } from "./load.js";
 
 const ok = { on: true, flag: true, isReduced: false, low: false };
 const mod = () => ({ gsap: { registerPlugin: vi.fn(), registerEase: vi.fn() }, ScrollTrigger: {}, Flip: {} });
@@ -41,5 +41,29 @@ describe("loadGsap", () => {
     expect(await loadGsap({ importer: imp, report, allow: ok })).toBeNull();
     expect(await loadGsap({ importer: imp, report, allow: ok })).toBeNull();
     expect(report).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not retry the import after a failure", async () => {
+    const imp = vi.fn(async () => { throw new Error("offline"); });
+    const report = vi.fn();
+    await loadGsap({ importer: imp, report, allow: ok });
+    await loadGsap({ importer: imp, report, allow: ok });
+    expect(imp).toHaveBeenCalledTimes(1);
+  });
+
+  it("resolves null when the importer throws synchronously", async () => {
+    const imp = vi.fn(() => { throw new Error("sync"); });
+    const report = vi.fn();
+    expect(await loadGsap({ importer: imp, report, allow: ok })).toBeNull();
+    expect(report).toHaveBeenCalledTimes(1);
+  });
+
+  it("__setGsapForTests serves the module to peek and load", async () => {
+    const m = mod();
+    __setGsapForTests(m);
+    expect(peekGsap()).toBe(m);
+    expect(await loadGsap({ allow: ok })).toBe(m);
+    __setGsapForTests(null);
+    expect(peekGsap()).toBeNull();
   });
 });
