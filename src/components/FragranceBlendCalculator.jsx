@@ -869,13 +869,18 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               id="calc-family"
               value={tierKey}
               onChange={(e) => { chosen.current.family = true; setTierKey(e.target.value); setConcPct(TIERS[e.target.value].defaultConc); }}
+              aria-describedby="calc-family-sub"
               className="w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
               style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
             >
               {Object.keys(TIERS).map((key) => (
-                <option key={key} value={key}>{t(`families.${key}.label`)} — {t(`families.${key}.sub`)}</option>
+                <option key={key} value={key}>{t(`families.${key}.label`)}</option>
               ))}
             </select>
+            {/* The name alone fits the box; its notes go under it on wide screens (audit M14).
+                Phones keep the bottle and strength on the first screen (H1), so the line is
+                hidden there but still read as the box's description. */}
+            <p id="calc-family-sub" className="hidden lg:block text-xs mt-1" style={{ color: COLORS.dim }} data-family-sub>{t(`families.${tierKey}.sub`)}</p>
           </Field>
           </div>
 
