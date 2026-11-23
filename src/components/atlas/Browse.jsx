@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, Stagger } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { listEntities } from "../../lib/atlasApi";
 import { ENTITY_KINDS, entityHref, termName } from "../../lib/atlas/entities";
 import Field from "../kx/Field";
+import { useFlipList } from "../../motion/gsap/index.js";
 
 // Houses, notes, accords and perfumers: the biggest first, filterable.
 export default function Browse({ terms }) {
@@ -24,6 +25,10 @@ export default function Browse({ terms }) {
     return () => { live = false; clearTimeout(timer); };
   }, [kind, q]);
 
+  // Keyed by the rows themselves: they arrive after the chip or filter changes.
+  const listRef = useRef(null);
+  useFlipList(listRef, `${kind}:${state.rows.map((r) => r.key).join()}`);
+
   return (
     <section aria-labelledby="atlas-browse-h">
       <h2 id="atlas-browse-h" className="font-serif italic text-2xl mb-1" style={{ color: COLORS.ink }}>{t("atlas.browse.title")}</h2>
@@ -39,9 +44,10 @@ export default function Browse({ terms }) {
       <Field label={t("atlas.browse.filter", { kind: t(`atlas.browse.kinds.${kind}`).toLowerCase() })} value={q} onChange={(e) => setQ(e.target.value)} maxLength={60} className="mb-4 max-w-sm" />
       {state.status === "failed" && <p role="alert" className="text-sm" style={{ color: COLORS.danger }}>{t("atlas.loadFailed")}</p>}
       {state.status === "done" && state.rows.length === 0 && <p role="status" className="text-sm" style={{ color: COLORS.inkSoft }}>{t("atlas.browse.none")}</p>}
+      <div ref={listRef}>
       <Stagger as="ul" eager key={kind} className="grid gap-2 sm:grid-cols-2 list-none p-0 m-0">
         {state.rows.map((r) => (
-          <li key={r.key}>
+          <li key={r.key} data-flip data-flip-id={`${kind}:${r.key}`}>
             <Link to={entityHref(kind, r.key)} className="flex items-baseline justify-between gap-3 px-4 min-h-[44px] py-2 border" style={{ borderColor: COLORS.line, background: COLORS.card, color: COLORS.ink }}>
               <span>{termName(terms, kind, r.key, locale, r.name)}</span>
               <span className="font-mono tabular-nums text-xs" dir="ltr" style={{ color: COLORS.inkSoft }}>{t("atlas.browse.count", { n: r.fragrances })}</span>
@@ -49,6 +55,7 @@ export default function Browse({ terms }) {
           </li>
         ))}
       </Stagger>
+      </div>
     </section>
   );
 }
