@@ -1,7 +1,7 @@
 import { TOKENS } from "../config.js";
 
 const PROPS = new Set(["x", "y", "xPercent", "yPercent", "scale", "scaleX", "scaleY", "rotation", "opacity"]);
-const CONTROL = new Set(["duration", "ease", "delay", "stagger", "overwrite", "immediateRender", "paused", "force3D", "clearProps", "absolute", "nested", "scrollTrigger", "onComplete", "onStart", "onUpdate", "onReverseComplete", "startAt", "id", "data", "defaults"]);
+const CONTROL = new Set(["duration", "ease", "delay", "stagger", "overwrite", "immediateRender", "paused", "force3D", "clearProps", "absolute", "nested", "scrollTrigger", "onComplete", "onStart", "onUpdate", "onInterrupt", "transformOrigin", "onReverseComplete", "startAt", "id", "data", "defaults"]);
 const EASES = new Set(["kx.out", "kx.inOut", "none"]);
 
 /** A fake GSAP: every tween/set/Flip call is recorded in `calls`; matchMedia runs its handler at once. */

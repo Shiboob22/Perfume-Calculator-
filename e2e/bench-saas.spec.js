@@ -280,3 +280,18 @@ test("blend rows with room motion: add a material, then remove it", async ({ pag
   await expect(name(2)).toHaveCount(0, { timeout: 1000 });
   await expect(name(1)).toHaveValue("Keep me");
 });
+
+test("blend rows: removing both of two rows at once leaves exactly one", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, "en");
+  await page.goto("/bench?flag=motion&flag=roommotion");
+  await page.getByRole("button", { name: en.calc.blend.blend, exact: true }).click();
+  await page.getByRole("button", { name: new RegExp(en.calc.blend.add) }).click();
+  const rm = (n) => page.getByRole("button", { name: en.calc.blend.removeN.replace("{n}", String(n)) });
+  await expect(rm(2)).toBeVisible();
+  await rm(1).dispatchEvent("click");
+  await rm(2).dispatchEvent("click"); // inside the 250 ms tween
+  await expect(page.getByRole("textbox", { name: /^Material \d|^Name/ }).or(page.locator("[data-row-id]"))).toHaveCount(1, { timeout: 1500 });
+  await page.waitForTimeout(500);
+  await expect(page.locator("[data-row-id]")).toHaveCount(1);
+});

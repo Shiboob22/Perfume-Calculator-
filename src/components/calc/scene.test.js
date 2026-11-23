@@ -41,12 +41,20 @@ describe("Bench scenes", () => {
     tierRing(ctxOf(s), ring, target, true);
     expect(s.calls[1].vars).toEqual({ scale: true });
   });
-  it("stamp: 1.04 to 1 and opacity, slow, no bounce", () => {
+  it("stamp: scale 1.04 to 1 only (no opacity), slow, origin at the inline start", () => {
     const s = stubGsap();
     stamp(ctxOf(s), {});
-    expect(s.calls[0].from).toEqual({ scale: 1.04, opacity: 0 });
-    expect(s.calls[0].vars).toMatchObject({ scale: 1, opacity: 1, duration: 0.6, ease: "kx.out" });
+    expect(s.calls[0].from).toEqual({ scale: 1.04, transformOrigin: "left center" });
+    expect(s.calls[0].vars).toEqual({ scale: 1, duration: 0.6, ease: "kx.out" });
     assertSceneRules(s.calls);
+    stamp({ ...ctxOf(s), dir: -1 }, {});
+    expect(s.calls[1].from.transformOrigin).toBe("right center");
+  });
+  it("rowOut also resolves when the tween is interrupted", async () => {
+    const s = stubGsap();
+    const p = rowOut(ctxOf(s), {});
+    s.calls[0].vars.onInterrupt();
+    await expect(p).resolves.toBeUndefined();
   });
   it("all four do nothing without a ctx", () => {
     rowIn(null, {}); tierRing(null, {}, {}); stamp(null, {});

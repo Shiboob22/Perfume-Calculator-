@@ -12,7 +12,7 @@ export function rowOut(ctx, el) {
   if (!ctx || !el) return Promise.resolve();
   return new Promise((resolve) => {
     const ran = ctx.add(() => {
-      ctx.gsap.to(el, { y: ctx.tokens.distance.s, opacity: 0, duration: ctx.s(ctx.tokens.duration.base), ease: "kx.out", onComplete: resolve });
+      ctx.gsap.to(el, { y: ctx.tokens.distance.s, opacity: 0, duration: ctx.s(ctx.tokens.duration.base), ease: "kx.out", onComplete: resolve, onInterrupt: resolve }); // a revert must not strand the row
       return true;
     });
     if (!ran) resolve();
@@ -25,8 +25,8 @@ export function tierRing(ctx, ring, target, instant = false) {
   ctx.Flip.fit(ring, target, instant ? { scale: true } : { duration: ctx.s(ctx.tokens.duration.base), ease: "kx.out", scale: true });
 }
 
-/** "Logged as No. 042" settles in: 1.04 to 1, no bounce. */
+/** "Logged as No. 042" settles in: scale 1.04 to 1 from the inline start, no bounce. The text is live, so no opacity. */
 export function stamp(ctx, el) {
   if (!ctx || !el) return;
-  ctx.gsap.fromTo(el, { scale: 1.04, opacity: 0 }, { scale: 1, opacity: 1, duration: ctx.s(ctx.tokens.duration.slow), ease: "kx.out" });
+  ctx.gsap.fromTo(el, { scale: 1.04, transformOrigin: ctx.dir === -1 ? "right center" : "left center" }, { scale: 1, duration: ctx.s(ctx.tokens.duration.slow), ease: "kx.out" });
 }

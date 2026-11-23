@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useLayoutEffect, useReducer, useRef } from "react";
 import { COLORS, INGREDIENT_SWATCH } from "../../lib/theme";
 import { INGREDIENT_KEYS, balanceShares, blendMix, ingredientAmounts, fmt2 } from "../../lib/calc";
 import { useSceneCtx } from "../../motion/gsap/index.js";
@@ -34,6 +34,9 @@ export default function BlendEditor({ rows, onChange, concentrateG, canAdd, cap,
   const latest = useRef(rows);
   latest.current = rows;
   const leaving = useRef(new Set());
+  const [, bump] = useReducer((n) => n + 1, 0);
+  const lastOne = rows.length - leaving.current.size <= 1; // rows still leaving are as good as gone
+  useLayoutEffect(() => () => leaving.current.clear(), []);
   useLayoutEffect(() => {
     const id = added.current;
     added.current = null;
@@ -46,8 +49,9 @@ export default function BlendEditor({ rows, onChange, concentrateG, canAdd, cap,
     onChange([...rows, row]);
   };
   const removeRow = (id, el) => {
-    if (leaving.current.has(id)) return;
+    if (leaving.current.has(id) || latest.current.length - leaving.current.size <= 1) return;
     leaving.current.add(id);
+    bump();
     rowOut(scene, el).then(() => {
       leaving.current.delete(id);
       onChange(latest.current.filter((r) => r.id !== id));
@@ -84,7 +88,7 @@ export default function BlendEditor({ rows, onChange, concentrateG, canAdd, cap,
                   className="w-14 ps-2 pe-1 text-[15px] text-end bg-transparent tabular-nums outline-none" style={{ color: COLORS.ink }} />
                 <span className="pe-2 text-[13px]" style={{ color: COLORS.dim }}>%</span>
               </span>
-              <button type="button" onClick={(e) => removeRow(r.id, e.currentTarget.closest("li"))} disabled={rows.length === 1}
+              <button type="button" onClick={(e) => removeRow(r.id, e.currentTarget.closest("li"))} disabled={lastOne}
                 aria-label={t("calc.blend.removeN", { n: i + 1 })}
                 className="w-11 h-11 shrink-0 inline-flex items-center justify-center disabled:opacity-40" style={{ color: COLORS.inkSoft }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
