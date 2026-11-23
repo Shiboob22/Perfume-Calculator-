@@ -22,7 +22,7 @@ const { count, size, warnings } = await generateSW({
   globPatterns: ["**/*.{js,css,woff2,svg,webmanifest}", "app/index.html"],
   // The home page's three.js chunk (about 125 KB gzipped) loads only where the
   // 3D pour runs; precaching it would send it to every visitor.
-  globIgnores: ["sw.js", "workbox-*.js", "brand/**", "assets/arabic-public.css", "r-assets/**", "assets/scene-*.js"],
+  globIgnores: ["sw.js", "workbox-*.js", "brand/**", "assets/arabic-public.css", "r-assets/**", "assets/scene-*.js", "assets/gsap-*.js"],
   swDest: "dist/sw.js",
   navigationPreload: true,
   runtimeCaching: [

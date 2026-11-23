@@ -17,6 +17,19 @@ export default defineConfig(({ mode }) => ({
     },
   },
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      // Room motion's GSAP: core and the two plugins are separate chunks, named gsap-*, which the bundle check and the service worker key on.
+      output: {
+        manualChunks: (id) => {
+          if (!id.includes("node_modules/gsap/")) return undefined;
+          if (/\/(ScrollTrigger|ScrollTrigger\.min)\.js$|\/dist\/ScrollTrigger/.test(id)) return "gsap-scrolltrigger";
+          if (/\/Flip\.js$|\/dist\/Flip/.test(id)) return "gsap-flip";
+          return "gsap";
+        },
+      },
+    },
+  },
   test: {
     include: ["src/**/*.test.{js,jsx,ts}", "api/**/*.test.ts"],
     environment: "node",
