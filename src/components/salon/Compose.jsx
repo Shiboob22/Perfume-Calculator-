@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
@@ -7,6 +7,8 @@ import { searchAtlas } from "../../lib/atlasApi";
 import { createPost, getMyProfile } from "../../lib/salonApi";
 import { postRow, recipeLine, snapshotFromRecipe, LIMITS } from "../../lib/salon/validate";
 import Button from "../kx/Button";
+import { useSceneCtx } from "../../motion/gsap/index.js";
+import { composeIn } from "./scene.js";
 import Field from "../kx/Field";
 import { SelectField, inputClass, inputStyle } from "../wardrobe/ui";
 
@@ -29,6 +31,10 @@ export default function Compose() {
   const [fragrance, setFragrance] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const formRef = useRef(null);
+  const sceneCtx = useSceneCtx(formRef);
+  const open = profile?.is_public;
+  useEffect(() => { if (sceneCtx && open) sceneCtx.add(() => composeIn(sceneCtx, sceneCtx.root)); }, [sceneCtx, open]);
 
   useEffect(() => {
     getMyProfile().then(setProfile).catch(() => setProfile(null));
@@ -77,7 +83,7 @@ export default function Compose() {
   }
 
   return (
-    <section aria-labelledby="salon-compose-h" className="max-w-xl">
+    <section ref={formRef} aria-labelledby="salon-compose-h" className="max-w-xl">
       <h2 id="salon-compose-h" className="font-serif italic text-2xl mb-1" style={{ color: COLORS.ink }}>{t("salon.compose.title")}</h2>
       <p className="text-sm mb-5" style={{ color: COLORS.inkSoft }}>{t("salon.compose.lead")}</p>
       <form onSubmit={publish} noValidate className="grid gap-4">
