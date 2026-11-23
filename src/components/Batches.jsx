@@ -24,6 +24,7 @@ import BatchEdit from "./BatchEdit";
 import WaitlistButton from "./WaitlistButton";
 import { makeAgainHref } from "../lib/oilHistory";
 import ListSkeleton from "./kx/ListSkeleton";
+import RoomHeader from "./kx/RoomHeader";
 
 // The engine's rounding, so a stored batch reads as the calculator showed it.
 function round2(n) {
@@ -370,10 +371,9 @@ export default function Batches() {
   return (
     <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 py-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <RoomBeam at={0} />
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 mb-6">
-        <h2 ref={headingRef} tabIndex={-1} className="font-serif font-light text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.1] rtl:leading-[1.5] tracking-[-0.01em] rtl:tracking-normal" style={{ color: COLORS.ink }}>{t("batches.title")}</h2>
+      <RoomHeader name={t("batches.title")} headingRef={headingRef}>
         {batches.length > 0 && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 mt-3">
             <span className="text-xs" style={{ color: COLORS.inkSoft }}>
               {t("batches.summary", { count: batches.length, cost: round2(totalOilCost) })}
             </span>
@@ -388,7 +388,7 @@ export default function Batches() {
             </button>}
           </div>
         )}
-      </div>
+      </RoomHeader>
 
       {capped && (
         <p className="text-xs font-mono mb-4" style={{ color: batches.length >= entitlements.batchCap ? COLORS.danger : COLORS.inkSoft }}>

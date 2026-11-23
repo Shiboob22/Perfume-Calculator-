@@ -11,8 +11,9 @@ import { EXPORT_TABLES, toCsv, toJson } from "../lib/exportData";
 import { UNIT_LABELS } from "../lib/calcPrefill";
 import { CURRENCIES } from "../lib/currencies";
 import { signOut } from "../lib/auth";
-import { Link, Reveal, TextReveal } from "../motion";
+import { Link, Reveal } from "../motion";
 import { useStartTrial } from "./plan/Upgrade";
+import RoomHeader from "./kx/RoomHeader";
 
 function download(name, text, type) {
   const url = URL.createObjectURL(new Blob([text], { type }));
@@ -62,8 +63,9 @@ export default function Account({ user }) {
   return (
     <div className="max-w-3xl mx-auto px-6 sm:px-8 py-6">
       <RoomBeam />
-      <TextReveal as="h1" eager text={t("account.title")} className="font-serif font-light text-4xl sm:text-5xl mb-1 rtl:leading-[1.5]" style={{ color: COLORS.ink }} />
-      <p className="text-sm mb-6 font-mono" style={{ color: COLORS.inkSoft }}>{t("account.signedInAs", { email: user.email })}</p>
+      <RoomHeader name={t("account.title")}>
+        <p className="text-sm mt-3 font-mono" style={{ color: COLORS.inkSoft }}>{t("account.signedInAs", { email: user.email })}</p>
+      </RoomHeader>
 
       <Section title={t("account.plan.title")}>
         <p style={{ color: COLORS.ink }}>{t("account.plan.current", { plan: t(`plan.names.${entitlements.plan}`) })}</p>

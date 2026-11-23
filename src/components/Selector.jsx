@@ -8,6 +8,7 @@ import { clearDraft, LAST_STEP, loadDraft, saveDraft } from "../lib/selector/dra
 import Choices from "./selector/Choices";
 import KnownStep from "./selector/KnownStep";
 import Results from "./selector/Results";
+import RoomHeader from "./kx/RoomHeader";
 
 const primary = { background: COLORS.amber, color: COLORS.onAmber };
 const quiet = { border: `1px solid ${COLORS.field}`, color: COLORS.ink };
@@ -44,8 +45,10 @@ export default function Selector({ onSelectPerfume }) {
   if (step === 0) {
     return (
       <div className={wrap}>
-        <p className="text-xs uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("selector.intro.kicker")}</p>
-        <h1 ref={heading} tabIndex={-1} className="font-serif italic text-4xl mt-2 outline-none" style={{ color: COLORS.ink }}>{t("selector.title")}</h1>
+        {/* The rooms' heading (audit M4); the kicker is a plain line, not spaced capitals. */}
+        <RoomHeader name={t("selector.title")} headingRef={heading} className="!mb-0">
+          <p className="mt-3 text-sm" style={{ color: COLORS.dim }}>{t("selector.intro.kicker")}</p>
+        </RoomHeader>
         <p className="mt-4 max-w-prose text-lg leading-relaxed" style={{ color: COLORS.inkSoft }}>{t("selector.intro.lede")}</p>
         <p className="mt-3 max-w-prose text-sm" style={{ color: COLORS.dim }}>{t("selector.intro.note")}</p>
         {flagOn("nose") && (

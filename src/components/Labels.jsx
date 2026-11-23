@@ -9,6 +9,7 @@ import { listBatches } from "../lib/fragranceApi";
 import { LABEL_SIZES, LABEL_LIMITS, MAX_COPIES, customSize, labelFields, perSheet, typeSizes, compactLayout, estimateEm, qrMm } from "../lib/labels";
 import { SITE_URL } from "../site/meta";
 import ProLocked from "./ProLocked";
+import RoomHeader from "./kx/RoomHeader";
 
 const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` };
 
@@ -77,7 +78,7 @@ export default function Labels() {
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="no-print">
-        <h2 className="font-serif italic text-3xl mb-4" style={{ color: COLORS.forestDeep }}>{t("labels.title")}</h2>
+        <RoomHeader name={t("labels.title")} className="!mb-4" />
         {!id && <p className="mb-6" style={{ color: COLORS.inkSoft }}>{t("labels.pick")}</p>}
         {code && <p className="mb-4 text-sm" style={{ color: COLORS.inkSoft }} data-label-qr-note>{t("labels.qrNote")}</p>}
         {error && <p role="alert" style={{ color: COLORS.danger }}>{error}</p>}

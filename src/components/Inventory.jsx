@@ -7,6 +7,7 @@ import { errorText } from "../i18n/errorText";
 import EmptyState from "./EmptyState";
 import ListSkeleton from "./kx/ListSkeleton";
 import { useFlip } from "../motion";
+import RoomHeader from "./kx/RoomHeader";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -64,12 +65,11 @@ export default function Inventory() {
 
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>{t("inventory.title")}</h2>
+      <RoomHeader name={t("inventory.title")} className="!mb-3">
         {rows.length > 0 && (
-          <span className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>{t("inventory.tracked", { count: rows.length })}</span>
+          <p className="text-xs font-mono mt-3" style={{ color: COLORS.inkSoft }}>{t("inventory.tracked", { count: rows.length })}</p>
         )}
-      </div>
+      </RoomHeader>
       <p className="text-sm mb-6" style={{ color: COLORS.inkSoft }}>
         {t("inventory.intro")}
       </p>

@@ -89,7 +89,8 @@ export default function App() {
 
   // Each tab is its own page to screen readers and the tab switcher.
   const page = activeTab ?? tab;
-  const pageHeading = page === "calculator" || page === "journal" || page === "selector" || page === "account" || page === "wardrobe" || page === "atlas" || page === "salon" || page === "nose" || page === "orders" ? null
+  // Pages that draw their own h1 (RoomHeader, audit M4) get no hidden one.
+  const pageHeading = ["calculator", "journal", "selector", "account", "wardrobe", "atlas", "salon", "nose", "orders", "inventory", "ask", "batches", "labels"].includes(page) ? null
     : TABS.includes(page) || page === "batches" ? t(`app.tabs.${page}`) : page === "labels" ? t("labels.title") : page === "cards" ? t("cards.open") : null;
   useEffect(() => {
     const name = TABS.includes(page) || page === "batches" ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : page === "labels" ? t("labels.title") : page === "wardrobe" ? t("wardrobe.title") : page === "atlas" ? t("atlas.title") : page === "salon" ? t("salon.title") : page === "nose" ? t("nose.title") : page === "orders" ? t("orders.title") : null;
