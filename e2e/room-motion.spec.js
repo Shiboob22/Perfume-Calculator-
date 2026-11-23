@@ -75,11 +75,16 @@ for (const width of [375, 1440]) {
   for (const room of ROOMS) {
     test(`${room} at ${width}: no console errors, first screen shown at once`, async ({ page }) => {
       const errors = watchErrors(page);
+      let chunks = 0;
+      page.on("response", (r) => { if (/\/assets\/gsap-/.test(r.url())) chunks++; });
       await setup(page, { locale: room.startsWith("/ar/") ? "ar" : "en" });
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`${room}${ON}`);
       await page.locator("h1, h2").first().waitFor({ state: "attached" });
-      // Read straight away: every heading, control and link on the first screen is at full opacity (itself and its ancestors; decorative light and spans are not text of record).
+      // Rooms that load GSAP: let the three chunks arrive (up to 2 s) and settle, so a scene that hides start states after load is caught. Rooms that fetch none are checked as is.
+      await expect.poll(() => chunks, { timeout: 2000 }).toBe(3).catch(() => {});
+      if (chunks) await page.waitForTimeout(300);
+      // Every heading, control and link on the first screen is at full opacity (itself and its ancestors; decorative light and spans are not text of record).
       const hidden = await page.evaluate(() => [...document.querySelectorAll("h1, main h2, main h3, main button, main a, main input, main select, main textarea, main label")].filter((el) => {
         const r = el.getBoundingClientRect();
         if (!(r.width > 0 && r.height > 0 && r.top < innerHeight)) return false;
@@ -112,10 +117,14 @@ test("motion on: the three GSAP chunks are fetched on the Bench (the reduced-mot
   await expect.poll(() => gsap.length).toBe(3);
 });
 
-test("Lenis: on at 1440 /atlas, off on /bench and at 375, stopped while a Sheet is open", async ({ page }) => {
+test("Lenis: on at 1440 /atlas and /library, off on /bench and at 375, stopped while a Sheet is open", async ({ page }) => {
   await setup(page);
   const has = (cls) => page.evaluate((c) => document.documentElement.classList.contains(c), cls);
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/atlas${ON}`);
+  await expect.poll(() => has("lenis")).toBe(true);
+  await page.goto("/library");
+  await expect.poll(() => has("lenis")).toBe(true);
   await page.goto(`/atlas${ON}`);
   await expect.poll(() => has("lenis")).toBe(true);
   // The plan badge opens the upgrade sheet (a kx/Sheet) from any app page. A sheet pauses Lenis by

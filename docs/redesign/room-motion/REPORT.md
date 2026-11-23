@@ -46,6 +46,8 @@ Three lazy chunks, loaded by `load.js` after first paint and only where a scene 
 
 `e2e/room-motion.spec.js` (desktop project, 22 tests): no console errors and a visible first screen in `/bench`, `/journal`, `/ar/journal`, `/wardrobe`, `/atlas`, `/salon`, `/nose`, `/app/selector` at 375 and 1440; no `gsap-` request under reduced motion; all three chunks on the Bench; Lenis on at 1440 `/atlas`, off on `/bench` and at 375; leaving `/atlas` for `/bench` within 200 ms raises no error; Batches Flip ends in visual order with `transform: none`; the Wardrobe answer words are at opacity 1 one second after choosing an occasion.
 
+What this spec does not cover: the fake API is empty, so most rooms (`/journal`, `/ar/journal`, `/wardrobe`, `/atlas`, `/salon`, `/nose`, `/app/selector`) only prove "mounts without error, first screen visible" here; the Bench also runs its blend and tier scenes only on interaction. Scene behaviour is covered by the node scene tests and the per-room e2e added in each room's task (journal rapid re-sort, bench add and remove rows, the salon, atlas, wardrobe and selector specs). The Batches Flip check asserts the end state only (visual order, `transform: none`), and the quick-navigation test asserts no console error only.
+
 Differences from the brief: (1) while a Sheet is open Lenis is destroyed (`smooth.js` `halt`), so `html.lenis` goes away; the `lenis-stopped` class never appears, and the spec asserts the real behaviour. (2) `window.ScrollTrigger` is not exposed in any build, so the quick-navigation test asserts "no console error" only.
 
 ## Open items for the owner
