@@ -531,7 +531,7 @@ function NoteEditor({ b, m, day, note, onSaved, compact = false, t }) {
 
   const id = `journal-note-${m.k}`;
   return (
-    <div className={`flex flex-col ${compact ? "mt-3 gap-3" : "mt-4 gap-4"}`}>
+    <div className={`flex flex-col ${compact ? "mt-3 gap-2" : "mt-4 gap-4"}`}>
       <div className="flex flex-col gap-1.5">
         <label htmlFor={id} className="text-sm" style={{ color: COLORS.inkSoft }}>{t("journal.page.note")}</label>
         <textarea dir="auto" id={id} rows={compact ? 2 : 3} maxLength={280} value={text} onChange={(e) => { setText(e.target.value); setStatus(null); }}
