@@ -149,3 +149,34 @@ test("L10: on a wide screen the Journal list's batch line wraps, nothing is cut 
   await expect(line).toContainText("No. 001");
   expect(await line.evaluate((el) => el.scrollWidth <= el.clientWidth && getComputedStyle(el).textOverflow !== "ellipsis")).toBe(true);
 });
+
+// Owner, 2026-11-23: "Align the batch history stars and tour button too".
+test("Batch history's check-in uses the shared 1–5 row with its ends named", async ({ page }) => {
+  await app(page);
+  await page.goto("/bench/journal");
+  await page.getByRole("button", { name: en.journal.add }).first().click();
+  const group = page.getByRole("group", { name: en.journal.rating });
+  await expect(group.locator("[data-rating-ends]")).toContainText(en.rating.low);
+  await expect(group.locator("[data-rating-ends]")).toContainText(en.rating.high);
+  await expect(page.getByText("★")).toHaveCount(0);
+  const four = group.getByRole("button", { name: fill(en.journal.ratingValue, { n: 4 }) });
+  await four.click();
+  await expect(four).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: en.journal.save, exact: true })).toBeEnabled();
+});
+
+test("the tour card's Next is the amber main button", async ({ page }) => {
+  await app(page);
+  await page.goto("/bench?tour=1");
+  const next = page.locator("[data-tour-next]");
+  await expect(next).toBeVisible();
+  const [bg, amber] = await next.evaluate((el) => {
+    const probe = document.createElement("span");
+    probe.style.background = "var(--c-amber)";
+    document.body.append(probe);
+    const want = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return [getComputedStyle(el).backgroundColor, want];
+  });
+  expect(bg).toBe(amber);
+});
