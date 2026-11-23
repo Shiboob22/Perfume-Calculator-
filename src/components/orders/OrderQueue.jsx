@@ -18,6 +18,7 @@ import { listOrders, addOrder, editOrder, setOrderStatus, setGroupMode } from ".
 import { scentOptions, toPlanOrder, stockMap, weighLink, toBottlingOrder, readyToBottle, orderFromQuery, ORDERS_CHANGED } from "../../lib/orders";
 import { BUYER_TAGS } from "../../lib/noteTags";
 import { CURRENCIES, currencyLabel } from "../../lib/currencies";
+import { TIERS } from "../../lib/tiers";
 
 // The order queue (Phases A and B, docs/order-queue/Kyphira-Order-Queue_Brief_v2.md):
 // buyers' orders, grouped into mixes by scent and strength, with the grams
@@ -431,6 +432,7 @@ function OrderForm({ row, options, currency, busy, error, onSave, t }) {
     size_ml: row.size_ml != null ? String(Number(row.size_ml)) : "50", strength_pct: row.strength_pct != null ? String(Number(row.strength_pct)) : "25",
     price: row.price != null ? String(Number(row.price)) : "", wanted_by: row.wanted_by ?? "", note: row.note ?? "",
     friend: row.list_price != null, list_price: row.list_price != null ? String(Number(row.list_price)) : "",
+    family: row.family ?? "",
   }));
   const [id] = useState(() => row.id ?? newId());
   const set = (k) => (e) => setF((p) => ({ ...p, [k]: e.target.value }));
@@ -440,7 +442,7 @@ function OrderForm({ row, options, currency, busy, error, onSave, t }) {
     e.preventDefault();
     const edit = {
       buyer_name: f.buyer_name, buyer_contact: f.buyer_contact, scent_text: f.scent_text,
-      recipe_version_id: match?.recipe_version_id ?? null, fragrance_id: match?.fragrance_id ?? null, family: match?.family ?? row.family ?? null,
+      recipe_version_id: match?.recipe_version_id ?? null, fragrance_id: match?.fragrance_id ?? null, family: match?.family ?? (f.family || null),
       size_ml: Number(f.size_ml), strength_pct: Number(f.strength_pct),
       price: f.price === "" ? null : Number(f.price), list_price: f.friend && f.price !== "" && f.list_price !== "" ? Number(f.list_price) : null, currency: f.price === "" ? null : (CURRENCIES.includes(currency) ? currency : row.currency ?? null),
       wanted_by: f.wanted_by || null, note: f.note,
@@ -457,6 +459,14 @@ function OrderForm({ row, options, currency, busy, error, onSave, t }) {
         <input required maxLength={120} value={f.scent_text} onChange={set("scent_text")} list="order-scents" className={inputClass} style={inputStyle} autoComplete="off" />
         <datalist id="order-scents">{options.map((o) => <option key={o.key} value={o.label} />)}</datalist>
         <span className="block text-xs mt-1" style={{ color: COLORS.dim }}>{match ? t(`orders.form.linked.${match.kind}`) : t("orders.form.typed")}</span></label>
+      {/* A typed name has no family of its own: the seller picks one, so its grams use the same family estimate as the Bench (owner, 2026-11-23). */}
+      {!match && (
+        <div><label htmlFor="order-family" className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.family")}</label>
+          <select id="order-family" required value={f.family} onChange={set("family")} className={inputClass} style={inputStyle} data-order-family>
+            <option value="" disabled>{t("orders.form.familyPick")}</option>
+            {Object.keys(TIERS).map((key) => <option key={key} value={key}>{t(`families.${key}.label`)}</option>)}
+          </select></div>
+      )}
       <fieldset>
         <legend className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.size")}</legend>
         <div className="flex flex-wrap gap-2 mb-2">

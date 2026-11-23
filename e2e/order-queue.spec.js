@@ -73,11 +73,13 @@ async function fakeApi(page, { plan = "pro", locale = "en", orders = [], flag = 
   return sent;
 }
 
-async function addOrder(page, { buyer, scent, size, strength }) {
+async function addOrder(page, { buyer, scent, size, strength, family = "floral" }) {
   await page.getByRole("button", { name: o.add }).click();
   const sheet = page.getByRole("dialog", { name: o.form.title });
   await sheet.getByLabel(o.form.buyer).fill(buyer);
   await sheet.getByLabel(o.form.scent).fill(scent);
+  await expect(sheet.getByText(o.form.typed)).toBeVisible();
+  await sheet.getByLabel(o.form.family, { exact: true }).selectOption(family); // a typed name needs its family (density B, 2026-11-23)
   await sheet.getByRole("button", { name: fill(o.form.ml, { ml: size }) }).click();
   await sheet.getByRole("button", { name: `EDP Intense ${strength}%` }).click();
   await sheet.getByRole("button", { name: o.form.save }).click();
@@ -90,15 +92,15 @@ test("two orders of one scent become one mix with 5% extra, then separate bottle
   await page.goto("/bench/orders");
   await expect(page.getByText(o.empty)).toBeVisible();
 
-  await addOrder(page, { buyer: "Sara", scent: "Oud Nights", size: 50, strength: 25 });
-  await addOrder(page, { buyer: "Omar", scent: "oud nights ", size: 50, strength: 25 });
-  expect(sent.posts.map((p) => [p.buyer_name, p.size_ml, p.strength_pct])).toEqual([["Sara", 50, 25], ["Omar", 50, 25]]);
+  await addOrder(page, { buyer: "Sara", scent: "Oud Nights", size: 50, strength: 25, family: "fresh" });
+  await addOrder(page, { buyer: "Omar", scent: "oud nights ", size: 50, strength: 25, family: "fresh" });
+  expect(sent.posts.map((p) => [p.buyer_name, p.size_ml, p.strength_pct, p.family])).toEqual([["Sara", 50, 25, "fresh"], ["Omar", 50, 25, "fresh"]]);
   expect(sent.posts.every((p) => typeof p.id === "string")).toBe(true);
 
   const group = page.getByRole("article").filter({ hasText: fill(o.mix.group, { scent: "Oud Nights", pct: 25 }) });
   await expect(group).toContainText(fill(o.mix.volumeExtra, { mix: "105.00", ordered: "100.00", pct: 5 }));
-  // The 100 mL @ 25 % Quick Reference row × 1.05 (handbook densities for a typed name).
-  for (const g of ["24.94", "63.79", "88.73"]) await expect(group).toContainText(fill(o.grams, { g }));
+  // 105 mL at 25 %, Fresh's family estimate 0.87 g/mL (as on the Bench) and ethanol 0.81.
+  for (const g of ["22.84", "63.79", "86.63"]) await expect(group).toContainText(fill(o.grams, { g }));
   await expect(page.getByText(fill(o.headline.other, { count: 2 }))).toBeVisible();
 
   await group.getByRole("button", { name: o.mix.mode.separate }).click();
@@ -359,6 +361,7 @@ test("a friend price is saved on the order and adds up in History", async ({ pag
   const sheet = page.getByRole("dialog", { name: o.form.title });
   await sheet.getByLabel(o.form.buyer).fill("Sara");
   await sheet.getByLabel(o.form.scent).fill("Oud Nights");
+  await sheet.getByLabel(o.form.family, { exact: true }).selectOption("woody");
   await sheet.getByLabel(fill(o.form.price, { currency: "EGP" })).fill("320");
   await sheet.getByLabel(o.form.friend).check();
   await sheet.getByLabel(fill(o.form.listPrice, { currency: "EGP" })).fill("400");
