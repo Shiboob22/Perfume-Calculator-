@@ -264,3 +264,19 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     expect(log.pours.map((p) => p.pct)).toEqual([50, 30, 20]);
   });
 }
+
+// Task 6 (room motion): a blend row added and then removed with the motion
+// layer on; the row leaves the DOM within a second and the others stay.
+test("blend rows with room motion: add a material, then remove it", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, "en");
+  await page.goto("/bench?flag=motion&flag=roommotion");
+  await page.getByRole("button", { name: en.calc.blend.blend, exact: true }).click();
+  const name = (n) => page.getByRole("textbox", { name: en.calc.blend.nameN.replace("{n}", String(n)) });
+  await page.getByRole("button", { name: new RegExp(en.calc.blend.add) }).click();
+  await expect(name(2)).toBeVisible();
+  await name(1).fill("Keep me");
+  await page.getByRole("button", { name: en.calc.blend.removeN.replace("{n}", "2") }).click();
+  await expect(name(2)).toHaveCount(0, { timeout: 1000 });
+  await expect(name(1)).toHaveValue("Keep me");
+});

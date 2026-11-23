@@ -30,6 +30,8 @@ import RestingLine from "./journal/RestingLine";
 import { useBenchTour, TourLayer, TakeTour } from "./tour/BenchTour";
 import { COUNT_UP_MS, countUp, tourStrength } from "../lib/tour";
 import { reduced } from "../motion/env.js";
+import { useSceneCtx } from "../motion/gsap/index.js";
+import { stamp } from "./calc/scene.js";
 import { FromOil, Adjust, Run } from "./calc/Modes";
 import { COLORS } from "../lib/theme";
 import { TIERS, ETHANOL_DENSITY_DEFAULT } from "../lib/tiers";
@@ -333,6 +335,12 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [logError, setLogError] = useState("");
   // The new batch's number (0031), for "Logged as No. 042".
   const [loggedNo, setLoggedNo] = useState(null);
+  const logRoot = useRef(null);
+  const stampRef = useRef(null);
+  const logScene = useSceneCtx(logRoot);
+  useEffect(() => {
+    if (logStatus === "saved" && stampRef.current) logScene?.add(() => stamp(logScene, stampRef.current));
+  }, [logStatus]); // eslint-disable-line react-hooks/exhaustive-deps
   const [capHit, setCapHit] = useState(false);
   // Shown under "Saved" when the batch saved but the stock step needs a word.
   const [logNote, setLogNote] = useState("");
@@ -1116,9 +1124,9 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           <span role="status" className="sr-only">{linkCopied ? t("calc.shareCopied") : ""}</span>
           {/* One live region, always mounted: "saved" and "could not save"
               are announced, so nobody logs the same batch twice. */}
-          <div role="status">
+          <div role="status" ref={logRoot}>
             {logStatus === "saved" && (
-              <p className="text-xs mt-2" style={{ color: COLORS.forest }}>
+              <p ref={stampRef} className="text-xs mt-2" style={{ color: COLORS.forest }}>
                 {loggedNo != null ? t("calc.loggedNo", { no: String(loggedNo).padStart(3, "0") }) : t(matched ? "calc.saved" : "calc.savedNew")}
               </p>
             )}

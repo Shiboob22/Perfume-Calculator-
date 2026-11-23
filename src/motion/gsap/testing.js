@@ -40,6 +40,7 @@ export function stubGsap() {
   };
   const Flip = {
     getState: (targets) => ({ targets }),
+    fit(a, b, vars) { calls.push({ fn: "Flip.fit", targets: [a, b], vars }); return { kill() {}, progress() {} }; },
     from(state, vars) { calls.push({ fn: "Flip.from", targets: state.targets, vars }); return { kill() {}, progress() {} }; },
   };
   const ScrollTrigger = { create: (vars) => { calls.push({ fn: "ScrollTrigger.create", targets: null, vars }); return { kill() {} }; } };
