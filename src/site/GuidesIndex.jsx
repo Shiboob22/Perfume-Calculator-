@@ -6,6 +6,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { GUIDES, SECTIONS } from "../content/guides";
 import { searchGuides } from "../content/search";
 import { localePath } from "./meta";
+import { useSmoothScroll } from "../motion/useSmoothScroll.js";
 import MethodSequence from "./MethodSequence";
 import { Folio } from "./editorial";
 import Chip from "../components/kx/Chip";
@@ -77,6 +78,7 @@ function Glossary() {
 }
 
 export default function GuidesIndex() {
+  useSmoothScroll({ pathname: typeof window === "undefined" ? "" : window.location.pathname });
   const { t, locale } = useI18n();
   const [query, setQuery] = useState("");
   const [section, setSection] = useState("all");

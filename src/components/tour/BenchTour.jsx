@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { COLORS } from "../../lib/theme";
 import { BRAND } from "../../brand";
 import { reduced } from "../../motion/env.js";
+import { pauseSmooth } from "../../motion/smooth.js";
 import { TOUR_STEPS, TOUR_SEEN_KEY, placeCard, tourKeyAction, tourSeen } from "../../lib/tour";
 
 // The Bench's guided tour (Bench SaaS Phase 7, prototype startTour / goTour /
@@ -74,6 +75,7 @@ export function TourLayer({ i, t, rtl, onGo, onEnd, onJournal, journalHref = "/j
   const card = useRef(null);
   const last = i === N - 1;
   const anim = !reduced();
+  useEffect(() => pauseSmooth(), []);
 
   // Find the stop's target (it may only appear once its panel opens), then scroll to it.
   useEffect(() => {

@@ -8,6 +8,7 @@ import { guideBySlug, GUIDES } from "../content/guides";
 import { readingMinutes } from "../content/search";
 import { GLOSSARY_ENTRIES, glossaryTerm, markTerms } from "../content/glossary";
 import { localePath } from "./meta";
+import { useSmoothScroll } from "../motion/useSmoothScroll.js";
 import { IconArrow, IconBalance, IconBook, IconCrosshair, IconDiamondAlert, IconFlameTriangle, IconTile } from "../components/icons";
 
 const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
@@ -184,6 +185,7 @@ function Contents({ sections, label }) {
 }
 
 export default function GuidePage() {
+  useSmoothScroll({ pathname: typeof window === "undefined" ? "" : window.location.pathname });
   const { slug } = useParams();
   const { t, locale } = useI18n();
   const guide = guideBySlug(slug);

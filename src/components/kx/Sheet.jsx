@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { COLORS } from "../../lib/theme";
+import { pauseSmooth } from "../../motion/smooth.js";
 
 // A modal sheet: a bottom sheet on phones, a centred panel on wide screens.
 // Built on <dialog>.showModal(), so the browser keeps focus inside it, Escape
@@ -9,6 +10,8 @@ import { COLORS } from "../../lib/theme";
 export default function Sheet({ open, onClose, title, closeLabel, wide = false, children, headerExtra, tourKey }) {
   const ref = useRef(null);
   const opener = useRef(null);
+  const release = useRef(null);
+  useEffect(() => () => release.current?.(), []);
 
   useEffect(() => {
     const d = ref.current;
@@ -17,7 +20,9 @@ export default function Sheet({ open, onClose, title, closeLabel, wide = false, 
       opener.current = document.activeElement;
       d.showModal?.();
       if (!d.showModal) d.setAttribute("open", "");
+      release.current = pauseSmooth();
     } else if (!open && d.open) {
+      release.current?.(); release.current = null;
       d.close?.();
       opener.current?.focus?.();
     }

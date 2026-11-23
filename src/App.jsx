@@ -1,5 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Navigate, useLocation, useParams } from "react-router-dom";
+import { useSmoothScroll } from "./motion/useSmoothScroll.js";
 import { useNavigate } from "./motion";
 import { flagOn } from "./lib/flags";
 import { tabFromPath, tabPath } from "./routes";
@@ -71,6 +72,7 @@ export default function App() {
   const navigate = useNavigate();
   const { tab: param } = useParams();
   const { pathname } = useLocation();
+  useSmoothScroll({ pathname });
   const tab = tabFromPath(pathname, param);
   // cards and account are pages of their own, reached from links, not tabs.
   const activeTab = TABS.includes(tab) ? tab : tab === "batches" || tab === "cards" || tab === "account" || tab === "labels" || tab === "wardrobe" || tab === "atlas" || tab === "salon" || tab === "nose" ? null : DEFAULT_TAB;
