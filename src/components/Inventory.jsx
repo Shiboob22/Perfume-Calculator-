@@ -8,6 +8,7 @@ import EmptyState from "./EmptyState";
 import ListSkeleton from "./kx/ListSkeleton";
 import { useFlip } from "../motion";
 import RoomHeader from "./kx/RoomHeader";
+import { Link } from "../motion";
 
 function round2(n) {
   if (!Number.isFinite(n)) return "0.00";
@@ -70,9 +71,16 @@ export default function Inventory() {
           <p className="text-xs font-mono mt-3" style={{ color: COLORS.inkSoft }}>{t("inventory.tracked", { count: rows.length })}</p>
         )}
       </RoomHeader>
-      <p className="text-sm mb-6" style={{ color: COLORS.inkSoft }}>
+      <p className="text-sm mb-3" style={{ color: COLORS.inkSoft }}>
         {t("inventory.intro")}
       </p>
+      {/* Oils arrive from Search; say so on the page, not only when it is empty (audit M11). */}
+      {rows.length > 0 && (
+        <p className="text-sm mb-6">
+          <Link to="/app/search" data-add-oil className="inline-flex items-center min-h-[44px] underline underline-offset-4" style={{ color: COLORS.actionText }}>{t("inventory.addOil")}</Link>
+        </p>
+      )}
+      {rows.length === 0 && <div className="mb-6" />}
 
       {loading && <ListSkeleton label={t("app.loading")} rows={3} framed />}
       {error && <p className="text-sm" style={{ color: COLORS.danger }}>{error}</p>}
@@ -93,7 +101,7 @@ export default function Inventory() {
             <div key={r.fragrance_id} data-flip={r.fragrance_id} className="p-4 border rounded" style={{ borderColor: low ? COLORS.danger : COLORS.line, backgroundColor: COLORS.card }}>
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="text-sm font-serif font-semibold" style={{ color: COLORS.forestDeep }}>
+                  <div id={`inv-name-${r.fragrance_id}`} className="text-sm font-serif font-semibold" style={{ color: COLORS.forestDeep }}>
                     {r.fragrances?.name || t("inventory.unknown")}
                   </div>
                   <div className="text-xs font-mono mt-0.5" style={{ color: COLORS.inkSoft }}>
@@ -110,31 +118,40 @@ export default function Inventory() {
                 </div>
               </div>
 
-              <div className="mt-3 flex gap-2 items-center">
-                <input
-                  type="number" step="0.1" placeholder={t("inventory.restockPlaceholder")}
-                  aria-label={t("inventory.restockLabel", { name: r.fragrances?.name || "" })}
-                  value={restockAmounts[r.fragrance_id] || ""}
-                  onChange={(e) => setRestockAmounts({ ...restockAmounts, [r.fragrance_id]: e.target.value })}
-                  className="flex-1 min-w-0 px-3 py-1.5 font-mono text-xs border rounded"
-                  style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRestock(r.fragrance_id)}
-                  className="px-3 py-1.5 text-xs font-semibold rounded"
-                  style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}
-                >
-                  {t("inventory.addStock")}
-                </button>
-                <input
-                  type="number" step="1" title={t("inventory.thresholdLabel")}
-                  aria-label={t("inventory.thresholdLabel")}
-                  defaultValue={r.low_stock_threshold_g}
-                  onBlur={(e) => handleThresholdChange(r.fragrance_id, e.target.value)}
-                  className="w-20 px-2 py-1.5 font-mono text-xs border rounded"
-                  style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
-                />
+              {/* Both boxes carry a visible label (audit M11); the oil's name joins it for screen readers. */}
+              <div className="mt-3 flex flex-wrap gap-x-3 gap-y-2 items-end">
+                <div className="flex-1 min-w-[9rem]">
+                  <span id={`inv-add-${r.fragrance_id}`} className="block text-xs mb-1" style={{ color: COLORS.inkSoft }}>{t("inventory.stockField")}</span>
+                  <span className="flex gap-2">
+                    <input
+                      type="number" step="0.1" inputMode="decimal"
+                      aria-labelledby={`inv-add-${r.fragrance_id} inv-name-${r.fragrance_id}`}
+                      value={restockAmounts[r.fragrance_id] || ""}
+                      onChange={(e) => setRestockAmounts({ ...restockAmounts, [r.fragrance_id]: e.target.value })}
+                      className="flex-1 min-w-0 px-3 min-h-[44px] font-mono text-sm border rounded"
+                      style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRestock(r.fragrance_id)}
+                      className="px-3 min-h-[44px] text-sm font-semibold rounded"
+                      style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}
+                    >
+                      {t("inventory.addStock")}
+                    </button>
+                  </span>
+                </div>
+                <label className="w-28">
+                  <span id={`inv-warn-${r.fragrance_id}`} className="block text-xs mb-1" style={{ color: COLORS.inkSoft }}>{t("inventory.warnField")}</span>
+                  <input
+                    type="number" step="1" inputMode="decimal"
+                    aria-labelledby={`inv-warn-${r.fragrance_id} inv-name-${r.fragrance_id}`}
+                    defaultValue={r.low_stock_threshold_g}
+                    onBlur={(e) => handleThresholdChange(r.fragrance_id, e.target.value)}
+                    className="w-full px-2 min-h-[44px] font-mono text-sm border rounded"
+                    style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
+                  />
+                </label>
               </div>
             </div>
           );
