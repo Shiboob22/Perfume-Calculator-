@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import { useSceneCtx } from "../../motion/gsap/index.js";
-import { tierRing } from "./scene.js";
+import { motionOk } from "../../motion/gsap/scene.js";
+import { tierRing, placeRing } from "./scene.js";
 import { COLORS } from "../../lib/theme";
 import { STRENGTH_TIERS, tierFor } from "../../lib/calc";
 
@@ -17,10 +18,10 @@ export default function StrengthTiers({ pct, onPick, label, t }) {
   const scene = useSceneCtx(root);
   const at = STRENGTH_TIERS.indexOf(current);
   // A decorative ring follows the lit tier (present only while GSAP runs; the buttons carry the state).
-  useEffect(() => {
+  useLayoutEffect(() => {
     const target = root.current?.querySelectorAll("button")[at];
     if (!scene || !ring.current || !target) return undefined;
-    scene.add(() => tierRing(scene, ring.current, target, !placed.current));
+    placeRing(scene, ring.current, target, { first: !placed.current, ok: motionOk() });
     placed.current = true;
     const refit = () => { scene.gsap.set(ring.current, { clearProps: "transform" }); tierRing(scene, ring.current, target, true); };
     window.addEventListener("resize", refit);

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { makeCtx } from "../../motion/gsap/scene.js";
 import { stubGsap, assertSceneRules } from "../../motion/gsap/testing.js";
-import { rowIn, rowOut, tierRing, stamp } from "./scene.js";
+import { rowIn, rowOut, tierRing, placeRing, stamp } from "./scene.js";
 
 const ctxOf = (s, ok = true) => ({ ...makeCtx(s, {}, 1), add: (fn) => (ok ? fn() : undefined) });
 
@@ -40,6 +40,16 @@ describe("Bench scenes", () => {
     assertSceneRules(s.calls);
     tierRing(ctxOf(s), ring, target, true);
     expect(s.calls[1].vars).toEqual({ scale: true });
+  });
+  it("placeRing places at once the first time and under reduced motion, and slides otherwise", () => {
+    const s = stubGsap();
+    const ring = {}, target = {};
+    placeRing(ctxOf(s, false), ring, target, { ok: false });
+    placeRing(ctxOf(s), ring, target, { first: true });
+    expect(s.calls.map((c) => c.vars)).toEqual([{ scale: true }, { scale: true }]);
+    placeRing(ctxOf(s), ring, target);
+    expect(s.calls[2].vars).toEqual({ duration: 0.25, ease: "kx.out", scale: true });
+    assertSceneRules(s.calls);
   });
   it("stamp: scale 1.04 to 1 only (no opacity), slow, origin at the inline start", () => {
     const s = stubGsap();

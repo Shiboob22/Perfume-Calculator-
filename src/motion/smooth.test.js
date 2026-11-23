@@ -21,12 +21,15 @@ describe("smooth scroll gate", () => {
 });
 
 describe("roomSmoothAllowed", () => {
-  const ok = { wide: true, fine: true, on: true, isReduced: false, low: false };
+  const ok = { rooms: true, wide: true, fine: true, on: true, isReduced: false, low: false };
   it("allows the reading rooms", () => {
     for (const p of ["/atlas/x", "/ar/salon", "/library/some-guide", "/wardrobe", "/nose", "/ar/nose"]) expect(roomSmoothAllowed(p, ok)).toBe(true);
   });
   it("refuses the working rooms and near misses", () => {
     for (const p of ["/bench", "/journal", "/app/account", "/wardrobex", "/nose/x"]) expect(roomSmoothAllowed(p, ok)).toBe(false);
+  });
+  it("is off when the roommotion flag is off", () => {
+    expect(roomSmoothAllowed("/atlas", { ...ok, rooms: false })).toBe(false);
   });
   it("needs a wide screen and a fine pointer", () => {
     expect(roomSmoothAllowed("/atlas", { ...ok, wide: false })).toBe(false);

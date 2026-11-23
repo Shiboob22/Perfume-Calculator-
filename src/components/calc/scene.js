@@ -25,6 +25,12 @@ export function tierRing(ctx, ring, target, instant = false) {
   ctx.Flip.fit(ring, target, instant ? { scale: true } : { duration: ctx.s(ctx.tokens.duration.base), ease: "kx.out", scale: true });
 }
 
+/** Puts the ring on the lit tier: slides it, except the first time or once reduced motion is on (scene.add refuses then), when it is placed at once. */
+export function placeRing(ctx, ring, target, { first = false, ok = true } = {}) {
+  if (first || !ok) tierRing(ctx, ring, target, true);
+  else ctx?.add?.(() => tierRing(ctx, ring, target));
+}
+
 /** "Logged as No. 042" settles in: scale 1.04 to 1 from the inline start, no bounce. The text is live, so no opacity. */
 export function stamp(ctx, el) {
   if (!ctx || !el) return;

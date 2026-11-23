@@ -40,7 +40,7 @@ Three lazy chunks, loaded by `load.js` after first paint and only where a scene 
 - `peekGsap()` and `useSceneCtx()` were added to the kit so event-driven scenes can run on user actions.
 - The stamp animates scale only, from the inline start, never opacity (it sits in a live region).
 - Late-loading GSAP must not replay a scene on content already on screen (Selector, Salon).
-- Lenis stops while a `kx/Sheet` or the tour is open.
+- Lenis stops while a `kx/Sheet` or the tour is open. Lenis in the rooms needs `roommotion` as well as `motion` (`roomSmoothAllowed`); the home page's Lenis needs `motion` only.
 
 ## Verification
 
@@ -56,5 +56,5 @@ Differences from the brief: (1) while a Sheet is open Lenis is destroyed (`smoot
 - **Arabic**: no new strings, nothing to review. RTL is covered (inline-start origins, mirrored direction); only `/ar/journal` is routed as an Arabic room.
 - `gsap.ticker.lagSmoothing(0)` is set when Lenis drives the ticker and never restored.
 - Per-room plugin loading (Flip-only rooms need not fetch ScrollTrigger) is a possible follow-up, about 14 KB on those rooms.
-- Smaller deferred review notes: the tier ring can flash for one frame at tier 0 and is not throttled on resize; Salon and Wardrobe scenes run in `useEffect`, so a one-frame flicker is possible on reshuffles; Lenis checks width per pathname only.
+- Smaller deferred review notes: the tier ring is not throttled on resize; Salon and Wardrobe scenes run in `useEffect`, so a one-frame flicker is possible on reshuffles; Lenis checks width per pathname only.
 - Pre-existing and unrelated: `src/lib/batchTiming.test.js` fails on a DST edge.

@@ -1,5 +1,6 @@
 import { motionOn, reduced, lowPower } from "./env.js";
 import { peekGsap } from "./gsap/load.js";
+import { flagOn } from "../lib/flags.js";
 
 // Smooth wheel scrolling (Lenis) for the public home page only. It is loaded
 // on demand, so no other route pays for it, and it is switched off whenever
@@ -31,9 +32,9 @@ export const SMOOTH_ROUTES = /^(\/ar)?\/(library|atlas|salon)(\/|$)|^(\/ar)?\/(w
 
 const wideFine = () => typeof matchMedia === "function" && matchMedia("(min-width: 1024px) and (pointer: fine)").matches;
 
-/** Pure gate for the rooms: an allowlisted path, a wide screen with a fine pointer, plus the smoothAllowed rules. */
-export function roomSmoothAllowed(pathname, { wide = wideFine(), fine = wide, ...rest } = {}) {
-  return SMOOTH_ROUTES.test(pathname || "") && Boolean(wide) && Boolean(fine) && smoothAllowed(rest);
+/** Pure gate for the rooms: the `roommotion` flag, an allowlisted path, a wide screen with a fine pointer, plus the smoothAllowed rules. */
+export function roomSmoothAllowed(pathname, { wide = wideFine(), fine = wide, rooms = flagOn("roommotion"), ...rest } = {}) {
+  return Boolean(rooms) && SMOOTH_ROUTES.test(pathname || "") && Boolean(wide) && Boolean(fine) && smoothAllowed(rest);
 }
 
 // Sheets and the tour pause smoothing; nested pauses count.
