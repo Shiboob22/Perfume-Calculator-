@@ -41,7 +41,9 @@ export default function PublicLayout({ children }) {
 
       <PageTransition as="main" className="flex-1 w-full">{children}</PageTransition>
 
-      <SiteFooter links={<>
+      {/* Only the home page (its live calculator) carries the footer's flammability line (audit M9);
+          blending guides and recipe pages show their own safety notice. */}
+      <SiteFooter safety={path === "/"} links={<>
         <Link to={to("/privacy")} className="hover:underline underline-offset-4 min-h-[24px]">{t("site.nav.privacy")}</Link>
         <Link to={to("/terms")} className="hover:underline underline-offset-4 min-h-[24px]">{t("site.nav.terms")}</Link>
       </>} />

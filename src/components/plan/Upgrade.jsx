@@ -1,9 +1,10 @@
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { useI18n } from "../../i18n/I18nProvider";
 import { COLORS } from "../../lib/theme";
 import { useEntitlements } from "../../lib/useEntitlements";
-import { limit } from "../../lib/entitlements";
-import { COMPARE_ROWS, PRICES, priceText, yearlyPerMonth } from "../../lib/plansConfig";
+import { FALLBACK, limit } from "../../lib/entitlements";
+import { COMPARE_ROWS, PRICES, compareCell, activeOffer, offerText, priceCurrency, priceText, yearlyPerMonth, yearlySavingPct } from "../../lib/plansConfig";
+import { useProfile } from "../../lib/useProfile";
 import { startTrial } from "../../lib/benchApi";
 import Sheet from "../kx/Sheet";
 
@@ -11,19 +12,31 @@ import Sheet from "../kx/Sheet";
 // 14-day trial. Any screen opens it with useUpgrade().open(reason), where
 // reason ("blend" | "cost" | "reminders" | null) picks the
 // headline (`state` is what is open, for the Bench tour to put back). No payment is taken: the trial is the only way in for now.
-const UpgradeContext = createContext({ open: () => {}, close: () => {}, state: { open: false, reason: null } });
+const CLOSED = { open: false, reason: null };
+const UpgradeContext = createContext({ open: () => {}, close: () => {}, state: CLOSED });
+// The same open and close, plus peek() for what is open now, in a value that never
+// changes: a screen that only opens the sheet does not re-render when it opens (M6).
+const UpgradeActions = createContext({ open: () => {}, close: () => {}, peek: () => CLOSED });
 
 export const useUpgrade = () => useContext(UpgradeContext);
+export const useUpgradeActions = () => useContext(UpgradeActions);
 
 export function UpgradeProvider({ children }) {
   const [state, setState] = useState({ open: false, reason: null });
   const open = useCallback((reason = null) => setState({ open: true, reason }), []);
   const close = useCallback(() => setState((s) => ({ ...s, open: false })), []);
+  const now = useRef(state);
+  now.current = state;
+  // One value per state (motion M6: a new object on every render re-rendered every reader of the context when the sheet opened).
+  const value = useMemo(() => ({ open, close, state }), [open, close, state]);
+  const actions = useMemo(() => ({ open, close, peek: () => now.current }), [open, close]);
   return (
-    <UpgradeContext.Provider value={{ open, close, state }}>
-      {children}
-      <UpgradeSheet open={state.open} reason={state.reason} onClose={close} />
-    </UpgradeContext.Provider>
+    <UpgradeActions.Provider value={actions}>
+      <UpgradeContext.Provider value={value}>
+        {children}
+        <UpgradeSheet open={state.open} reason={state.reason} onClose={close} />
+      </UpgradeContext.Provider>
+    </UpgradeActions.Provider>
   );
 }
 
@@ -80,24 +93,27 @@ function UpgradeSheet({ open, reason, onClose }) {
   const { t, locale } = useI18n();
   const entitlements = useEntitlements();
   const [billing, setBilling] = useState("yearly");
+  const { profile } = useProfile();
+  const cur = priceCurrency({ locale, currency: profile?.currency });
+  const offer = activeOffer(cur);
   const pro = isPro(entitlements);
   const yearly = billing === "yearly";
 
   // Free's limits are Free's (limit() with no plan), whatever plan the viewer is on.
-  const freeLimits = { n: limit(undefined, "journalBatches") };
-  const cell = (v) => (v && typeof v === "object" ? String(limit(undefined, v.limit)) : t(`upgrade.cells.${v}`, freeLimits));
+  const freeLimits = { batches: FALLBACK.batchCap, ingredients: limit(undefined, "ingredients"), journal: limit(undefined, "journalBatches") };
+  const cell = (v) => compareCell(v, t, freeLimits);
 
   const { start, busy, message } = useStartTrial();
   const trial = () => start().then((ok) => ok && onClose());
 
   const headline = reason && HEADLINES[reason] ? t(HEADLINES[reason]) : t("upgrade.lead");
-  const yearlyText = t("upgrade.billedYearly", { price: priceText(yearlyPerMonth(), locale) });
+  const yearlyText = t("upgrade.billedYearly", { price: priceText(yearlyPerMonth(cur), locale, cur) });
   const toggle = (on) => ({
     background: on ? COLORS.ink : "transparent", color: on ? COLORS.paper : COLORS.ink,
   });
 
   return (
-    <Sheet open={open} onClose={onClose} title={t("upgrade.title")} closeLabel={t("upgrade.close")} wide tourKey="upgrade">
+    <Sheet open={open} onClose={onClose} title={t("upgrade.title")} closeLabel={t("upgrade.close")} wide tourKey="upgrade" keepMounted>
       <div className="flex flex-col gap-5">
         <div>
           <p className="font-serif text-[28px] leading-tight" style={{ textWrap: "balance" }}>{headline}</p>
@@ -105,7 +121,7 @@ function UpgradeSheet({ open, reason, onClose }) {
         </div>
         <div role="group" aria-label={t("upgrade.billing")} className="self-start inline-flex rounded" style={{ border: `1px solid ${COLORS.ink}` }}>
           <button type="button" aria-pressed={!yearly} onClick={() => setBilling("monthly")} className="min-h-[44px] px-4 text-sm" style={toggle(!yearly)}>{t("upgrade.monthly")}</button>
-          <button type="button" aria-pressed={yearly} onClick={() => setBilling("yearly")} className="min-h-[44px] px-4 text-sm" style={toggle(yearly)}>{t("upgrade.yearly")} · {t("upgrade.saveYear")}</button>
+          <button type="button" aria-pressed={yearly} onClick={() => setBilling("yearly")} className="min-h-[44px] px-4 text-sm" style={toggle(yearly)}>{t("upgrade.yearly")} · {t("upgrade.saveYear", { pct: yearlySavingPct(cur) })}</button>
         </div>
 
         <table className="w-full text-sm border-collapse" style={{ border: `1px solid ${COLORS.ink}` }}>
@@ -115,15 +131,16 @@ function UpgradeSheet({ open, reason, onClose }) {
               <th scope="col" className="p-3 text-start align-bottom text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal font-normal" style={{ color: COLORS.dim }}>{t("upgrade.feature")}</th>
               <th scope="col" className="p-3 text-start align-top font-normal" style={{ borderInlineStart: `1px solid ${COLORS.line}` }}>
                 <span className="block text-[13px] font-semibold">{t("plan.names.free")}</span>
-                <span dir="ltr" className="block mt-1 text-[26px] leading-none tabular-nums text-start">{priceText(0, locale)}</span>
+                <span dir="ltr" className="block mt-1 text-[26px] leading-none tabular-nums text-start">{priceText(0, locale, cur)}</span>
               </th>
               <th scope="col" className="p-3 text-start align-top font-normal" style={{ background: COLORS.sand, borderInlineStart: `2px solid ${COLORS.amber}` }}>
                 <span className="block text-[13px] font-semibold" style={{ color: COLORS.actionText }}>{t("plan.names.pro")}</span>
                 <span className="mt-1 flex flex-wrap items-baseline gap-1">
-                  <span dir="ltr" className="text-[26px] leading-none tabular-nums">{priceText(yearly ? PRICES.yearly : PRICES.monthly, locale)}</span>
+                  <span dir="ltr" className="text-[26px] leading-none tabular-nums">{priceText(yearly ? PRICES[cur].yearly : PRICES[cur].monthly, locale, cur)}</span>
                   <span className="text-xs" style={{ color: COLORS.dim }}>{t(yearly ? "upgrade.perYear" : "upgrade.perMonth")}</span>
                 </span>
                 {yearly && <span className="block mt-1 text-[11px]" style={{ color: COLORS.dim }}>{yearlyText}</span>}
+                {offer && <span className="block mt-1.5 text-[12px] font-medium" style={{ color: COLORS.actionText }} data-offer={offer.id}>{offerText(offer, t, locale, cur)}</span>}
               </th>
             </tr>
           </thead>
@@ -148,7 +165,7 @@ function UpgradeSheet({ open, reason, onClose }) {
             {pro ? t("upgrade.current") : entitlements.trial?.used ? t("plan.trial.used") : busy ? t("upgrade.starting") : t("plan.trial.start")}
           </button>
           <p role="status" className="text-sm text-center empty:hidden" style={{ color: COLORS.inkSoft }}>{message}</p>
-          <p className="text-xs text-center" style={{ color: COLORS.dim }}>{t("upgrade.fine")}</p>
+          <p className="text-xs text-center" style={{ color: COLORS.dim }}>{t("plan.trial.terms")}</p>
         </div>
       </div>
     </Sheet>

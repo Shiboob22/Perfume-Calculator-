@@ -135,7 +135,7 @@ export default function Compose() {
         <Field label={t("salon.compose.titleLabel")} value={title} onChange={(e) => setTitle(e.target.value)} maxLength={LIMITS.title} />
         <div>
           <label htmlFor="salon-body" className="block text-sm mb-1.5" style={{ color: COLORS.inkSoft }}>{t("salon.compose.bodyLabel")}</label>
-          <textarea id="salon-body" rows={5} maxLength={LIMITS.body} value={body} onChange={(e) => setBody(e.target.value)} className={`${inputClass} py-2`} style={inputStyle} aria-describedby="salon-body-hint" />
+          <textarea dir="auto" id="salon-body" rows={5} maxLength={LIMITS.body} value={body} onChange={(e) => setBody(e.target.value)} className={`${inputClass} py-2`} style={inputStyle} aria-describedby="salon-body-hint" />
           <p id="salon-body-hint" className="text-xs mt-1" style={{ color: COLORS.dim }}>{t("salon.compose.bodyHint")}</p>
         </div>
         {error && <p role="alert" className="text-sm" style={{ color: COLORS.danger }}>{error}</p>}

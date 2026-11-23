@@ -53,3 +53,10 @@ describe("export labels", () => {
     expect(missing).toEqual([]);
   });
 });
+
+describe("export order", () => {
+  it("gives every exported table a stable order (a missing one broke the whole download)", async () => {
+    const { EXPORT_TABLES, EXPORT_ORDER } = await import("./exportData.js");
+    for (const table of EXPORT_TABLES) expect(EXPORT_ORDER[table]?.length, table).toBeGreaterThan(0);
+  });
+});

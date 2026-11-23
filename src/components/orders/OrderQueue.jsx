@@ -1,0 +1,510 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { COLORS, SHAPE } from "../../lib/theme";
+import { useI18n } from "../../i18n/I18nProvider";
+import { errorText } from "../../i18n/errorText";
+import { loadFailure, recall, remember } from "../../lib/lastLoaded";
+import { useProfile } from "../../lib/useProfile";
+import RoomHeader from "../kx/RoomHeader";
+import Card from "../kx/Card";
+import Sheet from "../kx/Sheet";
+import Chip from "../kx/Chip";
+import Button from "../kx/Button";
+import { fmt2, fmtMoney, planMixes, restWindow, bottlingGroups, orderCost, shortMix, profitTotals, discountTotals, MIX_ALLOWANCE_PCT, STRENGTH_TIERS } from "../../lib/calc";
+import { Link } from "../../motion";
+import ListSkeleton from "../kx/ListSkeleton";
+import { listRecipes, listInventory } from "../../lib/fragranceApi";
+import { listOrders, addOrder, editOrder, setOrderStatus, setGroupMode } from "../../lib/ordersApi";
+import { scentOptions, toPlanOrder, stockMap, weighLink, toBottlingOrder, readyToBottle, orderFromQuery, ORDERS_CHANGED } from "../../lib/orders";
+import { BUYER_TAGS } from "../../lib/noteTags";
+import { CURRENCIES, currencyLabel } from "../../lib/currencies";
+import { TIERS } from "../../lib/tiers";
+
+// The order queue (Phases A and B, docs/order-queue/Kyphira-Order-Queue_Brief_v2.md):
+// buyers' orders, grouped into mixes by scent and strength, with the grams
+// to weigh and the oil each scent needs against stock; then each weighed
+// batch rests, is bottled and handed over. Pro (the App's Gate).
+// All arithmetic is planMixes()/restWindow()/bottlingGroups(); this file only lays it out.
+
+const SIZES = [10, 30, 50, 100];
+const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, border: `1px solid ${COLORS.field}` };
+const inputClass = `w-full px-3 py-2 min-h-[48px] ${SHAPE.control}`;
+
+/** Today as YYYY-MM-DD in the seller's own time zone. */
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function useDate(locale) {
+  return useCallback((iso) => (iso ? new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })
+    .format(new Date(`${iso.slice(0, 10)}T00:00:00Z`)) : ""), [locale]);
+}
+
+// A buyer's or scent's own name, kept in its own direction inside the
+// sentence (a Latin name in an Arabic line, or the other way round).
+const iso = (s) => (s ? `\u2068${s}\u2069` : s);
+
+const newId = () => (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : undefined);
+
+export default function OrderQueue() {
+  const { t, locale } = useI18n();
+  const date = useDate(locale);
+  const { profile } = useProfile();
+  const [rows, setRows] = useState(null);
+  const [recipes, setRecipes] = useState([]);
+  const [inventory, setInventory] = useState([]);
+  const [error, setError] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  // A friend price sent from the Bench's cost card opens a new order filled in (never saved by itself).
+  const [editing, setEditing] = useState(() => orderFromQuery(searchParams)); // null = closed, {} = new, row = edit
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (searchParams.get("new") === "1") setSearchParams({}, { replace: true }); // a reload doesn't open it again
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A failed load says "No connection" when offline and keeps the list from
+  // earlier in this visit if there is one (audit M5); back online, it tries again.
+  const loadOrders = useCallback(() => {
+    listOrders().then((list) => { remember("orders", list); setRows(list); setError(null); }).catch((e) => {
+      const why = loadFailure();
+      const earlier = recall("orders");
+      if (earlier) { setRows((cur) => cur ?? earlier); setError(t(why === "offline" ? "app.load.staleOffline" : "app.load.staleFailed")); return; }
+      setRows([]);
+      setError(why === "offline" ? t("app.load.offline") : errorText(t, e));
+    });
+  }, [t]);
+  useEffect(() => {
+    window.addEventListener("online", loadOrders);
+    return () => window.removeEventListener("online", loadOrders);
+  }, [loadOrders]);
+  useEffect(() => {
+    loadOrders();
+    listRecipes().then(setRecipes).catch(() => {});
+    listInventory().then(setInventory).catch(() => {});
+  }, [loadOrders]);
+
+  const options = useMemo(() => scentOptions(recipes, inventory), [recipes, inventory]);
+  const plan = useMemo(() => planMixes((rows || []).map((r) => toPlanOrder(r, { recipes })), stockMap(inventory)), [rows, recipes, inventory]);
+  const byId = useMemo(() => new Map((rows || []).map((r) => [r.id, r])), [rows]);
+  const cancelled = (rows || []).filter((r) => r.status === "cancelled");
+  const requested = (rows || []).filter((r) => r.status === "requested");
+  const handed = (rows || []).filter((r) => r.status === "handed_over");
+  const bottling = useMemo(() => bottlingGroups((rows || []).map(toBottlingOrder), today()), [rows]);
+  // Keep the Orders tab's badge in step with what this screen shows.
+  useEffect(() => {
+    if (rows) window.dispatchEvent(new CustomEvent(ORDERS_CHANGED, { detail: { ready: readyToBottle(rows, today()) } }));
+  }, [rows]);
+  const [early, setEarly] = useState(null); // an order asked to bottle before its ready-from date
+  const costOf = (r) => orderCost(r?.batches, Number(r?.size_ml), r?.price == null ? null : Number(r.price));
+  const profit = useMemo(() => profitTotals(handed.map(costOf)), [handed]); // eslint-disable-line react-hooks/exhaustive-deps
+  const given = useMemo(() => discountTotals(handed), [handed]);
+  // An order copied into a new one ("Order again"): same buyer, scent, size, strength and price.
+  const again = (r) => setEditing({
+    buyer_name: r.buyer_name, buyer_contact: r.buyer_contact, scent_text: r.scent_text, family: r.family,
+    size_ml: r.size_ml, strength_pct: r.strength_pct, price: r.price, list_price: r.list_price, note: r.note,
+  });
+  const open = plan.groups.reduce((n, g) => n + g.orders.length, 0) + plan.unplanned.length;
+
+  const merge = (changed) => setRows((prev) => {
+    const list = [...(prev || [])];
+    for (const c of [].concat(changed)) {
+      const i = list.findIndex((r) => r.id === c.id);
+      // A write answers without the batch join: keep the one we had while the batch is the same.
+      if (i >= 0) list[i] = { ...c, batches: c.batches ?? (c.batch_id && c.batch_id === list[i].batch_id ? list[i].batches : null), order_feedback: c.order_feedback ?? list[i].order_feedback };
+      else list.unshift(c);
+    }
+    return list;
+  });
+
+  async function run(fn) {
+    setBusy(true);
+    setError(null);
+    try { merge(await fn()); return true; } catch (e) { setError(errorText(t, e)); return false; } finally { setBusy(false); }
+  }
+
+  async function save(form) {
+    const ok = await run(() => (form.id && byId.has(form.id) ? editOrder(form.id, form.edit) : addOrder({ ...form.edit, id: form.id })));
+    if (ok) setEditing(null);
+  }
+
+  return (
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-8 py-6">
+      <RoomHeader numeral="VII" name={t("orders.title")} headline={rows === null ? t("orders.loading") : t("orders.headline", { count: open })}>
+        <p className="max-w-[60ch] mt-2" style={{ color: COLORS.inkSoft }}>{t("orders.lead")}</p>
+      </RoomHeader>
+
+      <div className="flex flex-wrap gap-3 mb-6">
+        <Button onClick={() => setEditing({})} disabled={rows === null}>{t("orders.add")}</Button>
+      </div>
+      {error && <p role="alert" className="mb-4 text-sm" style={{ color: COLORS.danger }}>{error}</p>}
+      {rows === null && !error && <ListSkeleton label={t("orders.loading")} rows={3} framed className="mb-8" />}
+
+      {requested.length > 0 && (
+        <section aria-labelledby="orders-requested" className="mb-8" data-orders-requested>
+          <h2 id="orders-requested" className="font-serif italic text-2xl" style={{ color: COLORS.ink }}>{t("orders.requested.title")}</h2>
+          <p className="text-sm mt-1 mb-3" style={{ color: COLORS.inkSoft }}>{t("orders.requested.lead")}</p>
+          <ul>{requested.map((r) => (
+            <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 border-t" style={{ borderColor: COLORS.line }}>
+              <span className="me-auto">
+                <span className="block" style={{ color: COLORS.ink }}>{t("orders.requested.who", { name: iso(r.buyer_name), scent: iso(r.scent_text) })}</span>
+                <span className="block text-sm" style={{ color: COLORS.inkSoft }}>
+                  {t("orders.row.size", { ml: Number(r.size_ml), pct: Number(r.strength_pct) })}
+                  {r.buyer_contact && <>, <span dir="ltr">{t("orders.requested.contact", { phone: r.buyer_contact })}</span></>}
+                </span>
+              </span>
+              <Button disabled={busy} onClick={() => run(() => setOrderStatus(r.id, "queued"))} aria-label={t("orders.requested.acceptFor", { name: r.buyer_name })}>{t("orders.requested.accept")}</Button>
+              <button type="button" disabled={busy} onClick={() => run(() => setOrderStatus(r.id, "cancelled"))} className="min-h-[44px] px-2 text-sm underline underline-offset-4"
+                style={{ color: COLORS.danger }} aria-label={t("orders.requested.dismissFor", { name: r.buyer_name })}>{t("orders.requested.dismiss")}</button>
+            </li>
+          ))}</ul>
+        </section>
+      )}
+
+      {(bottling.groups.length > 0 || bottling.orphaned.length > 0) && (
+        <section aria-labelledby="orders-bottle" className="mb-8">
+          <h2 id="orders-bottle" className="font-serif italic text-2xl mb-3" style={{ color: COLORS.ink }}>{t("orders.bottle.title")}</h2>
+          <div className="grid gap-4">
+            {bottling.groups.map((g) => (
+              <Card key={g.batchId} as="article" title={g.batchNo
+                ? t("orders.bottle.batchNo", { no: String(g.batchNo).padStart(3, "0"), scent: g.scentName, pct: g.strengthPct })
+                : t("orders.mix.group", { scent: g.scentName, pct: g.strengthPct })}>
+                <p className="text-sm mb-3" style={{ color: g.ready ? COLORS.verdigrisText : COLORS.inkSoft }}>
+                  {g.ready
+                    ? (today() < g.rest.fullyRested ? t("orders.bottle.readyUntil", { rested: date(g.rest.fullyRested) }) : t("orders.bottle.ready"))
+                    : g.rest.readyFrom === g.rest.fullyRested ? t("orders.bottle.restingUntil", { ready: date(g.rest.readyFrom) })
+                    : t("orders.bottle.resting", { ready: date(g.rest.readyFrom), rested: date(g.rest.fullyRested) })}
+                </p>
+                {(() => {
+                  const mine = (rows || []).filter((r) => r.batch_id === g.batchId && r.status !== "cancelled");
+                  const batch = mine.find((r) => r.batches)?.batches;
+                  const s = batch ? shortMix(batch, mine.map((r) => Number(r.size_ml))) : null;
+                  return s && s.shortMl > 0 ? (
+                    <p role="note" className="text-sm mb-3" style={{ color: COLORS.danger }}>
+                      {t("orders.bottle.short", { short: fmt2(s.shortMl), needed: fmt2(s.neededMl), made: fmt2(s.madeMl) })}
+                    </p>
+                  ) : null;
+                })()}
+                <ul>
+                  {g.orders.map((o) => {
+                    const row = byId.get(o.id);
+                    if (!row) return null;
+                    const name = row.buyer_name;
+                    return (
+                      <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 border-t" style={{ borderColor: COLORS.line }}>
+                        <span className="me-auto">
+                          <span className="block" style={{ color: COLORS.ink }}>{t("orders.bottle.fill", { ml: Number(row.size_ml), name: iso(name) })}</span>
+                          <span className="block text-sm" style={{ color: COLORS.inkSoft }}>{o.status === "bottled" ? t("orders.bottle.bottled") : t("orders.bottle.notYet")}</span>
+                          <CostLine c={costOf(row)} t={t} />
+                          <BuyerAnswer row={row} t={t} />
+                        </span>
+                        <Link to={`/app/labels?${new URLSearchParams({ batch: g.batchId, ml: String(Number(row.size_ml)), for: name, ...(row.buyer_code ? { code: row.buyer_code } : {}) })}`}
+                          className="min-h-[44px] px-2 text-sm underline underline-offset-4 inline-flex items-center" style={{ color: COLORS.ink }}
+                          aria-label={t("orders.bottle.labelFor", { name })}>{t("orders.bottle.label")}</Link>
+                        {o.status === "resting" && early !== o.id && (
+                          <Button variant="secondary" disabled={busy} aria-label={t("orders.bottle.markFor", { name })}
+                            onClick={() => (g.ready ? run(() => setOrderStatus(o.id, "bottled")) : setEarly(o.id))}>{t("orders.bottle.mark")}</Button>
+                        )}
+                        {o.status === "resting" && early === o.id && (
+                          <span className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                            <span role="alert" className="text-sm" style={{ color: COLORS.ink }}>{t("orders.bottle.early", { ready: date(g.rest.readyFrom) })}</span>
+                            <Button variant="secondary" disabled={busy} onClick={() => { setEarly(null); run(() => setOrderStatus(o.id, "bottled")); }}>{t("orders.bottle.anyway")}</Button>
+                            <Button variant="ghost" onClick={() => setEarly(null)}>{t("orders.bottle.wait")}</Button>
+                          </span>
+                        )}
+                        {o.status === "bottled" && (
+                          <>
+                            <Button disabled={busy} aria-label={t("orders.bottle.handFor", { name })} onClick={() => run(() => setOrderStatus(o.id, "handed_over"))}>{t("orders.bottle.hand")}</Button>
+                            <button type="button" disabled={busy} onClick={() => run(() => setOrderStatus(o.id, "resting"))} className="min-h-[44px] px-2 text-sm underline underline-offset-4"
+                              style={{ color: COLORS.ink }} aria-label={t("orders.bottle.undoFor", { name })}>{t("orders.bottle.undo")}</button>
+                          </>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Card>
+            ))}
+            {bottling.orphaned.map((o) => {
+              const row = byId.get(o.id);
+              return row && (
+                <Card key={o.id} as="article" tone="inset">
+                  <p style={{ color: COLORS.ink }}>{t("orders.bottle.lost", { name: row.buyer_name, scent: row.scent_text })}</p>
+                  <button type="button" disabled={busy} onClick={() => run(() => setOrderStatus(o.id, "queued"))} className="mt-2 min-h-[44px] text-sm underline underline-offset-4" style={{ color: COLORS.ink }}>
+                    {t("orders.bottle.requeue")}
+                  </button>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {rows !== null && open === 0 && bottling.groups.length === 0 && bottling.orphaned.length === 0 && (
+        <Card className="mb-6"><p style={{ color: COLORS.inkSoft }}>{t("orders.empty")}</p></Card>
+      )}
+
+      {plan.oil.length > 0 && (
+        <section aria-labelledby="orders-oil" className="mb-8">
+          <h2 id="orders-oil" className="font-serif italic text-2xl mb-3" style={{ color: COLORS.ink }}>{t("orders.oil.title")}</h2>
+          <ul className="border-t" style={{ borderColor: COLORS.line }}>
+            {plan.oil.map((n) => (
+              <li key={n.key} className="flex flex-wrap items-baseline justify-between gap-2 py-3 border-b" style={{ borderColor: COLORS.line }}>
+                <span style={{ color: COLORS.ink }}>{n.scentName}</span>
+                <span className="text-sm tabular-nums" style={{ color: n.shortG > 0 ? COLORS.danger : COLORS.inkSoft }}>
+                  {n.haveG === null ? t("orders.oil.unknown", { need: fmt2(n.needG) })
+                    : n.shortG > 0 ? t("orders.oil.short", { need: fmt2(n.needG), have: fmt2(n.haveG), short: fmt2(n.shortG) })
+                      : t("orders.oil.enough", { need: fmt2(n.needG), have: fmt2(n.haveG) })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {plan.groups.length > 0 && (
+        <section aria-labelledby="orders-mix" className="mb-8">
+          <h2 id="orders-mix" className="font-serif italic text-2xl mb-3" style={{ color: COLORS.ink }}>{t("orders.mix.title")}</h2>
+          <div className="grid gap-4">
+            {plan.groups.map((g) => {
+              const rest = restWindow(g.family, today());
+              return (
+                <Card key={g.key} as="article" title={t("orders.mix.group", { scent: g.scentName, pct: g.strengthPct })}>
+                  {g.orders.length > 1 && (
+                    <div role="group" aria-label={t("orders.mix.modeLabel")} className="flex flex-wrap gap-2 mb-4">
+                      {["mix", "separate"].map((m) => (
+                        <Chip key={m} pressed={g.mode === m} onToggle={() => g.mode !== m && !busy && run(() => setGroupMode(g.orders.map((o) => o.id), m))}>
+                          {t(`orders.mix.mode.${m}`)}
+                        </Chip>
+                      ))}
+                    </div>
+                  )}
+                  {g.mixes.map((m, i) => (
+                    <div key={i} className="mb-4 last:mb-0">
+                      <p className="text-sm mb-2" style={{ color: COLORS.inkSoft }}>
+                        {m.allowancePct > 0
+                          ? t("orders.mix.volumeExtra", { mix: fmt2(m.mixMl), ordered: fmt2(m.orderedMl), pct: m.allowancePct })
+                          : t("orders.mix.volume", { mix: fmt2(m.mixMl) })}
+                      </p>
+                      <dl className="grid grid-cols-3 gap-2 text-center">
+                        {[["oil", m.oilG], ["alcohol", m.ethanolG], ["total", m.totalG]].map(([k, v]) => (
+                          <div key={k} className="p-2" style={{ background: COLORS.sand }}>
+                            <dt className="text-xs" style={{ color: COLORS.inkSoft }}>{t(`orders.mix.${k}`)}</dt>
+                            <dd className="text-xl tabular-nums" style={{ color: COLORS.ink }}>{t("orders.grams", { g: fmt2(v) })}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                      <Button as={Link} to={weighLink(g, m)} variant="secondary" className="mt-3 w-full sm:w-auto"
+                        aria-label={t("orders.weigh.labelFor", { mix: fmt2(m.mixMl), scent: g.scentName })}>
+                        {g.mode === "mix" ? t("orders.weigh.mix") : t("orders.weigh.bottle")}
+                      </Button>
+                      <ul className="mt-3">
+                        {m.orderIds.map((id) => <OrderRow key={id} row={byId.get(id)} date={date} t={t} busy={busy}
+                          onEdit={() => setEditing(byId.get(id))} onCancel={() => run(() => setOrderStatus(id, "cancelled"))} />)}
+                      </ul>
+                    </div>
+                  ))}
+                  <p className="text-sm mt-3" style={{ color: COLORS.inkSoft }}>
+                    {rest.minDays === rest.maxDays
+                      ? t("orders.mix.restOne", { ready: date(rest.readyFrom) })
+                      : t("orders.mix.rest", { ready: date(rest.readyFrom), rested: date(rest.fullyRested) })}
+                  </p>
+                </Card>
+              );
+            })}
+          </div>
+          <p className="text-xs mt-3" style={{ color: COLORS.dim }}>{t("orders.mix.note", { pct: MIX_ALLOWANCE_PCT })}</p>
+        </section>
+      )}
+
+      {plan.unplanned.length > 0 && (
+        <section aria-labelledby="orders-waiting" className="mb-8">
+          <h2 id="orders-waiting" className="font-serif italic text-2xl mb-3" style={{ color: COLORS.ink }}>{t("orders.unplanned")}</h2>
+          <ul>{plan.unplanned.map((o) => <OrderRow key={o.id} row={byId.get(o.id)} date={date} t={t} busy={busy}
+            onEdit={() => setEditing(byId.get(o.id))} onCancel={() => run(() => setOrderStatus(o.id, "cancelled"))} />)}</ul>
+        </section>
+      )}
+
+      {cancelled.length > 0 && (
+        <details className="mb-8">
+          <summary className="cursor-pointer min-h-[44px] flex items-center" style={{ color: COLORS.inkSoft }}>{t("orders.cancelled", { count: cancelled.length })}</summary>
+          <ul>{cancelled.map((r) => <OrderRow key={r.id} row={r} date={date} t={t} busy={busy} onRestore={() => run(() => setOrderStatus(r.id, "queued"))} />)}</ul>
+        </details>
+      )}
+
+      {handed.length > 0 && (
+        <details className="mb-8">
+          <summary className="cursor-pointer min-h-[44px] flex items-center" style={{ color: COLORS.inkSoft }}>{t("orders.history", { count: handed.length })}</summary>
+          {profit.totals.length > 0 && (
+            <p className="text-sm py-2" style={{ color: COLORS.ink }}>
+              {profit.totals.map((x) => t("orders.cost.total", { count: x.count, profit: fmtMoney(x.profit), currency: currencyLabel(x.currency, locale) })).join(" ")}
+              {profit.missing > 0 && ` ${t("orders.cost.missing", { count: profit.missing })}`}
+            </p>
+          )}
+          {given.length > 0 && (
+            <p data-friend-given className="text-sm pb-2" style={{ color: COLORS.inkSoft }}>
+              {given.map((x) => t("orders.cost.discounts", { count: x.count, given: fmtMoney(x.given), currency: currencyLabel(x.currency, locale) })).join(" ")}
+            </p>
+          )}
+          <ul>{handed.map((r) => (
+            <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 border-t" style={{ borderColor: COLORS.line }}>
+              <span className="me-auto">
+                <span className="block" style={{ color: COLORS.ink }}>{t("orders.row.who", { name: iso(r.buyer_name), scent: iso(r.scent_text) })}</span>
+                <CostLine c={costOf(r)} t={t} />
+                <BuyerAnswer row={r} t={t} />
+              </span>
+              <button type="button" disabled={busy} onClick={() => again(r)} className="min-h-[44px] px-2 text-sm underline underline-offset-4"
+                style={{ color: COLORS.ink }} aria-label={t("orders.row.againFor", { name: r.buyer_name })}>{t("orders.row.again")}</button>
+              <button type="button" disabled={busy} onClick={() => run(() => setOrderStatus(r.id, "bottled"))} className="min-h-[44px] px-2 text-sm underline underline-offset-4"
+                style={{ color: COLORS.ink }} aria-label={t("orders.bottle.undoHandFor", { name: r.buyer_name })}>{t("orders.bottle.undo")}</button>
+            </li>
+          ))}</ul>
+        </details>
+      )}
+
+      <Sheet open={editing !== null} onClose={() => setEditing(null)} title={editing?.id ? t("orders.form.editTitle") : t("orders.form.title")} closeLabel={t("orders.form.close")}>
+        {editing !== null && <OrderForm row={editing} options={options} currency={profile?.currency} busy={busy} error={error} onSave={save} t={t} />}
+      </Sheet>
+    </div>
+  );
+}
+
+/** What the buyer sent from their bottle's QR page (0040), when they sent anything. */
+function BuyerAnswer({ row, t }) {
+  const fb = Array.isArray(row?.order_feedback) ? row.order_feedback[0] : row?.order_feedback;
+  if (!fb) return null;
+  const parts = [
+    fb.rating && t("orders.answer.rating", { count: fb.rating }),
+    fb.lasts && t(`orders.answer.lasts.${fb.lasts}`),
+    // Buyer tags since 2026-11-21; older answers carry the Journal's tags.
+    ...(fb.tags ?? []).map((g) => t(BUYER_TAGS.includes(g) ? `buyer.tag.${g}` : `journal.page.tag.${g}`)),
+  ].filter(Boolean);
+  return (
+    <span className="block text-sm" style={{ color: COLORS.inkSoft }} data-buyer-answer>
+      <span style={{ color: COLORS.actionText }}>{t("orders.answer.label")}:</span> {parts.join(", ")}
+      {fb.note && <>{parts.length ? ". " : ""}<q dir="auto">{fb.note}</q></>}
+    </span>
+  );
+}
+
+/** One order's cost and profit from its batch (P1a); nothing when the batch has no prices (audit M13: History counts those). */
+function CostLine({ c, t }) {
+  const { locale } = useI18n();
+  if (!c) return null;
+  return (
+    <span className="block text-sm" style={{ color: COLORS.inkSoft }} data-cost-line>
+      {c.profit === null ? t("orders.cost.only", { cost: fmtMoney(c.cost), currency: currencyLabel(c.currency, locale) })
+        : t("orders.cost.line", { cost: fmtMoney(c.cost), profit: fmtMoney(c.profit), margin: fmt2(c.marginPct), currency: currencyLabel(c.currency, locale) })}
+    </span>
+  );
+}
+
+function OrderRow({ row, date, t, busy, onEdit, onCancel, onRestore }) {
+  const { locale } = useI18n();
+  if (!row) return null;
+  const details = [
+    t("orders.row.size", { ml: Number(row.size_ml), pct: Number(row.strength_pct) }),
+    row.wanted_by && t("orders.row.wanted", { date: date(row.wanted_by) }),
+    row.price != null && (row.list_price != null && Number(row.list_price) > Number(row.price)
+      ? t("orders.row.friend", { price: fmtMoney(Number(row.price)), currency: currencyLabel(row.currency, locale), list: fmtMoney(Number(row.list_price)), pct: Math.round((1 - Number(row.price) / Number(row.list_price)) * 100) })
+      : t("orders.row.price", { price: fmtMoney(Number(row.price)), currency: currencyLabel(row.currency, locale) })),
+  ].filter(Boolean);
+  return (
+    <li className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 border-t" style={{ borderColor: COLORS.line }}>
+      <span className="me-auto">
+        <span className="block" style={{ color: COLORS.ink }}>{onRestore ? t("orders.row.who", { name: row.buyer_name, scent: row.scent_text }) : row.buyer_name}</span>
+        <span className="block text-sm" style={{ color: COLORS.inkSoft }}>{details.join(", ")}</span>
+      </span>
+      {onEdit && <button type="button" disabled={busy} onClick={onEdit} className="min-h-[44px] px-2 text-sm underline underline-offset-4" style={{ color: COLORS.ink }}
+        aria-label={t("orders.row.editFor", { name: row.buyer_name })}>{t("orders.row.edit")}</button>}
+      {onCancel && <button type="button" disabled={busy} onClick={onCancel} className="min-h-[44px] px-2 text-sm underline underline-offset-4" style={{ color: COLORS.danger }}
+        aria-label={t("orders.row.cancelFor", { name: row.buyer_name })}>{t("orders.row.cancel")}</button>}
+      {onRestore && <button type="button" disabled={busy} onClick={onRestore} className="min-h-[44px] px-2 text-sm underline underline-offset-4" style={{ color: COLORS.ink }}
+        aria-label={t("orders.row.restoreFor", { name: row.buyer_name })}>{t("orders.row.restore")}</button>}
+    </li>
+  );
+}
+
+function OrderForm({ row, options, currency, busy, error, onSave, t }) {
+  const { locale } = useI18n();
+  const [f, setF] = useState(() => ({
+    buyer_name: row.buyer_name ?? "", buyer_contact: row.buyer_contact ?? "", scent_text: row.scent_text ?? "",
+    size_ml: row.size_ml != null ? String(Number(row.size_ml)) : "50", strength_pct: row.strength_pct != null ? String(Number(row.strength_pct)) : "25",
+    price: row.price != null ? String(Number(row.price)) : "", wanted_by: row.wanted_by ?? "", note: row.note ?? "",
+    friend: row.list_price != null, list_price: row.list_price != null ? String(Number(row.list_price)) : "",
+    family: row.family ?? "",
+  }));
+  const [id] = useState(() => row.id ?? newId());
+  const set = (k) => (e) => setF((p) => ({ ...p, [k]: e.target.value }));
+  const match = options.find((o) => o.label.trim().toLowerCase() === f.scent_text.trim().toLowerCase());
+
+  function submit(e) {
+    e.preventDefault();
+    const edit = {
+      buyer_name: f.buyer_name, buyer_contact: f.buyer_contact, scent_text: f.scent_text,
+      recipe_version_id: match?.recipe_version_id ?? null, fragrance_id: match?.fragrance_id ?? null, family: match?.family ?? (f.family || null),
+      size_ml: Number(f.size_ml), strength_pct: Number(f.strength_pct),
+      price: f.price === "" ? null : Number(f.price), list_price: f.friend && f.price !== "" && f.list_price !== "" ? Number(f.list_price) : null, currency: f.price === "" ? null : (CURRENCIES.includes(currency) ? currency : row.currency ?? null),
+      wanted_by: f.wanted_by || null, note: f.note,
+    };
+    onSave({ id, edit });
+  }
+
+  const label = "block text-sm mb-1";
+  return (
+    <form onSubmit={submit} className="grid gap-4">
+      <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.buyer")}</span>
+        <input required maxLength={120} value={f.buyer_name} onChange={set("buyer_name")} className={inputClass} style={inputStyle} autoComplete="off" /></label>
+      <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.scent")}</span>
+        <input required maxLength={120} value={f.scent_text} onChange={set("scent_text")} list="order-scents" className={inputClass} style={inputStyle} autoComplete="off" />
+        <datalist id="order-scents">{options.map((o) => <option key={o.key} value={o.label} />)}</datalist>
+        <span className="block text-xs mt-1" style={{ color: COLORS.dim }}>{match ? t(`orders.form.linked.${match.kind}`) : t("orders.form.typed")}</span></label>
+      {/* A typed name has no family of its own: the seller picks one, so its grams use the same family estimate as the Bench (owner, 2026-11-23). */}
+      {!match && (
+        <div><label htmlFor="order-family" className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.family")}</label>
+          <select id="order-family" required value={f.family} onChange={set("family")} className={inputClass} style={inputStyle} data-order-family>
+            <option value="" disabled>{t("orders.form.familyPick")}</option>
+            {Object.keys(TIERS).map((key) => <option key={key} value={key}>{t(`families.${key}.label`)}</option>)}
+          </select></div>
+      )}
+      <fieldset>
+        <legend className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.size")}</legend>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {SIZES.map((s) => <Chip key={s} pressed={Number(f.size_ml) === s} onToggle={() => setF((p) => ({ ...p, size_ml: String(s) }))}>{t("orders.form.ml", { ml: s })}</Chip>)}
+        </div>
+        <input type="number" inputMode="decimal" min="0.01" max="1000" step="any" required value={f.size_ml} onChange={set("size_ml")}
+          aria-label={t("orders.form.sizeCustom")} className={`${inputClass} sm:w-40`} style={inputStyle} />
+      </fieldset>
+      <fieldset>
+        <legend className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.strength")}</legend>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {STRENGTH_TIERS.map((s) => <Chip key={s.pct} pressed={Number(f.strength_pct) === s.pct} onToggle={() => setF((p) => ({ ...p, strength_pct: String(s.pct) }))}>{`${s.name} ${s.pct}%`}</Chip>)}
+        </div>
+        <input type="number" inputMode="decimal" min="0.01" max="99.99" step="any" required value={f.strength_pct} onChange={set("strength_pct")}
+          aria-label={t("orders.form.strengthCustom")} className={`${inputClass} sm:w-40`} style={inputStyle} />
+      </fieldset>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.price", { currency: CURRENCIES.includes(currency) ? currencyLabel(currency, locale) : "" })}</span>
+          <input type="number" inputMode="decimal" min="0" step="any" value={f.price} onChange={set("price")} className={inputClass} style={inputStyle} /></label>
+        <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.wanted")}</span>
+          <input type="date" value={f.wanted_by} onChange={set("wanted_by")} className={inputClass} style={inputStyle} /></label>
+      </div>
+      <label className="flex items-center gap-3 min-h-[44px]">
+        <input type="checkbox" checked={f.friend} onChange={(e) => setF((p) => ({ ...p, friend: e.target.checked }))} className="w-5 h-5" />
+        <span style={{ color: COLORS.ink }}>{t("orders.form.friend")}</span>
+      </label>
+      {f.friend && (
+        <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.listPrice", { currency: CURRENCIES.includes(currency) ? currencyLabel(currency, locale) : "" })}</span>
+          <input type="number" inputMode="decimal" min={f.price || "0"} step="any" required value={f.list_price} onChange={set("list_price")} className={`${inputClass} sm:w-60`} style={inputStyle} />
+          <span className="block text-xs mt-1" style={{ color: COLORS.dim }}>{t("orders.form.friendHint")}</span></label>
+      )}
+      <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.contact")}</span>
+        <input maxLength={120} value={f.buyer_contact} onChange={set("buyer_contact")} className={inputClass} style={inputStyle} autoComplete="off" /></label>
+      <label><span className={label} style={{ color: COLORS.inkSoft }}>{t("orders.form.note")}</span>
+        <textarea dir="auto" maxLength={500} rows={2} value={f.note} onChange={set("note")} className={`${inputClass} py-3`} style={inputStyle} /></label>
+      <p className="text-xs" style={{ color: COLORS.dim }}>{t("orders.form.privacy")}</p>
+      {error && <p role="alert" className="text-sm" style={{ color: COLORS.danger }}>{error}</p>}
+      <Button type="submit" loading={busy}>{row.id ? t("orders.form.saveEdit") : t("orders.form.save")}</Button>
+    </form>
+  );
+}

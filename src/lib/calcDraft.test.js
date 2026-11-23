@@ -44,6 +44,8 @@ describe("calcDraft", () => {
   it("a link with any value wins over the draft", () => {
     expect(linkCarriesValues({ size: null, unit: null, conc: null, family: null, name: null })).toBe(false);
     expect(linkCarriesValues({ size: null, unit: null, conc: 25, family: null, name: null })).toBe(true);
+    expect(linkCarriesValues({ size: null, name: null, orders: [] })).toBe(false);
+    expect(linkCarriesValues({ size: null, name: null, orders: ["a"] })).toBe(true);
     expect(linkCarriesValues(undefined)).toBe(false);
   });
 });

@@ -3,6 +3,7 @@ import { COLORS } from "../lib/theme";
 import { askPerfumer } from "../lib/aiApi";
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
+import RoomHeader from "./kx/RoomHeader";
 
 const STARTERS = ["gourmandExtrait", "sharpAfterWeek", "longestRest"];
 
@@ -49,19 +50,20 @@ export default function PerfumerChat() {
 
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-serif italic text-3xl" style={{ color: COLORS.forestDeep }}>{t("chat.title")}</h2>
+      <RoomHeader name={t("chat.title")}>
         {messages.length > 0 && (
-          <button
-            type="button"
-            onClick={() => { setMessages([]); setError(""); }}
-            className="text-xs font-mono underline"
-            style={{ color: COLORS.inkSoft }}
-          >
-            {t("chat.newConversation")}
-          </button>
+          <div className="flex justify-end mt-2">
+            <button
+              type="button"
+              onClick={() => { setMessages([]); setError(""); }}
+              className="text-xs font-mono underline min-h-[44px]"
+              style={{ color: COLORS.inkSoft }}
+            >
+              {t("chat.newConversation")}
+            </button>
+          </div>
         )}
-      </div>
+      </RoomHeader>
 
       <p className="text-xs mb-4" style={{ color: COLORS.dim }}>
         {t("chat.disclosure")}{" "}
@@ -106,7 +108,7 @@ export default function PerfumerChat() {
           </div>
         ))}
         {sending && (
-          <p className="text-xs font-mono animate-pulse" style={{ color: COLORS.inkSoft }}>{t("chat.thinking")}</p>
+          <p className="text-xs font-mono motion-safe:animate-pulse" style={{ color: COLORS.inkSoft }}>{t("chat.thinking")}</p>
         )}
         <div ref={endRef} />
       </div>
@@ -114,7 +116,7 @@ export default function PerfumerChat() {
       {error && <p role="alert" className="text-sm mb-2" style={{ color: COLORS.danger }}>{error}</p>}
 
       <div className="flex gap-2 items-end">
-        <textarea
+        <textarea dir="auto"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}

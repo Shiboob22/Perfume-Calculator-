@@ -179,3 +179,43 @@ export function journalSort<T extends SortItem>(items: readonly T[], key: unknow
   };
   return rows.sort((a, b) => cmp[k](a, b) || byNo(a.x, b.x)).map((r) => r.x);
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export interface TodayItem {
+  /** Rest day today. */ day: number;
+  /** When the rest started, ms since the epoch (NaN when unknown). */ start: number;
+  /** Batch number, the tie-break. */ no: number;
+  checkins?: readonly JournalNote[] | null;
+}
+
+/**
+ * Batches owing a note today, the window closing soonest first (batch
+ * number, newest first, breaks ties). Each carries its milestone.
+ * `withinDays` keeps only milestones that opened less than that many days ago
+ * (the Journal's Smell today strip uses 7, like the nav badge; reminders use all).
+ */
+export function dueToday<T extends TodayItem>(items: readonly T[], withinDays = Infinity): Array<{ item: T; k: MilestoneKey; left: number }> {
+  const due: Array<{ item: T; k: MilestoneKey; left: number }> = [];
+  for (const item of items) {
+    const n = Number.isFinite(item.start) ? needsNote(item.checkins, item.day) : null;
+    if (n && item.day - MILESTONES.find((m) => m.k === n.k)!.days < withinDays) due.push({ item, ...n });
+  }
+  return due.sort((a, b) => a.left - b.left || b.item.no - a.item.no);
+}
+
+/**
+ * The next milestone to open across the batches: the earliest future one,
+ * as a date (ms). Null when every batch is past its last milestone.
+ */
+export function nextUp<T extends TodayItem>(items: readonly T[]): { item: T; k: MilestoneKey; at: number } | null {
+  let best: { item: T; k: MilestoneKey; at: number } | null = null;
+  for (const item of items) {
+    if (!Number.isFinite(item.start)) continue;
+    const m = MILESTONES.find((x) => x.days > Math.max(0, item.day));
+    if (!m) continue;
+    const at = item.start + m.days * DAY_MS;
+    if (!best || at < best.at || (at === best.at && item.no > best.item.no)) best = { item, k: m.k, at };
+  }
+  return best;
+}

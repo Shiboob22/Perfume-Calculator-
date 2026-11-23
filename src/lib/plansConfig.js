@@ -2,18 +2,57 @@
 // The limits themselves live in the `plans` table (0031) and are read through
 // src/lib/entitlements.js; this file holds only what is shown.
 //
-// PRICES ARE PLACEHOLDERS from the prototype, not decided (owner to set):
-// no payment provider is connected, nothing is charged.
-export const PRICES = Object.freeze({ currency: "USD", monthly: 9, yearly: 90 });
+// Pro's prices (owner, 2026-11-21). No payment provider is connected, so
+// nothing is charged: the page shows them and Pro still opens the trial.
+// USD for the world, EGP for Arabic readers and sellers who price in EGP.
+export const PRICES = Object.freeze({
+  USD: Object.freeze({ monthly: 7, yearly: 59 }),
+  EGP: Object.freeze({ monthly: 149, yearly: 1199 }),
+});
 
-/** Yearly price per month, rounded to the cent (90 / 12 = 7.50). */
-export const yearlyPerMonth = (p = PRICES) => Math.round((p.yearly / 12) * 100) / 100;
+// Yearly offers (owner, 2026-11-21). Founding members: the first 100, 40 % off
+// for as long as they stay; set `open: false` once the 100 are taken (nothing
+// counts them until payments exist). Ramadan and Eid: 30 % off between the
+// dates. A dated (seasonal) offer shows during its dates even when another is
+// lower (owner, 2026-11-21); otherwise the lowest running one shows.
+export const OFFERS = Object.freeze([
+  Object.freeze({ id: "founding", open: true, seats: 100, yearly: Object.freeze({ USD: 35, EGP: 699 }) }),
+  Object.freeze({ id: "ramadan", from: "2027-02-01", to: "2027-03-15", yearly: Object.freeze({ USD: 41, EGP: 839 }) }),
+]);
+
+/** The currency a reader sees: EGP for Arabic or a seller pricing in EGP, else USD. */
+export const priceCurrency = ({ locale, currency } = {}) => (currency === "EGP" || locale === "ar" ? "EGP" : "USD");
+
+/** Yearly price per month, rounded to the cent (59 / 12 = 4.92). */
+export const yearlyPerMonth = (cur = "USD") => Math.round((PRICES[cur].yearly / 12) * 100) / 100;
+
+/** What paying yearly saves against twelve months, in whole per cent. */
+export const yearlySavingPct = (cur = "USD") => Math.round((1 - PRICES[cur].yearly / (PRICES[cur].monthly * 12)) * 100);
+
+/** The yearly offer running on `today` (YYYY-MM-DD): a dated one first, else the lowest; null when none. */
+export function activeOffer(cur = "USD", today = new Date().toISOString().slice(0, 10), offers = OFFERS) {
+  const live = offers.filter((o) => o.open !== false && (!o.from || today >= o.from) && (!o.to || today <= o.to));
+  if (!live.length) return null;
+  const pool = live.some((o) => o.from) ? live.filter((o) => o.from) : live;
+  const best = pool.reduce((a, b) => (b.yearly[cur] < a.yearly[cur] ? b : a));
+  return { id: best.id, yearly: best.yearly[cur], seats: best.seats ?? null, to: best.to ?? null, pct: Math.round((1 - best.yearly[cur] / PRICES[cur].yearly) * 100) };
+}
 
 /** "$7.50" / "$9" in the page's locale, Western digits. */
-export function priceText(amount, locale = "en", currency = PRICES.currency) {
+export function priceText(amount, locale = "en", currency = "USD") {
   return new Intl.NumberFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", {
     style: "currency", currency, minimumFractionDigits: Number.isInteger(amount) ? 0 : 2, maximumFractionDigits: 2,
   }).format(amount);
+}
+
+/** The running yearly offer as one line: founding members, or Ramadan and Eid with its end date. `t` is the page's translate. */
+export function offerText(offer, t, locale, cur) {
+  const price = priceText(offer.yearly, locale, cur);
+  if (offer.id === "ramadan") {
+    const date = new Date(`${offer.to}T12:00:00Z`).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-GB", { day: "numeric", month: "long", numberingSystem: "latn", timeZone: "UTC" });
+    return t("plan.offer.ramadan", { price, date });
+  }
+  return t("plan.offer.founding", { price, seats: offer.seats });
 }
 
 // The cost card's chips (prototype values).
@@ -25,19 +64,33 @@ export const COST_DEFAULTS = Object.freeze({ bottleMl: 50, margin: 60 });
 // Examples only, in the user's currency; never saved.
 export const COST_SAMPLE = Object.freeze({ oilPrice: 8, ethPrice: 150, pack: 45 });
 
-// The upgrade sheet's comparison, row by row (prototype plan.rows). Values
-// are message keys under plan.compare, or numbers/limits read from the
-// entitlements. Label PNG and share links are Free on every plan (owner,
-// Phase 0), so both columns tick them. Saved formulas too: Free could save
-// as many as Pro before this round, so it keeps that (0034).
+// Free and Pro compared, row by row: one list for the upgrade sheet and the
+// Pricing page (audit H8: they used to list different rows). Cells are "yes",
+// "no", "unlimited", or a Free limit read from the plan ("batchCap",
+// "ingredientCap", "lastBatches"). The rows follow the app's gates as they
+// are; label PNG, batch card and share links are Free on every plan (owner,
+// Phase 0), and so are saved formulas (0034). `features` names the plan
+// features a row stands for, so a new feature can't go missing from the table (tested).
 export const COMPARE_ROWS = Object.freeze([
   { key: "bench", free: "yes", pro: "yes" },
-  { key: "presets", free: "yes", pro: "yes" },
-  { key: "ingredients", free: { limit: "ingredients" }, pro: "unlimited" },
+  { key: "rooms", free: "yes", pro: "yes" },
+  { key: "batches", free: "batchCap", pro: "unlimited", features: ["batches.unlimited"] },
+  { key: "ingredients", free: "ingredientCap", pro: "unlimited" },
   { key: "formulas", free: "yes", pro: "yes" },
-  { key: "rest", free: "lastBatches", pro: "fullHistory" },
-  { key: "reminders", free: "no", pro: "yes" },
-  { key: "cost", free: "no", pro: "yes" },
-  { key: "label", free: "yes", pro: "yes" },
-  { key: "share", free: "yes", pro: "yes" },
+  { key: "rest", free: "lastBatches", pro: "fullHistory", features: ["journal.checkins"] },
+  { key: "reminders", free: "no", pro: "yes", features: ["journal.reminders"] },
+  { key: "insights", free: "no", pro: "yes", features: ["journal.insights"] },
+  { key: "cost", free: "no", pro: "yes", features: ["calculator.advanced"] },
+  { key: "orders", free: "no", pro: "yes", features: ["orders"] },
+  { key: "inventory", free: "no", pro: "yes", features: ["inventory"] },
+  { key: "ask", free: "no", pro: "yes", features: ["ai.ask"] },
+  { key: "share", free: "yes", pro: "yes", features: ["cards.download"] },
+  { key: "labels", free: "no", pro: "yes", features: ["export.labels"] },
 ]);
+
+/** A cell's words; `free` holds Free's limits: { batches, ingredients, journal }. */
+export function compareCell(value, t, free) {
+  if (value === "batchCap") return t("upgrade.cells.batchCap", { cap: free.batches });
+  if (value === "ingredientCap") return String(free.ingredients);
+  return t(`upgrade.cells.${value}`, { n: free.journal });
+}

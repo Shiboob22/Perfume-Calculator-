@@ -29,7 +29,8 @@ export function cleanDraft(draft) {
 
 /** True when a calculator link carried any value: then the draft is ignored. */
 export function linkCarriesValues(prefill) {
-  return Object.values(prefill || {}).some((v) => v != null);
+  // An empty list (no ?orders=) is no value.
+  return Object.values(prefill || {}).some((v) => (Array.isArray(v) ? v.length > 0 : v != null));
 }
 
 export function loadDraft(storage = globalThis.sessionStorage) {

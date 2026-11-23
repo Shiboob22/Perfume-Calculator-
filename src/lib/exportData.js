@@ -5,7 +5,10 @@ import { BRAND } from "../brand.js";
 // The tables a user owns, in the order the export lists them. user_id is
 // dropped from every row: it is the same on all of them and means nothing
 // outside this database.
-export const EXPORT_TABLES = ["batches", "batch_checkins", "shared_recipes", "inventory", "fragrance_notes", "calc_presets", "recipes", "recipe_versions", "recipe_ingredients", "wardrobe_bottles", "wear_log", "salon_profiles", "salon_posts", "salon_likes", "salon_follows", "salon_reports", "profiles", "pro_waitlist", "user_plans", "fragrances"];
+export const EXPORT_TABLES = ["batches", "batch_checkins", "shared_recipes", "inventory", "fragrance_notes", "calc_presets", "recipes", "recipe_versions", "recipe_ingredients", "seller_orders", "order_feedback", "reminder_sends", "push_subscriptions", "wardrobe_bottles", "wear_log", "salon_profiles", "salon_posts", "salon_likes", "salon_follows", "salon_reports", "profiles", "pro_waitlist", "user_plans", "invite_codes", "referrals", "fragrances"];
+
+// Each table pages in a stable order: a unique column, or the columns of its key.
+export const EXPORT_ORDER = { batches: ["id"], batch_checkins: ["id"], shared_recipes: ["batch_id"], inventory: ["fragrance_id"], fragrance_notes: ["fragrance_id"], calc_presets: ["id"], recipes: ["id"], recipe_versions: ["id"], recipe_ingredients: ["id"], seller_orders: ["id"], order_feedback: ["order_id"], reminder_sends: ["batch_id", "milestone", "channel"], push_subscriptions: ["id"], wardrobe_bottles: ["id"], wear_log: ["id"], salon_profiles: ["user_id"], salon_posts: ["id"], salon_likes: ["post_id"], salon_follows: ["followee_id"], salon_reports: ["id"], profiles: ["user_id"], pro_waitlist: ["user_id"], user_plans: ["user_id"], invite_codes: ["user_id"], referrals: ["id"], fragrances: ["id"] };
 
 // A catalog id means nothing outside this database either: rows fetched
 // with their fragrance ({ fragrances: { name } }) get a fragrance_name

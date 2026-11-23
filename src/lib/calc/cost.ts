@@ -121,3 +121,20 @@ export function costFor(input: CostInput) {
   const bottles = bottle > 0 ? Math.floor(Number((total / bottle).toPrecision(12))) : 0;
   return { batch, perBottle, retail, bottles };
 }
+
+/** The cost card's friend discounts, % off the suggested retail. */
+export const FRIEND_OFFS = Object.freeze([10, 20, 30]);
+
+/**
+ * A friend price on the cost card: a typed price wins, else `off` % off the
+ * suggested retail (to the cent). Null when neither is set or nothing is
+ * priced yet. `belowCost` when the friend pays less than the bottle costs.
+ */
+export function friendPrice(input: { perBottle: number; retail: number; off?: number | null; price?: number | string | null }) {
+  const typed = input.price === "" || input.price == null ? null : Number(input.price);
+  const off = Math.min(Math.max(Number(input.off) || 0, 0), 100);
+  if (!(input.perBottle > 0) || (typed === null && !off)) return null;
+  const price = typed !== null && Number.isFinite(typed) && typed >= 0 ? Math.round(typed * 100) / 100 : Math.round(input.retail * (100 - off)) / 100;
+  const profit = Math.round((price - input.perBottle) * 100) / 100;
+  return { price, profit, belowCost: profit < 0 };
+}

@@ -2,6 +2,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { overLimit } from './_lib/rateLimit.js';
 import { startTrial } from './_lib/trial.js';
+import { inviteFor } from './_lib/invite.js';
+import { loadEntitlements, lockedFeature } from './_lib/entitlements.js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -48,6 +50,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!user) return res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey, { global: { fetch: timedFetch } });
+
+    if (req.method === 'POST' && req.body?.action === 'invite') {
+      // Bring a friend (0042): Pro users get an invite link.
+      const entitlements = await loadEntitlements(supabase, user.id);
+      if (entitlements.plan !== 'pro') return res.status(403).json(lockedFeature('invite'));
+      return res.status(200).json(await inviteFor(supabase, user.id));
+    }
 
     if (req.method === 'POST') {
       if (req.body?.action !== 'start_trial') return res.status(400).json({ error: 'Unknown action.', code: 'invalid_action' });

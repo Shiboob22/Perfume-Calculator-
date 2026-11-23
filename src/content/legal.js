@@ -6,7 +6,7 @@
 export const LEGAL = {
   privacy: {
     draft: true,
-    updated: "2026-09-27",
+    updated: "2026-11-21",
     en: {
       title: "Privacy",
       summary: "What Kyphira stores about you, why, who processes it, and how to get it or delete it.",
@@ -19,6 +19,7 @@ export const LEGAL = {
           "What you save in the app: batches (fragrance name, weights, strength, dates, notes, cost fields you fill in), inventory, notes on fragrances, calculator presets, and your preferences (language, units, usual bottle size, digit style).",
           "Your plan (Free or Pro) and, if you join it, your place on the Pro waitlist and the screen you joined it from.",
           "If you signed up from a recipe page, a guide or the home page, which of the three. We only look at it as totals, never per person.",
+          "If you invite a friend, or joined through a friend's invite: your invite code, and which account invited which, so each of you gets the free month of Pro. The person who invited you does not see your email.",
           "Fragrances you add to the shared catalog are stored with a link to your account until an admin approves them. If you delete your account the fragrance stays in the catalog without that link.",
         ] },
         { id: "not", h: "What we do not do", p: [
@@ -28,6 +29,18 @@ export const LEGAL = {
         { id: "device", h: "Stored on your device", p: [
           "Your browser keeps your sign-in session, your language and digit choices, batches you logged while offline until they are sent, and, for the open tab only, the calculator's inputs and a bench run in progress. These stay on your device and are cleared when you sign out or clear site data.",
         ] },
+        { id: "reminders", h: "Journal reminder emails", p: [
+          "If you switch the reminder on for a batch (a Pro feature), we email you at your account address when that batch reaches a Journal milestone and has no note yet. At most one email a morning, only when something is due, and each milestone once.",
+          "To send it we record which batch and milestone we emailed (so it is not sent twice) and pass your email address, the batch number and fragrance name to our email provider, Resend. Every email has a link that switches reminders off on all your batches. Turning the bell off on a batch stops them for that batch.",
+          "If you switch on \"Nudge this device\", we also keep that browser's push address (and its public keys) so your device can show a notification. The notification carries no words from us about your batches: your device writes the message. The address is deleted when you switch nudges off, when the browser says it is gone, and when you delete your account. Push goes through your browser's own push service (Google, Apple or Mozilla, depending on the browser).",
+        ] },
+        { id: "buyers", h: "Your buyers (order queue)", p: [
+          "If you sell what you blend and use the order queue (a Pro feature), you can save a buyer's name and, if you choose, a way to reach them, with each order. Only you can see them. They are in your data download and are deleted with your account.",
+          "Each order has a private code. When you print a label for that order, the label carries a QR code with that code. Anyone who scans it opens a page that shows your shop name (if you set one in Account), the scent, the bottle size, the strength and the date it was bottled. It never shows the price, the weights or the name on the order.",
+          "On that page the buyer can send you a rating, how long the scent lasts, tags and one line of text. They can change their answer for 30 days. They can also ask for the same bottle again by leaving their name and phone number. This adds a new order to your queue, marked as requested, which you accept or dismiss. Only you see what buyers send, and it is deleted with your account.",
+          "To stop misuse, the page counts requests from each network for a short time (the network address is kept only inside a counter, which is cleared out once it is more than a day old). The page sets no cookies. The buyer's browser remembers only the language they chose.",
+          "You, as the seller, are responsible for your buyers' details: for telling your buyers what you keep and for how you use it. Kyphira keeps them for you and uses them only to run your order queue and the buyer page.",
+        ] },
         { id: "ai", h: "Ask (AI)", p: [
           "Ask is a Pro feature that sends your question, the conversation so far, and your 30 most recent batches (date, fragrance name, family, strength, size, oil weight, oil type, price and cost fields, and notes) to Google's Gemini API to write an answer. Your email address is not sent.",
           "Google processes this under its Gemini API terms. [OWNER: confirm the API tier in use. On Gemini's free tier Google may use prompts to improve its products; on the paid tier it does not.]",
@@ -36,6 +49,7 @@ export const LEGAL = {
         { id: "processors", h: "Who processes your data", p: [
           "Supabase (database and sign-in), hosted in the EU (Ireland).",
           "Vercel (hosting and the server functions), which run in the EU (Dublin). Vercel Web Analytics counts page views without cookies and without storing personal data.",
+          "Resend (email), only to send the Journal reminder emails described above.",
           "Google (Gemini) only when you use Ask, as described above. Google, if you choose it to sign in.",
         ] },
         { id: "rights", h: "Your data, your choice", p: [
@@ -60,6 +74,7 @@ export const LEGAL = {
           "ما تحفظه في التطبيق: الخلطات (اسم العطر والأوزان والتركيز والتواريخ والملاحظات وحقول التكلفة التي تملؤها)، والمخزون، وملاحظاتك على العطور، والإعدادات المحفوظة في الحاسبة، وتفضيلاتك (اللغة والوحدات وحجم الزجاجة المعتاد وشكل الأرقام).",
           "خطتك (المجانية أو Pro)، ومكانك في قائمة انتظار Pro إن انضممت إليها والشاشة التي انضممت منها.",
           "إن سجّلت من صفحة وصفة أو دليل أو من الصفحة الرئيسية، فأيّها كان. لا ننظر إلى ذلك إلا كمجاميع، لا لكل شخص.",
+          "إن دعوت صديقًا أو انضممت عبر دعوة صديق: رمز دعوتك، وأيّ حساب دعا أيّ حساب، ليحصل كلٌّ منكما على شهر Pro المجاني. لا يرى من دعاك بريدك الإلكتروني.",
           "العطور التي تضيفها إلى الفهرس المشترك تُحفظ مرتبطة بحسابك حتى يوافق عليها مشرف. إن حذفت حسابك يبقى العطر في الفهرس دون هذا الارتباط.",
         ] },
         { id: "not", h: "ما لا نفعله", p: [
@@ -69,6 +84,18 @@ export const LEGAL = {
         { id: "device", h: "ما يُحفظ على جهازك", p: [
           "يحتفظ متصفحك بجلسة تسجيل الدخول، واختيارك للغة وشكل الأرقام، والخلطات التي سجّلتها دون اتصال حتى تُرسَل، ولعلامة التبويب المفتوحة فقط مدخلات الحاسبة وجلسة العمل الجارية. تبقى هذه على جهازك وتُمسح عند تسجيل الخروج أو مسح بيانات الموقع.",
         ] },
+        { id: "reminders", h: "رسائل تذكير الدفتر", p: [
+          "إن فعّلت التذكير على دفعة (ميزة Pro) نراسلك على عنوان حسابك حين تبلغ تلك الدفعة محطة في الدفتر ولا ملاحظة لها بعد. رسالة واحدة في الصباح كحدٍّ أقصى، ولا تصلك إلا حين يحين موعد، ولكل محطة رسالة واحدة فقط.",
+          "لإرسالها نسجّل أي دفعة وأي محطة راسلناك عنها (كي لا تُرسل مرتين)، ونمرّر بريدك ورقم الدفعة واسم العطر إلى مزوّد البريد لدينا Resend. في كل رسالة رابط يوقف التذكيرات على كل دفعاتك. وإيقاف الجرس على دفعة يوقفها لتلك الدفعة.",
+          "إن فعّلت «نبّهني على هذا الجهاز» فنحتفظ أيضًا بعنوان الإشعارات لذلك المتصفح (ومفاتيحه العلنية) ليتمكن جهازك من عرض إشعار. لا يحمل الإشعار أي كلمات منا عن دفعاتك: جهازك هو من يكتب الرسالة. يُحذف العنوان حين توقف التنبيهات، وحين يعلن المتصفح أنه لم يعد صالحًا، وحين تحذف حسابك. تمر الإشعارات عبر خدمة الإشعارات الخاصة بمتصفحك (Google أو Apple أو Mozilla بحسب المتصفح).",
+        ] },
+        { id: "buyers", h: "مشتروك (قائمة الطلبات)", p: [
+          "إذا كنت تبيع ما تخلطه وتستخدم قائمة الطلبات (ميزة Pro)، يمكنك أن تحفظ مع كل طلب اسم المشتري، وطريقة للتواصل معه إن أردت. لا يراها أحد غيرك. وهي ضمن بياناتك عند التنزيل، وتُحذف مع حسابك.",
+          "لكل طلب رمز خاص. عندما تطبع ملصقًا لهذا الطلب، يحمل الملصق رمز QR بهذا الرمز. من يمسحه يفتح صفحة تعرض اسم متجرك (إن حدّدته في الحساب)، والعطر، وحجم الزجاجة، والتركيز، وتاريخ التعبئة. ولا تعرض أبدًا السعر أو الأوزان أو الاسم المكتوب على الطلب.",
+          "يستطيع المشتري من هذه الصفحة أن يرسل إليك تقييمًا، وكم يدوم العطر، وأوصافًا، وسطرًا واحدًا من النص. ويستطيع تغيير ردّه خلال 30 يومًا. ويستطيع أيضًا أن يطلب الزجاجة نفسها مرة أخرى بترك اسمه ورقم هاتفه. يضيف هذا طلبًا جديدًا إلى قائمتك في «طلبات مكررة من المشترين»، فتقبله أو تتجاهله. لا يرى ما يرسله المشترون أحد غيرك، ويُحذف مع حسابك.",
+          "لمنع إساءة الاستخدام، تعدّ الصفحة الطلبات القادمة من كل شبكة لمدة قصيرة (يُحفظ عنوان الشبكة داخل عدّاد فقط، ويُحذف بعد أن يمضي عليه أكثر من يوم). لا تضع الصفحة أي ملفات تعريف ارتباط. ويتذكّر متصفح المشتري اللغة التي اختارها فقط.",
+          "أنت، بصفتك البائع، المسؤول عن بيانات مشتريك: عن إبلاغهم بما تحفظه، وعن طريقة استخدامك لها. يحفظها كيفيرا لك، ولا يستخدمها إلا لتشغيل قائمة طلباتك وصفحة المشتري.",
+        ] },
         { id: "ai", h: "اسأل (الذكاء الاصطناعي)", p: [
           "ميزة «اسأل» جزء من Pro، وهي ترسل سؤالك والمحادثة حتى الآن وآخر 30 خلطة لك (التاريخ واسم العطر والعائلة والتركيز والحجم ووزن الزيت ونوعه وحقول السعر والتكلفة والملاحظات) إلى واجهة Gemini من Google لكتابة الإجابة. لا يُرسَل بريدك الإلكتروني.",
           "تعالج Google هذه البيانات وفق شروط واجهة Gemini. [OWNER: أكّد فئة الواجهة المستخدمة. في الفئة المجانية قد تستخدم Google الطلبات لتحسين منتجاتها، وفي الفئة المدفوعة لا تفعل.]",
@@ -77,6 +104,7 @@ export const LEGAL = {
         { id: "processors", h: "من يعالج بياناتك", p: [
           "Supabase (قاعدة البيانات وتسجيل الدخول)، مستضافة في الاتحاد الأوروبي (أيرلندا).",
           "Vercel (الاستضافة ووظائف الخادم)، وتعمل في الاتحاد الأوروبي (دبلن). تحصي تحليلات Vercel زيارات الصفحات دون ملفات تعريف ارتباط ودون حفظ بيانات شخصية.",
+          "Resend (البريد الإلكتروني)، فقط لإرسال رسائل تذكير الدفتر الموصوفة أعلاه.",
           "Google ‏(Gemini) عند استخدامك «اسأل» فقط كما وُصف أعلاه. وGoogle إن اخترته لتسجيل الدخول.",
         ] },
         { id: "rights", h: "بياناتك، واختيارك", p: [

@@ -74,6 +74,7 @@ export default function Onboarding() {
           {[1, 2, 3, 4].map((n) => <span key={n} className="h-1" style={{ background: n <= step ? COLORS.amber : COLORS.line }} />)}
         </div>
         <h1 className="font-serif italic text-3xl sm:text-4xl leading-tight mb-8" style={{ color: COLORS.forestDeep }}>{t("onboarding.title")}</h1>
+        {/^invite-/.test(refFrom(window.location.search) ?? "") && <p role="note" className="-mt-5 mb-8 text-sm" style={{ color: COLORS.actionText }} data-invited>{t("onboarding.invited")}</p>}
 
         <fieldset>
           {step === 1 && (

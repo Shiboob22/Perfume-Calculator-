@@ -1,0 +1,36 @@
+{
+  "measured": "2026-11-16T00:25:59.653Z",
+  "setup": "Playwright Chromium headless, desktop 1280x720, software rendering, CPU throttled 4x via CDP, fake API",
+  "rooms": {
+    "bench": {
+      "inp": 104,
+      "taps": 9,
+      "cls": 0
+    },
+    "journal": {
+      "inp": 96,
+      "taps": 9,
+      "cls": 0
+    },
+    "planSheet": {
+      "inp": 248,
+      "taps": 5,
+      "cls": 0
+    },
+    "account": {
+      "inp": 56,
+      "taps": 6,
+      "cls": 0
+    },
+    "guides": {
+      "inp": 40,
+      "taps": 6,
+      "cls": 0
+    }
+  },
+  "signature": {
+    "frames": 55,
+    "fps": 60,
+    "worstFrameMs": 17
+  }
+}

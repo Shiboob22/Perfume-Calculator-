@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  dueToday, nextUp,
   MILESTONES, REST_DAYS, milestoneIndex, notesByMilestone, milestoneDots, restProgress, trackPosition, readySoonOrder, isFresh, DOT_GLYPH, needsNote, JOURNAL_SORTS, journalSortKey, journalSort, journalSortDir, SORT_DEFAULT_DIR,
 } from "./index";
 
@@ -148,3 +149,40 @@ describe("journal sort", () => {
   });
 });
 
+
+describe("smell today", () => {
+  const D = 86400000;
+  const start = Date.UTC(2026, 0, 1);
+  const mk = (no: number, day: number, checkins: any[] = []) => ({ no, day, start, checkins });
+  const note = (scheduled_day: number) => ({ id: `n${scheduled_day}`, day: scheduled_day, scheduled_day });
+
+  it("lists batches owing a note, the window closing soonest first", () => {
+    const a = mk(1, 8); // Week 1 reached, 6 days to Week 2
+    const b = mk(2, 28); // Week 2 reached, 2 days to Month 1
+    const c = mk(3, 8, [note(7)]); // noted
+    const d = mk(4, 100); // Month 3: never closes
+    expect(dueToday([a, b, c, d]).map((x) => [x.item.no, x.k])).toEqual([[2, "w2"], [1, "w1"], [4, "m3"]]);
+  });
+  it("withinDays keeps only milestones opened that recently (Smell today: 7)", () => {
+    // Month 1 opens day 30, Month 3 day 90: day 36 is in its week, day 37 is not.
+    const items = [mk(1, 36), mk(2, 37), mk(3, 96), mk(4, 200), mk(5, 13)];
+    expect(dueToday(items, 7).map((x) => x.item.no)).toEqual([5, 1, 3]);
+    expect(dueToday(items).map((x) => x.item.no)).toEqual([5, 2, 1, 4, 3]);
+  });
+  it("ties go to the newer batch; unknown start is skipped", () => {
+    expect(dueToday([mk(1, 8), mk(2, 8), { no: 3, day: 8, start: NaN }]).map((x) => x.item.no)).toEqual([2, 1]);
+  });
+  it("the next milestone to open across batches, as a date", () => {
+    const a = mk(1, 8); // next: Week 2, day 14
+    const b = { ...mk(2, 20), start: start + 5 * D }; // next: Month 1, day 30 -> start+35 d
+    expect(nextUp([a, b])).toMatchObject({ k: "w2", at: start + 14 * D });
+    expect(nextUp([mk(1, 90)])).toBeNull();
+  });
+  it("the next milestone: an unknown start is skipped, a tie goes to the newer batch", () => {
+    expect(nextUp([{ no: 9, day: 8, start: NaN }])).toBeNull();
+    expect(nextUp([mk(1, 8), mk(2, 8)])!.item.no).toBe(2);
+    expect(nextUp([mk(2, 8), mk(1, 8)])!.item.no).toBe(2);
+    // A later date never replaces an earlier one.
+    expect(nextUp([mk(1, 8), { ...mk(2, 8), start: start + 5 * D }])!.item.no).toBe(1);
+  });
+});

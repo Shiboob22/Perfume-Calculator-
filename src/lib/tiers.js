@@ -13,11 +13,12 @@ export const TIER_COLORS = {
   fresh:    '#7E9A7C',
   floral:   '#B98C93',
   woody:    '#6E6248',
+  fougere:  '#5F7A66',
   gourmand: '#A9793C',
   oriental: '#5B3A2E'
 };
 
-export const TIER_INITIAL = { fresh:'F', floral:'B', woody:'W', gourmand:'G', oriental:'A' };
+export const TIER_INITIAL = { fresh:'F', floral:'B', woody:'W', fougere:'R', gourmand:'G', oriental:'A' };
 
 export { ML_PER_FLOZ, G_PER_OZ };
 export const ETHANOL_DENSITY_DEFAULT = ETHANOL_DENSITY; // g/mL for 96% ethanol

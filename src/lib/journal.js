@@ -3,7 +3,7 @@
 // schedule and pattern rules themselves live in src/lib/calc/journal.ts.
 import { TIERS } from "./tiers";
 import { batchStartedAt } from "./batchTiming";
-import { dueCheckIns, restDay, peakDay } from "./calc";
+import { dueCheckIns, restDay, peakDay, needsNote, MILESTONES } from "./calc";
 
 export function restingBatch(batch) {
   return { id: batch.id, startedAt: batchStartedAt(batch), rest: TIERS[batch.tier]?.restDays ?? null };
@@ -14,6 +14,24 @@ export function dueNow(batches, now = new Date()) {
   const checkins = batches.flatMap((b) => (b.batch_checkins || []).map((c) => ({ ...c, batch_id: b.id })));
   const byId = new Map(batches.map((b) => [b.id, b]));
   return dueCheckIns(batches.map(restingBatch), checkins, now).map((d) => ({ ...d, batch: byId.get(d.batchId) }));
+}
+
+/** A milestone counts on the nav badge for this many days after it opens (owner, 2026-11-20). */
+export const BADGE_WINDOW_DAYS = 7;
+
+/**
+ * Batches owing a note in the Journal room (the milestone they have reached
+ * has no note) whose milestone opened in the last BADGE_WINDOW_DAYS: what the
+ * nav badge counts. Older ones stay open in the room's "Needs a note" and can
+ * still get a note; they just stop counting. Batches with no start time are skipped.
+ */
+export function notesDue(batches, now = new Date()) {
+  return batches.filter((b) => {
+    if (!batchStartedAt(b)) return false;
+    const day = todayFor(b, now);
+    const owed = needsNote(b.batch_checkins, day);
+    return owed && day - MILESTONES.find((m) => m.k === owed.k).days < BADGE_WINDOW_DAYS;
+  }).length;
 }
 
 /** Today's rest day for a batch (what an ad-hoc check-in records). */
@@ -79,4 +97,19 @@ export function nextReady(batches, now = new Date()) {
     if (!best || left < best.left) best = { batch, day: tl.day, target: tl.target, left };
   }
   return best;
+}
+
+// Ready day (motion M4): the first time a batch is opened after it reaches the
+// end of its rest, the track completes and it turns from resting to ready.
+// The batches whose moment has played are kept on the device, newest last.
+export const READY_SEEN_KEY = "kyphira.readySeen";
+
+/** Whether a batch's ready moment is still to play. */
+export const readyMomentDue = (seen, id, ready) => Boolean(ready && id) && !(seen ?? []).includes(id);
+
+/** The list with `id` added (once, newest last), at most `max` long. */
+export function markReadySeen(seen, id, max = 200) {
+  const list = (Array.isArray(seen) ? seen : []).filter((x) => typeof x === "string" && x !== id);
+  list.push(id);
+  return list.slice(-max);
 }

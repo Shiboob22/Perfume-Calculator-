@@ -217,7 +217,7 @@ export async function logBatch(batch) {
   const data = await res.json();
   // How the server's stock step went (see api/batches.ts), and whether this
   // was a re-send of a batch already logged. Not columns of the batch.
-  return Object.assign(data.batch ?? {}, { stock: data.stock, duplicate: Boolean(data.duplicate) });
+  return Object.assign(data.batch ?? {}, { stock: data.stock, duplicate: Boolean(data.duplicate), ordersLinked: data.orders_linked });
 }
 
 // `filters`: { id } for one batch, { fragrance_id } or { name } for one oil's.

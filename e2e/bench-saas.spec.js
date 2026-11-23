@@ -3,6 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import en from "../src/i18n/messages/en.js";
 import ar from "../src/i18n/messages/ar.js";
 import { USER, json, signIn } from "./helpers.js";
+import { COMPARE_ROWS } from "../src/lib/plansConfig.js";
 
 // The Bench SaaS round, Phase 3, against the production build with a fake
 // session and a fake API: load a saved formula, switch to a blend, add
@@ -68,7 +69,9 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     await expect(page.getByRole("button", { name: m.upgrade.badgeFree })).toBeVisible();
     const cost = page.getByRole("region", { name: m.calc.costCard.title });
     await expect(cost.getByRole("button", { name: m.calc.costCard.unlock })).toBeVisible();
-    await expect(cost.locator("[data-cost-body]")).toHaveAttribute("aria-hidden", "true");
+    // Locked: hidden and blurred on wide screens; on phones the card is its title and the unlock only.
+    if (phone) await expect(cost.locator("[data-cost-body]")).toHaveCount(0);
+    else await expect(cost.locator("[data-cost-body]")).toHaveAttribute("aria-hidden", "true");
 
     // Load the saved formula: the rail on desktop, a bottom sheet on phones.
     if (phone) {
@@ -114,7 +117,7 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     await expect(upgrade.getByText(m.upgrade.why.blend)).toBeVisible();
     await expect(page.getByRole("textbox", { name: m.calc.blend.nameN.replace("{n}", "4") })).toHaveCount(0);
     // Every comparison row, label PNG and share links ticked on Free too.
-    await expect(upgrade.getByRole("row")).toHaveCount(1 + 9);
+    await expect(upgrade.getByRole("row")).toHaveCount(1 + COMPARE_ROWS.length); // the one Free-and-Pro table (H8)
     await expect(upgrade.getByRole("row", { name: new RegExp(m.upgrade.rows.label) }).getByRole("cell").first()).toHaveText("✓");
     await expect(upgrade.getByRole("row", { name: new RegExp(m.upgrade.rows.share) }).getByRole("cell").first()).toHaveText("✓");
     // Saved formulas: the same on both plans (Free kept what it had, 0034).
@@ -124,9 +127,13 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     // Monthly / yearly.
     await upgrade.getByRole("button", { name: m.upgrade.monthly, exact: true }).click();
     await expect(upgrade.getByText(m.upgrade.perMonth)).toBeVisible();
-    await upgrade.getByRole("button", { name: new RegExp(m.upgrade.saveYear) }).click();
+    await upgrade.getByRole("button", { name: new RegExp(m.upgrade.yearly) }).click();
     await expect(upgrade.getByText(m.upgrade.billedYearly.split("{price}")[1].trim())).toBeVisible();
-    await expect(upgrade.getByText(m.upgrade.fine)).toBeVisible();
+    // The owner's prices: USD in English, EGP in Arabic, with the founding offer.
+    await expect(upgrade.getByRole("button", { name: new RegExp(m.upgrade.yearly) })).toContainText(locale === "ar" ? "33%" : "30%");
+    await expect(upgrade.locator("thead")).toContainText(locale === "ar" ? "1,199" : "$59");
+    await expect(upgrade.locator("[data-offer=founding]")).toContainText(locale === "ar" ? "699" : "$35");
+    await expect(upgrade.getByText(m.plan.trial.terms)).toBeVisible();
 
     // The trial: Pro now, the sheet closes and the cost card opens.
     await upgrade.getByRole("button", { name: m.plan.trial.start }).click();
@@ -141,6 +148,14 @@ for (const [locale, m] of [["en", en], ["ar", ar]]) {
     await cost.getByRole("spinbutton", { name: m.calc.costCard.pack }).fill("45");
     await cost.getByRole("button", { name: "30 mL" }).click();
     await expect(cost.locator('[data-cost="retail"]')).not.toContainText(/^0\.00/);
+    // A friend price: 20 % off says what they pay; a price under cost says what it loses.
+    const friend = cost.locator("[data-friend-result]");
+    await expect(friend).toHaveText("");
+    await cost.locator('[data-friend-off="20"]').click();
+    await expect(friend).not.toHaveText("");
+    await cost.getByRole("spinbutton", { name: m.calc.costCard.friend.typed }).fill("1");
+    await expect(friend).toContainText(m.calc.costCard.friend.loss.split("{")[0].trim());
+    await expect(cost.locator('[data-friend-off="20"]')).toHaveAttribute("aria-pressed", "false");
     // And a fourth material is allowed on Pro.
     await add.click();
     await expect(page.getByRole("textbox", { name: m.calc.blend.nameN.replace("{n}", "4") })).toBeVisible();

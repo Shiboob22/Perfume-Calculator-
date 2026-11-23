@@ -73,7 +73,7 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
       <Field label={t("wardrobe.today.sprays")} mono inputMode="numeric" value={sprays} onChange={(e) => setSprays(e.target.value)} dir="ltr" />
       <div>
         <label htmlFor={`wear-note-${bottle.id}`} className="block text-sm mb-1.5" style={{ color: COLORS.inkSoft }}>{t("wardrobe.today.noteField")}</label>
-        <textarea id={`wear-note-${bottle.id}`} rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} className={`${inputClass} py-2`} style={inputStyle} />
+        <textarea dir="auto" id={`wear-note-${bottle.id}`} rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} className={`${inputClass} py-2`} style={inputStyle} />
       </div>
       <div className="flex flex-wrap gap-3">
         <Button type="submit" loading={busy}>{t("wardrobe.today.save")}</Button>
@@ -124,7 +124,7 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
         <>
           {/* One answer, large; the next two quieter beneath it. */}
           {top.slice(0, 1).map((r) => (
-            <Reveal as="article" eager key={r.bottle.id} aria-labelledby="today-answer" className="p-6" style={{ background: COLORS.card, border: `1px solid ${COLORS.actionText}` }}>
+            <Reveal as="article" eager from="down" key={r.bottle.id} aria-labelledby="today-answer" className="p-6" style={{ background: COLORS.card, border: `1px solid ${COLORS.actionText}` }}>
               <div className="flex items-baseline justify-between gap-3">
                 <p className="text-sm" style={{ color: COLORS.dim }}>{t("wardrobe.today.picks")}</p>
                 <span className="font-mono tabular-nums text-xs" dir="ltr" style={{ color: COLORS.dim }}>{t("wardrobe.today.score", { score: r.score.toFixed(1) })}</span>

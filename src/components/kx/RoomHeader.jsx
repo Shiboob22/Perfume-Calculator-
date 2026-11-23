@@ -9,7 +9,10 @@ import { TextReveal } from "../../motion";
 //     the large line (a count, "12 bottles.");
 //   title given:    a caption names the room, the h1 is the large title;
 //   neither:        the numeral, then the room's name as the large h1.
-export default function RoomHeader({ numeral, name, title, headline, children, compact = false, className = "" }) {
+// Tools and pages that are not rooms (Inventory, Labels, Account…) pass no
+// numeral: just the large h1 and the rule (audit M4). `headingRef` makes the
+// h1 a focus target (tabIndex -1) for pages that move focus to their title.
+export default function RoomHeader({ numeral, name, title, headline, headingRef, children, compact = false, className = "" }) {
   const size = compact ? "text-[clamp(2.25rem,5vw,3.5rem)] lg:text-[2.5rem]" : "text-[clamp(2.25rem,5vw,3.5rem)]";
   const big = `font-serif font-light ${size} leading-[1.1] rtl:leading-[1.5] tracking-[-0.01em] rtl:tracking-normal`;
   const cap = "uppercase tracking-[0.14em] rtl:tracking-normal text-xs font-normal";
@@ -17,10 +20,12 @@ export default function RoomHeader({ numeral, name, title, headline, children, c
     <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-lg not-italic font-serif`} style={{ color: COLORS.actionText }}>{numeral}</span>
   );
   // A string title rises word by word on mount (whole words: Arabic keeps its joins).
-  const line = (Tag, text, style) => (typeof text === "string"
+  const line = (Tag, text, style) => (headingRef && Tag === "h1"
+    ? <Tag ref={headingRef} tabIndex={-1} className={`${big} outline-none`} style={style}>{text}</Tag>
+    : typeof text === "string"
     ? <TextReveal as={Tag} eager text={text} className={big} style={style} />
     : <Tag className={big} style={style}>{text}</Tag>);
-  const row = (inner) => <span className="flex items-baseline gap-3 mb-2" style={{ color: COLORS.dim }}>{num}{inner}</span>;
+  const row = (inner) => <span className="flex items-baseline gap-3 mb-2" style={{ color: COLORS.dim }}>{numeral && num}{inner}</span>;
   return (
     <header className={`mb-6 ${className}`}>
       {headline ? (
@@ -35,7 +40,7 @@ export default function RoomHeader({ numeral, name, title, headline, children, c
         </>
       ) : (
         <>
-          {row(null)}
+          {numeral && row(null)}
           {line("h1", name, { color: COLORS.ink })}
         </>
       )}

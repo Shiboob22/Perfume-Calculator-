@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "../motion";
+import React, { useRef } from "react";
+import { Link, useFlip } from "../motion";
 import { COLORS, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { GUIDES } from "../content/guides";
@@ -19,14 +19,17 @@ export function calculatorHref(guide) {
 
 export default function MethodSequence({ guides = METHOD, showCalculator = false }) {
   const { t, locale } = useI18n();
+  // A search that keeps a step: it slides to its new place (motion M3).
+  const list = useRef(null);
+  useFlip(list, guides.map((g) => g.slug).join(","));
   return (
-    <ol className="grid grid-cols-1 md:grid-cols-3">
+    <ol ref={list} className="grid grid-cols-1 md:grid-cols-3">
       {guides.map((g, i) => {
         const n = String(METHOD.findIndex((m) => m.slug === g.slug) + 1).padStart(2, "0");
         const calc = showCalculator && calculatorHref(g);
         const last = i === guides.length - 1;
         return (
-          <li key={g.slug} className="grid grid-cols-[2.75rem_minmax(0,1fr)] md:block md:pe-8">
+          <li key={g.slug} data-flip={g.slug} className="grid grid-cols-[2.75rem_minmax(0,1fr)] md:block md:pe-8">
             <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-3xl md:text-5xl md:block md:pb-3 md:border-b`} style={{ color: COLORS.amberDeep, borderColor: COLORS.field }}>{n}</span>
             <div className={`ps-5 border-s md:border-s-0 md:ps-0 md:pt-4 md:pb-0 ${last ? "pb-0" : "pb-8"}`} style={{ borderColor: COLORS.line }}>
               <Link to={localePath(locale, `/library/${g.slug}`)} className="group block">

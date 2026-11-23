@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { dueNow, todayFor, restingBatch, suggestedRestDays, shareOf, restTimeline, nextReady } from "./journal";
+import { restWindow, addDays } from "./calc";
+import { FAMILIES } from "./formulation";
+import { dueNow, notesDue, todayFor, restingBatch, suggestedRestDays, shareOf, restTimeline, nextReady, readyMomentDue, markReadySeen } from "./journal";
 
 const made = new Date(2026, 8, 1, 10, 0);
 const batch = (extra = {}) => ({ id: "b1", tier: "woody", created_at: made.toISOString(), blend_date: "2026-09-01", ...extra });
@@ -73,5 +75,62 @@ describe("nextReady", () => {
     expect(nextReady([batch()], day(90))).toBeNull();
     expect(nextReady([batch({ tier: "unknown" })], day(3))).toBeNull();
     expect(nextReady([], day(3))).toBeNull();
+  });
+});
+
+describe("one ready date everywhere", () => {
+  it("Journal, Bench line and order queue give the same ready day for every family", () => {
+    for (const tier of Object.keys(FAMILIES)) {
+      const b = batch({ tier });
+      const tl = restTimeline(b, day(10));
+      const w = restWindow(tier, "2026-09-01");
+      // Fully rested is 90 days for every family, in the Journal and in the queue.
+      expect(tl.target).toBe(w.maxDays);
+      expect(w.fullyRested).toBe(addDays("2026-09-01", tl.target));
+      // Only Aromatic Fougère has a shorter recommended rest (28 days): the queue's
+      // "ready from" is that date, the Journal's ready mark stays at the full rest.
+      if (tier === "fougere") expect(w.minDays).toBe(28);
+      else expect(w.readyFrom).toBe(addDays("2026-09-01", tl.target));
+    }
+  });
+});
+
+describe("nav badge counts the room's needs-a-note", () => {
+  it("one per batch whose reached milestone has no note", () => {
+    const noted = batch({ id: "b2", batch_checkins: [{ id: "n", day: 8, scheduled_day: 7, note: "x" }] });
+    expect(notesDue([batch(), noted], day(8))).toBe(1); // b1: Week 1 reached, no note; b2: noted
+    expect(notesDue([batch(), noted], day(31))).toBe(2); // Month 1 owes a note on both
+    expect(notesDue([{ id: "x" }], day(8))).toBe(0); // no start time
+  });
+  it("counts a milestone for its first 7 days only (owner, 2026-11-20)", () => {
+    expect(notesDue([batch()], day(36))).toBe(1); // Month 1 opened 6 days ago
+    expect(notesDue([batch()], day(37))).toBe(0); // 7 days: quietly missed
+    expect(notesDue([batch()], day(96))).toBe(1); // Month 3 opens a new week
+    expect(notesDue([batch()], day(200))).toBe(0); // and never counts forever
+  });
+  it("follows the room's milestones, not the older family schedule", () => {
+    const noted = batch({ batch_checkins: [{ id: "n", day: 8, scheduled_day: 7, note: "x" }] });
+    expect(notesDue([noted], day(8))).toBe(0); // Week 1 is noted
+    expect(dueNow([noted], day(8))).toHaveLength(1); // the older schedule still asks for its day 1
+  });
+});
+
+describe("Ready day (motion M4)", () => {
+  it("plays once per batch, only when it is ready", () => {
+    expect(readyMomentDue([], "a", true)).toBe(true);
+    expect(readyMomentDue(["a"], "a", true)).toBe(false);
+    expect(readyMomentDue([], "a", false)).toBe(false);
+    expect(readyMomentDue(null, "a", true)).toBe(true);
+    expect(readyMomentDue([], "", true)).toBe(false);
+  });
+  it("keeps each batch once, newest last, and at most the newest 200", () => {
+    expect(markReadySeen(["a", "b"], "a")).toEqual(["b", "a"]);
+    expect(markReadySeen("junk", "a")).toEqual(["a"]);
+    expect(markReadySeen([1, "b"], "c")).toEqual(["b", "c"]);
+    const many = Array.from({ length: 200 }, (_, i) => `x${i}`);
+    const next = markReadySeen(many, "new");
+    expect(next).toHaveLength(200);
+    expect(next[0]).toBe("x1");
+    expect(next.at(-1)).toBe("new");
   });
 });

@@ -14,7 +14,7 @@ describe("guides", () => {
     it(`${g.slug}: English and Arabic share sections and anchors`, () => {
       expect(anchors(g.ar.body)).toEqual(anchors(g.en.body));
       expect(shape(g.ar.body)).toEqual(shape(g.en.body));
-      expect(g.ar.needsReview).toBe(true);
+      expect(g.ar.needsReview).toBe(false); // owner's go-ahead, 2026-11-19
     });
   }
 
@@ -70,16 +70,21 @@ describe("guide pages' head", () => {
 });
 
 describe("Arabic guide drafts", () => {
-  it("stay out of search until the author has reviewed them", async () => {
+  it("stay out of search while marked as drafts", async () => {
     const { headFor, headHtml } = await import("../site/meta");
-    const draft = GUIDES.find((g) => g.ar.needsReview);
-    const ar = headFor(`/ar/library/${draft.slug}`);
-    const en = headFor(`/library/${draft.slug}`);
-    expect(ar.noindex).toBe(true);
-    expect(headHtml(ar)).toContain('<meta name="robots" content="noindex" />');
-    expect(en.noindex).toBe(false);
-    expect(en.alternates.ar).toBeUndefined();
-    expect(headHtml(en)).not.toContain('hreflang="ar"');
+    const draft = GUIDES[0];
+    draft.ar.needsReview = true;
+    try {
+      const ar = headFor(`/ar/library/${draft.slug}`);
+      const en = headFor(`/library/${draft.slug}`);
+      expect(ar.noindex).toBe(true);
+      expect(headHtml(ar)).toContain('<meta name="robots" content="noindex" />');
+      expect(en.noindex).toBe(false);
+      expect(en.alternates.ar).toBeUndefined();
+      expect(headHtml(en)).not.toContain('hreflang="ar"');
+    } finally {
+      draft.ar.needsReview = false;
+    }
   });
   it("are listed once reviewed", async () => {
     const { headFor } = await import("../site/meta");

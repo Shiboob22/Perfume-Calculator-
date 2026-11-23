@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import RoomBeam from "./kx/RoomBeam";
 import { useSearchParams } from "react-router-dom";
-import { useNavigate } from "../motion";
+import { fileBatch, useNavigate } from "../motion";
 import { UNIT_LABELS, prefillFromQuery, startingBottle, shareQuery } from "../lib/calcPrefill";
 import { loadDraft, saveDraft, clearDraft, linkCarriesValues } from "../lib/calcDraft";
 import { buildBatch } from "../lib/batchPayload";
@@ -15,6 +15,7 @@ import Flacon from "./kx/Flacon";
 import { createBenchClock, useBenchFrame, useThemeName } from "./kx/benchClock";
 import Chip from "./kx/Chip";
 import RoomHeader from "./kx/RoomHeader";
+import OrdersCard, { OrdersFor } from "./orders/OrdersCard";
 
 import MeasuredDensity from "./calc/MeasuredDensity";
 import Presets from "./calc/Presets";
@@ -22,11 +23,12 @@ import StrengthTiers from "./calc/StrengthTiers";
 import BlendEditor, { BlendBreakdown, newIngredient } from "./calc/BlendEditor";
 import CostCard from "./calc/CostCard";
 import { useFormulas, FormulaLibrary, FormulasButton, FormulaLink } from "./calc/Formulas";
-import { useUpgrade } from "./plan/Upgrade";
+import { useUpgradeActions } from "./plan/Upgrade";
 import OilHistory from "./calc/OilHistory";
 import WaitlistButton from "./WaitlistButton";
 import Source from "./calc/Source";
 import RestingLine from "./journal/RestingLine";
+import { useMinWidth } from "../lib/useMinWidth";
 import { useBenchTour, TourLayer, TakeTour } from "./tour/BenchTour";
 import { COUNT_UP_MS, countUp, tourStrength } from "../lib/tour";
 import { reduced } from "../motion/env.js";
@@ -51,6 +53,8 @@ import { useEntitlements } from "../lib/useEntitlements";
 import { useProfile } from "../lib/useProfile";
 import { CURRENCIES } from "../lib/currencies";
 import { can, limit, canAddIngredient } from "../lib/entitlements";
+import { flagOn } from "../lib/flags";
+import { friendOrderLink } from "../lib/orders";
 import { blendTips } from "../lib/aiApi";
 
 function todayISO() {
@@ -65,6 +69,8 @@ function addDays(iso, n) {
 }
 
 const MODES = ["bottle", "fromOil", "adjust", "run"];
+// One tap each: the handbook's Quick Reference sizes (Vol. III).
+const BOTTLE_SIZES = [10, 30, 50, 100];
 
 function useDebouncedValue(value, delay) {
   const [debounced, setDebounced] = useState(value);
@@ -79,8 +85,8 @@ function useDebouncedValue(value, delay) {
 // would become part of the control's accessible name.
 function Field({ label, extra, hint, htmlFor, children }) {
   return (
-    <div className="mb-5">
-      <div className="mb-2">
+    <div className="mb-4 lg:mb-5">
+      <div className="mb-1.5 lg:mb-2">
         <label htmlFor={htmlFor} className="text-sm font-semibold" style={{ color: COLORS.ink }}>
           {label}
         </label>
@@ -109,7 +115,7 @@ function TextInput(props) {
 
 // The batch size: the board's stepper (±5 for mL and g, ±1 for fl oz and oz;
 // typing still works) with the unit picker under it.
-function AmountWithUnit({ id, label, unitLabel, value, onChange, unit, onUnitChange, units, t }) {
+function AmountWithUnit({ id, label, unitLabel, value, onChange, unit, onUnitChange, units, caption, t }) {
   const step = unit === "ml" || unit === "g" ? 5 : 1;
   const name = UNIT_LABELS[unit] ?? unit;
   const bump = (dir) => {
@@ -117,14 +123,17 @@ function AmountWithUnit({ id, label, unitLabel, value, onChange, unit, onUnitCha
     onChange(String(Math.max(1, Math.round(((Number.isFinite(n) ? n : 0) + dir * step) * 100) / 100)));
   };
   return (
-    <Stepper label={label} hideLabel inputId={id} value={value} unit={name} onStep={bump} onType={onChange}
-      decLabel={t("calc.stepper.batchLess", { step, unit: name })} incLabel={t("calc.stepper.batchMore", { step, unit: name })}
-      after={(
+    <>
+      <div className="flex items-center justify-between gap-3 mb-1">
+        <span aria-hidden="true" className="text-[13px]" style={{ color: COLORS.inkSoft }}>{caption}</span>
         <select aria-label={unitLabel} value={unit} onChange={(e) => onUnitChange(e.target.value)}
-          className="mt-2 px-3 min-h-[48px] text-base border" style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}>
+          className="px-3 min-h-[44px] text-base border" style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}>
           {units.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
         </select>
-      )} />
+      </div>
+      <Stepper compact label={label} hideLabel inputId={id} value={value} unit={name} onStep={bump} onType={onChange}
+        decLabel={t("calc.stepper.batchLess", { step, unit: name })} incLabel={t("calc.stepper.batchMore", { step, unit: name })} />
+    </>
   );
 }
 
@@ -137,8 +146,8 @@ function AmountWithUnit({ id, label, unitLabel, value, onChange, unit, onUnitCha
 function QuickResult({ clock, shown, t }) {
   const f = useBenchFrame(clock, benchTarget(shown));
   return (
-    <div aria-hidden="true"
-      className="md:hidden sticky z-30 -mx-6 -mb-6 mt-6 flex px-4 py-2.5"
+    <div aria-hidden="true" data-quick-result
+      className="md:hidden sticky z-30 -mx-4 -mb-4 sm:-mx-6 sm:-mb-6 mt-6 flex px-4 py-2"
       style={{ bottom: "calc(60px + env(safe-area-inset-bottom))", background: COLORS.inkBand, color: COLORS.onInk }}>
       <ScaleDisplay variant="bar" decorative rows={[
         { key: "oil", label: t("calc.quick.oil"), grams: f.values[0] },
@@ -256,6 +265,9 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const debouncedName = useDebouncedValue(fragName, 200);
 
   const profileState = useProfile();
+  // Phones and tablets (one column): the resting batch, orders and formulas
+  // become short lines under the inputs instead of cards above them.
+  const wide = useMinWidth(1024);
   const { profile } = profileState;
   const [start] = useState(() => startingBottle(prefill, profile));
   const [tierKey, setTierKey] = useState(TIERS[draft?.tierKey] ? draft.tierKey : prefill.family ?? "fresh");
@@ -264,6 +276,9 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [concPct, setConcPct] = useState(draft?.concPct ?? prefill.conc ?? (prefill.family ? TIERS[prefill.family].defaultConc : 20));
   // The recipe version a logged batch will be linked to (null: none, or the settings were changed).
   const [recipeVersionId, setRecipeVersionId] = useState(null);
+  // Orders from the order queue this bottle is weighed for (?orders=…).
+  const [orderIds] = useState(() => prefill.orders);
+  const [ordersLinked, setOrdersLinked] = useState(null);
   const [densities, setDensities] = useState(() => ({
     ...Object.fromEntries(Object.entries(TIERS).map(([k, t]) => [k, t.density])),
     ethanol: ETHANOL_DENSITY_DEFAULT,
@@ -280,11 +295,16 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [blend, setBlend] = useState(() => (Array.isArray(draft?.blend) && draft.blend.length ? draft.blend : null));
   const blendOn = formulaType === "blend" && Array.isArray(blend) && blend.length > 0;
   const mix = useMemo(() => (blendOn ? blendMix(blend) : null), [blendOn, blend]);
-  const { open: openUpgrade, close: closeUpgrade, state: upgradeState } = useUpgrade();
+  // Actions only (and peek() for the tour): the Bench does not re-render when the sheet opens.
+  const { open: openUpgrade, close: closeUpgrade, peek: peekUpgrade } = useUpgradeActions();
   const [ethanolPricePerL, setEthanolPricePerL] = useState(draft?.ethanolPricePerL ?? "");
-  const [bottleCost, setBottleCost] = useState(draft?.bottleCost ?? "");
   const [bottles, setBottles] = useState(draft?.bottles ?? "1");
-  const [packagingCost, setPackagingCost] = useState(draft?.packagingCost ?? "");
+  // One per-bottle field for the bottle and its packaging (the cost card's). A
+  // draft from when the bottle had its own field adds the two together.
+  const [packagingCost, setPackagingCost] = useState(() => {
+    const glass = Number(draft?.bottleCost) || 0;
+    return glass > 0 ? String(Math.round((glass + (Number(draft?.packagingCost) || 0)) * 100) / 100) : draft?.packagingCost ?? "";
+  });
   const [labourMinutes, setLabourMinutes] = useState(draft?.labourMinutes ?? "");
   const [labourRate, setLabourRate] = useState(draft?.labourRate ?? "");
   const [salePrice, setSalePrice] = useState(draft?.salePrice ?? "");
@@ -292,6 +312,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   // Cost, packaging, labour and sale price are Pro. A draft from before a
   // downgrade keeps its values but they are neither shown, costed nor sent.
   const sellerOn = can(entitlements, "calculator.advanced");
+  const ordersOn = flagOn("orders") && can(entitlements, "orders");
   const [oilType, setOilType] = useState(draft?.oilType ?? "");
   const [pricePerGram, setPricePerGram] = useState(draft?.pricePerGram ?? "");
   const [notes, setNotes] = useState(draft?.notes ?? "");
@@ -301,17 +322,19 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const [blendedBy, setBlendedBy] = useState(draft?.blendedBy ?? "");
   const [blendDate, setBlendDate] = useState(draft?.blendDate && draft.blendDate <= todayISO() ? draft.blendDate : todayISO());
   const [customDate, setCustomDate] = useState(false);
+  // "Add details" starts open when the draft already holds some of them.
+  const detailsAtStart = useRef(Boolean(oilType || blendedBy || notes || (!sellerOn && pricePerGram)));
 
   useEffect(() => {
     saveDraft({
-      fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles,
+      fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottles,
       packagingCost, labourMinutes, labourRate, salePrice, currency,
       oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities,
       measuredDensity: measuredDensityValue ?? undefined,
       chosenFamily: chosen.current.family, chosenConc: chosen.current.conc,
       formulaType, blend: blend ?? undefined,
     });
-  }, [fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottleCost, bottles,
+  }, [fragName, tierKey, batchSize, batchUnit, concPct, mode, ethanolPricePerL, bottles,
     packagingCost, labourMinutes, labourRate, salePrice, currency,
     oilType, pricePerGram, notes, actualOilG, actualEthG, blendedBy, blendDate, densities, measuredDensityValue, formulaType, blend]);
 
@@ -418,9 +441,9 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     actualOilG,
     actualEthanolG: actualEthG,
     pricePerGram: priceUsed,
-    ...(sellerOn ? { ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice } : {}),
+    ...(sellerOn ? { ethanolPricePerL, bottles, packagingCost, labourMinutes, labourRate, salePrice } : {}),
   }), [batchSize, batchUnit, concPct, densities, oilDensity, priceUsed, actualOilG, actualEthG, sellerOn,
-    ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice]);
+    ethanolPricePerL, bottles, packagingCost, labourMinutes, labourRate, salePrice]);
   // One animation clock for the readout's scale, the flacon and the phone's pinned bar.
   const [clock] = useState(createBenchClock);
   useEffect(() => clock.retarget(benchTarget(result.shown)), [clock, result.shown]);
@@ -439,6 +462,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     blend: blendOn ? blend.map(({ name, type, pct }) => ({ name, type, pct })) : null,
     // The rest of the record, so a bench log is as full as one from here.
     oilType, pricePerGram, blendedBy,
+    orderIds,
     // A new start, even of the same blend, starts a new bench run.
     startedAt: Date.now(),
   });
@@ -454,7 +478,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   const clearTourBits = () => { cancelAnimationFrame(countRaf.current); setTourPour(null); setCostPreview(false); setCostK(null); };
   const tour = useBenchTour({
     profile: profileState,
-    capture: () => ({ concPct, mode, formulaType, blend, measured: measuredDensityValue, chosenConc: chosen.current.conc, upgrade: upgradeState }),
+    capture: () => ({ concPct, mode, formulaType, blend, measured: measuredDensityValue, chosenConc: chosen.current.conc, upgrade: peekUpgrade() }),
     show: (key, snap) => {
       clearTourBits();
       closeUpgrade();
@@ -484,23 +508,24 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     },
   });
   useEffect(() => () => cancelAnimationFrame(countRaf.current), []);
-  // First visit (per user, or per browser signed out), or ?tour=1: start by itself.
-  const tourAsked = useRef(searchParams.get("tour") === "1");
+  // First visit (per user, or per browser signed out), or ?tour=1 (also from
+  // the More sheet or Account while the Bench is open): start by itself.
+  const tourAsked = searchParams.get("tour") === "1";
   const tourTried = useRef(false);
   useEffect(() => {
-    if (!tour.ready || tourTried.current || !(tourAsked.current || !tour.seen)) return undefined;
+    if (!tour.ready || !(tourAsked || (!tour.seen && !tourTried.current))) return undefined;
     const id = setTimeout(() => {
       tourTried.current = true;
-      if (tourAsked.current) setSearchParams((q) => { q.delete("tour"); return q; }, { replace: true });
+      if (tourAsked) setSearchParams((q) => { q.delete("tour"); return q; }, { replace: true });
       tour.start();
     }, 700);
     return () => clearTimeout(id);
-  }, [tour.ready, tour.seen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tour.ready, tour.seen, tourAsked]); // eslint-disable-line react-hooks/exhaustive-deps
   // "Open the Journal" on the last stop: leave once the page is put back (and its draft saved).
   useEffect(() => { if (toJournal && !tour.tour) navigate("/journal"); }, [toJournal, tour.tour, navigate]);
 
   const money = (v, digits = 2) => `${v.toFixed(digits)} ${currency}`;
-  const seller = sellerOn ? { ethanolPricePerL, bottleCost, bottles, packagingCost, labourMinutes, labourRate, salePrice, currency } : undefined;
+  const seller = sellerOn ? { ethanolPricePerL, bottles, packagingCost, labourMinutes, labourRate, salePrice, currency } : undefined;
 
   // "Use these settings" from an earlier batch of this oil: a user choice,
   // so a later name match won't change it.
@@ -558,6 +583,16 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
   // send reached the server but the answer was lost, the retry is
   // recognised as the same batch instead of logging it twice.
   const logId = useRef(null);
+  const logBtn = useRef(null);
+  // The product's signature (motion M4): the batch, capped and labelled, is filed
+  // into the Journal tab. From the flacon when it is on screen, else from the
+  // Log button. Decoration only: the status line below says it in words.
+  const fileIt = (label) => {
+    const flacon = document.querySelector("[data-instrument] svg");
+    const r = flacon?.getBoundingClientRect();
+    const seen = r && r.bottom > 0 && r.top < window.innerHeight && r.width > 0;
+    fileBatch({ from: seen ? flacon : logBtn.current, label });
+  };
 
   async function handleLogBatch() {
     if (!fragName.trim()) return;
@@ -566,7 +601,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     const row = (fragranceId) => buildBatch({
       id: logId.current, fragranceId, name: fragName.trim(), tier: tierKey, blendDate, concPct,
       target: result, densities: result.densities, actualOilG, actualEthG,
-      oilType, pricePerGram: priceUsed, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit, seller, recipeVersionId,
+      oilType, pricePerGram: priceUsed, oilCost: result.oilCost, notes, blendedBy, amount: batchSize, unit: batchUnit, seller, recipeVersionId, orderIds,
     });
     try {
       let fragrance = matched;
@@ -585,6 +620,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
       // log doesn't silently reuse them.
       setActualOilG(""); setActualEthG("");
       setLoggedNo(Number(saved.batch_no) > 0 ? Number(saved.batch_no) : null);
+      if (orderIds.length) setOrdersLinked(Number(saved.ordersLinked) || 0);
+      if (!saved.duplicate) fileIt(Number(saved.batch_no) > 0 ? t("journal.page.no", { no: String(saved.batch_no).padStart(3, "0") }) : fragName.trim());
       setLogStatus("saved");
       entitlements.refresh();
     } catch (e) {
@@ -594,6 +631,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         enqueue({ ...row(matched?.id ?? null), ...(can(entitlements, "inventory") ? { deduct_oil_g: result.usedOilG } : {}) });
         logId.current = null;
         setActualOilG(""); setActualEthG("");
+        fileIt(fragName.trim());
         setLogStatus("queued");
         return;
       }
@@ -680,20 +718,50 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     try { await navigator.clipboard.writeText(url); setLinkCopied(true); } catch { setLinkCopied(false); }
   };
 
+  // The other ways to weigh. Toggle buttons: a real tablist would need arrow keys and tabpanels.
+  // On phones, in the one-bottle view, they follow the readout so the bottle's own fields come first.
+  // From the row under the readout, another mode replaces the page: start it at the top.
+  const modeSeen = useRef(mode);
+  useEffect(() => {
+    if (modeSeen.current !== mode && !wide && mode !== "bottle") window.scrollTo({ top: 0 });
+    modeSeen.current = mode;
+  }, [mode, wide]);
+  const modesRow = (
+    <div role="group" aria-label={t("calc.modes.label")} className="flex flex-wrap gap-2 mb-6">
+      {MODES.map((m) => (
+        <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}
+          className="px-3 py-1.5 text-sm border rounded min-h-[32px]"
+          style={{ borderColor: mode === m ? COLORS.actionText : COLORS.field, color: mode === m ? COLORS.actionText : COLORS.inkSoft }}>
+          {t(`calc.modes.tabs.${m}`)}
+        </button>
+      ))}
+      <button type="button" onClick={onStartOver} className="ms-auto px-3 py-1.5 text-sm underline min-h-[32px]" style={{ color: COLORS.inkSoft }}>
+        {t("calculator.draft.startOver")}
+      </button>
+    </div>
+  );
+
   return (
-    <div className="w-full max-w-6xl xl:max-w-7xl mx-auto p-6 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
-      <RoomBeam at={0} />
+    <div className="w-full max-w-6xl xl:max-w-7xl mx-auto px-4 py-5 sm:p-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
+      <RoomBeam at={0} className="mb-4 lg:mb-8" />
       <RoomHeader numeral="I" name={t("site.compounding.rooms.bench.name")} title={t("calc.heading")}>
-        <TakeTour onStart={tour.start} t={t} />
+        {/* Until the tour is seen or a first batch is logged; then it lives in the More sheet and Account. */}
+        {!tour.seen && !(entitlements.batchesUsed > 0) && <TakeTour onStart={tour.start} t={t} />}
       </RoomHeader>
-      <RestingLine />
+      {wide && <RestingLine />}
+      {prefill.best && (
+        <p data-best-from className="mb-6 text-sm" style={{ color: COLORS.inkSoft }}>
+          {t("journal.page.bestFrom", { no: String(prefill.best.no).padStart(3, "0"), day: prefill.best.day, count: Number(prefill.best.day) })}
+        </p>
+      )}
+      {orderIds.length > 0 ? <OrdersFor count={orderIds.length} linked={ordersLinked} /> : wide && <OrdersCard />}
       <div className="xl:grid xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-10 xl:items-start">
       {/* Saved formulas: in the rail on wide screens, a bottom sheet below that. */}
       <aside className="hidden xl:block xl:sticky xl:top-6">
         <FormulaLibrary f={formulas} entitlements={entitlements} t={t} />
       </aside>
       <div className="min-w-0">
-      <div className="xl:hidden"><FormulasButton f={formulas} entitlements={entitlements} t={t} /></div>
+      {wide && <div className="xl:hidden"><FormulasButton f={formulas} entitlements={entitlements} t={t} /></div>}
       {selectedPerfume && (
         <div className="mb-6 px-4 py-3 border flex items-center justify-between" style={{ borderColor: COLORS.line, backgroundColor: COLORS.card }}>
           <div>
@@ -708,19 +776,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         </div>
       )}
 
-      {/* Toggle buttons: a real tablist would need arrow keys and tabpanels. */}
-      <div role="group" aria-label={t("calc.modes.label")} className="flex flex-wrap gap-2 mb-6">
-        {MODES.map((m) => (
-          <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}
-            className="px-3 py-1.5 text-sm border rounded min-h-[32px]"
-            style={{ borderColor: mode === m ? COLORS.actionText : COLORS.field, color: mode === m ? COLORS.actionText : COLORS.inkSoft }}>
-            {t(`calc.modes.tabs.${m}`)}
-          </button>
-        ))}
-        <button type="button" onClick={onStartOver} className="ms-auto px-3 py-1.5 text-sm underline min-h-[32px]" style={{ color: COLORS.inkSoft }}>
-          {t("calculator.draft.startOver")}
-        </button>
-      </div>
+      {(wide || mode !== "bottle") && modesRow}
 
       {mode !== "bottle" ? (
         <div className="p-6 border max-w-xl" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
@@ -739,12 +795,15 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           {mode === "fromOil" && <FromOil densities={result.densities} defaultPct={concPct} />}
           {mode === "adjust" && <Adjust densities={result.densities} defaultPct={concPct} defaultBasis={result.basis} />}
           {mode === "run" && <Run densities={result.densities} defaultPct={concPct} defaultBasis={result.basis} />}
+          <aside role="note" className="mt-6 p-4 flex gap-3 text-sm" style={{ background: COLORS.dangerBg, border: `1px solid ${COLORS.dangerLine}`, color: COLORS.ink }}>
+            <IconFlameTriangle size={24} /> {t("site.footer.safety")}
+          </aside>
         </div>
       ) : (
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] gap-8 items-start">
-        <div data-tour="sheet" className="kx-grain p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
-          <h2 className="text-base font-serif font-semibold mb-3" style={{ color: COLORS.forestDeep }}>{t("calc.benchSheet")}</h2>
-          <div role="group" aria-label={t("calc.blend.mode")} className="inline-flex mb-5 rounded" style={{ border: `1px solid ${COLORS.ink}` }}>
+        <div data-tour="sheet" className="kx-grain p-4 sm:p-6 border" style={{ backgroundColor: COLORS.card, borderColor: COLORS.line }}>
+          <h2 className="sr-only lg:not-sr-only text-base font-serif font-semibold lg:mb-3" style={{ color: COLORS.forestDeep }}>{t("calc.benchSheet")}</h2>
+          <div role="group" aria-label={t("calc.blend.mode")} className="inline-flex mb-3 lg:mb-5 rounded" style={{ border: `1px solid ${COLORS.ink}` }}>
             {["simple", "blend"].map((k) => (
               <button key={k} type="button" aria-pressed={(k === "blend") === blendOn} onClick={() => switchType(k)}
                 className="min-h-[44px] px-4 text-sm"
@@ -754,11 +813,12 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             ))}
           </div>
 
+          <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-3">
           <Field label={t("calc.name")} htmlFor="calc-name">
             <div className="relative">
               {/* ARIA 1.2 combobox: focus stays in the input; arrows move
                   through the list, Enter picks, Escape closes. */}
-              <TextInput id="calc-name" value={fragName} placeholder={t("calc.namePlaceholder")} autoComplete="off"
+              <TextInput id="calc-name" data-mo-share-to="formula" value={fragName} placeholder={t("calc.namePlaceholder")} autoComplete="off"
                 role="combobox" aria-autocomplete="list" aria-controls="calc-name-list"
                 aria-expanded={listOpen && suggestions.length > 0}
                 aria-activedescendant={listOpen && activeOption >= 0 ? `calc-name-opt-${activeOption}` : undefined}
@@ -817,14 +877,20 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               id="calc-family"
               value={tierKey}
               onChange={(e) => { chosen.current.family = true; setTierKey(e.target.value); setConcPct(TIERS[e.target.value].defaultConc); }}
+              aria-describedby="calc-family-sub"
               className="w-full px-3 py-2 font-mono text-sm border focus:outline-none focus:ring-2"
               style={{ borderColor: COLORS.field, color: COLORS.ink, backgroundColor: COLORS.cardHi }}
             >
               {Object.keys(TIERS).map((key) => (
-                <option key={key} value={key}>{t(`families.${key}.label`)} — {t(`families.${key}.sub`)}</option>
+                <option key={key} value={key}>{t(`families.${key}.label`)}</option>
               ))}
             </select>
+            {/* The name alone fits the box; its notes go under it on wide screens (audit M14).
+                Phones keep the bottle and strength on the first screen (H1), so the line is
+                hidden there but still read as the box's description. */}
+            <p id="calc-family-sub" className="hidden lg:block text-xs mt-1" style={{ color: COLORS.dim }} data-family-sub>{t(`families.${tierKey}.sub`)}</p>
           </Field>
+          </div>
 
           {blendOn && (
             <div data-tour="blend">
@@ -833,25 +899,17 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             </div>
           )}
 
-          <Presets
-            current={{ amount: batchSize, unit: batchUnit, concPct }}
-            onApply={({ amount, unit, concPct: c }) => { chosen.current.conc = true; setBatchSize(amount); setBatchUnit(unit); setConcPct(c); }}
-          />
-
           <Field label={t("calc.batchSize")} htmlFor="calc-size">
-            <AmountWithUnit
-              id="calc-size" label={t("calc.batchSize")} unitLabel={t("calc.unit")} t={t}
-              value={batchSize} onChange={setBatchSize} unit={batchUnit} onUnitChange={setBatchUnit}
-              units={[{value:"ml",label:"mL"},{value:"floz",label:"fl oz"},{value:"g",label:"g"},{value:"oz",label:"oz"}]}
-            />
-            <div className="flex flex-wrap gap-2 mt-3">
-              {[3, 5, 10, 20, 30, 50, 100, 125, 200].map((amt) => (
+            {/* The handbook's four sizes; any other size is typed or stepped below, or saved as a preset. */}
+            <div className="grid grid-cols-4 gap-2 mb-2">
+              {BOTTLE_SIZES.map((amt) => (
                 <button
                   key={amt}
                   type="button"
                   aria-pressed={Number(batchSize) === amt}
                   onClick={() => { setBatchSize(amt); }}
-                  className="px-3 min-h-[44px] text-sm font-mono tabular-nums border"
+                  dir="ltr"
+                  className="px-1 min-h-[44px] text-sm font-mono tabular-nums border"
                   style={{ 
                     borderColor: Number(batchSize) === amt ? COLORS.actionText : COLORS.line,
                     color: Number(batchSize) === amt ? COLORS.onAmber : COLORS.ink,
@@ -862,6 +920,11 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 </button>
               ))}
             </div>
+            <AmountWithUnit
+              id="calc-size" label={t("calc.batchSize")} unitLabel={t("calc.unit")} caption={t("calc.otherSize")} t={t}
+              value={batchSize} onChange={setBatchSize} unit={batchUnit} onUnitChange={setBatchUnit}
+              units={[{value:"ml",label:"mL"},{value:"floz",label:"fl oz"},{value:"g",label:"g"},{value:"oz",label:"oz"}]}
+            />
           </Field>
 
           <Field label={t("calc.concentration", { pct: concPct })} extra={<Source id="strengths" />} hint={t("calc.familyDefault", { pct: tier.defaultConc })}>
@@ -873,6 +936,19 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               decDisabled={Number(concPct) <= 1} incDisabled={Number(concPct) >= 99}
               onStep={(dir) => { chosen.current.conc = true; setConcPct(String(Math.min(99, Math.max(1, Math.round((Number(concPct) + dir) * 100) / 100)))); }} />
           </Field>
+
+          <Presets
+            current={{ amount: batchSize, unit: batchUnit, concPct }}
+            onApply={({ amount, unit, concPct: c }) => { chosen.current.conc = true; setBatchSize(amount); setBatchUnit(unit); setConcPct(c); }}
+          />
+
+          {!wide && (
+            <nav aria-label={t("calc.onBench")} data-bench-lines className="mb-5 border-t" style={{ borderColor: COLORS.line }}>
+              <RestingLine row />
+              {orderIds.length === 0 && <OrdersCard row />}
+              <FormulasButton f={formulas} entitlements={entitlements} t={t} row />
+            </nav>
+          )}
 
           <p data-density-line className="mt-2 mb-2 text-sm" style={{ color: COLORS.ink }}>
             {blendOn && mix?.density
@@ -899,78 +975,6 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
             {!blendOn && <MeasuredDensity value={measuredDensityValue} onChange={setMeasuredDensity} referenceDensity={densities[tierKey]} />}
           </details>
 
-          <div className="pt-1 border-t" style={{ borderColor: COLORS.line }}>
-            <h3 className="text-xs font-semibold mt-4 mb-3" style={{ color: COLORS.forestDeep }}>
-              {t("calc.personalLog")} <span className="font-normal" style={{ color: COLORS.ink }}>— {t("calc.savedToAccount")}</span>
-            </h3>
-            <div className="grid grid-cols-2 gap-3 items-end mb-3">
-              <div>
-                <label htmlFor="calc-oil-type" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.oilType")}</label>
-                <input id="calc-oil-type" list="oilTypeOptions" value={oilType} onChange={(e) => setOilType(e.target.value)}
-                  className="w-full px-3 py-2 font-mono text-sm border" style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }} />
-                <datalist id="oilTypeOptions">
-                  {oilTypeOptions.map((o) => <option key={o} value={o} />)}
-                </datalist>
-              </div>
-              <div>
-                <label htmlFor="calc-price" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.pricePerGram")}</label>
-                <TextInput id="calc-price" type="number" step="0.01" min="0" value={blendOn ? fmt2(Number(priceUsed) || 0) : pricePerGram} readOnly={blendOn}
-                  onChange={(e) => setPricePerGram(e.target.value)} placeholder="0.00" />
-              </div>
-            </div>
-            {sellerOn && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 items-end mb-3">
-                <div className="col-span-2 sm:col-span-3">
-                  <label htmlFor="calc-currency" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.cost.currency")}</label>
-                  <select id="calc-currency" value={currency} onChange={(e) => setCurrency(e.target.value)}
-                    className="w-full sm:w-40 px-3 py-2 font-mono text-sm border min-h-[44px]" style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
-                    {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                {[
-                  ["calc-eth-price", "ethanolPerL", ethanolPricePerL, setEthanolPricePerL, "0.01"],
-                  ["calc-bottle-cost", "bottleEach", bottleCost, setBottleCost, "0.01"],
-                  ["calc-bottles", "bottles", bottles, setBottles, "1"],
-                  ["calc-packaging", "packagingEach", packagingCost, setPackagingCost, "0.01"],
-                  ["calc-labour-min", "labourMinutes", labourMinutes, setLabourMinutes, "1"],
-                  ["calc-labour-rate", "labourPerHour", labourRate, setLabourRate, "0.01"],
-                  ["calc-sale-price", "salePrice", salePrice, setSalePrice, "0.01"],
-                ].map(([id, key, value, set, step]) => (
-                  <div key={id}>
-                    <label htmlFor={id} className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t(`calc.cost.${key}`)}</label>
-                    <TextInput id={id} type="number" inputMode="decimal" step={step} min="0" value={value} onChange={(e) => set(e.target.value)} placeholder={key === "bottles" ? "1" : "0.00"} />
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="grid grid-cols-2 gap-3 items-end mb-1">
-              <div>
-                <label htmlFor="calc-actual-oil" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualOil")}</label>
-                <TextInput id="calc-actual-oil" type="number" step="0.01" min="0" value={actualOilG} onChange={(e) => setActualOilG(e.target.value)} placeholder={fmt2(result.shown.oilG)} />
-              </div>
-              <div>
-                <label htmlFor="calc-actual-ethanol" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualEthanol")}</label>
-                <TextInput id="calc-actual-ethanol" type="number" step="0.01" min="0" value={actualEthG} onChange={(e) => setActualEthG(e.target.value)} placeholder={fmt2(result.shown.ethanolG)} />
-              </div>
-            </div>
-            <p className="text-xs mb-3 font-mono" style={{ color: COLORS.ink }}>
-              {result.actual
-                ? t(result.basis === "volume" ? "calc.actualRatioVolume" : "calc.actualRatioWeight", { oil: fmt2(result.actual.actualPct), ethanol: fmt2(100 - result.actual.actualPct), target: Number(concPct) })
-                : t("calc.actualHint")}
-              {result.actual?.fix.material && Math.abs(result.actual.deviation) >= 0.005 && (
-                <span className="block mt-1" style={{ color: COLORS.actionText }}>
-                  {t(result.actual.fix.material === "oil" ? "calc.fixAddOil" : "calc.fixAddEthanol", { grams: fmt2(result.actual.fix.grams), target: Number(concPct) })}
-                </span>
-              )}
-            </p>
-            <label htmlFor="calc-notes" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.notes")}</label>
-            <textarea
-              id="calc-notes"
-              value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
-              className="w-full px-3 py-2 font-mono text-base border resize-y"
-              style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
-            />
-          </div>
           <QuickResult clock={clock} shown={result.shown} t={t} />
         </div>
 
@@ -1048,25 +1052,78 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           )}
           {tipsError && <p className="text-xs mt-2" style={{ color: COLORS.danger }}>{tipsError}</p>}
 
-          <div className="mt-6 grid grid-cols-2 gap-3 items-end">
-            <div>
-              <label htmlFor="calc-blended-by" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.blendedBy")}</label>
-              <TextInput id="calc-blended-by" value={blendedBy} onChange={(e) => setBlendedBy(e.target.value)} />
-            </div>
-            <div className="col-span-2">
-              <label htmlFor="calc-date" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.date")}</label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                <Chip onToggle={() => { setBlendDate(todayISO()); setCustomDate(false); }} pressed={!customDate && blendDate === todayISO()}>{t("calc.dateToday")}</Chip>
-                <Chip onToggle={() => { setBlendDate(addDays(todayISO(), -1)); setCustomDate(false); }} pressed={!customDate && blendDate === addDays(todayISO(), -1)}>{t("calc.dateYesterday")}</Chip>
-                <Chip onToggle={() => setCustomDate(true)} pressed={customDate || (blendDate !== todayISO() && blendDate !== addDays(todayISO(), -1))}>{t("calc.dateCustom")}</Chip>
+          {/* What the scale said, the date, the details: everything the log records, right above Log. */}
+          <section aria-labelledby="calc-scale-said" data-scale-said className="mt-6 pt-4 border-t" style={{ borderColor: COLORS.line }}>
+            <h3 id="calc-scale-said" className="text-sm font-semibold mb-3" style={{ color: COLORS.ink }}>{t("calc.scaleSaid")}</h3>
+            <div className="grid grid-cols-2 gap-3 items-end mb-1">
+              <div>
+                <label htmlFor="calc-actual-oil" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualOil")}</label>
+                <TextInput id="calc-actual-oil" type="number" step="0.01" min="0" value={actualOilG} onChange={(e) => setActualOilG(e.target.value)} placeholder={fmt2(result.shown.oilG)} />
               </div>
-              {(customDate || (blendDate !== todayISO() && blendDate !== addDays(todayISO(), -1))) && (
-                <TextInput id="calc-date" type="date" max={todayISO()} value={blendDate}
-                  onChange={(e) => setBlendDate(e.target.value && e.target.value <= todayISO() ? e.target.value : todayISO())} />
-              )}
-              {blendDate < todayISO() && <p className="text-xs mt-1" style={{ color: COLORS.dim }}>{t("calc.datePast", { date: blendDate })}</p>}
+              <div>
+                <label htmlFor="calc-actual-ethanol" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.actualEthanol")}</label>
+                <TextInput id="calc-actual-ethanol" type="number" step="0.01" min="0" value={actualEthG} onChange={(e) => setActualEthG(e.target.value)} placeholder={fmt2(result.shown.ethanolG)} />
+              </div>
             </div>
+            <p className="text-xs mb-3 font-mono" style={{ color: COLORS.ink }}>
+              {result.actual
+                ? t(result.basis === "volume" ? "calc.actualRatioVolume" : "calc.actualRatioWeight", { oil: fmt2(result.actual.actualPct), ethanol: fmt2(100 - result.actual.actualPct), target: Number(concPct) })
+                : t("calc.actualHint")}
+              {result.actual?.fix.material && Math.abs(result.actual.deviation) >= 0.005 && (
+                <span className="block mt-1" style={{ color: COLORS.actionText }}>
+                  {t(result.actual.fix.material === "oil" ? "calc.fixAddOil" : "calc.fixAddEthanol", { grams: fmt2(result.actual.fix.grams), target: Number(concPct) })}
+                </span>
+              )}
+            </p>
+          </section>
+          <div className="mt-1">
+            <label htmlFor="calc-date" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.date")}</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              <Chip onToggle={() => { setBlendDate(todayISO()); setCustomDate(false); }} pressed={!customDate && blendDate === todayISO()}>{t("calc.dateToday")}</Chip>
+              <Chip onToggle={() => { setBlendDate(addDays(todayISO(), -1)); setCustomDate(false); }} pressed={!customDate && blendDate === addDays(todayISO(), -1)}>{t("calc.dateYesterday")}</Chip>
+              <Chip onToggle={() => setCustomDate(true)} pressed={customDate || (blendDate !== todayISO() && blendDate !== addDays(todayISO(), -1))}>{t("calc.dateCustom")}</Chip>
+            </div>
+            {(customDate || (blendDate !== todayISO() && blendDate !== addDays(todayISO(), -1))) && (
+              <TextInput id="calc-date" type="date" max={todayISO()} value={blendDate}
+                onChange={(e) => setBlendDate(e.target.value && e.target.value <= todayISO() ? e.target.value : todayISO())} />
+            )}
+            {blendDate < todayISO() && <p className="text-xs mt-1" style={{ color: COLORS.dim }}>{t("calc.datePast", { date: blendDate })}</p>}
           </div>
+          <details data-add-details open={detailsAtStart.current} className="mt-5 border-t" style={{ borderColor: COLORS.line }}>
+            <summary className="min-h-[48px] py-2 flex flex-wrap items-center gap-x-2 cursor-pointer text-sm font-semibold" style={{ color: COLORS.ink }}>
+              {t("calc.details.title")}
+              <span className="font-normal text-xs" style={{ color: COLORS.inkSoft }}>{t(sellerOn ? "calc.details.hintPro" : "calc.details.hint")}</span>
+            </summary>
+            <div className="grid grid-cols-2 gap-3 items-end mt-2 mb-3">
+              <div>
+                <label htmlFor="calc-oil-type" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.oilType")}</label>
+                <input id="calc-oil-type" list="oilTypeOptions" value={oilType} onChange={(e) => setOilType(e.target.value)}
+                  className="w-full px-3 py-2 font-mono text-sm border" style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }} />
+                <datalist id="oilTypeOptions">
+                  {oilTypeOptions.map((o) => <option key={o} value={o} />)}
+                </datalist>
+              </div>
+              {!sellerOn && (
+                <div>
+                  <label htmlFor="calc-price" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.pricePerGram")}</label>
+                  <TextInput id="calc-price" type="number" step="0.01" min="0" value={blendOn ? fmt2(Number(priceUsed) || 0) : pricePerGram} readOnly={blendOn}
+                    onChange={(e) => setPricePerGram(e.target.value)} placeholder="0.00" />
+                </div>
+              )}
+              <div>
+                <label htmlFor="calc-blended-by" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.blendedBy")}</label>
+                <TextInput id="calc-blended-by" value={blendedBy} onChange={(e) => setBlendedBy(e.target.value)} />
+              </div>
+            </div>
+            <label htmlFor="calc-notes" className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t("calc.notes")}</label>
+            <textarea dir="auto"
+              id="calc-notes"
+              value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
+              className="w-full px-3 py-2 font-mono text-base border resize-y"
+              style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}
+            />
+            <p className="text-[11px] mt-1 mb-2" style={{ color: COLORS.dim }}>{t("calc.details.saved")}</p>
+          </details>
 
           <button
             type="button"
@@ -1085,7 +1142,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
 
           <div className="mt-5 grid grid-cols-2 gap-2">
             {logStatus === "saved" ? (
-              <button type="button" onClick={() => navigate("/journal")}
+              <button type="button" data-journal-door onClick={() => navigate("/journal")}
                 className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium"
                 style={{ backgroundColor: COLORS.mist, color: COLORS.forest, border: `1px solid ${COLORS.forest}` }}>
                 <IconBookmarkCheck size={18} /> {t("calc.savedOpen")}
@@ -1097,7 +1154,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
                 <IconDiamondAlert size={18} /> {t("calc.retry")}
               </button>
             ) : (
-              <button type="button" onClick={handleLogBatch} disabled={!fragName.trim() || logStatus === "saving" || !(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
+              <button ref={logBtn} type="button" onClick={handleLogBatch} aria-describedby={fragName.trim() ? undefined : "log-needs-name"} disabled={!fragName.trim() || logStatus === "saving" || !(Number(batchSize) > 0 && Number(concPct) > 0 && Number(concPct) < 100)}
                 className="inline-flex items-center justify-center gap-2 px-4 min-h-[52px] text-sm font-medium disabled:opacity-50"
                 style={{ backgroundColor: COLORS.amber, color: COLORS.onAmber }}>
                 <IconBookmark size={18} /> {logStatus === "saving" ? t("calc.saving") : t("calc.log")}
@@ -1109,6 +1166,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
               {formulas.busy ? t("calc.saving") : t("calc.formulas.save")}
             </button>
           </div>
+          {/* Why Log is greyed out (UI/UX audit M8). */}
+          {!fragName.trim() && logStatus !== "saved" && <p id="log-needs-name" data-log-needs-name className="text-xs mt-2" style={{ color: COLORS.inkSoft }}>{t("calc.logNeedsName")}</p>}
           <FormulaLink f={formulas} onPickVersion={formulas.load} t={t} />
           <p role="status" className="text-xs mt-2 empty:hidden" style={{ color: formulas.status.kind === "error" ? COLORS.danger : COLORS.forest }}>{formulas.status.text}</p>
           <button type="button" onClick={copyRecipe}
@@ -1147,12 +1206,46 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         </div>
       </div>
       )}
+      {!wide && mode === "bottle" && (
+        <div className="mt-8">
+          <p aria-hidden="true" className="text-sm font-semibold mb-2" style={{ color: COLORS.ink }}>{t("calc.modes.label")}</p>
+          {modesRow}
+        </div>
+      )}
       {mode === "bottle" && (
         <div data-tour="cost">
-        <CostCard unlocked={sellerOn} preview={costPreview} countK={costK} onUnlock={() => openUpgrade("cost")} t={t} currency={currency}
+        <CostCard unlocked={sellerOn} compact={!wide} preview={costPreview} countK={costK} onUnlock={() => openUpgrade("cost")} t={t} currency={currency}
           oilG={result.shown.oilG} ethMl={result.shown.ethanolMl} totMl={result.shown.totalMl}
           oilPrice={blendOn ? Number(priceUsed) || 0 : pricePerGram} onOilPrice={setPricePerGram} oilReadOnly={blendOn}
-          ethPrice={ethanolPricePerL} onEthPrice={setEthanolPricePerL} pack={packagingCost} onPack={setPackagingCost} />
+          ethPrice={ethanolPricePerL} onEthPrice={setEthanolPricePerL} pack={packagingCost} onPack={setPackagingCost}
+          orderLink={ordersOn ? (o) => friendOrderLink({ ...o, locale, name: fragName, family: tierKey, strengthPct: concPct }) : null}>
+          {/* What a seller records on the batch (Pro): open for people who sell, folded for everyone else.
+              Ethanol and the bottle-and-packaging prices are the card's own fields above. */}
+          <div data-selling className="pt-4 border-t" style={{ borderColor: COLORS.line }}>
+            <label htmlFor="calc-currency" className="block text-[13px] mb-1" style={{ color: COLORS.inkSoft }}>{t("calc.cost.currency")}</label>
+            <select id="calc-currency" value={currency} onChange={(e) => setCurrency(e.target.value)}
+              className="w-full sm:w-40 px-3 py-2 font-mono text-sm border min-h-[44px]" style={{ borderColor: COLORS.field, backgroundColor: COLORS.cardHi, color: COLORS.ink }}>
+              {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <details data-selling-fields open={Boolean(profileState.profile?.sells)} className="mt-3">
+              <summary className="min-h-[48px] py-2 flex items-center cursor-pointer text-sm font-semibold" style={{ color: COLORS.ink }}>{t("calc.selling.title")}</summary>
+              <p className="text-xs mb-3" style={{ color: COLORS.inkSoft }}>{t("calc.selling.hint")}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 items-end">
+                {[
+                  ["calc-bottles", "bottles", bottles, setBottles, "1"],
+                  ["calc-labour-min", "labourMinutes", labourMinutes, setLabourMinutes, "1"],
+                  ["calc-labour-rate", "labourPerHour", labourRate, setLabourRate, "0.01"],
+                  ["calc-sale-price", "salePrice", salePrice, setSalePrice, "0.01"],
+                ].map(([id, key, value, set, step]) => (
+                  <div key={id}>
+                    <label htmlFor={id} className="block text-[13px] mb-1" style={{ color: COLORS.ink }}>{t(`calc.cost.${key}`)}</label>
+                    <TextInput id={id} type="number" inputMode="decimal" step={step} min="0" value={value} onChange={(e) => set(e.target.value)} placeholder={key === "bottles" ? "1" : "0.00"} />
+                  </div>
+                ))}
+              </div>
+            </details>
+          </div>
+        </CostCard>
         </div>
       )}
       {tourPour && (

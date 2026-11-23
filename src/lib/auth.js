@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient'
 import { isAppPath } from '../routes.js'
+import { forgetAll } from './lastLoaded.js'
 
 // Re-export the single shared client; a second createClient() here would spin up
 // a competing GoTrueClient on the same auth storage key.
@@ -33,6 +34,7 @@ export async function signInWithProvider(provider) {
 
 // Sign out
 export async function signOut() {
+  forgetAll()
   const { error } = await supabase.auth.signOut()
   if (error) throw error
 }

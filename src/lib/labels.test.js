@@ -23,6 +23,19 @@ describe("bottleText and the stored lot", () => {
 });
 
 describe("labelFields", () => {
+  it("an order's bottle: its own size, the batch number and the buyer, no batch weights", () => {
+    const tt = (k) => k;
+    const { fields } = labelFields({ ...batch, batch_no: 67 }, { t: tt, order: { sizeMl: 50, forName: " Sara " } });
+    expect(Object.fromEntries(fields)).toEqual({
+      "bench.label.concentration": "25%", "bench.label.bottle": "50 mL", "bench.label.date": "2026-10-02",
+      "labels.order.batch": "No. 067", "labels.order.for": "Sara",
+    });
+    const bare = labelFields(batch, { t: tt, order: { sizeMl: 0, forName: "" } }).fields.map(([k]) => k);
+    expect(bare).toEqual(["bench.label.concentration", "bench.label.bottle", "bench.label.date"]);
+    const roll = compactLayout(batch, { t: tt, order: { sizeMl: 50 } }, { w: 30, h: 30 });
+    expect(roll.rows[0].segments).toContain("50 mL");
+  });
+
   it("uses the handbook's label fields and the target weights", () => {
     const { name, fields } = labelFields(batch, { t });
     expect(name).toBe("Oud Wood");
@@ -112,5 +125,16 @@ describe("sizes", () => {
     expect(customSize(10, 35)).toBeNull();
     expect(customSize(200, 35)).toBeNull();
     expect(customSize("x", 35)).toBeNull();
+  });
+});
+
+import { qrMm } from "./labels";
+describe("qrMm", () => {
+  it("fits the label's height, at most 20 mm or 40 % of the width; none on small or round labels", () => {
+    expect(qrMm({ w: 50, h: 30 })).toBe(20);
+    expect(qrMm({ w: 70, h: 20 })).toBe(16);
+    expect(qrMm({ w: 30, h: 30 })).toBe(12);
+    expect(qrMm({ w: 60, h: 15 })).toBe(0);
+    expect(qrMm({ w: 30, h: 30, roll: true })).toBe(0);
   });
 });

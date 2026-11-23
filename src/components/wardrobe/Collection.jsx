@@ -100,7 +100,7 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
                     {b.size_ml != null && <Chip><span className="font-mono tabular-nums" dir="ltr">{Number(b.size_ml)} mL</span></Chip>}
                   </div>
                   <ul className="text-sm mt-3 font-mono tabular-nums list-none p-0" style={{ color: COLORS.inkSoft }}>
-                    <li>{wears === 0 ? t("wardrobe.collection.neverWorn") : wears === 1 ? t("wardrobe.collection.wearsOne") : t("wardrobe.collection.wears", { n: wears })}</li>
+                    <li>{wears === 0 ? t("wardrobe.collection.neverWorn") : wears === 1 ? t("wardrobe.collection.wearsOne") : t("wardrobe.collection.wears", { n: wears, count: wears })}</li>
                     {b.size_ml != null && <li dir="ltr">{t("wardrobe.leftOf", { left: (Number(b.size_ml) * Number(b.fill_pct ?? 100) / 100).toFixed(0), size: Number(b.size_ml) })}</li>}
                     {per != null && <li>{t("wardrobe.collection.perWear", { amount: money(per, b.currency) })}</li>}
                   </ul>
@@ -108,7 +108,7 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
                     <span className="mo-gauge block h-full w-full origin-left rtl:origin-right" style={{ background: COLORS.resin, transform: `scaleX(${Number(b.fill_pct ?? 100) / 100})` }} />
                   </div>
                   <div className="mt-1"><Fill bottle={b} onCommit={(pct) => setFill(b, pct)} /></div>
-                  {b.note && <p className="text-sm mt-1" style={{ color: COLORS.inkSoft }}>{b.note}</p>}
+                  {b.note && <p dir="auto" className="text-sm mt-1" style={{ color: COLORS.inkSoft }}>{b.note}</p>}
                   <div className="flex flex-wrap gap-3 mt-auto pt-3">
                     <Button variant="secondary" onClick={() => { setMode(b.id); setStatus(""); }} aria-label={t("wardrobe.collection.edit", { name: b.name })}>{t("wardrobe.collection.editShort")}</Button>
                     {confirming === b.id ? (

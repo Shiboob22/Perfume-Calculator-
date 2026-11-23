@@ -38,3 +38,18 @@ test("the notice is gone after 60 days", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeAttached();
   await expect(page.getByRole("status").filter({ hasText: "is now Kyphira" })).toHaveCount(0);
 });
+
+test("an account made after the rename never sees the notice", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-10-20T10:00:00Z") });
+  const user = { ...USER, created_at: "2026-10-16T08:00:00Z" };
+  await page.addInitScript((u) => {
+    const session = JSON.stringify({ access_token: "e2e", token_type: "bearer", expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: "e2e", user: u });
+    const getItem = Storage.prototype.getItem;
+    Storage.prototype.getItem = function (key) { return /^sb-.+-auth-token$/.test(key) ? session : getItem.call(this, key); };
+  }, user);
+  await fakeApi(page);
+  await page.route(/\/auth\/v1\/user/, (route) => json(route, user));
+  await page.goto("/bench");
+  await expect(page.getByRole("heading", { level: 1 })).toBeAttached();
+  await expect(page.getByRole("status").filter({ hasText: "is now Kyphira" })).toHaveCount(0);
+});

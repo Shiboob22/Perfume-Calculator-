@@ -10,6 +10,14 @@ export const UNIT_LABELS = { ml: "mL", floz: "fl oz", g: "g", oz: "oz" };
 // Starting values from the URL (?size=100&unit=ml&conc=25&family=woody&name=…),
 // e.g. a guide's "Open in calculator" link or a shared recipe's "Make this
 // blend". Anything missing or out of range is ignored.
+/** "31:14" → { no: 31, day: 14 }; anything else null. */
+export function parseBest(v) {
+  const m = /^(\d{1,5}):(\d{1,4})$/.exec(v ?? "");
+  const no = m ? Number(m[1]) : 0;
+  const day = m ? Number(m[2]) : -1;
+  return no >= 1 && day >= 0 && day <= 3650 ? { no, day } : null;
+}
+
 export function prefillFromQuery(params) {
   const size = Number(params.get("size"));
   const unit = params.get("unit");
@@ -23,6 +31,11 @@ export function prefillFromQuery(params) {
     name: cleanName(params.get("name")),
     // A recipe version to reopen ("Make again" from a batch made from one).
     recipe: UUID.test(params.get("recipe") ?? "") ? params.get("recipe") : null,
+    // The order queue's orders this bottle is weighed for (?orders=a,b): the
+    // logged batch links them. Malformed ids are dropped; at most 200.
+    // The batch that rated best, when "Make again" came from the Journal's oil view (?best=<no>:<day>).
+    best: parseBest(params.get("best")),
+    orders: [...new Set((params.get("orders") ?? "").split(",").filter((x) => UUID.test(x)))].slice(0, 200),
   };
 }
 

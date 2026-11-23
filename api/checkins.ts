@@ -3,6 +3,7 @@ import { setCors, serviceClient, requireUser, isTimeout, SLOW_READ, SLOW_WRITE, 
 import { overLimit } from './_lib/rateLimit.js';
 import { loadEntitlements, can, limit, journalOpen, lockedFeature } from './_lib/entitlements.js';
 import { parseCheckIn } from './_lib/checkin.js';
+import { runReminders, unsubscribe, pushKey, pushSubscribe, pushUnsubscribe, sendTest } from './_lib/reminders.js';
 import { familyPatterns, MAX_CHECKINS_PER_BATCH } from '../src/lib/calc/journal.js';
 
 // The Resting Journal.
@@ -16,14 +17,31 @@ import { familyPatterns, MAX_CHECKINS_PER_BATCH } from '../src/lib/calc/journal.
 //   GET    /api/checkins       the caller's per-family patterns: the days for
 //                              Pro (journal.insights), only which families
 //                              are ready for Free
+//   GET    /api/checkins?job=reminders   the daily reminder job (cron secret), see _lib/reminders.ts
+//   GET    /api/checkins?unsub=<id>.<token>   one-click unsubscribe from reminder emails
+//   GET    /api/checkins?push=key             the public key a browser subscribes to push with
+//   POST   /api/checkins?push=subscribe       { endpoint, keys }  Pro: nudge this browser (web push)
+//   DELETE /api/checkins?push=unsubscribe     { endpoint }        stop nudging this browser
+//   POST   /api/checkins?job=test             admins: send me one reminder now (email + push)
 // Check-ins are read with the batches (GET /api/batches embeds them).
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   setCors(req, res, 'GET, POST, DELETE');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  // Not a signed-in call: the daily reminder job (cron secret) and the
+  // unsubscribe link in each reminder email (signed token).
+  if (req.method === 'GET' && req.query.job === 'reminders') return runReminders(req, res);
+  if (req.method === 'GET' && req.query.unsub) return unsubscribe(req, res);
+  if (req.method === 'GET' && req.query.push === 'key') return pushKey(req, res);
+
   const supabase = serviceClient();
   const userId = await requireUser(req, res);
   if (!userId) return;
+
+  // Web push: this browser asks to be nudged (Pro), or stops being.
+  if (req.method === 'POST' && req.query.push === 'subscribe') return pushSubscribe(req, res, supabase, userId);
+  if (req.method === 'DELETE' && req.query.push === 'unsubscribe') return pushUnsubscribe(req, res, supabase, userId);
+  if (req.method === 'POST' && req.query.job === 'test') return sendTest(req, res, supabase, userId);
 
   if (req.method === 'POST') {
     try {

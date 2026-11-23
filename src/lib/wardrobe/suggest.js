@@ -7,17 +7,17 @@
 import { INFERRED_CLUSTER, OCCASIONS, projectionRank, tempBand } from "./framework.js";
 
 const WEATHER = {
-  hot: { fresh: 3, floral: 1, woody: 0, oriental: -3, gourmand: -3 },
-  warm: { fresh: 1, floral: 1, woody: 1, oriental: 0, gourmand: 0 },
-  mild: { fresh: 0, floral: 0, woody: 1, oriental: 1, gourmand: 1 },
-  cool: { fresh: -2, floral: -1, woody: 1, oriental: 3, gourmand: 3 },
+  hot: { fresh: 3, floral: 1, woody: 0, fougere: 1, oriental: -3, gourmand: -3 },
+  warm: { fresh: 1, floral: 1, woody: 1, fougere: 1, oriental: 0, gourmand: 0 },
+  mild: { fresh: 0, floral: 0, woody: 1, fougere: 1, oriental: 1, gourmand: 1 },
+  cool: { fresh: -2, floral: -1, woody: 1, fougere: 0, oriental: 3, gourmand: 3 },
 };
 // Morning and day: cleaner. Evening: richer. Late night: stronger is allowed.
 const TIME = {
-  morning: { fresh: 1, floral: 0, woody: 0, oriental: -1, gourmand: -1 },
-  day: { fresh: 1, floral: 0, woody: 0, oriental: -1, gourmand: -1 },
-  evening: { fresh: -1, floral: 0, woody: 0, oriental: 1, gourmand: 1 },
-  night: { fresh: -1, floral: 0, woody: 0, oriental: 1, gourmand: 1 },
+  morning: { fresh: 1, floral: 0, woody: 0, fougere: 1, oriental: -1, gourmand: -1 },
+  day: { fresh: 1, floral: 0, woody: 0, fougere: 1, oriental: -1, gourmand: -1 },
+  evening: { fresh: -1, floral: 0, woody: 0, fougere: 0, oriental: 1, gourmand: 1 },
+  night: { fresh: -1, floral: 0, woody: 0, fougere: 0, oriental: 1, gourmand: 1 },
 };
 const CLUSTER_POINTS = [3, 2];     // the occasion's first and second wardrobe
 const INFERRED_FACTOR = 0.5;       // a guess from the family counts half

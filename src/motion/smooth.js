@@ -1,4 +1,4 @@
-import { motionOn, reduced, lowPower } from "./env.js";
+import { motionOn, calm, lowPower } from "./env.js";
 import { peekGsap } from "./gsap/load.js";
 import { flagOn } from "../lib/flags.js";
 
@@ -10,7 +10,7 @@ import { flagOn } from "../lib/flags.js";
 // (focus included) behave exactly as they do without it.
 
 /** Pure gate, so the rules are testable: the layer on, motion allowed, a device with headroom. */
-export function smoothAllowed({ on = motionOn(), isReduced = reduced(), low = lowPower() } = {}) {
+export function smoothAllowed({ on = motionOn(), isReduced = calm(), low = lowPower() } = {}) {
   return Boolean(on) && !isReduced && !low;
 }
 

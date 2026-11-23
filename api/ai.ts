@@ -295,7 +295,7 @@ async function lookup(name: unknown) {
     'If you are not confident this exact perfume exists, set known to false and return empty lists — never invent notes. ' +
     'name: "<Brand> <Perfume>". Notes and accords in Title Case; at most 6 accords, strongest first. ' +
     'tier: the single best family key —\n' + TIER_GUIDE +
-    '\nPrefer gourmand for vanilla/sweet-led scents and oriental for amber/spice/oud-led ones.';
+    '\nPrefer gourmand for vanilla/sweet-led scents and oriental for amber/spice/oud-led ones, and fougere for lavender/aromatic-herb-led barbershop scents such as Kouros.';
 
   const text = await generate({ system, contents: userTurn(`Perfume: ${query}`), schema: LOOKUP_SCHEMA });
   let parsed: any;

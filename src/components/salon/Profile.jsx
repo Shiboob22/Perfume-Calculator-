@@ -62,9 +62,9 @@ export default function Profile({ handle }) {
           {info.display_name && <p className="font-mono text-sm" dir="ltr" style={{ color: COLORS.dim }}>@{info.handle}</p>}
         </div>
       </div>
-      {info.bio && <p className="mt-4 max-w-prose kx-rise" style={{ color: COLORS.inkSoft, animationDelay: "120ms" }}>{info.bio}</p>}
+      {info.bio && <p dir="auto" className="mt-4 max-w-prose kx-rise" style={{ color: COLORS.inkSoft, animationDelay: "calc(var(--mo-step) * 2)" }}>{info.bio}</p>}
       {!info.is_public && info.mine && <p role="status" className="mt-2 text-sm" style={{ color: COLORS.dim }}>{t("salon.profile.private")}</p>}
-      <dl className="grid grid-cols-3 gap-3 mt-5 max-w-md kx-rise" style={{ animationDelay: "240ms" }}>
+      <dl className="grid grid-cols-3 gap-3 mt-5 max-w-md kx-rise" style={{ animationDelay: "calc(var(--mo-step) * 4)" }}>
         {[["posts", info.posts], ["followers", followers], ["following", info.following]].map(([k, n]) => (
           <div key={k} className="p-3 rounded" style={{ border: `1px solid ${COLORS.line}` }}>
             <dd className="m-0 font-serif text-3xl tabular-nums" dir="ltr" style={{ color: COLORS.ink }}><Reveal as="span" eager key={Number(n)}>{Number(n)}</Reveal></dd>

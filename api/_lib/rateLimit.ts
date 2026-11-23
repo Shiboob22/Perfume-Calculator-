@@ -15,6 +15,10 @@ export const LIMITS = {
   remove: [60, 600],       // deleting a batch or a check-in: 60 per 10 minutes
   shop: [8, 3600],         // shop orders per IP: 8 an hour (each one carries a screenshot)
   trial: [5, 3600],        // "Start 14-day free trial" presses: 5 an hour (one trial per user anyway)
+  reminderTest: [5, 3600], // "Send me a test" reminders (admins only): 5 an hour
+  buyer: [30, 3600],       // QR buyer page answers per IP: 30 an hour
+  reorder: [3, 86400],     // "Order again" from one bottle's page: 3 a day (also 10 a day per IP)
+  reorderIp: [10, 86400],
 } as const satisfies Record<string, readonly [number, number]>;
 
 export type LimitName = keyof typeof LIMITS;

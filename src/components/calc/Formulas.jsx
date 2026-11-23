@@ -7,6 +7,7 @@ import { listFormulas, saveFormula, deleteFormula, LimitError } from "../../lib/
 import { latestVersion, matchesVersion, recipeLabel, versionSettings } from "../../lib/recipes";
 import { UNIT_LABELS } from "../../lib/calcPrefill";
 import Sheet from "../kx/Sheet";
+import { carry } from "../../motion";
 
 // Saved formulas (Bench SaaS): the recipes of 0023 plus their blend
 // ingredients (0031). useFormulas() holds the list and what is loaded; the
@@ -164,7 +165,7 @@ function FormulaList({ f, filter, big, t }) {
           return (
             <li key={r.id} className={`flex items-center gap-3 ${big ? "py-3" : "py-2.5"}`} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
               <span className="flex-1 min-w-0 flex flex-col gap-0.5">
-                <span className={big ? "text-base" : "text-sm"} style={{ color: COLORS.ink }}>{r.name}{r.recipe_versions.length > 1 ? ` v${v.version}` : ""}</span>
+                <span data-mo-share={big ? undefined : "formula"} className={big ? "text-base" : "text-sm"} style={{ color: COLORS.ink }}>{r.name}{r.recipe_versions.length > 1 ? ` v${v.version}` : ""}</span>
                 <span dir="ltr" className="text-xs tabular-nums text-start rtl:text-end" style={{ color: COLORS.dim }}>{meta}</span>
               </span>
               {confirming === r.id ? (
@@ -174,7 +175,7 @@ function FormulaList({ f, filter, big, t }) {
                 <button type="button" onClick={() => setConfirming(r.id)} aria-label={t("calc.recipes.delete", { name: r.name })}
                   className="w-9 min-h-[44px] text-lg" style={{ color: COLORS.dim }}>×</button>
               )}
-              <button type="button" onClick={() => f.load(r, v)} aria-pressed={loaded}
+              <button type="button" onClick={(e) => (big ? f.load(r, v) : carry(() => f.load(r, v), { share: "formula", from: e.currentTarget.closest("li") }))} aria-pressed={loaded}
                 aria-label={t(loaded ? "calc.formulas.loadedName" : "calc.formulas.loadName", { name: r.name })}
                 className={`${big ? "min-h-[44px] px-4" : "min-h-[40px] px-3"} text-[13px] rounded border`}
                 style={{ borderColor: loaded ? COLORS.actionText : COLORS.field, background: loaded ? COLORS.sand : "transparent", color: COLORS.ink }}>
@@ -204,15 +205,16 @@ export function FormulaLibrary({ f, entitlements, t }) {
 }
 
 /** Phone: a "Your formulas" button and the library in a bottom sheet. */
-export function FormulasButton({ f, entitlements, t }) {
+// `row`: one short line among the Bench's phone links, not a framed button.
+export function FormulasButton({ f, entitlements, t, row = false }) {
   const [open, setOpen] = useState(false);
   const filter = useFiltered(f.formulas);
   const loadAndClose = { ...f, load: (r, v) => { f.load(r, v); setOpen(false); } };
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog"
-        className="w-full min-h-[52px] px-4 mb-6 flex items-center justify-between gap-3 text-[15px] rounded"
-        style={{ border: `1px solid ${COLORS.ink}`, color: COLORS.ink }}>
+        className={row ? "w-full min-h-[48px] py-2 flex items-center justify-between gap-3 text-sm text-start border-b" : "w-full min-h-[52px] px-4 mb-6 flex items-center justify-between gap-3 text-[15px] rounded"}
+        style={row ? { borderColor: COLORS.line, color: COLORS.ink } : { border: `1px solid ${COLORS.ink}`, color: COLORS.ink }}>
         <span>{t("calc.formulas.open")}</span>
         <Count count={f.formulas.length} entitlements={entitlements} t={t} />
       </button>

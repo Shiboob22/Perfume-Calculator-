@@ -95,7 +95,7 @@ export default function BottleForm({ initial, status = "owned", compact = false,
       )}
       <div>
         <label htmlFor="bottle-note" className="block text-sm mb-1.5" style={{ color: COLORS.inkSoft }}>{t("wardrobe.collection.note")}</label>
-        <textarea id="bottle-note" rows={2} maxLength={500} value={form.note ?? ""} onChange={(e) => set({ note: e.target.value })} className={`${inputClass} py-2`} style={inputStyle} />
+        <textarea dir="auto" id="bottle-note" rows={2} maxLength={500} value={form.note ?? ""} onChange={(e) => set({ note: e.target.value })} className={`${inputClass} py-2`} style={inputStyle} />
       </div>
       {error && <p role="alert" className="text-sm" style={{ color: COLORS.danger }}>{error}</p>}
       <div className="flex flex-wrap gap-3">

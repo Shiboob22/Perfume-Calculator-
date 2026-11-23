@@ -36,6 +36,8 @@
 @media (prefers-reduced-motion: no-preference) {
   html[data-motion] .mo-reveal[data-mo-from="start"] { --mo-from: calc(var(--mo-dir) * var(--mo-d-m) * -1) 0; }
   html[data-motion] .mo-reveal[data-mo-from="end"] { --mo-from: calc(var(--mo-dir) * var(--mo-d-m)) 0; }
+  /* M4: set down from above, like a bottle on a shelf (the Wardrobe's answer for tonight). */
+  html[data-motion] .mo-reveal[data-mo-from="down"] { --mo-from: 0 calc(var(--mo-d-m) * -1); }
 
   html[data-motion] .mo-reveal[data-mo="hidden"],
   html[data-motion] .mo-stagger[data-mo="hidden"] > .mo-item { opacity: 0; translate: var(--mo-from, 0 var(--mo-d-m)); }
@@ -66,8 +68,8 @@
   html[data-motion] :is(button, [role="button"], a.mo-press):not(:disabled, [aria-disabled="true"]):active { translate: 0 1px; }
   html[data-motion] .mo-sheet-scrim { animation: mo-fade var(--mo-base) var(--mo-ease) backwards; }
   html[data-motion] .mo-sheet-panel { animation: mo-sheet-in var(--mo-base) var(--mo-ease) backwards; }
-  html[data-motion] [data-leaving] > .mo-sheet-scrim { animation: mo-fade-out var(--mo-base) var(--mo-ease) forwards; }
-  html[data-motion] [data-leaving] > .mo-sheet-panel { animation: mo-sheet-out var(--mo-base) var(--mo-ease) forwards; }
+  html[data-motion] [data-leaving] > .mo-sheet-scrim { animation: mo-fade-out var(--mo-fast) var(--mo-ease) forwards; }
+  html[data-motion] [data-leaving] > .mo-sheet-panel { animation: mo-sheet-out var(--mo-fast) var(--mo-ease) forwards; }
   html[data-motion] .mo-notice:not([data-tone="warning"]) { animation: mo-enter var(--mo-base) var(--mo-ease) backwards; --mo-from: 0 var(--mo-d-s); }
   html[data-motion] .mo-notice[data-leaving] { animation: mo-leave var(--mo-fast) var(--mo-ease) forwards; }
 
@@ -103,6 +105,21 @@ html[data-mo-vt] [data-mo-ind="site"][data-on] { view-transition-name: mo-ind-si
 html[data-mo-vt] [data-mo-ind="tab"][data-on] { view-transition-name: mo-ind-tab; }
 html[data-mo-vt] [data-mo-ind="bar"][data-on] { view-transition-name: mo-ind-bar; }
 html[data-motion]::view-transition-group(mo-ind-site), html[data-motion]::view-transition-group(mo-ind-tab), html[data-motion]::view-transition-group(mo-ind-bar) { animation-duration: var(--mo-base); animation-timing-function: var(--mo-ease-io); }
+/* M2, carry. Direction (html[data-mo-nav], set by startNav): deeper into a room
+   comes in from the end edge, back out of it from the start edge; another room
+   is the cross-fade above. The old view leaves on the fast step, the new one
+   arrives on the base step. --mo-dir mirrors both in Arabic. The shared element
+   (`mo-share`: a row becoming the detail it opens) travels on the base step. */
+html[data-motion]::view-transition-group(mo-share) { animation-duration: var(--mo-base); animation-timing-function: var(--mo-ease-io); }
+html[data-motion]::view-transition-old(mo-share), html[data-motion]::view-transition-new(mo-share) { animation-duration: var(--mo-base); }
+@keyframes mo-vt-out { to { opacity: 0; translate: var(--mo-vt-x) 0; } }
+@keyframes mo-vt-in { from { opacity: 0; translate: var(--mo-vt-x) 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-motion][data-mo-nav="forward"]::view-transition-old(root) { --mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m) * -1); animation: mo-vt-out var(--mo-fast) var(--mo-ease) both; }
+  html[data-motion][data-mo-nav="forward"]::view-transition-new(root) { --mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m)); animation: mo-vt-in var(--mo-base) var(--mo-ease) both; }
+  html[data-motion][data-mo-nav="back"]::view-transition-old(root) { --mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m)); animation: mo-vt-out var(--mo-fast) var(--mo-ease) both; }
+  html[data-motion][data-mo-nav="back"]::view-transition-new(root) { --mo-vt-x: calc(var(--mo-dir) * var(--mo-d-m) * -1); animation: mo-vt-in var(--mo-base) var(--mo-ease) both; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   html[data-motion]::view-transition-group(*), html[data-motion]::view-transition-old(*), html[data-motion]::view-transition-new(*) { animation: none !important; }

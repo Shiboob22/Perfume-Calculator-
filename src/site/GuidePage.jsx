@@ -79,7 +79,7 @@ function Block({ block, rule, marked, defs }) {
   }
   if (block.formula) {
     return (
-      <pre dir="ltr" className="my-8 py-5 font-mono text-[15px] leading-8 overflow-x-auto text-left"
+      <pre dir="auto" className="my-8 py-5 font-mono text-[15px] leading-8 whitespace-pre-wrap text-start"
         style={{ borderBlock: `1px solid ${COLORS.ink}`, color: COLORS.ink }}>
         {block.formula.join("\n")}
       </pre>
@@ -135,7 +135,7 @@ function Block({ block, rule, marked, defs }) {
           <IconTile icon={IconCrosshair} size={56} border={COLORS.forest} />
           <div>
             <p className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal mb-2" style={{ color: style.label }}>
-              {c.title}{rule && rule.total > 1 && <span dir="ltr" className="font-mono ms-2">{rule.n} / {rule.total}</span>}
+              {c.title}{rule && rule.total > 1 && <span className="ms-2"><span dir="ltr" className="font-mono">{rule.n} / {rule.total}</span></span>}
             </p>
             <p className="font-serif italic text-xl leading-relaxed">{c.text}</p>
           </div>
@@ -154,8 +154,18 @@ function Block({ block, rule, marked, defs }) {
   return null;
 }
 
+// "Part I" entries are the book's parts (one word for the list, numbers only);
+// anything else is a numbered section of the Formulation book.
+function sourceSections(src, locale, t) {
+  const parts = src.every((s) => s.startsWith("Part "));
+  const n = new Intl.ListFormat(locale === "en" ? "en-GB" : locale, { type: "unit", style: "short" })
+    .format(parts ? src.map((s) => s.slice(5)) : src);
+  return t(!parts ? "site.guides.sectionList" : src.length > 1 ? "site.guides.parts" : "site.guides.part", { n });
+}
+
 // The contents rail: i–iv, with a forest bar on the section being read.
 function Contents({ sections, label }) {
+  const { locale } = useI18n();
   const [active, setActive] = useState(sections[0]?.id);
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") return undefined;
@@ -175,7 +185,8 @@ function Contents({ sections, label }) {
             <a href={`#${s.id}`} aria-current={active === s.id ? "location" : undefined}
               className="grid grid-cols-[2rem_minmax(0,1fr)] py-2 ps-3 min-h-[44px] items-baseline"
               style={{ borderInlineStart: `2px solid ${active === s.id ? COLORS.forest : COLORS.line}`, color: active === s.id ? COLORS.forest : COLORS.ink }}>
-              <span className="font-serif italic" dir="ltr">{ROMAN[i] ?? i + 1}</span><span>{s.h2}</span>
+              {/* Roman numerals belong to the English book; Arabic counts in digits. */}
+              {locale === "ar" ? <span>{i + 1}</span> : <span className="font-serif italic" dir="ltr">{ROMAN[i] ?? i + 1}</span>}<span>{s.h2}</span>
             </a>
           </li>
         ))}
@@ -229,7 +240,9 @@ export default function GuidePage() {
       <div aria-hidden="true" className="read-progress" />
       <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>
         <IconBook size={18} />
-        {t("site.guides.eyebrow", { n: ROMAN[at]?.toUpperCase() ?? at + 1, total: ROMAN[inSection.length - 1]?.toUpperCase() ?? inSection.length, minutes: readingMinutes(g) })}
+        {locale === "ar"
+          ? t("site.guides.eyebrow", { n: at + 1, total: inSection.length, minutes: t("site.guides.minutes", { count: readingMinutes(g) }) })
+          : t("site.guides.eyebrow", { n: ROMAN[at]?.toUpperCase() ?? at + 1, total: ROMAN[inSection.length - 1]?.toUpperCase() ?? inSection.length, minutes: readingMinutes(g) })}
       </p>
       <TextReveal as="h1" text={g.title} className={`${TYPE.display} mt-5 max-w-[14ch]`} style={{ viewTransitionName: "guide-title" }} />
       <DrawLine className="mt-6 w-24" style={{ color: COLORS.amber, height: 2 }} />
@@ -238,7 +251,7 @@ export default function GuidePage() {
         {t("site.guides.from", {
           volume: guide.source.volume,
           book: t(`site.guides.books.${guide.source.book}`),
-          sections: new Intl.ListFormat(locale === "en" ? "en-GB" : locale, { type: "unit", style: "short" }).format(guide.source.sections),
+          sections: sourceSections(guide.source.sections, locale, t),
         })}. {t("site.guides.by")}.
       </p>
       {g.needsReview && (
