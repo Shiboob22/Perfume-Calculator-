@@ -51,7 +51,7 @@ export default function PlanCards() {
               <span className={label} style={{ color: COLORS.forest }}>{t("site.pricing.current")}</span>
             </div>
             <h2 className="text-3xl font-medium tracking-[-0.03em] rtl:tracking-normal">{t("plan.names.free")}</h2>
-            <p dir="ltr" className="font-mono text-6xl tracking-[-0.04em] text-start rtl:text-end">0</p>
+            <p dir="ltr" className="font-mono text-6xl tracking-[-0.04em] text-start rtl:text-end" data-free-price>{priceText(0, locale, cur)}</p>
             <p className="font-serif" style={{ color: COLORS.inkSoft }}>{t("site.pricing.core")}</p>
             <a href="/bench?ref=pricing" className="mo-press mt-auto inline-flex items-center justify-center gap-2 min-h-[52px] font-medium" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
               {t("site.home.ctaApp")} <IconArrow size={18} />
