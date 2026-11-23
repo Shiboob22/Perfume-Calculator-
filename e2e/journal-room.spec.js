@@ -319,3 +319,23 @@ for (const [locale, m, path] of [["en", en, "/journal"], ["ar", ar, "/ar/journal
     await expect(page.locator("[data-pro-card]").filter({ hasText: title })).toHaveCount(0);
   });
 }
+
+test("rapid re-sorting with room motion on settles with rows in place and no leftover transform", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page);
+  await page.goto("/journal?flag=motion&flag=roommotion");
+  const p = en.journal.page;
+  const sorts = page.getByRole("group", { name: p.sort.label });
+  await expect(page.locator("[data-batch]")).toHaveCount(5);
+  await sorts.getByRole("button", { name: p.sort.new }).click();
+  await sorts.getByRole("button", { name: p.sort.size }).click();
+  await sorts.getByRole("button", { name: p.sort.rest }).click();
+  await page.waitForTimeout(1000);
+  const rows = page.locator("[data-batch]");
+  const ys = [];
+  for (let i = 0; i < 5; i++) ys.push((await rows.nth(i).boundingBox()).y);
+  expect(ys).toEqual([...ys].sort((a, b) => a - b));
+  const transforms = await page.locator("li[data-flip]").evaluateAll((els) => els.map((e) => getComputedStyle(e).transform));
+  expect(transforms.every((t) => t === "none")).toBe(true);
+  await expect.poll(() => order(page)).toEqual([id(1), id(2), id(3), id(4), id(5)]);
+});

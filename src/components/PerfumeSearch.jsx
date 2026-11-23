@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useFlipList } from '../motion/gsap/index.js';
 import { searchCatalog, browseCatalog, fetchPopular, fetchSimilar, forgetCatalogAnswers } from '../lib/searchApi';
 
 // How often an open, visible Search screen re-reads the catalog.
@@ -279,7 +280,7 @@ function ResultRow({ item, active, onSelect }) {
   const { brand, title } = splitName(item);
   const f = familyOf(item.tier, t);
   return (
-    <button type="button" onClick={() => onSelect(item)} aria-current={active ? "true" : undefined}
+    <button type="button" data-flip data-flip-id={item.id} onClick={() => onSelect(item)} aria-current={active ? "true" : undefined}
       className="w-full text-start px-3 py-2.5 flex items-center gap-3 transition-colors"
       style={{ background: active ? 'rgba(233,200,138,0.08)' : 'transparent', borderBottom: `1px solid ${COLORS.line}` }}>
       <BottlePhoto perfume={item} size="thumb" />
@@ -353,6 +354,8 @@ export function PerfumeSearch({ onSelectPerfume }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const detailRef = useRef(null);
   const searchColRef = useRef(null);
+  const listRef = useRef(null);
+  useFlipList(listRef, results.map((r) => r.id).join());
   // "+ Add photo" for the few catalog rows no dataset had a bottle photo for.
   const [photoOpen, setPhotoOpen] = useState(false);
   const [photoDraft, setPhotoDraft] = useState('');
@@ -638,7 +641,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
             {matchKind === 'fuzzy' && (
               <p className="text-xs mb-2" style={{ color: COLORS.inkSoft }}>{t('search.closest')}</p>
             )}
-            <div className="rounded overflow-hidden md:max-h-[70vh] md:overflow-y-auto" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
+            <div ref={listRef} className="rounded overflow-hidden md:max-h-[70vh] md:overflow-y-auto" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
               {results.map((item) => (
                 <ResultRow key={item.id} item={item} active={selectedPerfume?.id === item.id} onSelect={selectPerfume} />
               ))}

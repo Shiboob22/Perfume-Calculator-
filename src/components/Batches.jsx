@@ -14,6 +14,7 @@ import { useEntitlements } from "../lib/useEntitlements";
 import EmptyState from "./EmptyState";
 import { refusedBatches, dismissRefused } from "../lib/outbox";
 import { Stagger, useNavigate } from "../motion";
+import { useFlipList } from "../motion/gsap/index.js";
 import { can, journalOpen } from "../lib/entitlements";
 import { dueNow, JOURNAL_CHANGED, restTimeline } from "../lib/journal";
 import { IconHourglass, IconSeal, IconDrop, IconToday, IconPlus } from "./icons";
@@ -62,8 +63,10 @@ function BatchTiming({ batch }) {
 function BatchList({ batches, selectedId, onSelect }) {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const ref = useRef(null);
+  useFlipList(ref, batches.map((b) => b.id).join());
   return (
-    <nav aria-label={t("journal.listTitle")} style={{ border: `1px solid ${COLORS.ink}`, background: COLORS.card }}>
+    <nav ref={ref} aria-label={t("journal.listTitle")} style={{ border: `1px solid ${COLORS.ink}`, background: COLORS.card }}>
       <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid ${COLORS.ink}` }}>
         <span className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("journal.listTitle")}</span>
         <span dir="ltr" className="font-mono text-xs" style={{ color: COLORS.dim }}>{batches.length}</span>
@@ -73,7 +76,7 @@ function BatchList({ batches, selectedId, onSelect }) {
           const tl = restTimeline(b);
           const on = b.id === selectedId;
           return (
-            <li key={b.id} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+            <li key={b.id} data-flip data-flip-id={b.id} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
               <button type="button" onClick={() => onSelect(b.id)} aria-current={on ? "true" : undefined}
                 className="w-full grid grid-cols-[36px_minmax(0,1fr)_auto] gap-3 items-center px-4 py-3 text-start min-h-[60px]"
                 style={{ background: on ? COLORS.sand : "transparent", borderInlineStart: `3px solid ${on ? COLORS.forest : "transparent"}` }}>

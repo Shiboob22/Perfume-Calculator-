@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Link } from "../../motion";
 import { COLORS } from "../../lib/theme";
@@ -18,6 +18,8 @@ import {
 import { useStartTrial } from "../plan/Upgrade";
 import { IconBell } from "../icons";
 import Chip from "../kx/Chip";
+import { useFlipList, useSceneCtx } from "../../motion/gsap/index.js";
+import { noteSaved } from "./scene.js";
 
 // The Journal room (Bench SaaS Phase 5, prototype Journal.dc.html): every
 // logged batch rests 90 days and is noted at five milestones. Built on the
@@ -80,6 +82,7 @@ export default function JournalRoom() {
   const [batches, setBatches] = useState(null); // null = loading
   const [loadError, setLoadError] = useState(false);
   const [now] = useState(() => new Date());
+  const listRef = useRef(null);
 
   const load = useCallback(() => {
     setLoadError(false);
@@ -105,6 +108,7 @@ export default function JournalRoom() {
     b: x, day: todayFor(x, now), no: Number(x.batch_no) || 0, ml: Number(x.total_ml),
     start: batchStartedAt(x)?.getTime() ?? NaN, checkins: x.batch_checkins,
   })), sort, dir).map((r) => r.b), [visible, sort, dir, now]);
+  useFlipList(listRef, `${sort}:${dir}`);
   const pickSort = (k) => {
     store(SORT_KEY, k);
     store(DIR_KEY, null);
@@ -181,7 +185,7 @@ export default function JournalRoom() {
                   <SwapIcon />{t(`journal.page.dir.${sort}.${dir}`)}
                 </button>
               )}
-              <ul aria-labelledby="journal-batches" className="mt-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+              <ul ref={listRef} aria-labelledby="journal-batches" className="mt-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
                 {sorted.map((x) => {
                   const on = x.id === b.id;
                   const day = dayOf(x);
@@ -189,7 +193,7 @@ export default function JournalRoom() {
                   const p = restProgress(day);
                   const due = sort === "note" ? needsNote(x.batch_checkins, day) : null;
                   return (
-                    <li key={x.id}>
+                    <li key={x.id} data-flip data-flip-id={x.id}>
                       <button type="button" onClick={() => pick(x.id)} aria-pressed={on} data-batch={x.id}
                         className="w-full flex items-center gap-3 px-2 py-3 text-start" style={{ borderBottom: `1px solid ${COLORS.line}`, background: on ? COLORS.sand : "transparent" }}>
                         <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: swatchOf(x) }} />
@@ -255,6 +259,8 @@ function BatchDetail({ b, day, pro, canRemind, dateAt, metaOf, onChange, t }) {
   const family = TIERS[b.tier] ? t(`families.${b.tier}.label`) : b.tier;
   const withNotes = MILESTONES.filter((x) => notes[x.k]);
   const [compareOn, setCompareOn] = useState(false);
+  const rootRef = useRef(null);
+  const scene = useSceneCtx(rootRef);
 
   async function remind() {
     if (!canRemind) { setAskPro(true); return; }
@@ -273,10 +279,12 @@ function BatchDetail({ b, day, pro, canRemind, dateAt, metaOf, onChange, t }) {
   function saved(checkin) {
     const list = (b.batch_checkins ?? []).filter((c) => c.id !== checkin.id);
     onChange({ id: b.id, batch_checkins: [...list, checkin] });
+    const dot = rootRef.current?.querySelector(`[data-node="${m.k}"]`);
+    scene?.add(() => noteSaved(scene, dot));
   }
 
   return (
-    <section aria-labelledby="journal-batch" className="flex-[1_1_420px] min-w-0 p-[18px] sm:p-7 rounded" style={{ background: COLORS.card, border: `1px solid ${COLORS.ink}` }}>
+    <section ref={rootRef} aria-labelledby="journal-batch" className="flex-[1_1_420px] min-w-0 p-[18px] sm:p-7 rounded" style={{ background: COLORS.card, border: `1px solid ${COLORS.ink}` }}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[12px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.actionText }}>
