@@ -187,7 +187,7 @@ export function TourLayer({ i, t, rtl, onGo, onEnd, onJournal, journalHref = "/j
           <button type="button" onClick={() => onGo(i - 1)} disabled={i === 0}
             className="min-h-[44px] px-4 text-[15px] rounded-[2px] disabled:opacity-40" style={{ border: `1px solid ${COLORS.line}`, color: COLORS.ink }}>{t("tour.back")}</button>
           <button type="button" onClick={() => (last ? onEnd() : onGo(i + 1))} data-tour-next
-            className="min-h-[44px] px-5 text-[15px] font-medium rounded-[2px]" style={{ background: COLORS.ink, color: COLORS.paper, border: `1px solid ${COLORS.ink}` }}>
+            className="min-h-[44px] px-5 text-[15px] font-medium rounded-[2px]" style={{ background: COLORS.amber, color: COLORS.onAmber, border: `1px solid ${COLORS.amber}` }}>
             {t(last ? "tour.done" : "tour.next")}
           </button>
         </div>
