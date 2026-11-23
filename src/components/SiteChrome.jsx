@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "../motion";
 import { BrandMark } from "./FlaconMark";
 import FlaconMark from "./FlaconMark";
@@ -14,11 +14,21 @@ import { useCart } from "../lib/shop/useCart";
 // of the /app line we are on — links that cross it are full page loads.
 const site = (locale, p) => (locale === "ar" ? `/ar${p === "/" ? "" : p}` : p);
 
+// Is a sign-in saved on this device? Read after hydration (the prerender says "Sign in"),
+// from the key the auth client writes, without importing it.
+function useSignedInHere() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    try { setOn(Object.keys(localStorage).some((k) => /^sb-.+-auth-token$/.test(k))); } catch { /* storage blocked: stay "Sign in" */ }
+  }, []);
+  return on;
+}
+
 function NavLink({ to, cross, active, icon: I, children }) {
   const style = { color: active ? COLORS.forest : COLORS.ink };
   const cls = "relative inline-flex items-center gap-2 min-h-[44px] text-sm whitespace-nowrap hover:opacity-80";
   // The active room's underline is its own element so a route change can slide it (src/motion).
-  const body = <><I size={18} /><span>{children}</span><span aria-hidden="true" data-mo-ind="site" data-on={active ? "" : undefined} className="absolute inset-x-0 bottom-0 h-px" style={{ background: active ? COLORS.forest : "transparent" }} /></>;
+  const body = <>{I && <I size={18} />}<span>{children}</span><span aria-hidden="true" data-mo-ind="site" data-on={active ? "" : undefined} className="absolute inset-x-0 bottom-0 h-px" style={{ background: active ? COLORS.forest : "transparent" }} /></>;
   return cross
     ? <a href={to} className={cls} style={style} aria-current={active ? "page" : undefined}>{body}</a>
     : <Link to={to} className={cls} style={style} aria-current={active ? "page" : undefined}>{body}</Link>;
@@ -32,6 +42,7 @@ export function SiteHeader({ zone, active, language, extra, badge, wardrobe = fa
   const cart = useCart();
   const inCart = shop ? cartCount(cart) : 0;
   const inApp = zone === "app";
+  const signedIn = useSignedInHere();
   return (
     <header data-mo-chrome="header" className="w-full" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
       <div className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 py-3 flex flex-wrap items-center gap-x-8 gap-y-1">
@@ -59,6 +70,8 @@ export function SiteHeader({ zone, active, language, extra, badge, wardrobe = fa
             </NavLink>
           )}
           <NavLink to={site(locale, "/pricing")} cross={inApp} active={active === "pricing"} icon={IconSeal}>{t("site.nav.pricing")}</NavLink>
+          {/* A way back in for returning users (audit M10); the Bench shows sign-in when signed out. */}
+          <span data-sign-in={signedIn ? "open" : "in"} className="contents"><NavLink to={site(locale, "/bench")} cross>{t(signedIn ? "site.nav.openBench" : "site.nav.signIn")}</NavLink></span>
           <span aria-hidden="true" className="self-stretch my-3" style={{ borderInlineStart: `1px solid ${COLORS.line}` }} />
           {language}
           <ThemeToggle />

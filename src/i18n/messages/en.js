@@ -1703,7 +1703,7 @@ export default {
     },
   },
   site: {
-    nav: { shop: "Shop", main: "Main", atlas: "Atlas", salon: "Salon", nose: "Nose", wardrobe: "Wardrobe", calculator: "Calculator", journal: "Journal", privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "Kyphira, home", language: "العربية", languageLabel: "Read this page in Arabic" },
+    nav: { signIn: "Sign in", openBench: "Open the Bench", shop: "Shop", main: "Main", atlas: "Atlas", salon: "Salon", nose: "Nose", wardrobe: "Wardrobe", calculator: "Calculator", journal: "Journal", privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "Kyphira, home", language: "العربية", languageLabel: "Read this page in Arabic" },
     legal: { draft: "Draft — not yet reviewed. This page may change before launch.", updated: "Last updated {date}" },
     safety: { title: "Safety", text: "Perfumer's alcohol is flammable: blend away from flame and heat, in a ventilated room, out of reach of children. Fragrance oils can irritate skin and eyes — wear gloves and read each material's safety data sheet. The numbers here are starting points; check every weight on your own scale.", more: "Safety and responsibility" },
     footer: { line: "Kyphira grew from The Scent Handbook, a printed handbook in three volumes: Application, Wardrobe and Formulation.", credit: "Hisham Shiboob · Kyphira", safety: "Ethanol is highly flammable. Keep away from flame, heat and children.", by: "By Hisham Shiboob", rights: "© 2026 Kyphira" },
