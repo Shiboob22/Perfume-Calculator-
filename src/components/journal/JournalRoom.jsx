@@ -302,6 +302,7 @@ export default function JournalRoom() {
                       <button type="button" onClick={(e) => pick(x.id, e.currentTarget)} aria-pressed={on} data-batch={x.id}
                         className="w-full flex items-center gap-3 px-2 py-3 text-start" style={{ borderBottom: `1px solid ${COLORS.line}`, background: on ? COLORS.sand : "transparent" }}>
                         <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: swatchOf(x) }} />
+                        {/* The batch line wraps instead of cutting off "EDP Inten…" in the narrow desktop column (audit L10). */}
                         <span className="flex-1 min-w-0 flex flex-col">
                           <span className="flex items-center gap-2 min-w-0">
                             <span data-mo-share={`batch-${x.id}`} className="truncate font-medium">{x.fragrance_name}</span>
@@ -309,7 +310,7 @@ export default function JournalRoom() {
                               <span className="flex-none px-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] rtl:tracking-normal" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("journal.page.newBadge")}</span>
                             )}
                           </span>
-                          <span className="text-xs truncate" style={{ color: COLORS.dim }}>
+                          <span className="text-xs break-words" style={{ color: COLORS.dim }} data-row-line>
                             {t("journal.page.rowLine", { no: noOf(x), ...sizeOf(x), pct: x.concentration_pct })}
                           </span>
                           <span aria-hidden="true" className="relative block h-1.5 mt-2" style={{ background: COLORS.line }}>
