@@ -1,11 +1,11 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { makeCtx } from "../../motion/gsap/scene.js";
 import { stubGsap, assertSceneRules } from "../../motion/gsap/testing.js";
-import { pagesIn, composeIn } from "./scene.js";
+import { pagesIn } from "./scene.js";
 
 const page = (top, classes = ["mo-item"]) => {
   const set = new Set(classes);
-  return { getBoundingClientRect: () => ({ top }), classList: { contains: (c) => set.has(c), remove: (c) => set.delete(c), add: (c) => set.add(c) }, set };
+  return { dataset: {}, getBoundingClientRect: () => ({ top }), classList: { contains: (c) => set.has(c), remove: (c) => set.delete(c), add: (c) => set.add(c) }, set };
 };
 const root = (pages) => ({ querySelectorAll: () => pages });
 const run = (pages, dir = 1) => {
@@ -46,14 +46,14 @@ describe("pagesIn", () => {
     cleanup();
     expect(later.set.has("mo-item")).toBe(true);
   });
-});
-
-describe("composeIn", () => {
-  it("lifts the composer in over the base duration", () => {
-    const s = stubGsap();
-    composeIn(makeCtx(s, {}, 1), {});
-    expect(s.calls[0].from.y).toBe(32);
-    expect(s.calls[0].vars).toMatchObject({ y: 0, duration: 0.25, ease: "kx.out" });
-    assertSceneRules(s.calls);
+  it("does not re-add the class to a page that already entered, and skips it on a second run", () => {
+    globalThis.innerHeight = 700;
+    const entered = page(900), waiting = page(1000);
+    const { s, cleanup } = run([entered, waiting]);
+    s.calls.find((c) => c.fn === "ScrollTrigger.batch").vars.onEnter([entered]);
+    cleanup();
+    expect(entered.set.has("mo-item")).toBe(false);
+    expect(waiting.set.has("mo-item")).toBe(true);
+    expect(run([entered]).s.calls).toHaveLength(0);
   });
 });
