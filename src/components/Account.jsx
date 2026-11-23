@@ -156,7 +156,8 @@ function Invite() {
   const [info, setInfo] = useState(null);
   const [failed, setFailed] = useState(false);
   const [copied, setCopied] = useState(false);
-  useEffect(() => { inviteInfo().then(setInfo).catch(() => setFailed(true)); }, []);
+  // An answer without a code is a failure too, so "{earned} of {cap}" never shows raw (audit L8).
+  useEffect(() => { inviteInfo().then((i) => (i?.code ? setInfo(i) : setFailed(true))).catch(() => setFailed(true)); }, []);
   const link = info ? `${window.location.origin}${locale === "ar" ? "/ar" : ""}/bench?ref=invite-${info.code}` : "";
   async function copy() {
     try { await navigator.clipboard.writeText(link); setCopied(true); } catch { setCopied(false); }
@@ -174,7 +175,7 @@ function Invite() {
             <button type="button" onClick={copy} className="min-h-[44px] px-5 rounded text-sm font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("account.invite.copy")}</button>
           </div>
           <p role="status" className="text-sm" style={{ color: COLORS.actionText }}>{copied ? t("account.invite.copied") : ""}</p>
-          <p className="text-sm" style={{ color: COLORS.ink }}>{t("account.invite.earned", { earned: info.earned, cap: info.cap })}</p>
+          {Number.isFinite(info.earned) && Number.isFinite(info.cap) && <p className="text-sm" style={{ color: COLORS.ink }} data-invite-earned>{t("account.invite.earned", { earned: info.earned, cap: info.cap })}</p>}
           {info.gift_ends_at && <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("account.invite.until", { date: date(info.gift_ends_at) })}</p>}
         </div>
       )}
