@@ -8,7 +8,7 @@ Branch `claude/kyphira-motion-lenis-gsap-cdbd95`. Flag `roommotion` (needs `moti
 |---|---|
 | Bench (`/bench`) | Blend editor rows rise in and out; the strength tier ring slides to the lit tier; "Logged as No. NNN" settles (scale only, the live text is never faded). |
 | Batches (`/bench/journal`) | Flip when the list changes (delete, new data). |
-| Journal (`/journal`, `/ar/journal`) | Flip on the batch list; the note dot pops in when a note is saved. |
+| Journal (`/journal`, `/ar/journal`) | The note dot pops in when a note is saved. The batch list reorder is the motion layer's own `useFlip` (from main), not GSAP. |
 | Wardrobe (`/wardrobe`) | Tonight: the answer's words rise in when a choice changes the answer (never on first mount); the collection grid Flips. |
 | Atlas (`/atlas`) | Pyramid bands draw in from the inline start; Browse results Flip. Lenis on wide screens. |
 | Salon (`/salon`) | Notebook pages enter in batches as they reach the fold. Lenis on wide screens. |

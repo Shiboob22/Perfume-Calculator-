@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
-import { Link, startNav, useNavigate } from "../../motion";
+import { Link, startNav, useFlip, useNavigate } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { listBatches } from "../../lib/fragranceApi";
@@ -25,7 +25,7 @@ import {
 import { useStartTrial } from "../plan/Upgrade";
 import { IconBell } from "../icons";
 import Chip from "../kx/Chip";
-import { useFlipList, useSceneCtx } from "../../motion/gsap/index.js";
+import { useSceneCtx } from "../../motion/gsap/index.js";
 import { noteSaved } from "./scene.js";
 import ListSkeleton from "../kx/ListSkeleton";
 import TodayStrip from "./TodayStrip";
@@ -159,7 +159,7 @@ export default function JournalRoom() {
     b: x, day: todayFor(x, now), no: Number(x.batch_no) || 0, ml: Number(x.total_ml),
     start: batchStartedAt(x)?.getTime() ?? NaN, checkins: x.batch_checkins,
   })), sort, dir).map((r) => r.b), [visible, sort, dir, now]);
-  useFlipList(listRef, `${sort}:${dir}`);
+  useFlip(listRef, sorted.map((x) => x.id).join(","));
   const pickSort = (k) => {
     store(SORT_KEY, k);
     store(DIR_KEY, null);
@@ -299,7 +299,7 @@ export default function JournalRoom() {
                   const p = restProgress(day);
                   const due = sort === "note" ? needsNote(x.batch_checkins, day) : null;
                   return (
-                    <li key={x.id} data-flip data-flip-id={x.id}>
+                    <li key={x.id} data-flip={x.id}>
                       <button type="button" onClick={(e) => pick(x.id, e.currentTarget)} aria-pressed={on} data-batch={x.id}
                         className="w-full flex items-center gap-3 px-2 py-3 text-start" style={{ borderBottom: `1px solid ${COLORS.line}`, background: on ? COLORS.sand : "transparent" }}>
                         <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: swatchOf(x) }} />

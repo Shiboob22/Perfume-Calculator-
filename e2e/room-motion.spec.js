@@ -14,7 +14,7 @@ test.use({ serviceWorkers: "block" });
 
 const ON = "?flag=motion&flag=roommotion";
 const ROOMS = ["/bench", "/journal", "/ar/journal", "/wardrobe", "/atlas", "/salon", "/nose", "/app/selector"];
-const GSAP_ROOMS = ["/bench", "/journal", "/ar/journal", "/wardrobe", "/salon"]; // the rooms whose scenes fetch GSAP with the fake API
+const GSAP_ROOMS = ["/bench", "/wardrobe", "/salon"]; // the rooms whose scenes fetch GSAP with the fake API (the Journal list uses the motion layer's own flip)
 const idFor = (n) => `77777777-7777-4777-8777-${String(n).padStart(12, "0")}`;
 const BATCHES = ["Oud Nights", "Amber Dusk"].map((name, i) => ({
   id: `11111111-1111-4111-8111-00000000000${i + 1}`, user_id: USER.id, fragrance_id: null, fragrance_name: name, tier: "woody", concentration_pct: 25,
@@ -83,10 +83,8 @@ for (const width of [375, 1440]) {
       await page.goto(`${room}${ON}`);
       await page.locator("h1, h2").first().waitFor({ state: "attached" });
       // Rooms that load GSAP: the three chunks must arrive (up to 2 s), then settle, so a scene that hides start states after load is caught. Other rooms are checked as is.
-      if (GSAP_ROOMS.includes(room)) {
-        await expect.poll(() => chunks, { timeout: 2000 }).toBe(3);
-        await page.waitForTimeout(300);
-      }
+      if (GSAP_ROOMS.includes(room)) await expect.poll(() => chunks, { timeout: 2000 }).toBe(3);
+      await page.waitForTimeout(300); // every room settles: the shipped motion layer has its own short entrances
       // Every heading, control and link on the first screen is at full opacity (itself and its ancestors; decorative light and spans are not text of record).
       const hidden = await page.evaluate(() => [...document.querySelectorAll("h1, main h2, main h3, main button, main a, main input, main select, main textarea, main label")].filter((el) => {
         const r = el.getBoundingClientRect();
