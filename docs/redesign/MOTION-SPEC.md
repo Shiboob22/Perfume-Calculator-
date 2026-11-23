@@ -44,6 +44,18 @@ The two ease-outs differ by a few percent of curve shape. Recommendation: point 
 | Nose thinking | pending answer | dot opacity .25 → 1 | ambient (2 s) | in-out | delays 0 / 250 / 500 ms, alternate |
 | Skeleton | loading | opacity pulse | ambient | in-out | |
 | Mobile More sheet | open, close | translateY, scrim opacity | base | out | exit handled by `useExit` |
+| Blend editor row (`calc/scene.js` `rowIn`/`rowOut`) | add, remove | opacity, translateY (distance s) | base | kx.out | GSAP, flag `roommotion`; a revert never strands a row |
+| Strength tier ring (`tierRing`) | tier change | transform only (Flip.fit, scale) | base | kx.out | decorative ring slides to the lit tier; placed instantly on first draw |
+| "Logged as No. NNN" stamp (`stamp`) | log | scale 1.04 to 1 | slow | kx.out | transform only, from the inline start; the live text is never faded |
+| Journal note dot (`journal/scene.js` `noteSaved`) | note saved | scale 0 to 1 | slow | kx.out | |
+| Batches, Search, Journal, Wardrobe collection, Atlas browse lists (`useFlipList`) | list order or content changes | transform (Flip) | base | kx.out | `data-flip` rows; skipped under reduced motion |
+| Wardrobe Tonight answer (`wardrobe/scene.js` `answerWords`) | the choice changes the answer | opacity, translateY (distance s) | slow | kx.out | per word, word stagger, capped at `stagger.maxWords`; never on first mount |
+| Atlas pyramid (`atlas/scene.js` `pyramidDraw`) | enters view | scaleX from the inline start | slow | kx.out | one band per step; bands already on screen are left alone |
+| Salon notebook pages (`salon/scene.js` `pagesIn`) | page below the fold enters (top 92%) | opacity, translateY (distance m), rotation 0.6 deg to 0 | slow | kx.out | ScrollTrigger batch, once, step stagger |
+| Selector results (`selector/scene.js` `resultsIn`) | results appear | opacity, translateY (distance s) | slow | kx.out | top match first, one step apart, capped at `stagger.max`; results already shown are not replayed |
+| Smooth wheel scroll (Lenis) | wheel | page scroll | lerp 0.1 | n/a | library, wide screen, fine pointer, Library, Atlas, Salon, Wardrobe, Nose (and `/ar/`); a Sheet or the tour stops it |
+
+Room motion (flags `motion` and `roommotion`, off in production) is the GSAP layer above: the kit in `src/motion/gsap/` allows only transform and opacity, the two eases `kx.out` and `kx.inOut` and durations built from the tokens, and a checker in the tests (`assertSceneRules`) fails the build on anything else. Cut and why: `docs/redesign/room-motion/REPORT.md`.
 
 Cinematic motion is allowed on every page (pass 3, owner decision). The craft rules do not change: only transform and opacity, four durations, two eases, entrances once, first screen never hidden, figures never animate, reduced motion is a full static page. Pace and scale of gesture are cinematic; speed and noise are not.
 
