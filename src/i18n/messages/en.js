@@ -1723,7 +1723,7 @@ export default {
         library: { name: "The Library", line: "Read the method.", fig: "{n} guides" },
         atlas: { name: "The Atlas", line: "Map the catalog.", fig: "80,000+ scents" },
         salon: { name: "The Salon", line: "Share your notes.", fig: "Private first" },
-        nose: { name: "The Nose", line: "Describe a scent.", fig: "8 an hour" },
+        nose: { name: "The Nose", line: "Describe a scent.", fig: "Real catalog matches" },
       },
     },
     home: {
