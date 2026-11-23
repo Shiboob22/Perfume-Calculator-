@@ -39,8 +39,10 @@ html[dir="rtl"] .font-mono {
 }
 
 /* Arabic display (headlines, big numerals): Reem Kufi. Body and prose stay Readex Pro:
-   a Kufic face is for short, large lines, not paragraphs. */
-html[dir="rtl"] .ar-display { font-family: "Reem Kufi Variable", "Readex Pro Variable", "Geeza Pro", "Noto Sans Arabic", Tahoma, sans-serif; font-style: normal; }
+   a Kufic face is for short, large lines, not paragraphs. Reem Kufi's subset is
+   Arabic only: Latin letters in these lines (numerals I–VI, Pro, a scent name)
+   take the English edition's serif, not the body face. */
+html[dir="rtl"] .ar-display { font-family: "Reem Kufi Variable", "Instrument Serif", "Instrument Serif Fallback", "Readex Pro Variable", "Geeza Pro", "Noto Sans Arabic", Tahoma, sans-serif; font-style: normal; }
 
 /* Guide tables become one card per row on a phone: no sideways scrolling.
    Each cell shows its column name from data-label. */
