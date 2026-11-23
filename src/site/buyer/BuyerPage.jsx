@@ -85,7 +85,8 @@ function Bottle({ code, bottle, onSaved, t, locale }) {
       <div className="mt-8">
         {bottle.shop && <p className="text-sm" style={{ color: COLORS.actionText }} data-buyer-shop><bdi>{t("buyer.from", { shop: bottle.shop })}</bdi></p>}
         {/* Arabic headings skip from Reem Kufi (Arabic letters only) to a system face for Latin: a Latin scent name gets the English edition's serif. */}
-        <h1 className={`${TYPE.title} mt-2`} dir="auto" style={locale === "ar" ? { fontFamily: '"Reem Kufi Variable", "Instrument Serif", "Readex Pro Variable", serif' } : undefined} data-buyer-scent>{bottle.scent}</h1>
+        {/* The heading keeps the page's direction (so it sits at the page's start edge); the name is isolated (audit L9). */}
+        <h1 className={`${TYPE.title} mt-2`} style={locale === "ar" ? { fontFamily: '"Reem Kufi Variable", "Instrument Serif", "Readex Pro Variable", serif' } : undefined} data-buyer-scent><bdi>{bottle.scent}</bdi></h1>
         <p className="mt-3" style={{ color: COLORS.inkSoft }}>
           {/* The tier name stays Latin in Arabic: isolate it so the Arabic sentence keeps its order. */}
           <bdi>{t("buyer.bottle", { size: bottle.size_ml, pct: bottle.strength_pct, tier: `\u2068${tierFor(bottle.strength_pct).name}\u2069` })}</bdi>
