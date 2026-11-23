@@ -1,4 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
+import { hasBenchPlan } from "./lib/benchPlan";
 import { Navigate, useLocation, useParams } from "react-router-dom";
 import { useNavigate } from "./motion";
 import { flagOn } from "./lib/flags";
@@ -70,10 +71,12 @@ export default function App() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { tab: param } = useParams();
-  const { pathname } = useLocation();
+  const { pathname, state: navState } = useLocation();
   const tab = tabFromPath(pathname, param);
+  // Pour along is full screen only with a batch to pour; opened with nothing it sits in the app (audit L6).
+  const pourScreen = tab === "bench" && hasBenchPlan(navState);
   // cards and account are pages of their own, reached from links, not tabs.
-  const activeTab = TABS.includes(tab) ? tab : tab === "batches" || tab === "cards" || tab === "account" || tab === "labels" || tab === "wardrobe" || tab === "atlas" || tab === "salon" || tab === "nose" || tab === "orders" ? null : DEFAULT_TAB;
+  const activeTab = TABS.includes(tab) ? tab : tab === "batches" || tab === "cards" || tab === "account" || tab === "labels" || tab === "wardrobe" || tab === "atlas" || tab === "salon" || tab === "nose" || tab === "orders" || tab === "bench" ? null : DEFAULT_TAB;
   const wardrobeOn = flagOn("wardrobe");
   const atlasOn = flagOn("atlas");
   const salonOn = flagOn("salon");
@@ -146,7 +149,7 @@ export default function App() {
         <CountDueCheckIns />
         {/* Paper, bench-top and rule textures for the app (see lib/surfaces.js). */}
         <style>{SURFACE_CSS}</style>
-        {tab === "bench" ? (
+        {pourScreen ? (
           // Bench mode is full screen: no header or tabs at the scale.
           <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
         ) : (
@@ -166,6 +169,7 @@ export default function App() {
         {pageHeading && <h1 className="sr-only">{pageHeading}</h1>}
         <Suspense fallback={<TabLoading />}>
         {tab === "cards" && <BenchCards />}
+        {tab === "bench" && <BenchMode />}
         {tab === "atlas" && (atlasOn ? <Atlas /> : <Navigate to="/bench" replace />)}
         {tab === "salon" && (salonOn ? <Salon /> : <Navigate to="/bench" replace />)}
         {tab === "nose" && (noseOn ? <Nose /> : <Navigate to="/bench" replace />)}

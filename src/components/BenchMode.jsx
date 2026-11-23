@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { BENCH_PLAN_KEY } from "../lib/benchPlan";
+import RoomHeader from "./kx/RoomHeader";
 import { useLocation } from "react-router-dom";
 import { fileBatch, useNavigate } from "../motion";
 import { COLORS } from "../lib/theme";
@@ -31,7 +33,7 @@ import ScaleDisplay from "./kx/ScaleDisplay";
 const RULES_AT = { prepare: [4], tare: [1], pour: [2, 3, 5], pourNext: [1, 2, 3, 5] };
 // A practice bottle for the practice scale's tare step.
 const PRACTICE_BOTTLE_G = 38.42;
-const SESSION_KEY = "sh-bench";
+const SESSION_KEY = BENCH_PLAN_KEY;
 // Where this bench run is (step, pours, checks, lot), so a reload or a
 // locked phone doesn't send the user back to step 1. Tied to the run.
 const PROGRESS_KEY = "sh-bench-progress";
@@ -241,10 +243,11 @@ export default function BenchMode({ demo = null }) {
 
   if (!plan || !target) {
     return (
-      <div className="max-w-xl mx-auto p-6">
-        <h1 className="font-serif text-3xl mb-3">{t("bench.title")}</h1>
+      // Shown inside the app's header and menu (App.jsx), with the rooms' heading (audit L6).
+      <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" data-bench-empty>
+        <RoomHeader name={t("bench.title")} />
         <p style={{ color: COLORS.inkSoft }}>{t("bench.noPlan")}</p>
-        <button type="button" onClick={() => navigate("/bench")} className="mt-4 underline" style={{ color: COLORS.actionText }}>{t("app.tabs.calculator")}</button>
+        <button type="button" onClick={() => navigate("/bench")} className="mt-4 px-4 min-h-[44px] rounded text-sm font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("app.tabs.calculator")}</button>
       </div>
     );
   }
