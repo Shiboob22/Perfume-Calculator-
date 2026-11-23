@@ -4,6 +4,10 @@ import { TOKENS } from "../config.js";
 
 export const MOTION_QUERY = "(prefers-reduced-motion: no-preference)";
 
+/** Live reduced-motion check (true when there is no window to ask). */
+export const motionOk = (win = typeof window === "undefined" ? undefined : window) =>
+  !win?.matchMedia || win.matchMedia(MOTION_QUERY).matches;
+
 /** 1 for ltr, -1 for rtl: every x move is multiplied by it. */
 export const dirOf = (docEl) => (docEl?.getAttribute?.("dir") === "rtl" ? -1 : 1);
 
@@ -26,12 +30,24 @@ export function runScene({ gsap, ScrollTrigger, Flip, root, build, dir = 1, mm =
 export const captureFlip = (Flip, root, selector = "[data-flip]") => Flip.getState(root.querySelectorAll(selector));
 
 /** Plays a captured state with the base duration; kills the tween still running from last time. */
-export function playFlip(Flip, state, tokens = TOKENS, prev) {
-  prev?.kill();
+export function playFlip(Flip, state, tokens = TOKENS, prev, ok = motionOk()) {
+  prev?.progress?.(1); // land it first so the next measure sees real positions
+  prev?.kill?.();
+  if (!ok) return null;
   return Flip.from(state, { duration: tokens.duration.base / 1000, ease: "kx.out", absolute: false, nested: true });
 }
 
 /** The hook's guard as a pure function: no GSAP or no element means no build and nothing to revert. */
 export function startScene(mods, root, build, dir) {
   return mods && root ? runScene({ ...mods, root, build, dir }) : undefined;
+}
+
+/**
+ * ctx for event-driven scenes: a gsap.context scoped to root. ctx.add(fn) runs fn
+ * inside it only while motion is allowed; revert() undoes every tween it made.
+ */
+export function eventScene(mods, root, dir = 1, ok = motionOk) {
+  const scene = mods.gsap.context(() => {}, root);
+  const ctx = { ...makeCtx(mods, root, dir), add: (fn) => (ok() ? scene.add(fn) : undefined) };
+  return { ctx, revert: () => scene.revert() };
 }

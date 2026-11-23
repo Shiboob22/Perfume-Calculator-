@@ -1,18 +1,6 @@
-import { useEffect, useState } from "react";
-import { loadGsap, peekGsap } from "./load.js";
-import { dirOf, makeCtx, startScene } from "./scene.js";
-
-/** GSAP once loaded, else null (also null when motion is not allowed). */
-function useGsap() {
-  const [mods, setMods] = useState(peekGsap);
-  useEffect(() => {
-    if (mods) return undefined;
-    let live = true;
-    loadGsap().then((m) => { if (live && m) setMods(m); });
-    return () => { live = false; };
-  }, [mods]);
-  return mods;
-}
+import { useEffect, useRef, useState } from "react";
+import { useGsap } from "./useGsap.js";
+import { dirOf, eventScene, startScene } from "./scene.js";
 
 /** Runs `build(ctx)` once GSAP is loaded, reverting on unmount, on a deps change and under reduced motion. */
 export function useRoomScene(ref, build, deps = []) {
@@ -23,12 +11,20 @@ export function useRoomScene(ref, build, deps = []) {
   }, [mods, ...deps]);
 }
 
-/** The scene ctx for event-driven scenes (null until GSAP and the element are there). */
+/** The scene ctx for event-driven scenes (null until GSAP and the element are there); reverted on unmount. */
 export function useSceneCtx(ref) {
   const mods = useGsap();
   const [ctx, setCtx] = useState(null);
-  useEffect(() => {
-    if (mods && ref.current) setCtx(makeCtx(mods, ref.current, dirOf(document.documentElement)));
-  }, [mods, ref]);
+  const live = useRef(null); // { root, revert }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { // every render: the element may mount after GSAP loaded
+    const root = ref.current;
+    if (!mods || !root || live.current?.root === root) return;
+    live.current?.revert();
+    const { ctx: next, revert } = eventScene(mods, root, dirOf(document.documentElement));
+    live.current = { root, revert };
+    setCtx(next);
+  });
+  useEffect(() => () => live.current?.revert(), []);
   return ctx;
 }

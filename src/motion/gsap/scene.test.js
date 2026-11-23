@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { runScene, startScene, dirOf, captureFlip, playFlip, MOTION_QUERY } from "./scene.js";
+import { runScene, startScene, eventScene, motionOk, dirOf, captureFlip, playFlip, MOTION_QUERY } from "./scene.js";
 import { stubGsap, assertSceneRules } from "./testing.js";
 import { TOKENS } from "../config.js";
 
@@ -83,5 +83,51 @@ describe("assertSceneRules", () => {
   });
   it("checks the from side of a fromTo", () => {
     expect(() => assertSceneRules([{ fn: "fromTo", from: { height: 0 }, vars: { opacity: 1 } }])).toThrow();
+  });
+});
+
+describe("reduced motion, live", () => {
+  const win = (matches) => ({ matchMedia: vi.fn(() => ({ matches })) });
+  it("motionOk asks the query, and is true without a window", () => {
+    expect(motionOk(win(true))).toBe(true);
+    expect(motionOk(win(false))).toBe(false);
+    expect(motionOk({})).toBe(true);
+  });
+  it("playFlip skips under reduce but still lands and kills the previous tween", () => {
+    const s = stubGsap();
+    const prev = { kill: vi.fn(), progress: vi.fn() };
+    expect(playFlip(s.Flip, { targets: [] }, TOKENS, prev, false)).toBeNull();
+    expect(s.calls).toHaveLength(0);
+    expect(prev.progress).toHaveBeenCalledWith(1);
+    expect(prev.kill).toHaveBeenCalledTimes(1);
+  });
+  it("eventScene runs add() only while motion is allowed and reverts its context", () => {
+    const s = stubGsap();
+    let ok = true;
+    const { ctx, revert } = eventScene(s, root, -1, () => ok);
+    const fn = vi.fn(() => 7);
+    expect(ctx.add(fn)).toBe(7);
+    ok = false;
+    expect(ctx.add(fn)).toBeUndefined();
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(ctx.dir).toBe(-1);
+    revert();
+  });
+});
+
+describe("assertSceneRules, deeper", () => {
+  const run = (vars) => () => assertSceneRules([{ fn: "to", targets: null, vars }]);
+  it("checks stagger, delay, startAt and timeline defaults", () => {
+    expect(run({ stagger: 0.5 })).toThrow();
+    expect(run({ stagger: { each: 0.06, ease: "back.out" } })).toThrow();
+    expect(run({ delay: 0.3 })).toThrow();
+    expect(run({ startAt: { height: 0 } })).toThrow();
+    expect(run({ stagger: 0.06, delay: 0.25, startAt: { y: 8 } })).not.toThrow();
+    const s = stubGsap();
+    s.gsap.timeline({ defaults: { ease: "back.out" } });
+    expect(() => assertSceneRules(s.calls)).toThrow();
+    const s2 = stubGsap();
+    s2.gsap.timeline({ defaults: { ease: "kx.out", duration: 0.6 } });
+    expect(() => assertSceneRules(s2.calls)).not.toThrow();
   });
 });
