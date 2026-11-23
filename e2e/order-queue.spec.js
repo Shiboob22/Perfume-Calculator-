@@ -294,12 +294,13 @@ test("cost, profit, a short mix, the buyer's label and Order again", async ({ pa
   await expect(page.getByText("No. 067", { exact: true }).first()).toBeVisible();
 });
 
-test("a batch logged without prices says so", async ({ page }) => {
+test("a batch logged without prices shows no cost line under the bottle (audit M13)", async ({ page }) => {
   await signIn(page);
   const bare = { ...BATCH, price_per_gram: null, ethanol_price_per_l: null, bottle_cost: null, packaging_cost: null, actual_oil_g: null, actual_ethanol_g: null };
   await fakeApi(page, { orders: [joined({ id: "s", buyer_name: "Sara", size_ml: 50, price: 450, status: "resting", batches: bare })] });
   await page.goto("/bench/orders");
-  await expect(page.getByText(o.cost.none)).toBeVisible();
+  await expect(page.getByText("Sara", { exact: true }).first()).toBeVisible();
+  await expect(page.locator("[data-cost-line]")).toHaveCount(0);
   await expect(page.getByRole("note")).toHaveCount(0);
 });
 
@@ -364,10 +365,10 @@ test("a friend price is saved on the order and adds up in History", async ({ pag
   await sheet.getByRole("button", { name: o.form.save }).click();
   await expect(sheet).toBeHidden();
   expect(sent.posts.at(-1)).toMatchObject({ buyer_name: "Sara", price: 320, list_price: 400 });
-  await expect(page.getByText(fill(o.row.friend, { price: "320.00", currency: "EGP", list: "400.00", pct: 20 }))).toBeVisible();
+  await expect(page.getByText(fill(o.row.friend, { price: "320", currency: "EGP", list: "400", pct: 20 }))).toBeVisible();
 
   await page.getByText(fill(o.history.one, { count: 1 })).click();
-  await expect(page.getByText(fill(o.cost.discounts.one, { count: 1, given: "100.00", currency: "EGP" }))).toBeVisible();
+  await expect(page.getByText(fill(o.cost.discounts.one, { count: 1, given: "100", currency: "EGP" }))).toBeVisible();
 });
 
 for (const locale of ["en", "ar"]) {

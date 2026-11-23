@@ -754,7 +754,6 @@ export default {
     },
     history: { one: "{count} handed over", other: "{count} handed over" },
     cost: {
-      none: "No cost recorded for this batch.",
       only: "Cost {cost} {currency}.",
       line: "Cost {cost} {currency}, profit {profit} {currency} ({margin}%).",
       total: { one: "Profit on {count} handed-over bottle: {profit} {currency}.", other: "Profit on {count} handed-over bottles: {profit} {currency}." },

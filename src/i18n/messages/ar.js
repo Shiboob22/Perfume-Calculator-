@@ -753,7 +753,6 @@ export default {
     },
     history: { zero: "لا شيء سُلّم", one: "طلب واحد سُلّم", two: "طلبان سُلّما", few: "{count} طلبات سُلّمت", many: "{count} طلبًا سُلّم", other: "{count} طلب سُلّم" },
     cost: {
-      none: "لا تكلفة مسجلة لهذه الدفعة.",
       only: "التكلفة {cost} {currency}.",
       line: "التكلفة {cost} {currency}، والربح {profit} {currency} ({margin}%).",
       total: { zero: "لا ربح محسوب بعد.", one: "الربح من زجاجة واحدة سُلّمت: {profit} {currency}.", two: "الربح من زجاجتين سُلّمتا: {profit} {currency}.", few: "الربح من {count} زجاجات سُلّمت: {profit} {currency}.", many: "الربح من {count} زجاجة سُلّمت: {profit} {currency}.", other: "الربح من {count} زجاجة سُلّمت: {profit} {currency}." },

@@ -10,7 +10,7 @@ import Card from "../kx/Card";
 import Sheet from "../kx/Sheet";
 import Chip from "../kx/Chip";
 import Button from "../kx/Button";
-import { fmt2, planMixes, restWindow, bottlingGroups, orderCost, shortMix, profitTotals, discountTotals, MIX_ALLOWANCE_PCT, STRENGTH_TIERS } from "../../lib/calc";
+import { fmt2, fmtMoney, planMixes, restWindow, bottlingGroups, orderCost, shortMix, profitTotals, discountTotals, MIX_ALLOWANCE_PCT, STRENGTH_TIERS } from "../../lib/calc";
 import { Link } from "../../motion";
 import ListSkeleton from "../kx/ListSkeleton";
 import { listRecipes, listInventory } from "../../lib/fragranceApi";
@@ -336,13 +336,13 @@ export default function OrderQueue() {
           <summary className="cursor-pointer min-h-[44px] flex items-center" style={{ color: COLORS.inkSoft }}>{t("orders.history", { count: handed.length })}</summary>
           {profit.totals.length > 0 && (
             <p className="text-sm py-2" style={{ color: COLORS.ink }}>
-              {profit.totals.map((x) => t("orders.cost.total", { count: x.count, profit: fmt2(x.profit), currency: currencyLabel(x.currency, locale) })).join(" ")}
+              {profit.totals.map((x) => t("orders.cost.total", { count: x.count, profit: fmtMoney(x.profit), currency: currencyLabel(x.currency, locale) })).join(" ")}
               {profit.missing > 0 && ` ${t("orders.cost.missing", { count: profit.missing })}`}
             </p>
           )}
           {given.length > 0 && (
             <p data-friend-given className="text-sm pb-2" style={{ color: COLORS.inkSoft }}>
-              {given.map((x) => t("orders.cost.discounts", { count: x.count, given: fmt2(x.given), currency: currencyLabel(x.currency, locale) })).join(" ")}
+              {given.map((x) => t("orders.cost.discounts", { count: x.count, given: fmtMoney(x.given), currency: currencyLabel(x.currency, locale) })).join(" ")}
             </p>
           )}
           <ul>{handed.map((r) => (
@@ -386,14 +386,14 @@ function BuyerAnswer({ row, t }) {
   );
 }
 
-/** One order's cost and profit from its batch (P1a); says so when the batch has no prices. */
+/** One order's cost and profit from its batch (P1a); nothing when the batch has no prices (audit M13: History counts those). */
 function CostLine({ c, t }) {
   const { locale } = useI18n();
+  if (!c) return null;
   return (
-    <span className="block text-sm" style={{ color: COLORS.inkSoft }}>
-      {!c ? t("orders.cost.none")
-        : c.profit === null ? t("orders.cost.only", { cost: fmt2(c.cost), currency: currencyLabel(c.currency, locale) })
-          : t("orders.cost.line", { cost: fmt2(c.cost), profit: fmt2(c.profit), margin: fmt2(c.marginPct), currency: currencyLabel(c.currency, locale) })}
+    <span className="block text-sm" style={{ color: COLORS.inkSoft }} data-cost-line>
+      {c.profit === null ? t("orders.cost.only", { cost: fmtMoney(c.cost), currency: currencyLabel(c.currency, locale) })
+        : t("orders.cost.line", { cost: fmtMoney(c.cost), profit: fmtMoney(c.profit), margin: fmt2(c.marginPct), currency: currencyLabel(c.currency, locale) })}
     </span>
   );
 }
@@ -405,8 +405,8 @@ function OrderRow({ row, date, t, busy, onEdit, onCancel, onRestore }) {
     t("orders.row.size", { ml: Number(row.size_ml), pct: Number(row.strength_pct) }),
     row.wanted_by && t("orders.row.wanted", { date: date(row.wanted_by) }),
     row.price != null && (row.list_price != null && Number(row.list_price) > Number(row.price)
-      ? t("orders.row.friend", { price: fmt2(Number(row.price)), currency: currencyLabel(row.currency, locale), list: fmt2(Number(row.list_price)), pct: Math.round((1 - Number(row.price) / Number(row.list_price)) * 100) })
-      : t("orders.row.price", { price: fmt2(Number(row.price)), currency: currencyLabel(row.currency, locale) })),
+      ? t("orders.row.friend", { price: fmtMoney(Number(row.price)), currency: currencyLabel(row.currency, locale), list: fmtMoney(Number(row.list_price)), pct: Math.round((1 - Number(row.price) / Number(row.list_price)) * 100) })
+      : t("orders.row.price", { price: fmtMoney(Number(row.price)), currency: currencyLabel(row.currency, locale) })),
   ].filter(Boolean);
   return (
     <li className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 border-t" style={{ borderColor: COLORS.line }}>
