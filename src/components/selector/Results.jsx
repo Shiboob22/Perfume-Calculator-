@@ -74,8 +74,9 @@ export default function Results({ answers, known, onEdit, onRestart, onSelectPer
   const matchKey = outcome?.status === "ok" ? outcome.matches.map((m) => m.profile.id).join(",") : "";
   // Once per new set of matches: the rows only, never the aria-live region above them.
   useLayoutEffect(() => {
-    if (!matchKey || !scene || doneKey.current === matchKey) return;
-    doneKey.current = matchKey;
+    if (!matchKey || doneKey.current === matchKey) return;
+    doneKey.current = matchKey; // shown without motion counts as shown: never hidden and replayed later
+    if (!scene) return;
     const rows = olRef.current ? Array.from(olRef.current.children) : [];
     scene.add(() => resultsIn(scene, rows));
   }, [matchKey, scene]);
