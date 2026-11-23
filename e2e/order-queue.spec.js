@@ -299,7 +299,7 @@ test("a batch logged without prices shows no cost line under the bottle (audit M
   const bare = { ...BATCH, price_per_gram: null, ethanol_price_per_l: null, bottle_cost: null, packaging_cost: null, actual_oil_g: null, actual_ethanol_g: null };
   await fakeApi(page, { orders: [joined({ id: "s", buyer_name: "Sara", size_ml: 50, price: 450, status: "resting", batches: bare })] });
   await page.goto("/bench/orders");
-  await expect(page.getByText("Sara", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: fill(o.bottle.markFor, { name: "Sara" }) })).toBeVisible();
   await expect(page.locator("[data-cost-line]")).toHaveCount(0);
   await expect(page.getByRole("note")).toHaveCount(0);
 });
