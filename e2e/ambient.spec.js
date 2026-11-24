@@ -76,6 +76,16 @@ test("a double press on Listen starts one copy", async ({ page }) => {
   await expect(button).toHaveAttribute("aria-pressed", "true");
 });
 
+test("phone: a tap anywhere lets the music in (a finger's press counts on touchend, not pointerdown)", async ({ page }, info) => {
+  test.skip(!info.project.use.hasTouch, "touch screens only");
+  await setup(page);
+  await page.goto("/");
+  await expect(page.locator("[data-ambient]")).toHaveCount(1);
+  await page.touchscreen.tap(20, 300);
+  await expect(page.locator("[data-ambient]")).toHaveAttribute("aria-pressed", "true", { timeout: 10000 });
+  await expect.poll(() => level(page), { timeout: 10000 }).toBeGreaterThan(-40);
+});
+
 test("Arabic label", async ({ page }) => {
   await setup(page);
   await page.goto("/ar/");

@@ -17,7 +17,8 @@ export function useAmbient() {
 // on the page lets it in. Stop is remembered on the device (STOPPED), and Listen clears it.
 // Not offered under Motion Off; silent with the tab hidden (templeSound.js).
 const STOPPED = "kyphira.ambientStopped";
-const GESTURES = ["pointerdown", "keydown", "touchend"];
+// Browsers count a press as a gesture on different events: a mouse on pointerdown, a finger only on pointerup/touchend/click.
+const GESTURES = ["pointerdown", "pointerup", "touchend", "click", "keydown"];
 
 export default function Ambient() {
   const { t } = useI18n();
