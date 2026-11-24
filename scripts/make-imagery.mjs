@@ -34,6 +34,9 @@ const PHOTOS = {
   spraying: ["Man_spraying_perfume_bottle", "ac767677_2K.jpg"],
   temple: ["Carved_Egyptian_temple_wall_relief", "abe3f60b_2K.jpg"],
   "raw-slate": ["Raw_perfumery_materials_on_slate", "e04b07d4_2K.jpg"],
+  // The home hero: the largest paint, so its own lighter set. It sits under a
+  // dark scrim, where q30 shows no loss; 800 px is what a phone asks for.
+  hero: ["Perfumer_measuring_liquid", "00ce2076_2K.jpg", { widths: [800, 1200, 1600, 2000], q: 30 }],
 };
 const FILMS = {
   incense: ["Incense_smoke_rising_from_burner", "52e338ab.mp4"],
@@ -61,8 +64,9 @@ const add = (f) => { bytes += statSync(f).size; return f; };
 
 for (const [slug, match] of Object.entries(PHOTOS)) {
   const src = find(match);
+  const { widths: want = WIDTHS, q = 55 } = match[2] ?? {};
   const [w0, h0] = size(src);
-  const widths = [...new Set(WIDTHS.map((w) => Math.min(w, w0)))];
+  const widths = [...new Set(want.map((w) => Math.min(w, w0)))];
   for (const w of widths) {
     // sips writes AVIFs with an odd height (e.g. 1920×1071) that Chrome decodes
     // to transparent pixels: resize to PNG, crop the height to even, then encode.
@@ -70,7 +74,7 @@ for (const [slug, match] of Object.entries(PHOTOS)) {
     sips("-s", "format", "png", "--resampleWidth", String(w), src, "--out", tmp);
     const [, h] = size(tmp);
     if (h % 2) sips("-c", String(h - 1), String(w), tmp);
-    sips("-s", "format", "avif", "-s", "formatOptions", "55", tmp, "--out", join(OUT, `${slug}-${w}.avif`));
+    sips("-s", "format", "avif", "-s", "formatOptions", String(q), tmp, "--out", join(OUT, `${slug}-${w}.avif`));
     if (size(join(OUT, `${slug}-${w}.avif`))[1] % 2) throw new Error(`${slug}-${w}.avif: odd height`);
     unlinkSync(tmp);
     add(join(OUT, `${slug}-${w}.avif`));

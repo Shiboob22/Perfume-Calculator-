@@ -37,7 +37,7 @@ export function Photo({ name, alt = "", sizes = "100vw", ratio, className = "", 
  * holds it carries `kx-dark` (the dark palette, contrast-tested) so the text
  * reads on the photo in both themes; the scrim darkens the reading side.
  */
-export const HERO_PHOTO = "measuring";
+export const HERO_PHOTO = "hero"; // the measuring photo, lighter (scripts/make-imagery.mjs)
 export function HeroPhoto() {
   return (
     <div aria-hidden="true" className="absolute inset-0">

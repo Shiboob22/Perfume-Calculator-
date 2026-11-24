@@ -47,11 +47,20 @@ const arabicHead = [
   ...assets.filter((f) => /^(readex-pro-arabic-wght|reem-kufi-arabic-wght)-normal-.*\.woff2$/.test(f)).map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`),
 ].join("\n    ");
 
+// The photo hero (imagery flag, src/site/Imagery.jsx) is the home page's largest
+// paint: start it from the head, before the fonts, at the width the page will pick.
+const heroMedia = JSON.parse(readFileSync("src/site/media.json", "utf8")).photos.hero;
+const heroPreload = heroMedia
+  ? `<link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesizes="100vw" imagesrcset="${heroMedia.widths.map((w) => `/media/hero-${w}.avif ${w}w`).join(", ")}" />\n    `
+  : "";
+
 function page(url, head) {
+  const body = render(url);
+  const hero = heroPreload && body.includes("/media/hero-") ? heroPreload : "";
   return template
     .replace('<html lang="en">', `<html lang="${head.locale}" dir="${head.dir}">`)
-    .replace("<title>Kyphira</title>", `${preloads}\n    ${head.locale === "ar" ? `${arabicHead}\n    ` : ""}${headHtml(head)}`)
-    .replace('<div id="root"></div>', `<div id="root">${render(url)}</div>`);
+    .replace("<title>Kyphira</title>", `${hero}${preloads}\n    ${head.locale === "ar" ? `${arabicHead}\n    ` : ""}${headHtml(head)}`)
+    .replace('<div id="root"></div>', `<div id="root">${body}</div>`);
 }
 
 // The app shell first: index.html is about to become the prerendered home.
