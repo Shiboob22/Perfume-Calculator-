@@ -53,7 +53,7 @@ export default function Moderation({ admin }) {
             <div className="flex flex-wrap gap-2 items-center">
               <Chip>{t(r.post_id ? "salon.mod.post" : "salon.mod.profile")}</Chip>
               <Chip>{t(`salon.post.reasons.${r.reason}`)}</Chip>
-              <span className="text-sm" style={{ color: COLORS.inkSoft }}>{t("salon.mod.reports", { n: Number(r.reports) })}</span>
+              <span className="text-sm" style={{ color: COLORS.inkSoft }}>{t("salon.mod.reports", { n: Number(r.reports), count: Number(r.reports) })}</span>
               {r.target_handle && <span className="text-sm font-mono" dir="ltr" style={{ color: COLORS.dim }}>@{r.target_handle}</span>}
             </div>
             {r.post_title && <h3 className="font-serif text-xl mt-2" style={{ color: COLORS.ink }}>{r.post_title}</h3>}

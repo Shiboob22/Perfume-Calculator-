@@ -5,6 +5,7 @@
 // appear anywhere in the built site either.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { gzipSync } from "node:zlib";
 import { privateTermsIn } from "./private-terms.mjs";
 
 const DIST = "dist";
@@ -31,6 +32,7 @@ const FORBIDDEN = [
 ];
 const JWT = /eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g;
 
+const GSAP = /GreenSock|gsap\.registerPlugin|_gsScope/;
 const problems = [];
 for (const file of files) {
   const text = readFileSync(file, "utf8");
@@ -70,9 +72,20 @@ for (const file of files.filter((f) => /assets\/index-[^/]+\.js$/.test(f))) {
   }
   for (const file of preloaded) {
     try {
-      if (/isWebGLRenderer/.test(readFileSync(file, "utf8"))) problems.push(`${file}: three.js in a script the page loads up front`);
+      const text = readFileSync(file, "utf8");
+      if (/isWebGLRenderer/.test(text)) problems.push(`${file}: three.js in a script the page loads up front`);
+      if (GSAP.test(text) || /assets\/gsap-[^/]*\.js$/.test(file)) problems.push(`${file}: GSAP in a script the page loads up front`);
     } catch { /* listed by an HTML page but not built: not ours to judge */ }
   }
+}
+
+// GSAP (room motion) loads on demand in its own chunk, at most 40 KB gzipped.
+for (const file of files.filter((f) => /assets\/[^/]+\.js$/.test(f))) {
+  const text = readFileSync(file, "utf8");
+  if (!GSAP.test(text) && !/assets\/gsap-[^/]*\.js$/.test(file)) continue;
+  const kb = gzipSync(text).length / 1024;
+  console.log(`GSAP chunk ${file}: ${kb.toFixed(1)} KB gzip`);
+  if (kb > 40) problems.push(`${file}: GSAP chunk is ${kb.toFixed(1)} KB gzipped, over the 40 KB budget`);
 }
 
 // The brand photographs and films (public/media, about 10 MB) load only where

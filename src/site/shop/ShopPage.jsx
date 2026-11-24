@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "../../motion";
-import { Button, Notice } from "../../components/kx";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useFlip } from "../../motion";
+import { Button, ListSkeleton, Notice } from "../../components/kx";
 import FlaconMark from "../../components/FlaconMark";
 import { COLORS, TYPE } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
@@ -39,7 +39,8 @@ export default function ShopPage() {
           {error === "loadFailed" && <Button variant="secondary" onClick={load} className="mt-2">{t("shop.retry")}</Button>}
         </Notice>
       )}
-      {!error && !products && <p role="status" style={{ color: COLORS.inkSoft }}>{t("shop.loading")}</p>}
+      {/* Loading keeps the shape of the products (motion M3). */}
+      {!error && !products && <ListSkeleton label={t("shop.loading")} rows={3} framed className="max-w-xl" />}
       {products && products.length === 0 && <p style={{ color: COLORS.inkSoft }}>{t("shop.empty")}</p>}
 
       {products && products.length > 0 && (
@@ -55,7 +56,8 @@ export default function ShopPage() {
         <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 px-4 py-3 flex items-center gap-3"
           style={{ background: COLORS.card, borderTop: `1px solid ${COLORS.line}`, paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
           <p className="flex-1 text-sm" style={{ color: COLORS.ink }}>
-            <span className="font-medium tabular-nums">{t("shop.cart.count", { count })}</span>
+            {/* The count settles in when it changes (as the nav badge, motion M3). */}
+            <span key={count} data-cart-count={count} className="kx-settle inline-block font-medium tabular-nums">{t("shop.cart.count", { count })}</span>
             {" "}<span className="tabular-nums" style={{ color: COLORS.inkSoft }}>{money(total, locale)}</span>
           </p>
           <Button as="a" href="#cart" variant="secondary">{t("shop.cart.view")}</Button>
@@ -101,7 +103,7 @@ function ProductCard({ product }) {
             {hasOptions ? money(price, locale) : money(fromPrice(product), locale)}
           </p>
           <Button onClick={() => { add({ productId: product.id, variantId }); setJustAdded(true); }} aria-label={`${t("shop.add")}: ${name}`}>
-            {justAdded ? t("shop.added") : t("shop.add")}
+            <span key={justAdded ? "added" : "add"} className={justAdded ? "kx-settle inline-block" : undefined}>{justAdded ? t("shop.added") : t("shop.add")}</span>
           </Button>
           <span role="status" className="sr-only">{justAdded ? `${t("shop.added")}: ${name}` : ""}</span>
         </div>
@@ -113,6 +115,9 @@ function ProductCard({ product }) {
 function CartPanel({ lines, total, gone }) {
   const { t, locale } = useI18n();
   const { setQty, remove } = useCartActions();
+  // A line added or removed: the others slide to their places (motion M3).
+  const list = useRef(null);
+  useFlip(list, lines.map((l) => `${l.productId}:${l.variantId}`).join(","));
   return (
     <aside id="cart" aria-labelledby="cart-title" className="lg:sticky lg:top-6 p-5 rounded" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
       <h2 id="cart-title" className="font-serif text-2xl mb-4" style={{ color: COLORS.ink }}>{t("shop.cart.title")}</h2>
@@ -121,12 +126,12 @@ function CartPanel({ lines, total, gone }) {
         <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("shop.cart.empty")}</p>
       ) : (
         <>
-          <ul className="list-none p-0 divide-y" style={{ borderColor: COLORS.line }}>
+          <ul ref={list} className="list-none p-0 divide-y" style={{ borderColor: COLORS.line }}>
             {lines.map((l) => {
               const name = l.name[locale] + (l.variantLabel ? ` (${l.variantLabel[locale]})` : "");
               const line = { productId: l.productId, variantId: l.variantId };
               return (
-                <li key={`${l.productId}:${l.variantId}`} className="py-3 flex flex-col gap-2" style={{ borderColor: COLORS.line }}>
+                <li key={`${l.productId}:${l.variantId}`} data-flip={`${l.productId}:${l.variantId}`} className="py-3 flex flex-col gap-2" style={{ borderColor: COLORS.line }}>
                   <p className="text-sm font-medium" style={{ color: COLORS.ink }}>{name}</p>
                   <div className="flex items-center gap-3">
                     <div role="group" aria-label={t("shop.cart.qty", { name })} className="inline-flex items-stretch rounded" style={{ border: `1px solid ${COLORS.field}` }}>

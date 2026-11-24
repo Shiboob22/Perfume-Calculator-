@@ -1,5 +1,6 @@
 -- =====================================================================
--- Salon test (migrations 0027, 0028). Run against STAGING (never production), like
+-- Salon test (migrations 0027, 0028). Run against STAGING (production only with the
+-- owner's go-ahead: done once, 2026-11-19, 56/56, counts unchanged), like
 -- atlas_isolation.sql: the Supabase MCP `execute_sql`, or psql -f. It creates
 -- throwaway users, acts as each one through the JWT claims PostgREST uses,
 -- and always ends by raising "SALON PASSED …", so everything rolls back.

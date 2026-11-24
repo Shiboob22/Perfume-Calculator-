@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Link } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { layout, pyramidBands } from "../../lib/atlas/pyramid";
 import { entityHref, termName } from "../../lib/atlas/entities";
+import { useRoomScene } from "../../motion/gsap/index.js";
+import { pyramidDraw } from "./scene.js";
 
 // Notes as light: three bands, top bright and thin, heart warm, base deep and
 // wide. The light is a decorative layer behind the words; the notes are real
@@ -11,9 +13,11 @@ import { entityHref, termName } from "../../lib/atlas/entities";
 export default function Pyramid({ fragrance, terms = [] }) {
   const { t, locale } = useI18n();
   const bands = layout(pyramidBands(fragrance));
+  const ref = useRef(null);
+  useRoomScene(ref, (ctx) => pyramidDraw(ctx, ref.current.querySelectorAll(".mo-band")), [bands.length]);
   if (bands.length === 0) return null;
   return (
-    <figure aria-label={t("atlas.fragrance.pyramid")} className="grid gap-1.5 m-0">
+    <figure ref={ref} aria-label={t("atlas.fragrance.pyramid")} className="grid gap-1.5 m-0">
       {bands.map((b, i) => (
         <div key={b.layer} className="relative px-4 py-3 overflow-clip" style={{ minHeight: `${Math.round(b.height * 1.1)}px`, border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
           {/* The light: as wide as the band's reach, as strong as its weight. Start edge in both directions. */}

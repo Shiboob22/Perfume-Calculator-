@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { COLORS } from "../lib/theme";
+import { Link } from "../motion";
+import { flagOn } from "../lib/flags";
 import { useI18n } from "../i18n/I18nProvider";
 import { QUESTIONS, QUESTION_COUNT } from "../lib/selector/questions";
 import { clearDraft, LAST_STEP, loadDraft, saveDraft } from "../lib/selector/draft";
 import Choices from "./selector/Choices";
 import KnownStep from "./selector/KnownStep";
 import Results from "./selector/Results";
+import RoomHeader from "./kx/RoomHeader";
 
 const primary = { background: COLORS.amber, color: COLORS.onAmber };
 const quiet = { border: `1px solid ${COLORS.field}`, color: COLORS.ink };
@@ -42,10 +45,15 @@ export default function Selector({ onSelectPerfume }) {
   if (step === 0) {
     return (
       <div className={wrap}>
-        <p className="text-xs uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("selector.intro.kicker")}</p>
-        <h2 ref={heading} tabIndex={-1} className="font-serif italic text-4xl mt-2 outline-none" style={{ color: COLORS.ink }}>{t("selector.title")}</h2>
+        {/* The rooms' heading (audit M4); the kicker is a plain line, not spaced capitals. */}
+        <RoomHeader name={t("selector.title")} headingRef={heading} className="!mb-0">
+          <p className="mt-3 text-sm" style={{ color: COLORS.dim }}>{t("selector.intro.kicker")}</p>
+        </RoomHeader>
         <p className="mt-4 max-w-prose text-lg leading-relaxed" style={{ color: COLORS.inkSoft }}>{t("selector.intro.lede")}</p>
         <p className="mt-3 max-w-prose text-sm" style={{ color: COLORS.dim }}>{t("selector.intro.note")}</p>
+        {flagOn("nose") && (
+          <p className="mt-2 text-sm"><Link to="/nose" className="underline underline-offset-4 inline-flex min-h-[44px] items-center" style={{ color: COLORS.actionText }}>{t("selector.intro.noseLink")}</Link></p>
+        )}
         <div className="mt-6 flex flex-wrap items-center gap-3">
           {hasDraft ? (
             <>
@@ -85,7 +93,7 @@ export default function Selector({ onSelectPerfume }) {
         </div>
         <div role="progressbar" aria-valuemin={1} aria-valuemax={QUESTION_COUNT} aria-valuenow={step}
           aria-label={t("selector.stepOf", { current: step, total: QUESTION_COUNT })} className="mt-2 h-1.5" style={{ background: COLORS.sand }}>
-          <div className="h-1.5 motion-safe:transition-[width] duration-200" style={{ width: `${(step / QUESTION_COUNT) * 100}%`, background: COLORS.amber }} />
+          <div className="h-1.5 motion-safe:transition-[width] duration-base" style={{ width: `${(step / QUESTION_COUNT) * 100}%`, background: COLORS.amber }} />
         </div>
       </div>
 

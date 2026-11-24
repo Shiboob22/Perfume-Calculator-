@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { COLORS } from "../../lib/theme";
-import { costFor, fmt2 } from "../../lib/calc";
+import { Link } from "../../motion";
+import { costFor, fmt2, friendPrice, FRIEND_OFFS } from "../../lib/calc";
 import { COST_BOTTLES, COST_DEFAULTS, COST_MARGINS, COST_SAMPLE } from "../../lib/plansConfig";
 
 // Cost per bottle (Bench SaaS, Pro: calculator.advanced). Three prices, a
@@ -13,9 +14,20 @@ import { COST_BOTTLES, COST_DEFAULTS, COST_MARGINS, COST_SAMPLE } from "../../li
 // the three results count up, `countK` of the way (0 → 1; null = final).
 // Blank prices show the sample prices (COST_SAMPLE), and nothing can be
 // typed: the plan is not changed, only shown.
-export default function CostCard({ unlocked, preview = false, countK = null, onUnlock, oilG, ethMl, totMl, oilPrice, onOilPrice, oilReadOnly, ethPrice, onEthPrice, pack, onPack, currency, t }) {
+//
+// `orderLink({ sizeMl, price, retail })` (sellers with the order queue): the
+// friend price becomes a link to a new order filled in at that price; with no
+// friend price, the link fills in the suggested retail.
+//
+// `children` (unlocked only): the Bench's selling fields, recorded on the batch.
+//
+// `compact` (phones): locked, the card is its title and the unlock panel, without the
+// blurred fields under it (about 750 px of page nobody can use).
+export default function CostCard({ unlocked, preview = false, countK = null, onUnlock, oilG, ethMl, totMl, oilPrice, onOilPrice, oilReadOnly, ethPrice, onEthPrice, pack, onPack, currency, orderLink, children, compact = false, t }) {
   const [bottleMl, setBottleMl] = useState(COST_DEFAULTS.bottleMl);
   const [margin, setMargin] = useState(COST_DEFAULTS.margin);
+  const [friendOff, setFriendOff] = useState(0);
+  const [friendTyped, setFriendTyped] = useState("");
   const shown = unlocked || preview;
   const sample = (v, k) => (preview && !unlocked && !(Number(v) > 0) ? COST_SAMPLE[k] : v);
   oilPrice = sample(oilPrice, "oilPrice");
@@ -23,6 +35,7 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
   pack = sample(pack, "pack");
   const c = costFor({ oilG, ethMl, totMl, bottleMl, oilPrice: Number(oilPrice) || 0, ethPrice: Number(ethPrice) || 0, pack: Number(pack) || 0, margin });
   const k = countK == null ? 1 : countK;
+  const friend = unlocked ? friendPrice({ perBottle: c.perBottle, retail: c.retail, off: friendOff, price: friendTyped }) : null;
 
   const chip = (on) => ({ borderColor: on ? COLORS.actionText : COLORS.line, background: on ? COLORS.amber : COLORS.cardHi, color: on ? COLORS.onAmber : COLORS.ink });
   const price = (id, label, value, onChange, unit, readOnly, hint) => (
@@ -50,7 +63,7 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
         <span className="px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] rtl:tracking-normal" style={{ border: `1px solid ${COLORS.amber}`, color: COLORS.actionText }}>{t("plan.names.pro")}</span>
         {shown && <span dir="ltr" className="ms-auto text-[13px]" style={{ color: COLORS.dim }}>{bottleMl} mL · {margin}%</span>}
       </div>
-      <div data-cost-body inert={shown ? undefined : ""} aria-hidden={shown ? undefined : "true"}
+      {!(compact && !shown) && <div data-cost-body inert={shown ? undefined : ""} aria-hidden={shown ? undefined : "true"}
         className="kx-cost-body mt-5 flex flex-col gap-5" style={shown ? { pointerEvents: unlocked ? undefined : "none" } : { filter: "blur(5px)", opacity: 0.55, pointerEvents: "none", userSelect: "none" }}>
         <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(170px,1fr))]">
           {price("cost-oil", t(oilReadOnly ? "calc.costCard.blendPrice" : "calc.costCard.oilPrice"), oilReadOnly ? fmt2(oilPrice) : oilPrice, onOilPrice, t("calc.costCard.perG", { cur: currency }), oilReadOnly, oilReadOnly ? t("calc.costCard.blendHint") : undefined)}
@@ -76,14 +89,27 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
               ))}
             </div>
           </div>
+          <div role="group" aria-label={t("calc.costCard.friend.label")}>
+            <span aria-hidden="true" className="block mb-1.5 text-[13px]" style={{ color: COLORS.inkSoft }}>{t("calc.costCard.friend.label")}</span>
+            <div className="flex flex-wrap gap-1.5">
+              {[0, ...FRIEND_OFFS].map((o) => {
+                const on = friendTyped === "" && friendOff === o;
+                return (
+                  <button key={o} type="button" data-friend-off={o} aria-pressed={on} onClick={() => { setFriendOff(o); setFriendTyped(""); }} tabIndex={unlocked ? undefined : -1}
+                    className="min-h-[44px] px-3 text-sm tabular-nums rounded border" style={chip(on)}>{o ? t("calc.costCard.friend.off", { pct: o }) : t("calc.costCard.friend.none")}</button>
+                );
+              })}
+            </div>
+          </div>
         </div>
+        {price("cost-friend", t("calc.costCard.friend.typed"), friendTyped, setFriendTyped, t("calc.costCard.friend.unit", { cur: currency }), false)}
         <dl className="grid grid-cols-3" style={{ border: `1px solid ${COLORS.ink}` }}>
           {results.map(([key, value, hi], i) => (
             <div key={key} data-cost={key} className="p-3.5 min-w-0" style={{ borderInlineStart: i ? `1px solid ${COLORS.line}` : 0, background: hi ? COLORS.amber : "transparent", color: hi ? COLORS.onAmber : COLORS.ink }}>
               <dt className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: hi ? COLORS.onAmber : COLORS.dim }}>{t(`calc.costCard.${key}`)}</dt>
               <dd className="mt-2 flex flex-wrap items-baseline gap-1.5">
                 <span dir="ltr" className="tabular-nums" style={{ fontSize: hi ? 28 : 22, fontWeight: hi ? 600 : 400 }}>{fmt2(value)}</span>
-                <span className="text-xs" style={{ opacity: 0.8 }}>{currency}</span>
+                <span className="text-xs" style={hi ? undefined : { opacity: 0.8 }}>{currency}</span>{/* full strength on amber: 0.8 fell to 4.16:1 */}
               </dd>
             </div>
           ))}
@@ -91,9 +117,23 @@ export default function CostCard({ unlocked, preview = false, countK = null, onU
         <p className="text-sm" style={{ color: COLORS.inkSoft }}>
           {c.bottles > 0 ? t("calc.costCard.bottles", { count: c.bottles, size: bottleMl }) : t("calc.costCard.fewer", { size: bottleMl })}
         </p>
-      </div>
+        <p data-friend-result aria-live="polite" className="text-sm" style={{ color: friend?.belowCost ? COLORS.danger : COLORS.ink }}>
+          {friend && (friend.belowCost
+            ? t("calc.costCard.friend.loss", { loss: fmt2(-friend.profit), cur: currency })
+            : t("calc.costCard.friend.result", { price: fmt2(friend.price), profit: fmt2(friend.profit), cur: currency }))}
+        </p>
+        {friend && orderLink && (
+          <Link to={orderLink({ sizeMl: bottleMl, price: friend.price, retail: Math.round(c.retail * 100) / 100 })} data-friend-order
+            className="self-start min-h-[44px] inline-flex items-center text-sm underline underline-offset-4" style={{ color: COLORS.ink }}>{t("calc.costCard.friend.order")}</Link>
+        )}
+        {!friend && unlocked && orderLink && c.retail > 0 && (
+          <Link to={orderLink({ sizeMl: bottleMl, price: Math.round(c.retail * 100) / 100, retail: 0 })} data-retail-order
+            className="self-start min-h-[44px] inline-flex items-center text-sm underline underline-offset-4" style={{ color: COLORS.ink }}>{t("calc.costCard.friend.order")}</Link>
+        )}
+        {unlocked && children}
+      </div>}
       {!shown && (
-        <div className="absolute inset-x-0 bottom-0 top-14 flex items-center justify-center p-6">
+        <div className={compact ? "mt-5 flex justify-center" : "absolute inset-x-0 bottom-0 top-14 flex items-center justify-center p-6"}>
           <div className="max-w-[380px] p-6 text-center rounded flex flex-col items-center gap-2.5" style={{ background: COLORS.paper, border: `1px solid ${COLORS.ink}` }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={COLORS.actionText} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="1.5" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" /></svg>
             <p className="font-serif text-2xl leading-tight">{t("calc.costCard.lockTitle")}</p>

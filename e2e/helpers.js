@@ -18,3 +18,10 @@ export async function signIn(page) {
     };
   }, USER);
 }
+
+// Phones fold a Journal batch page's sections under their titles (audit H5): open them all.
+export async function unfold(page) {
+  await page.locator("[data-record]").waitFor({ state: "attached" });
+  const closed = page.locator("details[data-fold]:not([open]) > summary");
+  while (await closed.count()) await closed.first().click();
+}

@@ -12,6 +12,15 @@ import FlaconMark from './FlaconMark'
 import WorkedExample from './WorkedExample'
 import { localePath } from '../site/meta'
 
+// The page the visitor came from on this site, if it is another page.
+function sameSiteReferrer() {
+  try {
+    const from = new URL(document.referrer)
+    if (from.origin !== location.origin || from.pathname === location.pathname) return null
+    return from.pathname + from.search
+  } catch { return null }
+}
+
 // The session saved by the last visit, read synchronously so a returning user
 // sees the app on first render. getSession() below still confirms it — and
 // refreshes an expired token, a network round trip we no longer wait on; if
@@ -28,6 +37,7 @@ function storedSession() {
 export default function AuthGate({ children }) {
   const { t, locale } = useI18n()
   const [session, setSession] = useState(storedSession)
+  const [backTo] = useState(() => sameSiteReferrer())
   const [loading, setLoading] = useState(() => !session)
   const inboxRef = useRef(null)
   const [email, setEmail] = useState('')
@@ -184,9 +194,10 @@ export default function AuthGate({ children }) {
               </>
             )}
 
-            <Link to={localePath(locale, '/library')} className="inline-block mt-8 text-sm hover:underline" style={{ color: COLORS.amberDeep }}>
-              {t('auth.backToGuides')}
-            </Link>
+            {/* Back where you came from on this site, else Home (audit L3; it said "Back to the guides" from anywhere). */}
+            {backTo
+              ? <a href={backTo} data-auth-back className="inline-block mt-8 text-sm hover:underline" style={{ color: COLORS.amberDeep }}>{t('auth.back')}</a>
+              : <Link to={localePath(locale, '/')} data-auth-back className="inline-block mt-8 text-sm hover:underline" style={{ color: COLORS.amberDeep }}>{t('auth.home')}</Link>}
           </div>
 
           <WorkedExample />

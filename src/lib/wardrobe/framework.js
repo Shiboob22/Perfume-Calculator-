@@ -12,7 +12,7 @@ export const CLUSTERS = ["clean", "luxury", "dark", "social", "artistic"];
 // Part XIV: how far a fragrance reaches, nearest first.
 export const PROJECTIONS = ["intimate", "personal", "social", "statement"];
 
-export const FAMILIES = ["fresh", "floral", "woody", "oriental", "gourmand"];
+export const FAMILIES = ["fresh", "floral", "woody", "fougere", "oriental", "gourmand"];
 
 export const TIMES = ["morning", "day", "evening", "night"];
 
@@ -51,6 +51,6 @@ export const DECISION_STEPS = ["weather", "time", "place", "clothing", "message"
 
 // Which wardrobe a bottle falls into when its owner hasn't said: a rough
 // reading of its family. Shown as inferred, never as the owner's own tag.
-export const INFERRED_CLUSTER = { fresh: "clean", floral: "clean", woody: "luxury", oriental: "dark", gourmand: "social" };
+export const INFERRED_CLUSTER = { fresh: "clean", floral: "clean", woody: "luxury", fougere: "clean", oriental: "dark", gourmand: "social" };
 
 export const projectionRank = (p) => Math.max(0, PROJECTIONS.indexOf(p));

@@ -489,6 +489,145 @@ begin
     perform set_config('role', 'none', true);
   end;
 
+  -- The order queue (0035): each seller reads only their own orders; nobody
+  -- writes the table except the API (service role); anon reads nothing.
+  perform set_config('role', 'none', true);
+  insert into public.seller_orders (user_id, buyer_name, scent_text, size_ml, strength_pct)
+  values (a, 'A buyer', 'Oud', 50, 25), (b, 'B buyer', 'Rose', 30, 20);
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', b::text, true);
+  perform set_config('role', 'authenticated', true);
+  select count(*) into n from public.seller_orders;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B sees % orders, expected its own 1', n; end if; checks := checks + 1;
+  select count(*) into n from public.seller_orders where user_id = a;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s orders'; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.seller_orders (user_id, buyer_name, scent_text, size_ml, strength_pct) values (b, 'x', 'x', 1, 1);
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B added an order around the API (Pro gate bypass)'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.seller_orders set status = 'handed_over' where user_id = b;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B changed its order around the API'; end if; checks := checks + 1;
+  ok := false;
+  begin delete from public.seller_orders where user_id = a;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B could delete orders directly'; end if; checks := checks + 1;
+  perform set_config('role', 'anon', true);
+  ok := false;
+  begin perform 1 from public.seller_orders limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read seller_orders'; end if; checks := checks + 1;
+  perform set_config('role', 'none', true);
+  if not exists (select 1 from public.plans where id = 'pro' and 'orders' = any (features))
+     or exists (select 1 from public.plans where id = 'free' and 'orders' = any (features)) then
+    raise exception 'RLS_ISOLATION FAILED: orders should be on Pro only';
+  end if; checks := checks + 1;
+
+  -- Journal reminders (0036): the job writes reminder_sends with the service
+  -- role; an owner may read their own rows and write none; anon reads nothing.
+  perform set_config('role', 'none', true);
+  insert into public.reminder_sends (batch_id, user_id, milestone) values (batch_a, a, 'w1');
+  insert into public.push_subscriptions (user_id, endpoint) values (a, 'https://push.example/a-' || a);
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', b::text, true);
+  perform set_config('role', 'authenticated', true);
+  ok := false;
+  begin insert into public.reminder_sends (batch_id, user_id, milestone) values (gen_random_uuid(), b, 'w1');
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B wrote a reminder_sends row'; end if; checks := checks + 1;
+  select count(*) into n from public.reminder_sends;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees reminder rows that are not B''s'; end if; checks := checks + 1;
+  perform set_config('role', 'anon', true);
+  ok := false;
+  begin perform 1 from public.reminder_sends limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read reminder_sends'; end if; checks := checks + 1;
+  perform set_config('role', 'none', true);
+
+  -- Web push (0037): the API writes push_subscriptions with the service role; an owner may
+  -- read their own rows and write none; anon reads nothing.
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', b::text, true);
+  perform set_config('role', 'authenticated', true);
+  ok := false;
+  begin insert into public.push_subscriptions (user_id, endpoint) values (b, 'https://push.example/x');
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B wrote a push_subscriptions row'; end if; checks := checks + 1;
+  select count(*) into n from public.push_subscriptions;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees A''s push subscriptions'; end if; checks := checks + 1;
+  -- The owner can read their own rows (the data export includes both tables).
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', a::text, true);
+  select count(*) into n from public.push_subscriptions;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: A sees % of its push subscriptions, expected 1', n; end if; checks := checks + 1;
+  select count(*) into n from public.reminder_sends;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: A sees % of its reminder rows, expected 1', n; end if; checks := checks + 1;
+  perform set_config('role', 'anon', true);
+  ok := false;
+  begin perform 1 from public.push_subscriptions limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read push_subscriptions'; end if; checks := checks + 1;
+  perform set_config('role', 'none', true);
+
+  -- QR buyer page (0040): a buyer's feedback is read only by that order's
+  -- seller; nobody writes it except the API; anon reads nothing.
+  insert into public.order_feedback (order_id, user_id, rating)
+  select id, user_id, 5 from public.seller_orders where user_id in (a, b);
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', b::text, true);
+  perform set_config('role', 'authenticated', true);
+  select count(*) into n from public.order_feedback;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B sees % feedback rows, expected its own 1', n; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.order_feedback (order_id, user_id, rating) select id, b, 1 from public.seller_orders where user_id = b;
+  exception when insufficient_privilege or unique_violation then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B wrote feedback around the API'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.order_feedback set rating = 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B changed a buyer''s feedback'; end if; checks := checks + 1;
+  perform set_config('role', 'anon', true);
+  ok := false;
+  begin perform 1 from public.order_feedback limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read order_feedback'; end if; checks := checks + 1;
+  ok := false;
+  begin perform buyer_code from public.seller_orders limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read buyer codes'; end if; checks := checks + 1;
+  perform set_config('role', 'none', true);
+
+  -- Bring a friend (0042): each user reads only their own code and the
+  -- friends they invited; only the API's functions write; anon reads nothing.
+  insert into public.invite_codes (user_id, code) values (a, 'aaaa2222'), (b, 'bbbb3333');
+  insert into public.referrals (user_id, friend_id) values (a, b);
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', b::text, true);
+  perform set_config('role', 'authenticated', true);
+  select count(*) into n from public.invite_codes;
+  if n <> 1 then raise exception 'RLS_ISOLATION FAILED: B sees % invite codes, expected its own 1', n; end if; checks := checks + 1;
+  select count(*) into n from public.referrals;
+  if n <> 0 then raise exception 'RLS_ISOLATION FAILED: B sees % referrals made by A', n; end if; checks := checks + 1;
+  ok := false;
+  begin insert into public.referrals (user_id, friend_id) values (b, a);
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B wrote a referral around the API'; end if; checks := checks + 1;
+  ok := false;
+  begin update public.invite_codes set code = 'cccc4444';
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B changed an invite code'; end if; checks := checks + 1;
+  ok := false;
+  begin perform public.claim_invite(b, 'aaaa2222');
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: B ran claim_invite'; end if; checks := checks + 1;
+  perform set_config('role', 'anon', true);
+  ok := false;
+  begin perform 1 from public.invite_codes limit 1;
+  exception when insufficient_privilege then ok := true; end;
+  if not ok then raise exception 'RLS_ISOLATION FAILED: anon can read invite codes'; end if; checks := checks + 1;
+  perform set_config('role', 'none', true);
+
   raise exception 'RLS_ISOLATION PASSED: % checks (rolled back, nothing kept)', checks;
 end
 $$;

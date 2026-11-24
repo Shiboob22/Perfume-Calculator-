@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import RoomBeam from "../components/kx/RoomBeam";
-import { Link, Reveal } from "../motion";
+import { Link, Reveal, useFlip } from "../motion";
 import { COLORS, SHAPE, TYPE } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { GUIDES, SECTIONS } from "../content/guides";
 import { searchGuides } from "../content/search";
 import { localePath } from "./meta";
+import { useSmoothScroll } from "../motion/useSmoothScroll.js";
 import MethodSequence from "./MethodSequence";
 import { Folio } from "./editorial";
 import Chip from "../components/kx/Chip";
@@ -25,12 +26,15 @@ function partNumbers(sections) {
 
 function Contents({ guides }) {
   const { t, locale } = useI18n();
+  // A search or a filter that keeps a part: it slides to its new place (motion M3).
+  const list = useRef(null);
+  useFlip(list, guides.map((g) => g.slug).join(","));
   return (
-    <ul className="grid grid-cols-1 md:grid-cols-2 md:gap-x-10">
+    <ul ref={list} className="grid grid-cols-1 md:grid-cols-2 md:gap-x-10">
       {guides.map((g) => {
         const parts = g.source.sections;
         return (
-          <li key={g.slug} className={`border-t ${SHAPE.row}`} style={{ borderColor: COLORS.line }}>
+          <li key={g.slug} data-flip={g.slug} className={`border-t ${SHAPE.row}`} style={{ borderColor: COLORS.line }}>
             <Link to={localePath(locale, `/library/${g.slug}`)} className="group grid sm:grid-cols-[6.5rem_minmax(0,1fr)] gap-1 sm:gap-3 py-5">
               <span className="font-mono text-xs sm:pt-1.5 whitespace-nowrap" style={{ color: COLORS.dim }}>
                 {t(parts.length > 1 ? "site.guides.parts" : "site.guides.part", { n: partNumbers(parts) })}
@@ -77,11 +81,17 @@ function Glossary() {
   );
 }
 
+const TABS = ["essays", "glossary"];
+
 export default function GuidesIndex() {
+  useSmoothScroll({ pathname: typeof window === "undefined" ? "" : window.location.pathname });
   const { t, locale } = useI18n();
   const [query, setQuery] = useState("");
   const [section, setSection] = useState("all");
   const [tab, setTab] = useState("essays");
+  // The panel settles in after a switch only, not when the page first opens.
+  const [switched, setSwitched] = useState(false);
+  const settle = switched ? "kx-settle" : "";
   const found = useMemo(() => searchGuides(GUIDES, locale, query), [locale, query]);
   const shown = section === "all" ? found : found.filter((g) => g.section === section);
   const imagery = useImagery();
@@ -96,15 +106,21 @@ export default function GuidesIndex() {
       <h1 className={`${TYPE.display} mb-5`} style={{ color: COLORS.forestDeep }}>{t("site.guides.title")}</h1>
       <p className={`measure ${TYPE.lead}`} style={{ color: COLORS.inkSoft }}>{t("site.guides.lead")} {t("site.guides.by")}.</p>
 
-      <div role="group" aria-label={t("site.guides.tabs.label")} className="mt-8 flex border-b" style={{ borderColor: COLORS.line }}>
-        {["essays", "glossary"].map((k) => (
-          <button key={k} type="button" aria-pressed={tab === k} onClick={() => setTab(k)} className="px-4 min-h-[48px] text-[15px] -mb-px border-b-2"
-            style={{ borderColor: tab === k ? COLORS.actionText : "transparent", color: tab === k ? COLORS.ink : COLORS.inkSoft }}>
-            {t(`site.guides.tabs.${k}`)}
-          </button>
-        ))}
+      {/* Two tabs of one width, with one rule under the open one that slides between them
+          (motion M1, as the phone bar's room rule; from the right in Arabic). */}
+      <div className="mt-8 border-b" style={{ borderColor: COLORS.line }}>
+        <div role="group" aria-label={t("site.guides.tabs.label")} className="relative inline-grid grid-cols-[1fr_1fr]">
+          {TABS.map((k) => (
+            <button key={k} type="button" aria-pressed={tab === k} onClick={() => { if (k !== tab) setSwitched(true); setTab(k); }} className="px-4 min-h-[48px] text-[15px]"
+              style={{ color: tab === k ? COLORS.ink : COLORS.inkSoft }}>
+              {t(`site.guides.tabs.${k}`)}
+            </button>
+          ))}
+          <span aria-hidden="true" data-mo-ind="guides" className="kx-bar-ind pointer-events-none absolute -bottom-px start-0 w-1/2 h-[2px]"
+            style={{ "--i": TABS.indexOf(tab), background: COLORS.actionText }} />
+        </div>
       </div>
-      {tab === "glossary" ? <div className="mt-10 mb-16"><Glossary /></div> : (<>
+      {tab === "glossary" ? <div key="glossary" className={`mt-10 mb-16 ${settle}`}><Glossary /></div> : (<div key="essays" className={settle}>
       <div className="mt-8 mb-12 flex flex-col md:flex-row md:items-center gap-4">
         <label htmlFor="guide-search" className="sr-only">{t("site.guides.search")}</label>
         <input id="guide-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("site.guides.search")}
@@ -121,7 +137,7 @@ export default function GuidesIndex() {
         </div>
       </div>
 
-      <p role="status" style={{ color: COLORS.inkSoft }}>{shown.length === 0 ? t("site.guides.noResults") : ""}</p>
+      <p role="status" style={{ color: COLORS.inkSoft }}>{shown.length === 0 ? <span className="kx-settle inline-block">{t("site.guides.noResults")}</span> : ""}</p>
 
       {SECTIONS.map((s, part) => {
         const items = shown.filter((g) => g.section === s);
@@ -141,7 +157,7 @@ export default function GuidesIndex() {
         );
       })}
       {imagery && <Film name="perfumery" ratio="21 / 9" className="mb-16" />}
-      </>)}
+      </div>)}
       <Folio><span>{t("brand")}</span><span>{t("site.guides.by")}</span></Folio>
     </div>
   );

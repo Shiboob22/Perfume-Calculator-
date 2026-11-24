@@ -74,7 +74,7 @@ export default function BatchEdit({ batch, onSaved, onStatus }) {
       ))}
       <label className="sm:col-span-2 text-xs grid gap-1" style={{ color: COLORS.inkSoft }}>
         {t("batches.edit.notes")}
-        <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} maxLength={2000} rows={3} className={field} style={fieldStyle} />
+        <textarea dir="auto" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} maxLength={2000} rows={3} className={field} style={fieldStyle} />
       </label>
       <p className="sm:col-span-2 text-xs" style={{ color: COLORS.inkSoft }}>{t("batches.edit.recipeNote")}</p>
       {error && <p role="alert" className="sm:col-span-2 text-xs" style={{ color: COLORS.danger }}>{error}</p>}

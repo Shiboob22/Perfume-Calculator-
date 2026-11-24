@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { COLORS } from "../../lib/theme";
 import { BRAND } from "../../brand";
 import { reduced } from "../../motion/env.js";
+import { pauseSmooth } from "../../motion/smooth.js";
 import { TOUR_STEPS, TOUR_SEEN_KEY, placeCard, tourKeyAction, tourSeen } from "../../lib/tour";
 
 // The Bench's guided tour (Bench SaaS Phase 7, prototype startTour / goTour /
@@ -74,6 +75,7 @@ export function TourLayer({ i, t, rtl, onGo, onEnd, onJournal, journalHref = "/j
   const card = useRef(null);
   const last = i === N - 1;
   const anim = !reduced();
+  useEffect(() => pauseSmooth(), []);
 
   // Find the stop's target (it may only appear once its panel opens), then scroll to it.
   useEffect(() => {
@@ -187,7 +189,7 @@ export function TourLayer({ i, t, rtl, onGo, onEnd, onJournal, journalHref = "/j
           <button type="button" onClick={() => onGo(i - 1)} disabled={i === 0}
             className="min-h-[44px] px-4 text-[15px] rounded-[2px] disabled:opacity-40" style={{ border: `1px solid ${COLORS.line}`, color: COLORS.ink }}>{t("tour.back")}</button>
           <button type="button" onClick={() => (last ? onEnd() : onGo(i + 1))} data-tour-next
-            className="min-h-[44px] px-5 text-[15px] font-medium rounded-[2px]" style={{ background: COLORS.ink, color: COLORS.paper, border: `1px solid ${COLORS.ink}` }}>
+            className="min-h-[44px] px-5 text-[15px] font-medium rounded-[2px]" style={{ background: COLORS.amber, color: COLORS.onAmber, border: `1px solid ${COLORS.amber}` }}>
             {t(last ? "tour.done" : "tour.next")}
           </button>
         </div>

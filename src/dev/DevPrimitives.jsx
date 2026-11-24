@@ -6,6 +6,9 @@ import { TOKENS } from "../motion/config";
 import { CountUp, DrawLine, Pin, Reveal, Skeleton, Stagger, TextReveal } from "../motion";
 import { useI18n } from "../i18n/I18nProvider";
 import { COLORS } from "../lib/theme";
+import SaveState, { SAVE_STATES } from "../components/kx/SaveState";
+import KxSheet from "../components/kx/Sheet";
+import Chip from "../components/kx/Chip";
 
 const Spacer = ({ label }) => (
   <div className="h-[70vh] grid place-items-center text-xs font-mono" style={{ color: COLORS.dim }}>{label}</div>
@@ -21,6 +24,8 @@ export default function DevPrimitives() {
   const { locale } = useI18n();
   const ar = locale === "ar";
   const [n, setN] = useState(23.75);
+  const [sheet, setSheet] = useState(false);
+  const [save, setSave] = useState(0);
   const words = ar ? "وزن الزيت أولاً ثم الكحول ببطء" : "Weigh the oil first, then the alcohol, slowly";
   const item = (i) => ar ? `البند ${i}` : `Item ${i}`;
   return (
@@ -70,6 +75,20 @@ export default function DevPrimitives() {
       </Sheet>
 
       <Spacer label="scroll" />
+      <Sheet title="app: answer (M1)">
+        <div className="flex flex-wrap items-center gap-3">
+          <button type="button" className="min-h-[44px] px-4 rounded" style={{ background: COLORS.ink, color: COLORS.paper }}>Press me</button>
+          <Chip to="#">A link chip</Chip>
+          <Chip onToggle={() => {}}>A toggle chip</Chip>
+          <button type="button" onClick={() => setSheet(true)} className="min-h-[44px] px-4 rounded border" style={{ borderColor: COLORS.field }}>Open a sheet</button>
+          <button type="button" onClick={() => setSave((i) => i + 1)} className="min-h-[44px] px-4 rounded border" style={{ borderColor: COLORS.field }}>Next save state</button>
+        </div>
+        <SaveState className="mt-4" state={SAVE_STATES[save % SAVE_STATES.length]}>{["Saving", "Saved.", "Saved on this phone. It will send when you are online.", "Could not save. Try again."][save % SAVE_STATES.length]}</SaveState>
+        <KxSheet open={sheet} onClose={() => setSheet(false)} title="A sheet" closeLabel="Close">
+          <p>Rises in 250 ms, leaves in 150 ms; at once under reduced motion.</p>
+        </KxSheet>
+      </Sheet>
+
       <Sheet title="Skeleton">
         <div className="grid gap-3" role="status"><span className="sr-only">Loading</span><Skeleton w="40%" h={28} /><Skeleton w="100%" /><Skeleton w="82%" /><Skeleton w="60%" /></div>
       </Sheet>

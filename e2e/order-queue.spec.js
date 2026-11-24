@@ -1,0 +1,466 @@
+import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import en from "../src/i18n/messages/en.js";
+import ar from "../src/i18n/messages/ar.js";
+import { FEATURES } from "../src/lib/entitlements.js";
+import { USER, json, signIn } from "./helpers.js";
+
+// The order queue (Phase A), against the production build with a fake
+// session and a fake API, behind the `orders` flag (set on this device).
+// Phone and desktop widths run through the two projects.
+test.use({ serviceWorkers: "block" });
+
+const FREE = { plan: "free", name: "Free", features: ["cards.download"], batchCap: 25, formulaCap: null, ingredientCap: 3, journalWindow: 3, trial: null, batchesUsed: 0 };
+const PRO = { plan: "pro", name: "Pro", features: FEATURES, batchCap: null, formulaCap: null, ingredientCap: null, journalWindow: null, trial: null, batchesUsed: 0 };
+const OIL = "bbbbbbbb-bbbb-4bbb-8bbb-000000000001";
+const o = en.orders;
+// Names sit in their own direction inside a sentence (Unicode isolates).
+const iso = (s) => `\u2068${s}\u2069`;
+const fill = (s, vars) => Object.entries(vars).reduce((x, [k, v]) => x.replaceAll(`{${k}}`, String(v)), s);
+
+async function fakeApi(page, { plan = "pro", locale = "en", orders = [], flag = true, sells = true, batches = [] } = {}) {
+  const sent = { posts: [], patches: [], logs: [] };
+  if (flag) await page.addInitScript(() => localStorage.setItem("kyphira.flag.orders", "1"));
+  await page.route(/\/(auth|rest)\/v1\//, (route) => {
+    const url = route.request().url();
+    if (url.includes("/auth/v1/user")) return json(route, USER);
+    if (url.includes("/rest/v1/profiles")) return json(route, [{ locale, default_unit: "ml", default_bottle: 50, digits: "latn", onboarded_at: "2026-10-01T00:00:00Z", sells, currency: "EGP" }]);
+    return json(route, []);
+  });
+  await page.route("**/api/**", async (route) => {
+    const req = route.request();
+    const url = new URL(req.url());
+    if (url.pathname === "/api/me") return json(route, plan === "pro" ? PRO : FREE);
+    if (url.pathname === "/api/inventory") return json(route, { items: [{ fragrance_id: OIL, stock_g: 10, name: "Bergamot Oil", tier: "fresh", low_threshold_g: 5 }] });
+    if (url.pathname === "/api/batches" && url.searchParams.get("resource") === "orders") {
+      if (plan !== "pro") return json(route, { code: "feature_locked", feature: "orders" }, 403);
+      if (req.method() === "GET") return json(route, { orders });
+      const body = req.postDataJSON();
+      if (req.method() === "POST") {
+        sent.posts.push(body);
+        const row = { ...body, id: body.id || `o-${orders.length}`, user_id: USER.id, status: "queued", group_mode: "mix", created_at: new Date().toISOString() };
+        orders.unshift(row);
+        return json(route, { order: row }, 201);
+      }
+      sent.patches.push(body);
+      if (body.ids) {
+        const changed = orders.filter((r) => body.ids.includes(r.id)).map((r) => Object.assign(r, { group_mode: body.group_mode }));
+        return json(route, { orders: changed });
+      }
+      const r = orders.find((x) => x.id === body.id);
+      Object.assign(r, body.status ? { status: body.status } : body.edit);
+      const answer = { ...r }; // writes answer without the batch join, as the API does
+      delete answer.batches;
+      return json(route, { order: answer });
+    }
+    if (url.pathname === "/api/batches" && req.method() === "POST") {
+      const body = req.postDataJSON();
+      sent.logs.push(body);
+      const batch = { ...body, user_id: USER.id, batch_no: 6, created_at: new Date().toISOString() };
+      let linked = 0;
+      for (const id of body.order_ids || []) {
+        const o = orders.find((x) => x.id === id && ["queued", "planned"].includes(x.status));
+        if (o) { Object.assign(o, { status: "resting", batch_id: batch.id, batches: { batch_no: 6, blend_date: body.blend_date } }); linked += 1; }
+      }
+      return json(route, { success: true, batch, ...(body.order_ids ? { orders_linked: linked } : {}) }, 201);
+    }
+    if (url.pathname === "/api/batches") {
+      const id = url.searchParams.get("id");
+      return json(route, { batches: id ? batches.filter((b) => b.id === id) : batches });
+    }
+    return json(route, {});
+  });
+  return sent;
+}
+
+async function addOrder(page, { buyer, scent, size, strength, family = "floral" }) {
+  await page.getByRole("button", { name: o.add }).click();
+  const sheet = page.getByRole("dialog", { name: o.form.title });
+  await sheet.getByLabel(o.form.buyer).fill(buyer);
+  await sheet.getByLabel(o.form.scent).fill(scent);
+  await expect(sheet.getByText(o.form.typed)).toBeVisible();
+  await sheet.getByLabel(o.form.family, { exact: true }).selectOption(family); // a typed name needs its family (density B, 2026-11-23)
+  await sheet.getByRole("button", { name: fill(o.form.ml, { ml: size }) }).click();
+  await sheet.getByRole("button", { name: `EDP Intense ${strength}%` }).click();
+  await sheet.getByRole("button", { name: o.form.save }).click();
+  await expect(sheet).toBeHidden();
+}
+
+test("two orders of one scent become one mix with 5% extra, then separate bottles", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page);
+  await page.goto("/bench/orders");
+  await expect(page.getByText(o.empty)).toBeVisible();
+
+  await addOrder(page, { buyer: "Sara", scent: "Oud Nights", size: 50, strength: 25, family: "fresh" });
+  await addOrder(page, { buyer: "Omar", scent: "oud nights ", size: 50, strength: 25, family: "fresh" });
+  expect(sent.posts.map((p) => [p.buyer_name, p.size_ml, p.strength_pct, p.family])).toEqual([["Sara", 50, 25, "fresh"], ["Omar", 50, 25, "fresh"]]);
+  expect(sent.posts.every((p) => typeof p.id === "string")).toBe(true);
+
+  const group = page.getByRole("article").filter({ hasText: fill(o.mix.group, { scent: "Oud Nights", pct: 25 }) });
+  await expect(group).toContainText(fill(o.mix.volumeExtra, { mix: "105.00", ordered: "100.00", pct: 5 }));
+  // 105 mL at 25 %, Fresh's family estimate 0.87 g/mL (as on the Bench) and ethanol 0.81.
+  for (const g of ["22.84", "63.79", "86.63"]) await expect(group).toContainText(fill(o.grams, { g }));
+  await expect(page.getByText(fill(o.headline.other, { count: 2 }))).toBeVisible();
+
+  await group.getByRole("button", { name: o.mix.mode.separate }).click();
+  await expect(group.getByText(fill(o.mix.volume, { mix: "50.00" }))).toHaveCount(2);
+  expect(sent.patches.at(-1)).toMatchObject({ group_mode: "separate" });
+  expect(sent.patches.at(-1).ids).toHaveLength(2);
+
+  await group.getByRole("button", { name: fill(o.row.cancelFor, { name: "Omar" }) }).click();
+  await expect(page.getByText(fill(o.cancelled.one, { count: 1 }))).toBeVisible();
+  await expect(page.getByText(fill(o.headline.one, { count: 1 }))).toBeVisible();
+});
+
+test("oil from stock is checked against what the orders need", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, {
+    orders: [
+      { id: "a", user_id: USER.id, buyer_name: "Lina", scent_text: "Bergamot Oil", fragrance_id: OIL, family: "fresh", size_ml: 100, strength_pct: 25, status: "queued", group_mode: "mix" },
+    ],
+  });
+  await page.goto("/bench/orders");
+  const oil = page.getByRole("region", { name: o.oil.title }).or(page.locator("section", { has: page.getByRole("heading", { name: o.oil.title }) }));
+  await expect(oil).toContainText("Bergamot Oil");
+  await expect(oil).toContainText(/g short/);
+});
+
+test("Free sees the Pro lock", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, { plan: "free" });
+  await page.goto("/bench/orders");
+  await expect(page.getByText(en.plan.locked.orders)).toBeVisible();
+});
+
+test("the queue is on without a device flag (on by default; VITE_FLAG_ORDERS=0 turns it off)", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, { flag: false });
+  await page.goto("/bench/orders");
+  await expect(page).toHaveURL(/\/bench\/orders$/);
+  await expect(page.getByRole("button", { name: o.add })).toBeVisible();
+});
+
+test("the Bench shows sellers a link to the queue", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, { orders: [{ id: "a", user_id: USER.id, buyer_name: "Lina", scent_text: "Rose", size_ml: 30, strength_pct: 20, status: "queued", group_mode: "mix" }] });
+  await page.goto("/bench");
+  const card = page.getByRole("main").getByRole("link", { name: new RegExp(o.benchCard.title) });
+  await expect(card).toContainText(fill(o.benchCard.line.one, { count: 1 }));
+  await card.click();
+  await expect(page).toHaveURL(/\/bench\/orders$/);
+});
+
+test("Arabic: the queue reads right to left, with no axe violations", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, {
+    locale: "ar",
+    orders: [{ id: "a", user_id: USER.id, buyer_name: "سارة", scent_text: "عود", size_ml: 50, strength_pct: 25, status: "queued", group_mode: "mix", wanted_by: "2026-12-01", price: 450, currency: "EGP" }],
+  });
+  await page.goto("/ar/bench/orders");
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  await expect(page.getByText(ar.orders.mix.title, { exact: true })).toBeVisible();
+  await expect(page.getByText(ar.orders.oil.title, { exact: true })).toBeVisible();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(results.violations.map((v) => v.id)).toEqual([]);
+});
+
+test("English: the add-order sheet has no axe violations", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page);
+  await page.goto("/bench/orders");
+  await page.getByRole("button", { name: o.add }).click();
+  await expect(page.getByRole("dialog", { name: o.form.title })).toBeVisible();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(results.violations.map((v) => v.id)).toEqual([]);
+});
+
+test("weigh a mix from the plan, log it, then bottle and hand over", async ({ page }) => {
+  await signIn(page);
+  const A = "aaaaaaaa-0000-4000-8000-00000000000a";
+  const B = "aaaaaaaa-0000-4000-8000-00000000000b";
+  const sent = await fakeApi(page, {
+    orders: [
+      { id: A, user_id: USER.id, buyer_name: "Sara", scent_text: "Oud Nights", size_ml: 50, strength_pct: 25, status: "queued", group_mode: "mix" },
+      { id: B, user_id: USER.id, buyer_name: "Omar", scent_text: "Oud Nights", size_ml: 50, strength_pct: 25, status: "queued", group_mode: "mix" },
+    ],
+  });
+  await page.goto("/bench/orders");
+  await page.getByRole("link", { name: fill(o.weigh.labelFor, { mix: "105.00", scent: "Oud Nights" }) }).click();
+  await expect(page).toHaveURL(/\/bench\?/);
+  const q = new URL(page.url()).searchParams;
+  expect([q.get("size"), q.get("conc"), q.get("orders")]).toEqual(["105", "25", `${A},${B}`]);
+  await expect(page.getByText(fill(o.weigh.for.other, { count: 2 }))).toBeVisible();
+
+  // Pour along, as on any bench run.
+  await page.getByRole("button", { name: en.bench.start }).click();
+  await page.getByRole("checkbox").check();
+  const next = page.getByRole("button", { name: en.bench.next, exact: true });
+  await next.click(); await next.click();
+  const target = (label) => page.getByText(label, { exact: true }).locator("xpath=following-sibling::p[1]");
+  const num = async (loc) => Number((await loc.textContent()).replace(/[^\d.]/g, ""));
+  await page.getByLabel(en.bench.oil.actual).fill(String(await num(target(en.bench.oil.target))));
+  await next.click();
+  await page.getByLabel(en.bench.alcohol.actual).fill(String(await num(target(en.bench.alcohol.target))));
+  await next.click(); await next.click(); await next.click();
+  await page.getByRole("button", { name: en.bench.label.log }).click();
+  await expect(page.getByText(fill(o.weigh.linked.other, { count: 2 }))).toBeVisible();
+  expect(sent.logs[0].order_ids).toEqual([A, B]);
+  expect(sent.logs[0].total_ml).toBeCloseTo(105, 2);
+
+  await page.getByRole("button", { name: o.weigh.back }).click();
+  await expect(page).toHaveURL(/\/bench\/orders$/);
+  const card = page.getByRole("article").filter({ hasText: fill(o.bottle.batchNo, { no: "006", scent: "Oud Nights", pct: 25 }) });
+  await expect(card).toContainText(o.bottle.resting.split("{ready}")[0]);
+  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: iso("Sara") }));
+
+  // Still resting: bottling asks once.
+  await card.getByRole("button", { name: fill(o.bottle.markFor, { name: "Sara" }) }).click();
+  await expect(card.getByRole("alert")).toContainText(o.bottle.early.split("{ready}")[0]);
+  await card.getByRole("button", { name: o.bottle.anyway }).click();
+  await expect(card.getByRole("button", { name: fill(o.bottle.handFor, { name: "Sara" }) })).toBeVisible();
+  // Undo once, bottle again, then hand over.
+  await card.getByRole("button", { name: fill(o.bottle.undoFor, { name: "Sara" }) }).click();
+  await card.getByRole("button", { name: fill(o.bottle.markFor, { name: "Sara" }) }).click();
+  await card.getByRole("button", { name: o.bottle.anyway }).click();
+  await card.getByRole("button", { name: fill(o.bottle.handFor, { name: "Sara" }) }).click();
+  await expect(page.getByText(fill(o.history.one, { count: 1 }))).toBeVisible();
+  expect(sent.patches.filter((p) => p.status).map((p) => p.status)).toEqual(["bottled", "resting", "bottled", "handed_over"]);
+  // Omar's bottle is still to bottle, in the same batch.
+  await expect(card).toContainText(fill(o.bottle.fill, { ml: 50, name: iso("Omar") }));
+});
+
+test("an order whose batch was removed goes back to the queue", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page, { orders: [{ id: "a", user_id: USER.id, buyer_name: "Lina", scent_text: "Rose", size_ml: 30, strength_pct: 20, status: "resting", batch_id: null, group_mode: "mix" }] });
+  await page.goto("/bench/orders");
+  await expect(page.getByText(fill(o.bottle.lost, { name: "Lina", scent: "Rose" }))).toBeVisible();
+  await page.getByRole("button", { name: o.bottle.requeue }).click();
+  await expect.poll(() => sent.patches.at(-1)).toMatchObject({ id: "a", status: "queued" });
+  await expect(page.getByRole("article").filter({ hasText: fill(o.mix.group, { scent: "Rose", pct: 20 }) })).toBeVisible();
+});
+
+test("Arabic: bottling has no axe violations", async ({ page }) => {
+  await signIn(page);
+  await fakeApi(page, {
+    locale: "ar",
+    orders: [{ id: "a", user_id: USER.id, buyer_name: "سارة", scent_text: "عود", size_ml: 50, strength_pct: 25, status: "bottled", family: "woody", batch_id: "b1", batches: { batch_no: 12, blend_date: "2026-07-01" }, group_mode: "mix" },
+      { id: "h", user_id: USER.id, buyer_name: "عمر", scent_text: "عود", size_ml: 30, strength_pct: 25, status: "handed_over", batch_id: "b1", batches: { batch_no: 12, blend_date: "2026-07-01" }, group_mode: "mix" }],
+  });
+  await page.goto("/ar/bench/orders");
+  await expect(page.getByText(ar.orders.bottle.title, { exact: true })).toBeVisible();
+  await expect(page.getByText(ar.orders.bottle.ready, { exact: true })).toBeVisible();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(results.violations.map((v) => v.id)).toEqual([]);
+});
+
+const BATCH = {
+  id: "bbbbbbbb-0000-4000-8000-000000000067", batch_no: 67, fragrance_name: "Oud Nights", tier: "woody", concentration_pct: 25, blend_date: "2026-10-01",
+  amount: 105, unit: "ml", basis: "volume", oil_g: 24.94, ethanol_g: 63.79, total_g: 88.73, oil_ml: 26.25, ethanol_ml: 78.75, total_ml: 105,
+  actual_oil_g: 20, actual_ethanol_g: 50, oil_density: 0.95, ethanol_density: 0.81,
+  price_per_gram: 2, ethanol_price_per_l: 20, bottle_cost: 30, packaging_cost: 10, currency: "EGP",
+};
+const joined = (extra) => ({ user_id: USER.id, scent_text: "Oud Nights", family: "woody", strength_pct: 25, group_mode: "mix", batch_id: BATCH.id, batches: BATCH, currency: "EGP", ...extra });
+
+test("cost, profit, a short mix, the buyer's label and Order again", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page, {
+    batches: [BATCH],
+    orders: [
+      joined({ id: "s", buyer_name: "Sara", size_ml: 50, price: 450, status: "bottled" }),
+      joined({ id: "o", buyer_name: "Omar", size_ml: 50, price: 450, status: "handed_over" }),
+    ],
+  });
+  await page.goto("/bench/orders");
+  const card = page.getByRole("article").filter({ hasText: fill(o.bottle.batchNo, { no: "067", scent: "Oud Nights", pct: 25 }) });
+  // 20 g + 50 g weighed make about 82.78 mL for 100 mL of bottles.
+  await expect(card.getByRole("note")).toHaveText(fill(o.bottle.short, { short: "17.22", made: "82.78", needed: "100.00" }));
+  // Liquid 40 + 1.575 = 41.575 × 50/105 = 19.80, + bottle 30 + box 10.
+  await expect(card).toContainText(fill(o.cost.line, { cost: "59.80", profit: "390.20", margin: "86.71", currency: "EGP" }));
+
+  await page.getByText(fill(o.history.one, { count: 1 })).click();
+  await expect(page.getByText(fill(o.cost.total.one, { count: 1, profit: "390.20", currency: "EGP" }))).toBeVisible();
+  await page.getByRole("button", { name: fill(o.row.againFor, { name: "Omar" }) }).click();
+  const sheet = page.getByRole("dialog", { name: o.form.title });
+  await expect(sheet.getByLabel(o.form.buyer)).toHaveValue("Omar");
+  await expect(sheet.getByLabel(o.form.scent)).toHaveValue("Oud Nights");
+  await sheet.getByRole("button", { name: o.form.save }).click();
+  expect(sent.posts.at(-1)).toMatchObject({ buyer_name: "Omar", scent_text: "Oud Nights", size_ml: 50, strength_pct: 25, price: 450 });
+  expect(sent.posts.at(-1).id).not.toBe("o");
+
+  await card.getByRole("link", { name: fill(o.bottle.labelFor, { name: "Sara" }) }).click();
+  await expect(page).toHaveURL(/\/app\/labels\?batch=.*&ml=50&for=Sara/);
+  await expect(page.getByText("For", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Sara", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("50 mL", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("No. 067", { exact: true }).first()).toBeVisible();
+});
+
+test("a batch logged without prices shows no cost line under the bottle (audit M13)", async ({ page }) => {
+  await signIn(page);
+  const bare = { ...BATCH, price_per_gram: null, ethanol_price_per_l: null, bottle_cost: null, packaging_cost: null, actual_oil_g: null, actual_ethanol_g: null };
+  await fakeApi(page, { orders: [joined({ id: "s", buyer_name: "Sara", size_ml: 50, price: 450, status: "resting", batches: bare })] });
+  await page.goto("/bench/orders");
+  await expect(page.getByRole("button", { name: fill(o.bottle.markFor, { name: "Sara" }) })).toBeVisible();
+  await expect(page.locator("[data-cost-line]")).toHaveCount(0);
+  await expect(page.getByRole("note")).toHaveCount(0);
+});
+
+// The Orders tab: a seller's daily room, on the phone's bar in the Nose's
+// place (the Nose moves to More) and after the Calculator on wide screens,
+// with a badge for the orders ready to bottle today.
+// The bar's third room without Orders: the Nose when its flag is on, else the Selector.
+const THIRD = new RegExp(`^(${en.site.nav.nose}|${en.app.tabs.selector})$`);
+// In More the same room carries its page title (audit M12).
+const THIRD_TITLE = new RegExp(`^(${en.nose.title}|${en.selector.title})$`);
+const navOf = (page, isMobile) => page.getByRole("navigation", { name: isMobile ? en.app.barLabel : en.app.tabsLabel });
+const READY = { id: "r", user_id: USER.id, buyer_name: "Sara", scent_text: "Oud Nights", family: "fresh", size_ml: 50, strength_pct: 25, status: "resting", group_mode: "mix", batch_id: "b-1", batches: { batch_no: 71, blend_date: "2026-01-01" } };
+
+test("a seller gets an Orders tab with a ready-to-bottle badge", async ({ page, isMobile }) => {
+  await signIn(page);
+  await fakeApi(page, { orders: [{ ...READY }, { ...READY, id: "q", status: "queued", batch_id: null, batches: null }] });
+  await page.goto("/bench");
+  const nav = navOf(page, isMobile);
+  const tab = nav.getByRole("link", { name: new RegExp(o.title) });
+  await expect(tab).toBeVisible();
+  await expect(tab.getByText(fill(o.tabBadge.one, { count: 1 }))).toBeAttached();
+  if (isMobile) {
+    await expect(nav.getByRole("link")).toHaveCount(4);
+    await expect(nav.getByRole("link", { name: THIRD })).toHaveCount(0);
+    await nav.getByRole("button", { name: en.app.more }).click();
+    await expect(page.getByRole("dialog", { name: en.app.more }).getByRole("link", { name: THIRD_TITLE }).first()).toBeVisible();
+    await page.getByRole("button", { name: en.app.moreClose }).click();
+  }
+  await tab.click();
+  await expect(page).toHaveURL(/\/bench\/orders$/);
+  await expect(tab).toHaveAttribute("aria-current", "page");
+
+  // Bottling the ready order clears the badge without a reload.
+  await page.getByRole("button", { name: fill(o.bottle.markFor, { name: "Sara" }) }).click();
+  await expect(tab.getByText(fill(o.tabBadge.one, { count: 1 }))).toHaveCount(0);
+});
+
+test("someone who doesn't sell keeps the bar as it was", async ({ page, isMobile }) => {
+  await signIn(page);
+  await fakeApi(page, { sells: false });
+  await page.goto("/bench");
+  const nav = navOf(page, isMobile);
+  await expect(nav.getByRole("link", { name: en.app.tabs.calculator })).toBeVisible();
+  await expect(nav.getByRole("link", { name: new RegExp(`^${o.title}`) })).toHaveCount(0);
+  if (isMobile) await expect(nav.getByRole("link", { name: THIRD })).toBeVisible();
+});
+
+test("a friend price is saved on the order and adds up in History", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page, {
+    batches: [BATCH],
+    orders: [joined({ id: "h", buyer_name: "Omar", size_ml: 50, price: 300, list_price: 400, status: "handed_over" })],
+  });
+  await page.goto("/bench/orders");
+  await page.getByRole("button", { name: o.add }).click();
+  const sheet = page.getByRole("dialog", { name: o.form.title });
+  await sheet.getByLabel(o.form.buyer).fill("Sara");
+  await sheet.getByLabel(o.form.scent).fill("Oud Nights");
+  await sheet.getByLabel(o.form.family, { exact: true }).selectOption("woody");
+  await sheet.getByLabel(fill(o.form.price, { currency: "EGP" })).fill("320");
+  await sheet.getByLabel(o.form.friend).check();
+  await sheet.getByLabel(fill(o.form.listPrice, { currency: "EGP" })).fill("400");
+  await sheet.getByRole("button", { name: o.form.save }).click();
+  await expect(sheet).toBeHidden();
+  expect(sent.posts.at(-1)).toMatchObject({ buyer_name: "Sara", price: 320, list_price: 400 });
+  await expect(page.getByText(fill(o.row.friend, { price: "320", currency: "EGP", list: "400", pct: 20 }))).toBeVisible();
+
+  await page.getByText(fill(o.history.one, { count: 1 })).click();
+  await expect(page.getByText(fill(o.cost.discounts.one, { count: 1, given: "100", currency: "EGP" }))).toBeVisible();
+});
+
+for (const locale of ["en", "ar"]) {
+  test(`the cost card's friend price opens a new order filled in (${locale})`, async ({ page }) => {
+    const m = locale === "ar" ? ar : en;
+    const fillM = (s, vars) => fill(s, vars);
+    const cur = locale === "ar" ? "ج.م." : "EGP"; // Arabic shows the currency sign (UI/UX audit H6)
+    await signIn(page);
+    const sent = await fakeApi(page, { locale });
+    await page.goto("/bench?name=Oud%20Nights&family=woody&size=100&unit=ml&conc=20"); // the Bench reads the language from the profile
+    const cost = page.locator('[data-tour="cost"]');
+    await cost.getByRole("spinbutton", { name: m.calc.costCard.oilPrice }).fill("5");
+    await cost.getByRole("spinbutton", { name: m.calc.costCard.ethPrice }).fill("150");
+    await cost.getByRole("spinbutton", { name: m.calc.costCard.pack }).fill("45");
+    await cost.getByRole("button", { name: "30 mL" }).click();
+    // No friend price: the link fills in the suggested retail as a plain price.
+    await expect(cost.locator("[data-friend-order]")).toHaveCount(0);
+    const normal = Number(await cost.locator('[data-cost="retail"] dd span').first().textContent());
+    await expect(cost.locator("[data-retail-order]")).toHaveAttribute("href", new RegExp(`price=${normal}(&|$)`));
+    await expect(cost.locator("[data-retail-order]")).not.toHaveAttribute("href", /list=/);
+    await cost.locator('[data-friend-off="20"]').click();
+    const retail = Number(await cost.locator('[data-cost="retail"] dd span').first().textContent());
+    const friend = Math.round(retail * 80) / 100;
+    await expect(cost.locator("[data-retail-order]")).toHaveCount(0);
+    await cost.locator("[data-friend-order]").click();
+
+    await expect(page).toHaveURL(new RegExp(`${locale === "ar" ? "/ar" : ""}/bench/orders$`)); // the query is gone: a reload won't reopen it
+    const sheet = page.getByRole("dialog", { name: m.orders.form.title });
+    await expect(sheet.getByLabel(m.orders.form.scent)).toHaveValue("Oud Nights");
+    await expect(sheet.getByLabel(m.orders.form.sizeCustom)).toHaveValue("30");
+    await expect(sheet.getByLabel(fillM(m.orders.form.price, { currency: cur }), { exact: true })).toHaveValue(String(friend));
+    await expect(sheet.getByLabel(m.orders.form.friend)).toBeChecked();
+    await expect(sheet.getByLabel(fillM(m.orders.form.listPrice, { currency: cur }))).toHaveValue(String(retail));
+    expect(sent.posts).toHaveLength(0); // nothing saved until Save
+    await sheet.getByLabel(m.orders.form.buyer).fill("Sara");
+    await sheet.getByRole("button", { name: m.orders.form.save }).click();
+    await expect(sheet).toBeHidden();
+    expect(sent.posts.at(-1)).toMatchObject({ buyer_name: "Sara", scent_text: "Oud Nights", size_ml: 30, strength_pct: 20, price: friend, list_price: retail });
+  });
+}
+
+const CODE = "0123456789abcdef0123456789abcdef";
+
+test("QR buyer page, seller side: a buyer's request is accepted, answers show, the label carries the QR", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page, {
+    batches: [BATCH],
+    orders: [
+      { id: "q", user_id: USER.id, buyer_name: "Mona", buyer_contact: "+20 111 222 3333", scent_text: "Oud Nights", family: "woody", size_ml: 50, strength_pct: 25, status: "requested", requested_from: "s", group_mode: "mix" },
+      joined({ id: "s", buyer_name: "Sara", size_ml: 50, price: 450, status: "bottled", buyer_code: CODE, order_feedback: { rating: 4, lasts: "h4to8", tags: ["compliments", "sweeter"], note: "Lovely at night" } }),
+      joined({ id: "h", buyer_name: "Omar", size_ml: 50, price: 450, status: "handed_over", order_feedback: [{ rating: 5, lasts: null, tags: [], note: null }] }),
+    ],
+  });
+  await page.goto("/bench/orders");
+  const asked = page.locator("[data-orders-requested]");
+  await expect(asked).toContainText(fill(o.requested.who, { name: iso("Mona"), scent: iso("Oud Nights") }));
+  await expect(asked).toContainText("+20 111 222 3333");
+  // Bottled and handed-over orders show what their buyers sent.
+  await expect(page.locator("[data-buyer-answer]").first()).toHaveText(`${o.answer.label}: 4 of 5, lasts 4–8 hours, Got compliments, Sweeter. Lovely at night`); // a buyer tag, then an older Journal tag; the note is a <q>: the browser draws its quotes
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(results.violations.map((v) => v.id)).toEqual([]);
+
+  await asked.getByRole("button", { name: fill(o.requested.acceptFor, { name: "Mona" }) }).click();
+  expect(sent.patches.at(-1)).toEqual({ id: "q", status: "queued" });
+  await expect(page.locator("[data-orders-requested]")).toHaveCount(0);
+
+  await page.getByText(fill(o.history.one, { count: 1 })).click();
+  await expect(page.locator("[data-buyer-answer]").filter({ hasText: "5 of 5" })).toBeVisible();
+
+  await page.getByRole("link", { name: fill(o.bottle.labelFor, { name: "Sara" }) }).click();
+  await expect(page).toHaveURL(new RegExp(`code=${CODE}`));
+  await expect(page.locator("[data-label-qr-note]")).toHaveText(en.labels.qrNote);
+  const qr = page.locator("svg[data-label-qr]").first();
+  await expect(qr).toBeVisible();
+  await expect(qr).toHaveAttribute("aria-label", en.labels.qr);
+  expect(await qr.locator("path").getAttribute("d")).toMatch(/^M2 2h1v1h-1z/);
+});
+
+test("Arabic: a buyer's request reads right to left and can be dismissed", async ({ page }) => {
+  await signIn(page);
+  const sent = await fakeApi(page, {
+    locale: "ar",
+    orders: [{ id: "q", user_id: USER.id, buyer_name: "منى", buyer_contact: "01112223333", scent_text: "عود", family: "woody", size_ml: 50, strength_pct: 25, status: "requested", group_mode: "mix" }],
+  });
+  await page.goto("/ar/bench/orders");
+  const asked = page.locator("[data-orders-requested]");
+  await expect(asked.getByRole("heading", { name: ar.orders.requested.title })).toBeVisible();
+  await asked.getByRole("button", { name: fill(ar.orders.requested.dismissFor, { name: "منى" }) }).click();
+  expect(sent.patches.at(-1)).toEqual({ id: "q", status: "cancelled" });
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(results.violations.map((v) => v.id)).toEqual([]);
+});

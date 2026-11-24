@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { batchSettings, makeAgainHref, oilHistory } from "./oilHistory";
+import { batchSettings, makeAgainHref, makeAgainFromBest, oilHistory } from "./oilHistory";
 
 const F = "f1";
 const base = { tier: "woody", concentration_pct: 25, total_ml: 100, total_g: 84.5, basis: "volume", fragrance_name: "Oud Nights", fragrance_id: F, oil_g: 23.75, ethanol_g: 60.75, oil_density: 0.95, ethanol_density: 0.81 };
@@ -42,5 +42,12 @@ describe("oilHistory", () => {
     expect(b.poured).toBeCloseTo(25);
     expect(b.peak).toBe(14);
     expect(oilHistory(rows, { fragranceId: F }, 1)).toHaveLength(1);
+  });
+});
+
+describe("make again from the winner", () => {
+  const winner = { amount: 50, unit: "ml", concentration_pct: 25, tier: "woody", fragrance_name: "Oud Nights" };
+  it("keeps the winner's settings and says which batch it was and the day it peaked", () => {
+    expect(makeAgainFromBest(winner, 31, 14)).toBe("/bench?size=50&unit=ml&conc=25&family=woody&name=Oud+Nights&best=31:14");
   });
 });

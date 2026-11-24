@@ -1,0 +1,252 @@
+import { describe, it, expect } from "vitest";
+import {
+  MIX_ALLOWANCE_PCT, MAX_REST_DAYS, planMixes, restWindow, addDays, orderDensities, oilNeeds, discountTotals, type PlanOrder,
+} from "./index";
+import { FAMILIES, REFERENCE, ETHANOL_DENSITY } from "../formulation";
+
+const o = (id: string, extra: Partial<PlanOrder> = {}): PlanOrder => ({
+  id, scentKey: "f:oud", scentName: "Oud", sizeMl: 50, strengthPct: 25, status: "queued", ...extra,
+});
+// The handbook's reference densities, so the Quick Reference rows apply.
+const ref = { oilDensity: REFERENCE.oilDensity };
+
+describe("grouping", () => {
+  it("50 + 50 mL @ 25 % with no allowance is the 100 mL @ 25 % Quick Reference row", () => {
+    const plan = planMixes([o("a", ref), o("b", ref)], {}, 0);
+    expect(plan.groups).toHaveLength(1);
+    const m = plan.groups[0].mixes[0];
+    expect([m.oilG, m.ethanolG, m.totalG, m.mixMl]).toEqual([23.75, 60.75, 84.5, 100]);
+  });
+  it("one mix carries 5 %: 105 mL, the row × 1.05", () => {
+    expect(MIX_ALLOWANCE_PCT).toBe(5);
+    const m = planMixes([o("a", ref), o("b", ref)]).groups[0].mixes[0];
+    expect([m.orderedMl, m.mixMl, m.oilG, m.ethanolG, m.totalG, m.allowancePct]).toEqual([100, 105, 24.94, 63.79, 88.73, 5]);
+    expect(m.orderIds).toEqual(["a", "b"]);
+  });
+  it("two strengths of one scent never share a mix", () => {
+    const plan = planMixes([o("a"), o("b", { strengthPct: 30 })]);
+    expect(plan.groups.map((g) => g.strengthPct).sort()).toEqual([25, 30]);
+  });
+  it("different scents are different groups", () => {
+    expect(planMixes([o("a"), o("b", { scentKey: "f:rose" })]).groups).toHaveLength(2);
+  });
+  it("separate bottles: one plan per order, each exactly its size, no allowance", () => {
+    const plan = planMixes([o("a", { ...ref, sizeMl: 30 }), o("b", { ...ref, sizeMl: 100, groupMode: "separate" })]);
+    const g = plan.groups[0];
+    expect(g.mode).toBe("separate");
+    expect(g.mixes.map((m) => [m.orderedMl, m.allowancePct, m.mixMl])).toEqual([[30, 0, 30], [100, 0, 100]]);
+    expect(g.mixes[1].totalG).toBe(84.5);
+    expect(g.oilG).toBe(round(g.mixes[0].oilG + g.mixes[1].oilG));
+    expect(g.orderedMl).toBe(130);
+  });
+  it("only open orders are planned; typed-only or incomplete ones are listed apart", () => {
+    const plan = planMixes([
+      o("a"), o("r", { status: "resting" }), o("c", { status: "cancelled" }),
+      o("t", { scentKey: null }), o("z", { sizeMl: 0 }), o("p", { strengthPct: 0 }), o("q", { strengthPct: 100 }),
+      o("pl", { status: "planned" }),
+    ]);
+    expect(plan.groups[0].orders.map((x) => x.id)).toEqual(["a", "pl"]);
+    expect(plan.unplanned.map((x) => x.id).sort()).toEqual(["p", "q", "t", "z"]);
+  });
+  it("orders sort by wanted-by, undated last, then by id", () => {
+    const plan = planMixes([o("c"), o("b", { wantedBy: "2026-12-01" }), o("a"), o("d", { wantedBy: "2026-11-20" }), o("e", { wantedBy: "2026-11-20" })]);
+    expect(plan.groups[0].orders.map((x) => x.id)).toEqual(["d", "e", "b", "a", "c"]);
+  });
+  it("the group takes the first family, measured density and stock row any order has", () => {
+    const g = planMixes([o("a"), o("b", { family: "woody", oilDensity: 0.97, stockKey: "s1" })]).groups[0];
+    expect([g.family, g.densities.oil, g.stockKey]).toEqual(["woody", 0.97, "s1"]);
+  });
+  it("stable order for equal keys", () => {
+    const plan = planMixes([o("a", { wantedBy: "2026-11-20" }), o("a", { wantedBy: "2026-11-20", scentKey: "f:x" })]);
+    expect(plan.groups).toHaveLength(2);
+  });
+});
+
+function round(x: number) { return Math.round(x * 100) / 100; }
+
+describe("densities", () => {
+  it("measured wins, then family, then the handbook's 0.95; ethanol 0.81", () => {
+    expect(orderDensities("woody", 0.9)).toEqual({ oil: 0.9, ethanol: ETHANOL_DENSITY });
+    expect(orderDensities("woody").oil).toBe(FAMILIES.woody.active.density);
+    expect(orderDensities("woody", 0).oil).toBe(FAMILIES.woody.active.density);
+    expect(orderDensities("nope").oil).toBe(REFERENCE.oilDensity);
+    expect(orderDensities(null).oil).toBe(0.95);
+  });
+});
+
+describe("rest window", () => {
+  it("family's shortest rest to its longest", () => {
+    const [min, max] = FAMILIES.fresh.active.restDays!;
+    const w = restWindow("fresh", "2026-11-13");
+    expect([w.minDays, w.maxDays]).toEqual([min, max]);
+    expect(w.readyFrom).toBe(addDays("2026-11-13", min));
+    expect(w.fullyRested).toBe(addDays("2026-11-13", max));
+  });
+  it("every family stays within 90 days", () => {
+    for (const k of Object.keys(FAMILIES)) {
+      const w = restWindow(k, "2026-01-01");
+      expect(w.maxDays).toBeLessThanOrEqual(MAX_REST_DAYS);
+      expect(w.minDays).toBeLessThanOrEqual(w.maxDays);
+    }
+  });
+  it("every family is fully rested at 90 days, as the Bench and the Journal say; only Aromatic Fougère is ready from 28", () => {
+    for (const k of Object.keys(FAMILIES)) expect(restWindow(k, "2026-01-01")).toMatchObject({ minDays: k === "fougere" ? 28 : 90, maxDays: 90 });
+  });
+  it("unknown family: 90 days for both", () => {
+    expect(restWindow(undefined, "2026-11-13")).toEqual({ minDays: 90, maxDays: 90, readyFrom: "2027-02-11", fullyRested: "2027-02-11" });
+  });
+  it("caps a family range longer than 90 days", () => {
+    const tool = FAMILIES.oriental.active;
+    const saved = tool.restDays;
+    tool.restDays = [60, 120];
+    try {
+      expect(restWindow("oriental", "2026-01-01")).toMatchObject({ minDays: 60, maxDays: 90 });
+    } finally {
+      tool.restDays = saved;
+    }
+  });
+  it("adds days across months and years, ignoring time", () => {
+    expect(addDays("2026-12-25T18:00:00Z", 10)).toBe("2027-01-04");
+    expect(addDays("2028-02-28", 1)).toBe("2028-02-29");
+  });
+});
+
+describe("oil against stock", () => {
+  it("one oil at two strengths adds up against one stock row", () => {
+    const plan = planMixes([o("a", { stockKey: "s1" }), o("b", { strengthPct: 30, stockKey: "s1" })], { s1: 10 });
+    expect(plan.oil).toHaveLength(1);
+    const n = plan.oil[0];
+    expect(n.needG).toBe(round(plan.groups[0].oilG + plan.groups[1].oilG));
+    expect(n.haveG).toBe(10);
+    expect(n.shortG).toBe(round(n.needG - 10));
+  });
+  it("enough stock: short is zero", () => {
+    expect(planMixes([o("a", { stockKey: "s1" })], { s1: 500 }).oil[0].shortG).toBe(0);
+  });
+  it("no stock row, or no oil link, is unknown, never zero", () => {
+    const oil = planMixes([o("a", { stockKey: "s1" }), o("b", { scentKey: "v:blend" })], { s1: null }).oil;
+    expect(oil.map((n) => [n.key, n.haveG, n.shortG])).toEqual([["s:s1", null, null], ["k:v:blend", null, null]]);
+  });
+  it("works on no groups", () => {
+    expect(oilNeeds([], {})).toEqual([]);
+    expect(planMixes([]).oil).toEqual([]);
+  });
+});
+
+import { canMove, ORDER_STEPS, bottlingGroups } from "./index";
+
+describe("order steps", () => {
+  it("rest → bottled → handed over, each one step back", () => {
+    expect(ORDER_STEPS.resting.next).toBe("bottled");
+    expect([canMove("resting", "bottled"), canMove("bottled", "handed_over"), canMove("bottled", "resting"), canMove("handed_over", "bottled")]).toEqual([true, true, true, true]);
+    expect([canMove("resting", "handed_over"), canMove("handed_over", "resting"), canMove("queued", "bottled"), canMove("nope", "bottled")]).toEqual([false, false, false, false]);
+  });
+  it("cancel only before weighing; back to the queue from cancelled or a lost batch", () => {
+    expect([canMove("queued", "cancelled"), canMove("planned", "cancelled"), canMove("resting", "cancelled")]).toEqual([true, true, false]);
+    expect([canMove("cancelled", "queued"), canMove("resting", "queued"), canMove("bottled", "queued")]).toEqual([true, true, false]);
+  });
+});
+
+describe("bottling groups", () => {
+  const b = (id: string, extra: any = {}) => ({ id, status: "resting", batchId: "B1", blendDate: "2026-11-01", batchNo: 67, family: "woody", scentName: "Oud", strengthPct: 25, ...extra });
+  it("groups by batch with the rest counted from the blend date", () => {
+    const { groups, orphaned } = bottlingGroups([b("a"), b("b", { status: "bottled" }), b("q", { status: "queued" }), b("h", { status: "handed_over" })], "2026-11-13");
+    expect(orphaned).toEqual([]);
+    expect(groups).toHaveLength(1);
+    const min = restWindow("woody", "2026-11-01").minDays;
+    expect(groups[0]).toMatchObject({ batchId: "B1", batchNo: 67, ready: false, rest: { readyFrom: addDays("2026-11-01", min) } });
+    expect(groups[0].orders.map((o) => o.id)).toEqual(["a", "b"]);
+  });
+  it("ready batches first, then by ready-from; a lost batch is apart", () => {
+    const { groups, orphaned } = bottlingGroups([
+      b("late", { batchId: "B3", blendDate: "2026-11-10", family: null, batchNo: null }),
+      b("soon", { batchId: "B2", blendDate: "2026-08-01" }),
+      b("x", { batchId: "B4", blendDate: "2026-11-05" }),
+      b("lost", { batchId: null }), b("gone", { blendDate: null }),
+    ], "2026-11-13");
+    expect(groups.map((g) => [g.batchId, g.ready])).toEqual([["B2", true], ["B4", false], ["B3", false]]);
+    expect(groups[2].batchNo).toBeNull();
+    expect(orphaned.map((o) => o.id)).toEqual(["lost", "gone"]);
+  });
+  it("orders equal ready-from dates stably", () => {
+    const { groups } = bottlingGroups([b("a", { batchId: "X" }), b("c", { batchId: "Y" })], "2026-11-02");
+    expect(groups.map((g) => g.batchId)).toEqual(["X", "Y"]);
+    const later = bottlingGroups([b("a", { batchId: "L", blendDate: "2026-11-09" }), b("c", { batchId: "E", blendDate: "2026-11-08" })], "2026-11-10");
+    expect(later.groups.map((g) => g.batchId)).toEqual(["E", "L"]);
+  });
+});
+
+import { orderCost, shortMix } from "./index";
+
+describe("order cost and margin", () => {
+  // 105 mL mix: 24.94 g oil at 2/g, 78.75 mL alcohol at 20/L, bottle 30, box 10.
+  const batch = { total_ml: 105, oil_g: 24.94, actual_oil_g: null, ethanol_ml: 78.75, price_per_gram: 2, ethanol_price_per_l: 20, bottle_cost: 30, packaging_cost: 10, currency: "EGP" };
+  it("a 50 mL share of the liquid plus its own bottle and box", () => {
+    // liquid 49.88 + 1.575 = 51.455; × 50/105 = 24.50…; + 40
+    const c = orderCost(batch, 50, 450)!;
+    expect(c.cost).toBe(64.5);
+    expect([c.profit, c.marginPct, c.currency]).toEqual([385.5, 85.67, "EGP"]);
+  });
+  it("uses the oil really poured, and time by share", () => {
+    const c = orderCost({ total_ml: 100, oil_g: 25, actual_oil_g: 30, ethanol_ml: 75, price_per_gram: 1, labour_minutes: 60, labour_rate_per_hour: 100 }, 50)!;
+    expect(c).toEqual({ cost: 65, currency: "", profit: null, marginPct: null });
+  });
+  it("no prices, no batch: no cost (never zero)", () => {
+    expect(orderCost({ total_ml: 100, oil_g: 25, ethanol_ml: 75 }, 50, 100)).toBeNull();
+    expect(orderCost(null, 50)).toBeNull();
+    expect(orderCost(undefined, 50)).toBeNull();
+  });
+  it("a share never passes the whole batch; unknown volume counts only the bottle", () => {
+    expect(orderCost({ total_ml: 30, oil_g: 10, ethanol_ml: 20, price_per_gram: 1 }, 50)!.cost).toBe(10);
+    expect(orderCost({ oil_g: 10, ethanol_ml: 20, price_per_gram: 1, bottle_cost: 5 }, 50)!.cost).toBe(5);
+    expect(orderCost({ total_ml: 30, oil_g: undefined, ethanol_ml: undefined, price_per_gram: 1 }, 0)!.cost).toBe(0);
+  });
+});
+
+describe("short mix", () => {
+  it("reads the volume made from the grams weighed and the batch's densities", () => {
+    // 24.94/0.95 + 63.79/0.81 = 26.253 + 78.753 = 105.01 (the rounded grams)
+    expect(shortMix({ actual_oil_g: 24.94, actual_ethanol_g: 63.79, oil_density: 0.95, ethanol_density: 0.81, total_ml: 105 }, [50, 50]))
+      .toEqual({ madeMl: 105.01, neededMl: 100, shortMl: 0 });
+  });
+  it("short beyond 1 %, with the handbook's densities when none were stored", () => {
+    const r = shortMix({ actual_oil_g: 20, actual_ethanol_g: 50, total_ml: 105 }, [50, 50]);
+    expect(r.madeMl).toBe(82.78);
+    expect(r.shortMl).toBe(17.22);
+  });
+  it("within 1 % is not short; without weighed grams the plan stands", () => {
+    expect(shortMix({ total_ml: 99.5 }, [50, 50]).shortMl).toBe(0);
+    expect(shortMix({ total_ml: 90 }, [50, 50]).shortMl).toBe(10);
+    expect(shortMix({}, [50, null as any])).toEqual({ madeMl: 0, neededMl: 50, shortMl: 0 });
+  });
+});
+
+import { profitTotals } from "./index";
+
+describe("profit totals", () => {
+  it("one total per currency, the rest counted as missing", () => {
+    const c = (profit: number | null, currency = "EGP") => ({ cost: 1, currency, profit, marginPct: null });
+    expect(profitTotals([c(100.25), c(50.5), c(10, "USD"), c(null), null])).toEqual({
+      totals: [{ currency: "EGP", profit: 150.75, count: 2 }, { currency: "USD", profit: 10, count: 1 }], missing: 2,
+    });
+    expect(profitTotals([])).toEqual({ totals: [], missing: 0 });
+  });
+});
+
+describe("discountTotals", () => {
+  it("adds up what friend prices gave away, per currency", () => {
+    expect(discountTotals([
+      { price: 300, list_price: 400, currency: "EGP" },
+      { price: "250.5", list_price: "300", currency: "EGP" },
+      { price: 20, list_price: 25, currency: "USD" },
+      { price: 400, list_price: 400, currency: "EGP" },
+      { price: 400, list_price: null, currency: "EGP" },
+      { price: null, list_price: 100 },
+      { price: 10, list_price: 12 },
+    ])).toEqual([
+      { currency: "EGP", given: 149.5, count: 2 },
+      { currency: "USD", given: 5, count: 1 },
+      { currency: "", given: 2, count: 1 },
+    ]);
+  });
+});

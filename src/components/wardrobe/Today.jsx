@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { logWear } from "../../lib/wardrobeApi";
@@ -7,7 +7,9 @@ import { sprayAdvice, suggest, wearable } from "../../lib/wardrobe/suggest";
 import { reasonText } from "../../lib/wardrobe/reasons";
 import { wearRow } from "../../lib/wardrobe/validate";
 import Button from "../kx/Button";
-import { Reveal } from "../../motion";
+import { Reveal, splitWords } from "../../motion";
+import { useSceneCtx } from "../../motion/gsap/index.js";
+import { answerWords } from "./scene.js";
 import Confirm from "../kx/Confirm";
 import Field from "../kx/Field";
 import Notice from "../kx/Notice";
@@ -37,6 +39,17 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
   );
   const top = ranked.slice(0, 3);
   const wornToday = new Set(wear.filter((w) => w.worn_on === today).map((w) => w.bottle_id));
+  const rootRef = useRef(null);
+  const scene = useSceneCtx(rootRef);
+  const answerId = top[0]?.bottle.id;
+  const lastAnswer = useRef(answerId);
+  // The answer's words rise in when a choice changes it, never on first mount.
+  useEffect(() => {
+    if (lastAnswer.current === answerId) return;
+    lastAnswer.current = answerId;
+    const words = rootRef.current?.querySelectorAll("[data-word]");
+    if (scene && words?.length) scene.add(() => answerWords(scene, words));
+  }, [answerId, scene]);
   const advice = sprayAdvice(temp === "" ? undefined : Number(temp));
 
   async function save(bottle) {
@@ -60,7 +73,7 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
       <Field label={t("wardrobe.today.sprays")} mono inputMode="numeric" value={sprays} onChange={(e) => setSprays(e.target.value)} dir="ltr" />
       <div>
         <label htmlFor={`wear-note-${bottle.id}`} className="block text-sm mb-1.5" style={{ color: COLORS.inkSoft }}>{t("wardrobe.today.noteField")}</label>
-        <textarea id={`wear-note-${bottle.id}`} rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} className={`${inputClass} py-2`} style={inputStyle} />
+        <textarea dir="auto" id={`wear-note-${bottle.id}`} rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} className={`${inputClass} py-2`} style={inputStyle} />
       </div>
       <div className="flex flex-wrap gap-3">
         <Button type="submit" loading={busy}>{t("wardrobe.today.save")}</Button>
@@ -82,7 +95,7 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
   }
 
   return (
-    <section aria-labelledby="today-h">
+    <section ref={rootRef} aria-labelledby="today-h">
       <h2 id="today-h" className="font-serif italic text-2xl mb-1" style={{ color: COLORS.ink }}>{t("wardrobe.today.title")}</h2>
       <p className="text-sm mb-5 max-w-prose" style={{ color: COLORS.inkSoft }}>{t("wardrobe.today.lead")}</p>
 
@@ -111,12 +124,21 @@ export default function Today({ bottles, wear, today, onLogged, onGoCollection }
         <>
           {/* One answer, large; the next two quieter beneath it. */}
           {top.slice(0, 1).map((r) => (
-            <Reveal as="article" eager key={r.bottle.id} aria-labelledby="today-answer" className="p-6" style={{ background: COLORS.card, border: `1px solid ${COLORS.actionText}` }}>
+            <Reveal as="article" eager from="down" key={r.bottle.id} aria-labelledby="today-answer" className="p-6" style={{ background: COLORS.card, border: `1px solid ${COLORS.actionText}` }}>
               <div className="flex items-baseline justify-between gap-3">
                 <p className="text-sm" style={{ color: COLORS.dim }}>{t("wardrobe.today.picks")}</p>
                 <span className="font-mono tabular-nums text-xs" dir="ltr" style={{ color: COLORS.dim }}>{t("wardrobe.today.score", { score: r.score.toFixed(1) })}</span>
               </div>
-              <h3 id="today-answer" className="font-serif text-3xl sm:text-4xl mt-1" style={{ color: COLORS.ink }}>{r.bottle.name}</h3>
+              <h3 id="today-answer" className="font-serif text-3xl sm:text-4xl mt-1" style={{ color: COLORS.ink }}>
+                {scene ? (
+                  <>
+                    <span className="sr-only">{r.bottle.name}</span>
+                    <span aria-hidden="true">
+                      {splitWords(r.bottle.name).map((w, i) => <React.Fragment key={i}>{i > 0 && " "}<span data-word className="inline-block">{w}</span></React.Fragment>)}
+                    </span>
+                  </>
+                ) : r.bottle.name}
+              </h3>
               <ul className="mt-3 grid gap-1 text-sm list-disc ps-5" style={{ color: COLORS.inkSoft }}>
                 {r.reasons.map((x) => <li key={x.key + (x.cluster ?? x.band ?? x.time ?? "")}>{reasonText(t, x, { occasion })}</li>)}
               </ul>

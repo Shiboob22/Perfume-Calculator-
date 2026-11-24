@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { BENCH_PLAN_KEY } from "../lib/benchPlan";
+import RoomHeader from "./kx/RoomHeader";
 import { useLocation } from "react-router-dom";
-import { useNavigate } from "../motion";
+import { fileBatch, useNavigate } from "../motion";
 import { COLORS } from "../lib/theme";
 import { useI18n } from "../i18n/I18nProvider";
 import { errorText } from "../i18n/errorText";
@@ -31,7 +33,7 @@ import ScaleDisplay from "./kx/ScaleDisplay";
 const RULES_AT = { prepare: [4], tare: [1], pour: [2, 3, 5], pourNext: [1, 2, 3, 5] };
 // A practice bottle for the practice scale's tare step.
 const PRACTICE_BOTTLE_G = 38.42;
-const SESSION_KEY = "sh-bench";
+const SESSION_KEY = BENCH_PLAN_KEY;
 // Where this bench run is (step, pours, checks, lot), so a reload or a
 // locked phone doesn't send the user back to step 1. Tied to the run.
 const PROGRESS_KEY = "sh-bench-progress";
@@ -177,7 +179,7 @@ const TARE_STEP = 1;
 // held awake, nothing can be logged and the title is an h2 (the page has
 // its h1).
 export default function BenchMode({ demo = null }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const [plan] = useState(() => (demo ? demo.plan : loadPlan(location.state)));
@@ -200,8 +202,10 @@ export default function BenchMode({ demo = null }) {
   const [qc, setQc] = useState(() => new Set(saved?.qc ?? []));
   const [timer, setTimer] = useState(null); // seconds left, or null
   // A run that was logged stays logged after a reload: no second log.
+  const logBtn = useRef(null);
   const [status, setStatus] = useState(saved?.status === "saved" || saved?.status === "queued" ? saved.status : null); // null | saving | saved | queued | error
   const [batchNo, setBatchNo] = useState(saved?.batchNo ?? null);
+  const [ordersLinked, setOrdersLinked] = useState(null);
   const [error, setError] = useState("");
   const [stockNote, setStockNote] = useState("");
   const entitlements = useEntitlements();
@@ -239,9 +243,11 @@ export default function BenchMode({ demo = null }) {
 
   if (!plan || !target) {
     return (
-      <div className="max-w-xl mx-auto p-6">
+      // Shown inside the app's header and menu (App.jsx), with the rooms' heading (audit L6).
+      <div className="w-full max-w-3xl mx-auto p-6 sm:p-8" data-bench-empty>
+        <RoomHeader name={t("bench.title")} />
         <p style={{ color: COLORS.inkSoft }}>{t("bench.noPlan")}</p>
-        <button type="button" onClick={() => navigate("/bench")} className="mt-4 underline" style={{ color: COLORS.actionText }}>{t("app.tabs.calculator")}</button>
+        <button type="button" onClick={() => navigate("/bench")} className="mt-4 px-4 min-h-[44px] rounded text-sm font-semibold" style={{ background: COLORS.amber, color: COLORS.onAmber }}>{t("app.tabs.calculator")}</button>
       </div>
     );
   }
@@ -278,19 +284,24 @@ export default function BenchMode({ demo = null }) {
         oilType: plan.oilType, pricePerGram: plan.pricePerGram, blendedBy: plan.blendedBy,
         lot, amount: plan.amount, unit: plan.unit,
         pours: pourRecord(items, poured, ps.targets),
+        orderIds: plan.orderIds,
       }),
       // The server takes the oil out of stock for a Pro user's tracked oil.
       ...(tracksStock ? { deduct_oil_g: usedOil(target, actualOil) } : {}),
     };
     try {
       const logged = await logBatch(batch);
+      // The product's signature (motion M4): the batch is filed into the Journal tab.
+      if (!logged?.duplicate) fileBatch({ from: logBtn.current, label: logged?.batch_no ? t("journal.page.no", { no: String(logged.batch_no).padStart(3, "0") }) : "" });
       setStatus("saved");
       if (logged?.batch_no) setBatchNo(logged.batch_no);
+      if (plan.orderIds?.length) setOrdersLinked(Number(logged.ordersLinked) || 0);
       if (logged.stock === "not_tracked") setStockNote(t("calculator.log.untracked"));
       if (logged.stock === "failed") setStockNote(t("calculator.log.stockFailed", { error: t("errors.server_error") }));
     } catch (e) {
       if (isOffline(e)) {
         enqueue(batch);
+        fileBatch({ from: logBtn.current, label: "" });
         setStatus("queued");
       } else {
         setStatus("error");
@@ -489,7 +500,7 @@ export default function BenchMode({ demo = null }) {
               <dt style={{ color: COLORS.inkSoft }}>{t("bench.label.total")}</dt>
               <dd dir="ltr" className="text-start font-mono">{fmt2(labelled.total)} g</dd>
             </dl>
-            <button type="button" onClick={handleLog} disabled={Boolean(demo) || status === "saving" || status === "saved" || status === "queued"}
+            <button ref={logBtn} type="button" onClick={handleLog} disabled={Boolean(demo) || status === "saving" || status === "saved" || status === "queued"}
               className="mt-6 w-full py-4 rounded text-lg font-semibold disabled:opacity-60" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
               {status === "saving" ? t("bench.label.saving") : t("bench.label.log")}
             </button>
@@ -499,9 +510,15 @@ export default function BenchMode({ demo = null }) {
               {status === "error" && t("bench.label.failed", { error })}
             </p>
             {stockNote && <p className="mt-1 text-xs" style={{ color: COLORS.inkSoft }}>{stockNote}</p>}
+            {ordersLinked !== null && <p className="mt-1 text-sm" style={{ color: COLORS.inkSoft }}>{t("orders.weigh.linked", { count: ordersLinked })}</p>}
             {(status === "saved" || status === "queued") && (
               <nav aria-label={t("bench.after.title")} className="mt-6 grid gap-2">
                 <h2 className="font-serif italic text-xl" style={{ color: COLORS.amberDeep }}>{t("bench.after.title")}</h2>
+                {plan.orderIds?.length > 0 && (
+                  <button type="button" onClick={() => navigate(locale === "ar" ? "/ar/bench/orders" : "/bench/orders")} className="py-3 rounded border text-start px-4" style={{ borderColor: COLORS.actionText, color: COLORS.actionText }}>
+                    {t("orders.weigh.back")}
+                  </button>
+                )}
                 {status === "saved" && (
                   <button type="button" onClick={() => navigate(`/journal?batch=${logId.current}`)} className="py-3 rounded border text-start px-4" style={{ borderColor: COLORS.actionText, color: COLORS.actionText }}>
                     {t("bench.after.journal")}

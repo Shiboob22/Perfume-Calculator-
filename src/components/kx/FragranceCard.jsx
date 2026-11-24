@@ -8,6 +8,7 @@ import { catalogueNumber } from "./Card";
 // picks): name (a link when there is a page), its facts as a short list,
 // then accord chips. `matched` accords are marked in resin so a reader sees
 // why it was chosen; `children` carries room-specific lines (a reason).
+// `vt` is a share key (motion M2): the name travels to the page it opens.
 export default function FragranceCard({ name, href, facts = [], accords = [], matched = [], no, as: Tag = "li", vt, className = "", style, children }) {
   const hit = new Set(matched.map((a) => a.toLowerCase()));
   const shown = facts.filter(Boolean);
@@ -15,7 +16,7 @@ export default function FragranceCard({ name, href, facts = [], accords = [], ma
     <Tag className={`mo-lift p-4 sm:p-5 ${className}`} style={{ background: COLORS.card, border: `1px solid ${COLORS.line}`, ...style }}>
       <div className="flex items-baseline justify-between gap-3">
         {href
-          ? <Link to={href} className="font-serif text-xl underline-offset-4 hover:underline" style={{ color: COLORS.ink, viewTransitionName: vt }}>{name}</Link>
+          ? <Link to={href} state={{ name }} data-mo-share={vt} className="font-serif text-xl underline-offset-4 hover:underline" style={{ color: COLORS.ink }}>{name}</Link>
           : <p className="font-serif text-xl" style={{ color: COLORS.ink }}>{name}</p>}
         {no != null && <span className="font-mono tabular-nums text-xs shrink-0" style={{ color: COLORS.dim }}>{catalogueNumber(no)}</span>}
       </div>

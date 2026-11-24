@@ -14,7 +14,7 @@ const PLAN_COLUMNS = 'id, name, features, batch_cap, formula_cap, ingredient_cap
 export async function loadEntitlements(supabase: SupabaseClient, userId: string) {
   const { data: own, error: ownError } = await supabase
     .from('user_plans')
-    .select(`plan_id, source, trial_started_at, trial_ends_at, plans ( ${PLAN_COLUMNS} )`)
+    .select(`plan_id, source, trial_started_at, trial_ends_at, gift_ends_at, plans ( ${PLAN_COLUMNS} )`)
     .eq('user_id', userId)
     .maybeSingle();
   if (ownError) throw ownError;

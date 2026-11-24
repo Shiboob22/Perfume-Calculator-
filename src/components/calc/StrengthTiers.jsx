@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useLayoutEffect, useRef } from "react";
+import { useSceneCtx } from "../../motion/gsap/index.js";
+import { motionOk } from "../../motion/gsap/scene.js";
+import { tierRing, placeRing } from "./scene.js";
 import { COLORS } from "../../lib/theme";
 import { STRENGTH_TIERS, tierFor } from "../../lib/calc";
 
@@ -9,8 +12,24 @@ import { STRENGTH_TIERS, tierFor } from "../../lib/calc";
 // The −/+ stepper under it fine-tunes.
 export default function StrengthTiers({ pct, onPick, label, t }) {
   const current = tierFor(pct);
+  const root = useRef(null);
+  const ring = useRef(null);
+  const placed = useRef(false);
+  const scene = useSceneCtx(root);
+  const at = STRENGTH_TIERS.indexOf(current);
+  // A decorative ring follows the lit tier (present only while GSAP runs; the buttons carry the state).
+  useLayoutEffect(() => {
+    const target = root.current?.querySelectorAll("button")[at];
+    if (!scene || !ring.current || !target) return undefined;
+    placeRing(scene, ring.current, target, { first: !placed.current, ok: motionOk() });
+    placed.current = true;
+    const refit = () => { scene.gsap.set(ring.current, { clearProps: "transform" }); tierRing(scene, ring.current, target, true); };
+    window.addEventListener("resize", refit);
+    return () => window.removeEventListener("resize", refit);
+  }, [scene, at]);
   return (
-    <div role="group" aria-label={label} dir="ltr" className="grid grid-cols-4 rounded" style={{ border: `1px solid ${COLORS.ink}` }}>
+    <div ref={root} role="group" aria-label={label} dir="ltr" className="grid grid-cols-4 rounded relative" style={{ border: `1px solid ${COLORS.ink}` }}>
+      {scene && <span ref={ring} aria-hidden="true" className="absolute top-0 bottom-0 left-0 w-1/4 pointer-events-none" style={{ outline: `2px solid ${COLORS.ink}`, outlineOffset: -3 }} />}
       {STRENGTH_TIERS.map((tier, i) => {
         const on = tier === current;
         const range = t(i === 0 ? "calc.tiers.rangeFirst" : "calc.tiers.range", { min: tier.min, max: tier.max });

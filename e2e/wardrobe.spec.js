@@ -122,7 +122,7 @@ test("add bottles, get a ranked pick with reasons, log a wearing", async ({ page
 
   // The log shows up in the statistics.
   await page.getByRole("button", { name: en.wardrobe.tabs.stats }).click();
-  await expect(page.getByText(en.wardrobe.stats.total.replace("{wearings}", "1").replace("{bottles}", "1"))).toBeVisible();
+  await expect(page.getByText(en.wardrobe.stats.total.one.replace("{wearings}", "1").replace("{bottles}", "1"))).toBeVisible();
 });
 
 test("the wish list keeps what you want, and a wish-list bottle is never suggested", async ({ page }) => {

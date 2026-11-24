@@ -1,7 +1,8 @@
-// Feature flags for the rooms that aren't finished (Wardrobe, Atlas, Salon
+// Feature flags ("orders": the order queue, /bench/orders) for the rooms that aren't finished (Wardrobe, Atlas, Salon
 // and Nose), for the home page's scroll scene ("compounding"), its 3D pour
 // hero ("hero3d", needs "compounding" too) and for the
-// site-wide motion layer ("motion", src/motion) and the brand photographs
+// site-wide motion layer ("motion", src/motion), its GSAP layer in the
+// app rooms ("roommotion", needs "motion" too) and the brand photographs
 // and films on the public pages ("imagery", src/site/Imagery.jsx). Off unless
 // its flag is on:
 //   - at build time: VITE_FLAG_<NAME>=1 (a preview or production build),
@@ -11,7 +12,12 @@
 // A flag only decides what is *shown*. Every room's data is private behind
 // row-level security whatever the flag says, so turning one on in the
 // browser exposes nothing. Pure: env and storage are passed in for tests.
-export const FLAGS = ["wardrobe", "atlas", "salon", "nose", "compounding", "motion", "shop", "hero3d", "imagery"];
+export const FLAGS = ["wardrobe", "atlas", "salon", "nose", "compounding", "motion", "shop", "hero3d", "orders", "roommotion", "imagery"];
+
+// On unless switched off: the order queue (owner, 2026-11-13: switched on in
+// code because the connected Vercel account can't reach the team's settings).
+// VITE_FLAG_ORDERS=0 at build time turns it off again for everyone.
+export const ON_BY_DEFAULT = ["orders"];
 
 const key = (name) => `kyphira.flag.${name}`;
 
@@ -22,7 +28,9 @@ function deviceStorage() {
 /** Whether a room is switched on. Unknown names are always off. */
 export function flagOn(name, { env = import.meta.env, storage = deviceStorage() } = {}) {
   if (!FLAGS.includes(name)) return false;
-  if (env?.[`VITE_FLAG_${name.toUpperCase()}`] === "1") return true;
+  const built = env?.[`VITE_FLAG_${name.toUpperCase()}`];
+  if (built === "1") return true;
+  if (ON_BY_DEFAULT.includes(name)) return built !== "0";
   try { return storage?.getItem(key(name)) === "1"; } catch { return false; }
 }
 

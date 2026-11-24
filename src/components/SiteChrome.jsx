@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "../motion";
 import { BrandMark } from "./FlaconMark";
 import FlaconMark from "./FlaconMark";
@@ -14,11 +14,21 @@ import { useCart } from "../lib/shop/useCart";
 // of the /app line we are on — links that cross it are full page loads.
 const site = (locale, p) => (locale === "ar" ? `/ar${p === "/" ? "" : p}` : p);
 
+// Is a sign-in saved on this device? Read after hydration (the prerender says "Sign in"),
+// from the key the auth client writes, without importing it.
+function useSignedInHere() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    try { setOn(Object.keys(localStorage).some((k) => /^sb-.+-auth-token$/.test(k))); } catch { /* storage blocked: stay "Sign in" */ }
+  }, []);
+  return on;
+}
+
 function NavLink({ to, cross, active, icon: I, children }) {
   const style = { color: active ? COLORS.forest : COLORS.ink };
   const cls = "relative inline-flex items-center gap-2 min-h-[44px] text-sm whitespace-nowrap hover:opacity-80";
   // The active room's underline is its own element so a route change can slide it (src/motion).
-  const body = <><I size={18} /><span>{children}</span><span aria-hidden="true" data-mo-ind="site" data-on={active ? "" : undefined} className="absolute inset-x-0 bottom-0 h-px" style={{ background: active ? COLORS.forest : "transparent" }} /></>;
+  const body = <>{I && <I size={18} />}<span>{children}</span><span aria-hidden="true" data-mo-ind="site" data-on={active ? "" : undefined} className="absolute inset-x-0 bottom-0 h-px" style={{ background: active ? COLORS.forest : "transparent" }} /></>;
   return cross
     ? <a href={to} className={cls} style={style} aria-current={active ? "page" : undefined}>{body}</a>
     : <Link to={to} className={cls} style={style} aria-current={active ? "page" : undefined}>{body}</Link>;
@@ -32,6 +42,7 @@ export function SiteHeader({ zone, active, language, extra, badge, wardrobe = fa
   const cart = useCart();
   const inCart = shop ? cartCount(cart) : 0;
   const inApp = zone === "app";
+  const signedIn = useSignedInHere();
   return (
     <header data-mo-chrome="header" className="w-full" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
       <div className="max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 py-3 flex flex-wrap items-center gap-x-8 gap-y-1">
@@ -40,7 +51,9 @@ export function SiteHeader({ zone, active, language, extra, badge, wardrobe = fa
           : <Link to={site(locale, "/")} aria-label={t("site.nav.home")} className="me-auto"><BrandMark brand={t("brand")} sub={t("brandTagline")} signature={t("brandSignature")} /></Link>}
         {/* The plan badge stays visible on phones, where the menu is in the bottom bar. */}
         {badge && <div className="md:order-last">{badge}</div>}
-        <nav aria-label={t("site.nav.main")} className={`${inApp ? "hidden md:flex" : "flex"} items-center gap-x-6 gap-y-1 flex-wrap -mx-1 px-1`}>
+        {/* In the app the rooms are AppNav's row; the header keeps the account menu (audit H3). */}
+        {inApp ? <div className="hidden md:flex items-center">{extra}</div> : (
+        <nav aria-label={t("site.nav.main")} className="flex items-center gap-x-6 gap-y-1 flex-wrap -mx-1 px-1">
           <NavLink to={site(locale, "/library")} cross={inApp} active={active === "guides"} icon={IconBook}>{t("site.nav.guides")}</NavLink>
           <NavLink to="/bench" cross={!inApp} active={active === "calculator"} icon={IconBalance}>{t("site.nav.calculator")}</NavLink>
           <NavLink to={locale === "ar" ? "/ar/journal" : "/journal"} cross={!inApp} active={active === "journal"} icon={IconHourglass}>{t("site.nav.journal")}</NavLink>
@@ -57,17 +70,21 @@ export function SiteHeader({ zone, active, language, extra, badge, wardrobe = fa
             </NavLink>
           )}
           <NavLink to={site(locale, "/pricing")} cross={inApp} active={active === "pricing"} icon={IconSeal}>{t("site.nav.pricing")}</NavLink>
+          {/* A way back in for returning users (audit M10); the Bench shows sign-in when signed out. */}
+          <span data-sign-in={signedIn ? "open" : "in"} className="contents"><NavLink to={site(locale, "/bench")} cross>{t(signedIn ? "site.nav.openBench" : "site.nav.signIn")}</NavLink></span>
           <span aria-hidden="true" className="self-stretch my-3" style={{ borderInlineStart: `1px solid ${COLORS.line}` }} />
           {language}
           <ThemeToggle />
           {extra}
         </nav>
+        )}
       </div>
     </header>
   );
 }
 
-export function SiteFooter({ links }) {
+// `safety={false}` on a page that shows the flammability warning itself (the Bench), so it reads once.
+export function SiteFooter({ links, safety = true }) {
   const { t } = useI18n();
   return (
     <footer className="w-full mt-16" style={{ background: COLORS.inkBand, color: COLORS.onInk }}>
@@ -77,7 +94,7 @@ export function SiteFooter({ links }) {
           <p className="font-serif italic text-lg leading-relaxed max-w-[34em]">{t("site.footer.line")}</p>
         </div>
         <div className="flex flex-col gap-3 text-sm">
-          <p className="flex gap-2 items-start"><IconFlameTriangle size={18} className="mt-0.5" />{t("site.footer.safety")}</p>
+          {safety && <p className="flex gap-2 items-start"><IconFlameTriangle size={18} className="mt-0.5" />{t("site.footer.safety")}</p>}
           <p style={{ opacity: 0.85 }}>{t("site.footer.credit")}</p>
           {links && <div className="flex flex-wrap gap-x-5 gap-y-1">{links}</div>}
           <p style={{ opacity: 0.7 }}>{t("site.footer.rights")}</p>

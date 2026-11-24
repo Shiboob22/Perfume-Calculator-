@@ -39,6 +39,16 @@ export function perSheet({ w, h, roll }) {
 // 2 mm padding top and bottom, line height 1.35, name at 1.1.
 const PAD_MM = 4;
 const LINE = 1.35;
+/**
+ * The QR square on an order's label (0040), in mm: as tall as the label
+ * allows inside its padding, at most 20 mm and 40 % of the width; 0 on the
+ * round roll label and on labels under 16 mm high (too small to scan).
+ */
+export function qrMm({ w, h, roll }) {
+  if (roll || h < 16) return 0;
+  return Math.floor(Math.min(h - PAD_MM, 20, w * 0.4) * 10) / 10;
+}
+
 export function typeSizes({ h }, rows) {
   const name = Math.min(6, h / 7);
   const line = Math.min(3.2, (h - PAD_MM - name * 1.1 - 1) / (rows * LINE));
@@ -85,12 +95,14 @@ function splitName(name, em) {
   return best;
 }
 
-export function compactLayout(batch, { t, lot }, { w, h }, em = estimateEm) {
+export function compactLayout(batch, { t, lot, order = null }, { w, h }, em = estimateEm) {
   lot = lot ?? batch.lot ?? "";
   const avail = (w - 2 * ROLL.padX) * ROLL.safety;
   const box = h - 2 * ROLL.padY;
   const weights = labelWeights(Number(batch.oil_g), Number(batch.ethanol_g), Number(batch.actual_oil_g) || null, Number(batch.actual_ethanol_g) || null);
-  const facts = [`${batch.concentration_pct}%`, bottleText(batch), batch.blend_date || ""];
+  // An order's bottle (P1a) shows its own size; the round label has no room for the buyer.
+  const bottle = Number(order?.sizeMl) > 0 ? `${Number(fmt2(Number(order.sizeMl)))} mL` : bottleText(batch);
+  const facts = [`${batch.concentration_pct}%`, bottle, batch.blend_date || ""];
   if (String(lot).trim()) facts.push(`${t("labels.short.lot")} ${String(lot).trim()}`);
   const grams = [
     `${t("labels.short.oil")} ${fmt2(weights.oil)}`,
@@ -144,15 +156,25 @@ export function bottleText(batch) {
   return batch.basis === "weight" ? `${Number(fmt2(Number(batch.total_g)))} g` : `${Number(fmt2(Number(batch.total_ml)))} mL`;
 }
 
-export function labelFields(batch, { t, lot }) {
+// `order` (the order queue, P1a): one buyer's bottle filled from this batch.
+// Its own size replaces the batch's, the batch number and the buyer's name
+// are added, and the mix's weights are left off (they are the whole batch's,
+// not this bottle's).
+export function labelFields(batch, { t, lot, order = null }) {
   lot = lot ?? batch.lot ?? "";
   const weights = labelWeights(Number(batch.oil_g), Number(batch.ethanol_g), Number(batch.actual_oil_g) || null, Number(batch.actual_ethanol_g) || null);
+  const size = Number(order?.sizeMl) > 0 ? `${Number(fmt2(Number(order.sizeMl)))} mL` : bottleText(batch);
   const fields = [
     [t("bench.label.concentration"), `${batch.concentration_pct}%`],
-    [t("bench.label.bottle"), bottleText(batch)],
+    [t("bench.label.bottle"), size],
     [t("bench.label.date"), batch.blend_date || ""],
   ];
   if (String(lot).trim()) fields.push([t("bench.label.lot"), String(lot).trim()]);
+  if (order) {
+    if (Number(batch.batch_no) > 0) fields.push([t("labels.order.batch"), `No. ${String(batch.batch_no).padStart(3, "0")}`]);
+    if (String(order.forName ?? "").trim()) fields.push([t("labels.order.for"), String(order.forName).trim().slice(0, 60)]);
+    return { name: batch.fragrance_name || t("bench.untitled"), fields };
+  }
   fields.push(
     [t("bench.label.oil"), `${fmt2(weights.oil)} g`],
     [t("bench.label.alcohol"), `${fmt2(weights.ethanol)} g`],

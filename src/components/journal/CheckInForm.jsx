@@ -6,6 +6,7 @@ import { saveCheckIn } from "../../lib/fragranceApi";
 import { enqueueCheckIn, isOffline } from "../../lib/outbox";
 import { todayFor } from "../../lib/journal";
 import { isolate } from "../../lib/batchCard";
+import RatingRow from "../kx/RatingRow";
 
 const inputStyle = { background: COLORS.cardHi, color: COLORS.ink, borderColor: COLORS.field };
 
@@ -53,19 +54,9 @@ export default function CheckInForm({ batch, scheduledDay = null, onDone, onCanc
       <input id={`${uid}-note`} type="text" dir="auto" maxLength={280} value={note} onChange={(e) => setNote(e.target.value)}
         placeholder={t("journal.notePlaceholder")} autoComplete="off" enterKeyHint="done"
         className="w-full px-3 py-2 text-sm border rounded focus:outline-none focus:ring-2" style={inputStyle} />
-      <fieldset className="flex flex-wrap items-center gap-1">
-        <legend className="text-xs me-2 float-start leading-8" style={{ color: COLORS.inkSoft }}>{t("journal.rating")}</legend>
-        {[1, 2, 3, 4, 5].map((n) => (
-          <label key={n} className="relative cursor-pointer">
-            <input type="radio" name={`${uid}-rating`} value={n} checked={rating === n}
-              onChange={() => setRating(n)} onClick={() => rating === n && setRating(null)}
-              className="peer sr-only" aria-label={t("journal.ratingValue", { n })} />
-            <span aria-hidden="true"
-              className="flex items-center justify-center w-8 h-8 rounded text-lg peer-focus-visible:ring-2"
-              style={{ color: rating != null && n <= rating ? COLORS.actionText : COLORS.field }}>★</span>
-          </label>
-        ))}
-      </fieldset>
+      {/* The same 1–5 row as the Journal, with its ends named (audit M6, owner 2026-11-23); 0 there is "no rating" here. */}
+      <RatingRow value={rating ?? 0} onChange={(n) => setRating(n || null)} size="sm"
+        label={t("journal.rating")} lead={t("journal.rating")} itemLabel={(n) => t("journal.ratingValue", { n })} />
       {error && <p role="alert" className="text-xs font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       <div className="flex items-center gap-3">
         <button type="submit" disabled={busy || empty}

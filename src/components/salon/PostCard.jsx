@@ -80,7 +80,7 @@ export default function PostCard({ post, onRemoved }) {
           <span aria-label={t("salon.post.rating", { n: post.rating })} style={{ color: COLORS.actionText }}>{"★".repeat(post.rating)}{"☆".repeat(5 - post.rating)}</span>
         </p>
       )}
-      {post.body && <p className="mt-4 font-serif text-lg leading-relaxed whitespace-pre-line max-w-prose" style={{ color: COLORS.ink }}>{post.body}</p>}
+      {post.body && <p dir="auto" className="mt-4 font-serif text-lg leading-relaxed whitespace-pre-line max-w-prose" style={{ color: COLORS.ink }}>{post.body}</p>}
       {hidden && <p role="status" className="mt-3 text-sm" style={{ color: COLORS.danger }}>{t("salon.post.hiddenNote")}</p>}
 
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-4">
@@ -100,7 +100,7 @@ export default function PostCard({ post, onRemoved }) {
           <SelectField label={t("salon.post.reportTitle")} value={reason} onChange={setReason} options={REASONS.map((r) => ({ value: r, label: t(`salon.post.reasons.${r}`) }))} />
           <div>
             <label htmlFor={`rn-${post.id}`} className="block text-sm mb-1.5" style={{ color: COLORS.inkSoft }}>{t("salon.post.reportNote")}</label>
-            <textarea id={`rn-${post.id}`} rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} className={`${inputClass} py-2`} style={inputStyle} />
+            <textarea dir="auto" id={`rn-${post.id}`} rows={2} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} className={`${inputClass} py-2`} style={inputStyle} />
           </div>
           <div className="flex gap-3"><Button type="submit" loading={busy}>{t("salon.post.reportSend")}</Button><Button type="button" variant="secondary" onClick={() => setMode(null)}>{t("salon.cancel")}</Button></div>
         </form>

@@ -235,8 +235,10 @@ test("a Pro seller prices a batch and sees profit and margin, with no sideways s
   await fakeApi(page);
   await page.setViewportSize({ width: 320, height: 700 });
   await page.goto("/app/calculator");
-  await page.getByLabel(en.calc.pricePerGram).fill("2");
-  await page.getByLabel(en.calc.cost.bottleEach).fill("10");
+  // Pro asks the oil's price once, in the cost card; the selling fields are under it (folded unless selling).
+  await page.getByLabel(en.calc.costCard.oilPrice).fill("2");
+  await page.locator("[data-selling-fields] summary").click();
+  await page.locator("#cost-pack").fill("10");
   await page.getByLabel(en.calc.cost.bottles).fill("2");
   await page.getByLabel(en.calc.cost.salePrice).fill("60");
   await expect(page.getByText(/^Profit:/)).toBeVisible();
@@ -249,6 +251,7 @@ test("Free plan shows no cost, packaging or sale price fields", async ({ page })
   await signIn(page);
   await fakeApi(page, { plan: "free" });
   await page.goto("/app/calculator");
+  await page.locator("[data-add-details] summary").click(); // Free's price per gram is under "Add details"
   await expect(page.getByLabel(en.calc.pricePerGram)).toBeVisible();
   await expect(page.getByLabel(en.calc.cost.salePrice)).toHaveCount(0);
 });

@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useFlipList } from '../motion/gsap/index.js';
+import { carry, Link } from '../motion';
+import { flagOn } from '../lib/flags';
 import { searchCatalog, browseCatalog, fetchPopular, fetchSimilar, forgetCatalogAnswers } from '../lib/searchApi';
 
 // How often an open, visible Search screen re-reads the catalog.
@@ -279,12 +282,12 @@ function ResultRow({ item, active, onSelect }) {
   const { brand, title } = splitName(item);
   const f = familyOf(item.tier, t);
   return (
-    <button type="button" onClick={() => onSelect(item)} aria-current={active ? "true" : undefined}
+    <button type="button" data-flip data-flip-id={item.id} onClick={(e) => onSelect(item, e.currentTarget)} aria-current={active ? "true" : undefined}
       className="w-full text-start px-3 py-2.5 flex items-center gap-3 transition-colors"
       style={{ background: active ? 'rgba(233,200,138,0.08)' : 'transparent', borderBottom: `1px solid ${COLORS.line}` }}>
       <BottlePhoto perfume={item} size="thumb" />
       <span className="min-w-0 flex-1">
-        <span className="block font-serif text-[15px] leading-tight truncate" style={{ color: COLORS.forestDeep }}>{title}</span>
+        <span data-mo-share={item.id ? `search-${item.id}` : undefined} className="block font-serif text-[15px] leading-tight truncate" style={{ color: COLORS.forestDeep }}>{title}</span>
         <span className="block font-mono text-[10px] uppercase tracking-wider truncate mt-0.5" style={{ color: COLORS.inkSoft }}>
           {[brand, item.year].filter(Boolean).join(', ') || f.label}
         </span>
@@ -325,7 +328,7 @@ function CardSkeleton({ count = 4 }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="rounded animate-pulse" style={{ height: 220, background: COLORS.cardHi, border: `1px solid ${COLORS.line}` }} />
+        <div key={i} className="rounded motion-safe:animate-pulse" style={{ height: 220, background: COLORS.cardHi, border: `1px solid ${COLORS.line}` }} />
       ))}
     </div>
   );
@@ -339,7 +342,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
   const [matchKind, setMatchKind] = useState('exact');
   const [selectedPerfume, setSelectedPerfume] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [popular, setPopular] = useState([]);
+  const [popular, setPopular] = useState(null); // null while loading; [] when it failed or came back empty
   const [related, setRelated] = useState({ loading: false, basis: 'accords', similar: [], sameBrand: [], error: '' });
   const [addingToInventory, setAddingToInventory] = useState(false);
   const [inventoryMsg, setInventoryMsg] = useState('');
@@ -353,6 +356,8 @@ export function PerfumeSearch({ onSelectPerfume }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const detailRef = useRef(null);
   const searchColRef = useRef(null);
+  const listRef = useRef(null);
+  useFlipList(listRef, results.map((r) => r.id).join());
   // "+ Add photo" for the few catalog rows no dataset had a bottle photo for.
   const [photoOpen, setPhotoOpen] = useState(false);
   const [photoDraft, setPhotoDraft] = useState('');
@@ -463,6 +468,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
   useEffect(() => {
     fetchPopular().then(setPopular);
   }, []);
+  const retryPopular = () => { setPopular(null); forgetCatalogAnswers(); fetchPopular().then(setPopular); };
 
   // Keep the screen current: every minute while visible, and when the tab comes
   // back to the front, re-read the catalog and swap in the rows only if they
@@ -584,7 +590,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
             style={{ background: COLORS.cardHi, border: `1px solid ${COLORS.field}`, color: COLORS.ink }}
           />
           {loading && (
-            <span aria-hidden="true" className="absolute end-3 top-3.5 text-xs font-mono animate-pulse" style={{ color: COLORS.inkSoft }}>
+            <span aria-hidden="true" className="absolute end-3 top-3.5 text-xs font-mono motion-safe:animate-pulse" style={{ color: COLORS.inkSoft }}>
               {t('search.searching')}
             </span>
           )}
@@ -616,6 +622,10 @@ export function PerfumeSearch({ onSelectPerfume }) {
             {t('search.intro')}
           </p>
         )}
+        {/* Search is the quick lookup; the Atlas is where houses, notes and perfumers are browsed (audit H4). */}
+        {!browse && query.trim().length < 2 && flagOn('atlas') && (
+          <p className="text-sm"><Link to="/atlas" className="underline underline-offset-4 inline-flex min-h-[44px] items-center" style={{ color: COLORS.actionText }}>{t('search.atlasLink')}</Link></p>
+        )}
 
         {!browse && query.trim().length >= 2 && results.length === 0 && !loading && (
           <div className="space-y-3">
@@ -638,9 +648,10 @@ export function PerfumeSearch({ onSelectPerfume }) {
             {matchKind === 'fuzzy' && (
               <p className="text-xs mb-2" style={{ color: COLORS.inkSoft }}>{t('search.closest')}</p>
             )}
-            <div className="rounded overflow-hidden md:max-h-[70vh] md:overflow-y-auto" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
+            <div ref={listRef} className="rounded overflow-hidden md:max-h-[70vh] md:overflow-y-auto" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.card }}>
               {results.map((item) => (
-                <ResultRow key={item.id} item={item} active={selectedPerfume?.id === item.id} onSelect={selectPerfume} />
+                <ResultRow key={item.id} item={item} active={selectedPerfume?.id === item.id}
+                  onSelect={(it, el) => (it.id ? carry(() => selectPerfume(it), { share: `search-${it.id}`, from: el }) : selectPerfume(it))} />
               ))}
               {hasMore && (
                 <button type="button" onClick={loadMore} disabled={loadingMore}
@@ -706,7 +717,7 @@ export function PerfumeSearch({ onSelectPerfume }) {
                       </div>
                     )
                   )}
-                  <h2 className="font-serif italic leading-[0.95] break-words text-4xl sm:text-5xl mt-1" style={{ color: COLORS.forestDeep }}>
+                  <h2 data-mo-share-to={selectedPerfume.id ? `search-${selectedPerfume.id}` : undefined} className="font-serif italic leading-[0.95] break-words text-4xl sm:text-5xl mt-1" style={{ color: COLORS.forestDeep }}>
                     {names.title}
                   </h2>
                   {meta.length > 0 && (
@@ -896,7 +907,14 @@ export function PerfumeSearch({ onSelectPerfume }) {
             <p className="mt-2 mb-6 font-serif italic" style={{ fontSize: 17, color: COLORS.inkSoft }}>
               {t('search.emptyIntro')}
             </p>
-            {popular.length > 0 ? <CardGrid items={popular} onSelect={selectPerfume} /> : <CardSkeleton count={8} />}
+            {popular === null ? <CardSkeleton count={8} />
+              : popular.length > 0 ? <CardGrid items={popular} onSelect={selectPerfume} />
+              : (
+                <p data-popular-empty role="status" className="text-sm" style={{ color: COLORS.inkSoft }}>
+                  {t('search.popularFailed')}{' '}
+                  <button type="button" onClick={retryPopular} className="underline underline-offset-4 min-h-[44px]" style={{ color: COLORS.actionText }}>{t('search.retry')}</button>
+                </p>
+              )}
           </div>
         )}
       </div>

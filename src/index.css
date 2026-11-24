@@ -39,8 +39,10 @@ html[dir="rtl"] .font-mono {
 }
 
 /* Arabic display (headlines, big numerals): Reem Kufi. Body and prose stay Readex Pro:
-   a Kufic face is for short, large lines, not paragraphs. */
-html[dir="rtl"] .ar-display { font-family: "Reem Kufi Variable", "Readex Pro Variable", "Geeza Pro", "Noto Sans Arabic", Tahoma, sans-serif; font-style: normal; }
+   a Kufic face is for short, large lines, not paragraphs. Reem Kufi's subset is
+   Arabic only: Latin letters in these lines (numerals I–VI, Pro, a scent name)
+   take the English edition's serif, not the body face. */
+html[dir="rtl"] .ar-display { font-family: "Reem Kufi Variable", "Instrument Serif", "Instrument Serif Fallback", "Readex Pro Variable", "Geeza Pro", "Noto Sans Arabic", Tahoma, sans-serif; font-style: normal; }
 
 /* Guide tables become one card per row on a phone: no sideways scrolling.
    Each cell shows its column name from data-label. */
@@ -117,7 +119,8 @@ html[dir="rtl"] .dropcap::before, html[dir="rtl"] .guide-body > p:first-of-type:
 .gloss-pop { position: relative; }
 .gloss-pop[data-def]::after { content: attr(data-def); display: none; position: absolute; inset-inline-start: 0; top: calc(100% + 6px); z-index: 20; width: max-content; max-width: min(22rem, 80vw); padding: 10px 12px; font: 400 14px/1.5 var(--font-ui, inherit); text-align: start; white-space: normal; color: var(--c-ink); background: var(--c-card); border: 1px solid var(--c-line); pointer-events: none; }
 /* display:none keeps the hidden tip out of layout: an absolute box near the right edge widened the page on phones. */
-.gloss-pop[data-def]:hover::after, .gloss-pop[data-def]:focus-visible::after { display: block; animation: gloss-in var(--mo-fast, 150ms) ease-out; }
+.gloss-pop[data-def]:hover::after, .gloss-pop[data-def]:focus-visible::after { display: block; }
+@media (prefers-reduced-motion: no-preference) { .gloss-pop[data-def]:hover::after, .gloss-pop[data-def]:focus-visible::after { animation: gloss-in var(--dur-fast) var(--ease-out); } }
 @keyframes gloss-in { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 640px) {
   .gloss-pop[data-def]::after { position: fixed; inset-inline: 16px; top: auto; bottom: calc(16px + env(safe-area-inset-bottom)); width: auto; max-width: none; }
@@ -131,7 +134,7 @@ html[dir="rtl"] .read-progress { transform-origin: right; }
 @supports not (animation-timeline: scroll()) { .read-progress { display: none; } }
 
 /* Motion tokens (Kyphira board): fast 150, base 250, slow 600, ambient 2 s+, one ease-out, one ease-in-out. Mirrors MOTION in theme.js. */
-:root { --dur-fast: 150ms; --dur-base: 250ms; --dur-slow: 600ms; --dur-ambient: 2000ms; --ease-out: cubic-bezier(.22,1,.36,1); --ease-in-out: cubic-bezier(.65,0,.35,1); --offset-shadow: 8px 8px 0 var(--c-sand); }
+:root { --dur-fast: var(--mo-fast); --dur-base: var(--mo-base); --dur-slow: var(--mo-slow); --dur-ambient: var(--mo-ambient); --ease-out: var(--mo-ease); --ease-in-out: var(--mo-ease-io); --offset-shadow: 8px 8px 0 var(--c-sand); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --offset-shadow: none; } }
 :root[data-theme="dark"] { --offset-shadow: none; }
 
@@ -166,7 +169,8 @@ summary::-webkit-details-marker { display: none; }
 
 /* Kyphira smoke line: a slow horizontal drift (a divider is still; a loading line moves). */
 .kx-smoke { display: block; overflow: visible; }
-.kx-smoke--loading path { stroke-dasharray: 120 60; animation: kx-drift 2400ms linear infinite; }
+.kx-smoke--loading path { stroke-dasharray: 120 60; }
+@media (prefers-reduced-motion: no-preference) { .kx-smoke--loading path { animation: kx-drift calc(var(--dur-ambient) * 1.2) linear infinite; } }
 @keyframes kx-drift { to { stroke-dashoffset: -180; } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -246,9 +250,9 @@ summary::-webkit-details-marker { display: none; }
 /* While the home bench card is in view it sets data-sync and --cg-sync (its
    rolling total, in hundredths of a gram) on the live gauge: the reading and
    the fill follow the card instead of the scroll. */
-[data-compounding] .cmp-live[data-sync] .cmp-read { animation: none; --cg: var(--cg-sync, 0); }
-[data-compounding] .cmp-live[data-sync] .cmp-fill { animation: none; transform: scaleY(min(1, var(--cg-sync, 0) / var(--cg-max))); }
-[data-compounding] .cmp-live[data-sync] .cmp-tickbox { animation: none; transform: translateY(calc((1 - min(1, var(--cg-sync, 0) / var(--cg-max))) * 100%)); }
+html:not([data-mo-level]) [data-compounding] .cmp-live[data-sync] .cmp-read { animation: none; --cg: var(--cg-sync, 0); }
+html:not([data-mo-level]) [data-compounding] .cmp-live[data-sync] .cmp-fill { animation: none; transform: scaleY(min(1, var(--cg-sync, 0) / var(--cg-max))); }
+html:not([data-mo-level]) [data-compounding] .cmp-live[data-sync] .cmp-tickbox { animation: none; transform: translateY(calc((1 - min(1, var(--cg-sync, 0) / var(--cg-max))) * 100%)); }
 /* Phones: the strip ends 88 px above the foot of the screen (and inside the
    safe area), so its reading clears the browser's bottom bar and the
    screen's rounded corners: on an iPhone the reading, 24 px from the foot,
@@ -286,18 +290,17 @@ summary::-webkit-details-marker { display: none; }
 @media (prefers-reduced-motion: no-preference) { .cmp-breath { animation: cmp-breath var(--dur-ambient) var(--ease-in-out) infinite alternate; } }
 /* Cinematic rise (Salon profile header only): 600 ms ease-out. Static under reduced motion. */
 @media (prefers-reduced-motion: no-preference) { .kx-rise { animation: kx-rise var(--dur-slow) var(--ease-out) both; } }
-@keyframes kx-rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes kx-rise { 0% { opacity: 0; transform: translateY(14px); } 25% { opacity: 1; } 100% { transform: none; } }
 /* A confirmation: the check draws, 600 ms ease-out. Still under reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
   .kx-tick path { stroke-dasharray: 24; animation: kx-tick-draw var(--dur-slow) var(--ease-out) both; }
-  .kx-confirm { animation: kx-rise var(--dur-base) var(--ease-out) both; }
 }
 @keyframes kx-tick-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
 /* The Nose's thinking state: three dots, ambient (2 s), still under reduced motion. */
 .kx-think i { width: 6px; height: 6px; border-radius: 50%; background: var(--c-action-text); display: block; opacity: .6; }
 @media (prefers-reduced-motion: no-preference) {
   .kx-think i { animation: kx-think var(--dur-ambient) var(--ease-in-out) infinite alternate; }
-  .kx-think i:nth-child(2) { animation-delay: 250ms; } .kx-think i:nth-child(3) { animation-delay: 500ms; }
+  .kx-think i:nth-child(2) { animation-delay: calc(var(--dur-ambient) / 8); } .kx-think i:nth-child(3) { animation-delay: calc(var(--dur-ambient) / 4); }
 }
 @keyframes kx-think { from { opacity: .25; } to { opacity: 1; } }
 @keyframes cmp-breath { from { opacity: .7; transform: scale(.94); } to { opacity: 1; transform: scale(1.08); } }
@@ -307,8 +310,6 @@ summary::-webkit-details-marker { display: none; }
 @keyframes kRise { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
 @keyframes kGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes kFade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes kDrift { from { background-position: 0 0; } to { background-position: 200% 0; } }
-@keyframes kPulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
     .kv { animation: kRise both var(--ease-out); animation-timeline: view(); animation-range: entry 0% entry 45%; }
@@ -321,21 +322,21 @@ summary::-webkit-details-marker { display: none; }
 
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
-    [data-compounding] .m { animation: var(--kf) var(--m-ease) both; animation-timeline: --v; animation-range: cover calc(var(--a) * 100%) cover calc(var(--b) * 100%); }
-    [data-compounding] .cmp-live { display: block; }
-    [data-compounding] .cmp-static { display: none; }
+    html:not([data-mo-level]) [data-compounding] .m { animation: var(--kf) var(--m-ease) both; animation-timeline: --v; animation-range: cover calc(var(--a) * 100%) cover calc(var(--b) * 100%); }
+    html:not([data-mo-level]) [data-compounding] .cmp-live { display: block; }
+    html:not([data-mo-level]) [data-compounding] .cmp-static { display: none; }
     /* The scale follows the whole scene: 0 with its top at the top of the screen, 1 with its foot at the foot. */
-    [data-compounding] .cmp-fill, [data-compounding] .cmp-tickbox, [data-compounding] .cmp-read { animation-timing-function: linear; animation-fill-mode: both; animation-timeline: --cmp-scene; animation-range: cover 100vh cover calc(100% - 100vh); }
-    [data-compounding] .cmp-fill { animation-name: cmp-fill; }
-    [data-compounding] .cmp-tickbox { animation-name: cmp-tick; }
-    [data-compounding] .cmp-read { animation-name: cmp-grams; animation-duration: 1ms; }
+    html:not([data-mo-level]) [data-compounding] .cmp-fill, html:not([data-mo-level]) [data-compounding] .cmp-tickbox, html:not([data-mo-level]) [data-compounding] .cmp-read { animation-timing-function: linear; animation-fill-mode: both; animation-timeline: --cmp-scene; animation-range: cover 100vh cover calc(100% - 100vh); }
+    html:not([data-mo-level]) [data-compounding] .cmp-fill { animation-name: cmp-fill; }
+    html:not([data-mo-level]) [data-compounding] .cmp-tickbox { animation-name: cmp-tick; }
+    html:not([data-mo-level]) [data-compounding] .cmp-read { animation-name: cmp-grams; animation-duration: 1ms; }
   }
-  [data-compounding][data-fallback] .m { animation: var(--kf) 1s var(--m-ease) both paused; animation-delay: calc(-1s * clamp(0, (var(--vp, 0) - var(--a)) / (var(--b) - var(--a)), 1)); }
-  [data-compounding][data-fallback] .cmp-live { display: block; }
-  [data-compounding][data-fallback] .cmp-static { display: none; }
-  [data-compounding][data-fallback] .cmp-fill { transform: scaleY(var(--progress, 0)); }
-  [data-compounding][data-fallback] .cmp-tickbox { transform: translateY(calc((1 - var(--progress, 0)) * 100%)); }
-  [data-compounding][data-fallback] .cmp-read { --cg: calc(var(--progress, 0) * var(--cg-max)); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .m { animation: var(--kf) 1s var(--m-ease) both paused; animation-delay: calc(-1s * clamp(0, (var(--vp, 0) - var(--a)) / (var(--b) - var(--a)), 1)); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .cmp-live { display: block; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .cmp-static { display: none; }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .cmp-fill { transform: scaleY(var(--progress, 0)); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .cmp-tickbox { transform: translateY(calc((1 - var(--progress, 0)) * 100%)); }
+  html:not([data-mo-level]) [data-compounding][data-fallback] .cmp-read { --cg: calc(var(--progress, 0) * var(--cg-max)); }
 }
 
 /* The beam across the top of a room: twelve ruled ticks, the current room's
@@ -347,6 +348,33 @@ summary::-webkit-details-marker { display: none; }
 /* kx/Sheet: the modal's backdrop (Bench SaaS). */
 .kx-sheet::backdrop { background: rgb(0 0 0 / 0.45); }
 .kx-sheet { max-height: 100dvh; }
+/* Sheets (kx/Sheet): rise from the bottom on phones, settle in on wide screens; leave faster
+   than they came (grammar rule 2). Sheet.jsx holds the dialog open for the exit's length. */
+@media (prefers-reduced-motion: no-preference) {
+  .kx-sheet[open] { animation: kx-sheet-in var(--dur-base) var(--ease-out); }
+  .kx-sheet[open]::backdrop { animation: sheetFade var(--dur-base) var(--ease-out); }
+  .kx-sheet[data-leaving] { animation: kx-sheet-out var(--dur-fast) var(--ease-out) forwards; }
+  .kx-sheet[data-leaving]::backdrop { animation: kx-fade-out var(--dur-fast) var(--ease-out) forwards; }
+}
+@media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+  .kx-sheet[open] { animation-name: kx-pop-in; }
+  .kx-sheet[data-leaving] { animation-name: kx-pop-out; }
+}
+@keyframes kx-sheet-in { from { translate: 0 100%; } }
+@keyframes kx-sheet-out { to { translate: 0 100%; } }
+@keyframes kx-pop-in { 0% { opacity: 0; translate: 0 8px; } 60% { opacity: 1; } 100% { translate: 0 0; } }
+@keyframes kx-pop-out { to { opacity: 0; translate: 0 8px; } }
+@keyframes kx-fade-out { to { opacity: 0; } }
+
+/* The phone bar's room indicator (AppNav): one ink rule that slides to the room you open,
+   from the start edge (the right in Arabic). */
+.kx-bar-ind { transform: translateX(calc(var(--mo-dir, 1) * var(--i, 0) * 100%)); }
+@media (prefers-reduced-motion: no-preference) {
+  .kx-bar-ind { transition: transform var(--dur-base) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
+}
+
+/* Saved on this phone (kx/SaveState "queued"): the same check, dashed and drawn at once. */
+.kx-tick[data-queued] path { stroke-dasharray: 3 2.5; animation: none; }
 
 /* Paper and surfaces (Bench SaaS Phase 6): the textures are custom properties
    from src/lib/surfaces.js, written by the app shell. Unset (public pages):
@@ -358,5 +386,40 @@ summary::-webkit-details-marker { display: none; }
 @media (prefers-reduced-motion: reduce) { .kx-flacon, .kx-cap { transition: none !important; } }
 
 /* Bench tour (Phase 7): the cost card's Pro preview unblurs. */
-.kx-cost-body { transition: filter 600ms var(--ease-out, ease-out), opacity 600ms var(--ease-out, ease-out); }
+.kx-cost-body { transition: filter var(--dur-slow) var(--ease-out), opacity var(--dur-slow) var(--ease-out); }
 @media (prefers-reduced-motion: reduce) { .kx-cost-body, .kx-tour-spot, .kx-tour-card { transition: none !important; } }
+
+/* The Journal's maturation curve is drawn once when it appears; nothing moves under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .kx-curve-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: kx-curve-draw var(--dur-slow) var(--ease-out) forwards; }
+}
+@keyframes kx-curve-draw { to { stroke-dashoffset: 0; } }
+
+/* The Journal room's small motions, on the existing tokens; none under reduced motion.
+   The rest timeline fills from where it starts (the right in Arabic), and a saved note's
+   confirmation settles in like ink. */
+@media (prefers-reduced-motion: no-preference) {
+  .kx-track-fill { transform-origin: left center; animation: kx-track-fill var(--dur-slow) var(--ease-out) both; }
+  [dir="rtl"] .kx-track-fill { transform-origin: right center; }
+  .kx-settle { animation: kx-settle var(--dur-base) var(--ease-out) both; }
+  /* Ready day (motion M4): verdigris draws over the track just behind its fill, then the word settles; all done by 850 ms. */
+  .kx-ready-fill { transform-origin: left center; animation: kx-track-fill var(--dur-slow) var(--ease-out) var(--dur-fast) both; }
+  [dir="rtl"] .kx-ready-fill { transform-origin: right center; }
+  .kx-ready-word { animation: kx-settle var(--dur-base) var(--ease-out) var(--dur-slow) both; }
+}
+@keyframes kx-track-fill { from { transform: scaleX(0); } }
+@keyframes kx-settle { 0% { opacity: 0; transform: translateY(4px); } 60% { opacity: 1; } 100% { transform: none; } }
+
+/* Motion setting (M6; src/motion/level.js, chosen in More and Account, applied before
+   first paint as <html data-mo-level>).
+   Off: nothing moves, whatever the system says: no animation, no transition, no View
+   Transition (the scroll scenes and the 3D pour are already off, see their gates).
+   Calm: feedback and cross-fades stay; travel goes. The medium and large distances are
+   zero, so entrances and page changes are fades; small settles and the press keep their
+   few pixels; words fade in place instead of rising. */
+html[data-mo-level="off"] *, html[data-mo-level="off"] *::before, html[data-mo-level="off"] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+html[data-mo-level="off"]::view-transition-group(*), html[data-mo-level="off"]::view-transition-old(*), html[data-mo-level="off"]::view-transition-new(*) { animation: none !important; }
+html[data-mo-level="calm"] { --mo-d-m: 0px; --mo-d-l: 0px; }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-mo-level="calm"] .mo-text[data-mo] .mo-wi { translate: none; animation-name: mo-fade; }
+}

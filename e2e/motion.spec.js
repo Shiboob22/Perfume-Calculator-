@@ -195,12 +195,13 @@ test.describe("phone app", () => {
 // The override keeps a small CI machine from counting as low-power.
 const roomy = (page) => page.addInitScript(() => { window.__motion = { low: false }; });
 
+// Leaves for /pricing: the Library now smooths too (room motion), so it no longer proves the teardown.
 test("smooth scroll: runs on the home page, stops when you leave it", async ({ page }) => {
   await on(page); await roomy(page);
   await page.goto("/");
   await expect(page.locator("html.lenis")).toHaveCount(1);
-  await page.locator('a[href="/library"]').first().click();
-  await expect(page).toHaveURL(/\/library/);
+  await page.locator('a[href="/pricing"]').first().click();
+  await expect(page).toHaveURL(/\/pricing/);
   await expect(page.locator("html.lenis")).toHaveCount(0);
 });
 
@@ -210,8 +211,8 @@ test("smooth scroll: leaving straight after a wheel scroll leaves no lenis class
   await expect(page.locator("html.lenis")).toHaveCount(1);
   await page.mouse.move(200, 300);
   await page.mouse.wheel(0, 600);
-  await page.locator('a[href="/library"]').first().click();
-  await expect(page).toHaveURL(/\/library/);
+  await page.locator('a[href="/pricing"]').first().click();
+  await expect(page).toHaveURL(/\/pricing/);
   await expect(page.locator("html.lenis")).toHaveCount(0);
 });
 

@@ -57,9 +57,16 @@ test("a guide opens the calculator at its example", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test("pricing links to the Pro waitlist in the app", async ({ page }) => {
+test("pricing offers the trial (and the waitlist) in the app", async ({ page }) => {
   await page.goto("/pricing");
-  await expect(page.getByRole("link", { name: en.site.pricing.waitlistCta })).toHaveAttribute("href", "/app/account#pro");
+  await expect(page.getByRole("link", { name: en.plan.trial.start })).toHaveAttribute("href", "/app/account#pro");
+  // Pro's prices and the founding offer, USD in English and EGP in Arabic, in the prerendered page too.
+  await expect(page.locator("[data-pro-price]")).toContainText("$7 a month, or $59 a year (save 30%)");
+  await expect(page.locator("[data-pro-price]")).toContainText(en.site.pricing.payback);
+  await expect(page.locator("[data-offer=founding]")).toContainText("$35");
+  await page.goto("/ar/pricing");
+  await expect(page.locator("[data-pro-price]")).toContainText("1,199");
+  await expect(page.locator("[data-offer=founding]")).toContainText("699");
 });
 
 test("draft legal pages say so and stay out of search", async ({ page, request }) => {
@@ -90,8 +97,8 @@ test.describe("without JavaScript", () => {
   test("public pages are complete HTML", async ({ page }) => {
     await page.goto("/library/the-calculation");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("The calculation");
-    // The Arabic guides await the author's review: noindex and no hreflang until then.
-    await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveCount(0);
+    // The Arabic guides are reviewed (2026-11-19): each English guide names its Arabic edition.
+    await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveCount(1);
     await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveCount(1);
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
   });

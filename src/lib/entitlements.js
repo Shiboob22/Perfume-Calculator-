@@ -15,6 +15,7 @@ export const FEATURES = [
   "journal.insights",
   "journal.checkins",
   "journal.reminders",
+  "orders",
 ];
 
 // Bench SaaS names for the gates (Phase 2). A string is the plan feature
@@ -23,6 +24,7 @@ export const FEATURES = [
 // answer is always yes.
 export const GATES = Object.freeze({
   reminders: "journal.reminders",
+  orders: "orders",
   costPerBottle: "calculator.advanced",
   fullJournal: "journal.checkins",
   labelPng: null,
@@ -64,8 +66,10 @@ export function fromPlanRow(row) {
 // Free. Returns the plan id, or null when there is no row (Free).
 export function planInForce(userPlan, now = new Date()) {
   if (!userPlan) return null;
-  if (userPlan.source === "trial") {
-    const ends = userPlan.trial_ends_at ? new Date(userPlan.trial_ends_at) : null;
+  // A trial or a gifted month (Bring a friend, 0042) is Free once it ends.
+  const timed = userPlan.source === "trial" ? userPlan.trial_ends_at : userPlan.source === "gift" ? userPlan.gift_ends_at : undefined;
+  if (timed !== undefined) {
+    const ends = timed ? new Date(timed) : null;
     if (!ends || !(ends > now)) return "free";
   }
   return userPlan.plan_id ?? userPlan.plans?.id ?? null;

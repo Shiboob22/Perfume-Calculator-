@@ -1,7 +1,7 @@
 // @ts-ignore: plain JS shared with the browser
 import { cleanText, textLang } from '../../src/lib/publicText.js';
 
-const FAMILIES = ['fresh', 'floral', 'woody', 'oriental', 'gourmand'];
+const FAMILIES = ['fresh', 'floral', 'woody', 'fougere', 'oriental', 'gourmand'];
 
 // The row a shared recipe stores (0013): a snapshot of the batch's PUBLIC
 // fields only, picked one by one. Cost, price, supplier, the private notes
@@ -24,7 +24,7 @@ export interface ShareRow {
 
 /** The share row for a batch and the owner's input, or why it can't be shared. */
 export function shareRow(batch: any, input: any): { row: ShareRow } | { error: string; code: string } {
-  if (!FAMILIES.includes(batch?.tier)) return { error: 'Only a batch in one of the five families can be shared.', code: 'share_family' };
+  if (!FAMILIES.includes(batch?.tier)) return { error: 'Only a batch in one of the six families can be shared.', code: 'share_family' };
   const name = cleanText(batch.fragrance_name, 120);
   if (!name) return { error: 'The batch needs a name to be shared.', code: 'share_name' };
   const rest = input?.rest_days ?? null;

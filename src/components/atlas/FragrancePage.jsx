@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Link, Reveal } from "../../motion";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
@@ -25,6 +26,9 @@ export default function FragrancePage({ id, terms }) {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const wardrobe = flagOn("wardrobe");
+  // The name the card carried here (motion M2): the heading is in place at
+  // once, so the name travels from the card into it while the rest loads.
+  const carried = useLocation().state?.name;
 
   useEffect(() => {
     let live = true;
@@ -48,7 +52,21 @@ export default function FragrancePage({ id, terms }) {
     }
   }
 
-  if (f === undefined) return <p role="status" className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>…</p>;
+  const back = <Link to="/atlas" className="text-sm underline underline-offset-4 inline-flex items-center min-h-[44px]" style={{ color: COLORS.forest }}>{t("atlas.nav.search")}</Link>;
+  const heading = (name) => <h2 id="atlas-fragrance-h" data-mo-share-to={`frag-${id}`} className="font-serif text-3xl sm:text-4xl mt-1" style={{ color: COLORS.ink }}>{name}</h2>;
+  // Moving from one fragrance to another keeps this page mounted: until the new
+  // row arrives, the old one is not shown under the new address.
+  const stale = f && String(f.id) !== String(id);
+  if ((f === undefined || stale) && typeof carried === "string" && carried) {
+    return (
+      <Reveal as="article" eager aria-labelledby="atlas-fragrance-h" aria-busy="true">
+        {back}
+        {heading(carried)}
+        <p role="status" className="mt-2 text-xs font-mono" style={{ color: COLORS.inkSoft }}>…</p>
+      </Reveal>
+    );
+  }
+  if (f === undefined || stale) return <p role="status" className="text-xs font-mono" style={{ color: COLORS.inkSoft }}>…</p>;
   if (f === null) return <p role={failed ? "alert" : "status"} className="text-sm" style={{ color: failed ? COLORS.danger : COLORS.inkSoft }}>{t(failed ? "atlas.loadFailed" : "atlas.fragrance.notFound")}</p>;
 
   const house = f.brand?.trim();
@@ -56,8 +74,8 @@ export default function FragrancePage({ id, terms }) {
   const similar = related?.similar ?? [];
   return (
     <Reveal as="article" eager aria-labelledby="atlas-fragrance-h">
-      <Link to="/atlas" className="text-sm underline underline-offset-4 inline-flex items-center min-h-[44px]" style={{ color: COLORS.forest }}>{t("atlas.nav.search")}</Link>
-      <h2 id="atlas-fragrance-h" className="font-serif text-3xl sm:text-4xl mt-1" style={{ color: COLORS.ink, viewTransitionName: `frag-${f.id}` }}>{f.name}</h2>
+      {back}
+      {heading(f.name)}
       <p className="mt-2 text-base flex flex-wrap items-center gap-x-4 gap-y-1" style={{ color: COLORS.inkSoft }}>
         {house && <Link to={entityHref("house", house)} className="underline underline-offset-4 inline-flex items-center min-h-[44px]" style={{ color: COLORS.ink }}>{t("atlas.fragrance.by", { house: termName(terms, "house", house.toLowerCase(), locale, house) })}</Link>}
         {f.year && <span className="font-mono tabular-nums">{t("atlas.fragrance.released", { year: String(f.year) })}</span>}
@@ -102,8 +120,8 @@ export default function FragrancePage({ id, terms }) {
         <section aria-labelledby="atlas-wear-h" className="mt-8 p-5" style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
           <h3 id="atlas-wear-h" className="font-serif italic text-xl mb-2" style={{ color: COLORS.ink }}>{t("atlas.fragrance.wear.title")}</h3>
           <ul className="text-sm grid gap-1 list-none p-0 m-0" style={{ color: COLORS.ink }}>
-            <li className="font-mono tabular-nums">{t("atlas.fragrance.wear.owners", { n: wear.owners })}</li>
-            {wear.wearers != null && <li className="font-mono tabular-nums">{t("atlas.fragrance.wear.wearers", { n: wear.wearers })}</li>}
+            <li className="font-mono tabular-nums">{t("atlas.fragrance.wear.owners", { n: wear.owners, count: Number(wear.owners) })}</li>
+            {wear.wearers != null && <li className="font-mono tabular-nums">{t("atlas.fragrance.wear.wearers", { n: wear.wearers, count: Number(wear.wearers) })}</li>}
             {wear.occasions?.length > 0 && <li>{t("atlas.fragrance.wear.occasions")}: {wear.occasions.map((o) => t(`wardrobe.occasions.${o}`)).join(", ")}</li>}
           </ul>
           <p className="text-xs mt-3" style={{ color: COLORS.dim }}>{t("atlas.fragrance.wear.note")}</p>

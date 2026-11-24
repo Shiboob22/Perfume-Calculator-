@@ -14,6 +14,13 @@ export function fmt2(x: number): string {
   return Number.isFinite(r) ? r.toFixed(2) : "—";
 }
 
+/** A price as text: whole when it has no cents ("400"), else two decimals ("320.50"). */
+export function fmtMoney(x: number): string {
+  const r = round2(x);
+  if (!Number.isFinite(r)) return "—";
+  return Number.isInteger(r) ? String(r) : r.toFixed(2);
+}
+
 /**
  * The total the calculator shows: the sum of the two rounded pours, so the
  * figure on a card always adds up on the scale. 30 mL at 15 % reads

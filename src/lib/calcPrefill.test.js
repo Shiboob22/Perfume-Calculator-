@@ -1,15 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { prefillFromQuery, startingBottle, afterOnboardingPath, cleanName, refFrom, shareQuery } from "./calcPrefill";
+import { prefillFromQuery, parseBest, startingBottle, afterOnboardingPath, cleanName, refFrom, shareQuery } from "./calcPrefill";
 
 const q = (s) => prefillFromQuery(new URLSearchParams(s));
 
 describe("shareQuery", () => {
   it("round-trips through prefillFromQuery", () => {
     const state = { name: "Neroli Eau", family: "fresh", size: 100, unit: "ml", conc: 20 };
-    expect(q(shareQuery(state))).toEqual({ ...state, recipe: null });
+    expect(q(shareQuery(state))).toEqual({ ...state, recipe: null, best: null, orders: [] });
   });
   it("keeps decimals and other units", () => {
-    expect(q(shareQuery({ name: "", family: "woody", size: 1.5, unit: "oz", conc: 22.5 }))).toEqual({ size: 1.5, unit: "oz", conc: 22.5, family: "woody", name: null, recipe: null });
+    expect(q(shareQuery({ name: "", family: "woody", size: 1.5, unit: "oz", conc: 22.5 }))).toEqual({ size: 1.5, unit: "oz", conc: 22.5, family: "woody", name: null, recipe: null, best: null, orders: [] });
   });
   it("leaves out anything blank or invalid", () => {
     expect(shareQuery({})).toBe("");
@@ -30,16 +30,16 @@ describe("prefillFromQuery recipe", () => {
 
 describe("prefillFromQuery", () => {
   it("reads a guide's link", () => {
-    expect(q("size=100&unit=ml&conc=25")).toEqual({ size: 100, unit: "ml", conc: 25, family: null, name: null, recipe: null });
+    expect(q("size=100&unit=ml&conc=25")).toEqual({ size: 100, unit: "ml", conc: 25, family: null, name: null, recipe: null, best: null, orders: [] });
   });
   it("reads a shared recipe's family", () => {
-    expect(q("size=50&unit=g&conc=30&family=oriental")).toEqual({ size: 50, unit: "g", conc: 30, family: "oriental", name: null, recipe: null });
+    expect(q("size=50&unit=g&conc=30&family=oriental")).toEqual({ size: 50, unit: "g", conc: 30, family: "oriental", name: null, recipe: null, best: null, orders: [] });
     expect(q("family=__proto__").family).toBeNull();
   });
   it("ignores missing, unknown and out-of-range values", () => {
-    expect(q("")).toEqual({ size: null, unit: null, conc: null, family: null, name: null, recipe: null });
-    expect(q("size=-5&unit=gallon&conc=150&family=citrus")).toEqual({ size: null, unit: null, conc: null, family: null, name: null, recipe: null });
-    expect(q("size=abc&unit=__proto__&conc=0")).toEqual({ size: null, unit: null, conc: null, family: null, name: null, recipe: null });
+    expect(q("")).toEqual({ size: null, unit: null, conc: null, family: null, name: null, recipe: null, best: null, orders: [] });
+    expect(q("size=-5&unit=gallon&conc=150&family=citrus")).toEqual({ size: null, unit: null, conc: null, family: null, name: null, recipe: null, best: null, orders: [] });
+    expect(q("size=abc&unit=__proto__&conc=0")).toEqual({ size: null, unit: null, conc: null, family: null, name: null, recipe: null, best: null, orders: [] });
   });
 });
 
@@ -98,5 +98,23 @@ describe("startingBottle", () => {
     expect(startingBottle(none, { default_unit: "floz" })).toEqual({ size: 100, unit: "floz" });
     expect(startingBottle(none, null)).toEqual({ size: 100, unit: "ml" });
     expect(startingBottle(none, { default_bottle: 0, default_unit: "cups" })).toEqual({ size: 100, unit: "ml" });
+  });
+});
+
+describe("order ids on a Bench link", () => {
+  const A = "11111111-1111-4111-8111-111111111111";
+  const B = "22222222-2222-4222-8222-222222222222";
+  it("keeps well-formed ids once, drops the rest", () => {
+    expect(prefillFromQuery(new URLSearchParams(`orders=${A},x,${B},${A}`)).orders).toEqual([A, B]);
+    expect(prefillFromQuery(new URLSearchParams("")).orders).toEqual([]);
+  });
+});
+
+describe("the best batch a Make again came from", () => {
+  it("reads <batch no>:<day> and nothing else", () => {
+    expect(parseBest("31:14")).toEqual({ no: 31, day: 14 });
+    expect(prefillFromQuery(new URLSearchParams("best=7:0")).best).toEqual({ no: 7, day: 0 });
+    for (const bad of [null, "", "31", "0:5", "31:-1", "31:9999", "a:b", "31:14:2", "123456:1"]) expect(parseBest(bad)).toBeNull();
+    expect(prefillFromQuery(new URLSearchParams("")).best).toBeNull();
   });
 });

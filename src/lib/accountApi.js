@@ -1,13 +1,13 @@
 import { supabase } from "./supabaseClient";
 import { authHeaders, apiError } from "./fragranceApi";
-import { EXPORT_TABLES } from "./exportData";
+import { EXPORT_TABLES, EXPORT_ORDER } from "./exportData";
 
 // Profile, waitlist and export read and write straight through Supabase:
 // each table is owner-only under RLS (supabase/tests/rls_isolation.sql), so
 // the user's own session can only ever touch their own rows. Deleting the
 // account needs the service role and goes through /api/account.
 
-const PROFILE_FIELDS = "locale, default_unit, default_bottle, digits, onboarded_at, sells, currency, bench_tour_at";
+const PROFILE_FIELDS = "locale, default_unit, default_bottle, digits, onboarded_at, sells, currency, bench_tour_at, shop_name";
 
 // The user's profile, or null if they have never saved one.
 export async function getProfile() {
@@ -46,7 +46,6 @@ const SELECT = { inventory: "*, fragrances(name)", fragrance_notes: "*, fragranc
 // The hosted API returns at most 1000 rows per request; page through, in a
 // stable order (a unique column) so no row moves between pages.
 const PAGE = 1000;
-const ORDER = { batches: "id", batch_checkins: "id", shared_recipes: "batch_id", inventory: "fragrance_id", fragrance_notes: "fragrance_id", calc_presets: "id", recipes: "id", recipe_versions: "id", recipe_ingredients: "id", wardrobe_bottles: "id", wear_log: "id", salon_profiles: "user_id", salon_posts: "id", salon_likes: "post_id", salon_follows: "followee_id", salon_reports: "id", profiles: "user_id", pro_waitlist: "user_id", user_plans: "user_id", fragrances: "id" };
 // The catalog is shared and readable by everyone: only the rows this user added.
 const MINE = { fragrances: "added_by" };
 
@@ -55,7 +54,8 @@ async function fetchAll(table, userId) {
   for (let from = 0; ; from += PAGE) {
     let query = supabase.from(table).select(SELECT[table] || "*");
     if (MINE[table]) query = query.eq(MINE[table], userId);
-    const { data, error } = await query.order(ORDER[table]).range(from, from + PAGE - 1);
+    for (const column of EXPORT_ORDER[table]) query = query.order(column);
+    const { data, error } = await query.range(from, from + PAGE - 1);
     // A table whose migration isn't on this database yet (the app can deploy
     // first) has nothing to export; it must not block the rest.
     if (error && (error.code === "PGRST205" || error.code === "42P01")) return rows;
@@ -80,4 +80,25 @@ export async function deleteAccount(confirm) {
     body: JSON.stringify({ confirm }),
   });
   if (!res.ok) throw await apiError(res);
+}
+
+export async function isAdmin() {
+  const { data, error } = await supabase.rpc("is_admin");
+  if (error) throw error;
+  return data === true;
+}
+
+// Admins: one Journal reminder now, by email and to every device with push on.
+// Answers { email: "sent"|"failed"|"off", push: "off" | { devices, sent, gone, failed } }.
+export async function sendReminderTest() {
+  const res = await fetch("/api/checkins?job=test", { method: "POST", headers: await authHeaders() });
+  if (!res.ok) throw await apiError(res);
+  return res.json();
+}
+
+// Bring a friend (0042), Pro only: { code, earned, cap, gift_ends_at }; the code is made on first ask.
+export async function inviteInfo() {
+  const res = await fetch("/api/account", { method: "POST", headers: { ...(await authHeaders()), "Content-Type": "application/json" }, body: JSON.stringify({ action: "invite" }) });
+  if (!res.ok) throw await apiError(res);
+  return res.json();
 }

@@ -1,18 +1,19 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
+import { hasBenchPlan } from "./lib/benchPlan";
 import { Navigate, useLocation, useParams } from "react-router-dom";
+import { useSmoothScroll } from "./motion/useSmoothScroll.js";
 import { useNavigate } from "./motion";
 import { flagOn } from "./lib/flags";
 import { tabFromPath, tabPath } from "./routes";
 import RenameNotice from "./components/kx/RenameNotice";
 import { SiteFooter, SiteHeader } from "./components/SiteChrome";
-import AppNav from "./components/AppNav";
+import AppNav, { AccountMenu } from "./components/AppNav";
 import PerfumeSearch from "./components/PerfumeSearch";
 import { COLORS } from "./lib/theme";
 import { surfaceCss } from "./lib/surfaces";
 import AuthGate from "./components/AuthGate";
 import { signOut } from "./lib/auth";
 import { useI18n, hasLocalChoice } from "./i18n/I18nProvider";
-import LanguageToggle from "./components/LanguageToggle";
 import ProLocked from "./components/ProLocked";
 import { EntitlementsProvider, useEntitlements } from "./lib/useEntitlements";
 import { ProfileProvider, useProfile, needsOnboarding } from "./lib/useProfile";
@@ -21,7 +22,7 @@ import { UpgradeProvider, PlanBadge } from "./components/plan/Upgrade";
 import { fetchPopular, warmUp } from "./lib/searchApi";
 import { flush } from "./lib/outbox";
 import { logBatch, listBatches, saveCheckIn } from "./lib/fragranceApi";
-import { dueNow, JOURNAL_CHANGED } from "./lib/journal";
+import { notesDue, JOURNAL_CHANGED } from "./lib/journal";
 import { installGlobalHandlers } from "./lib/reportError";
 import { PageTransition, Progress, Skeleton, motionOn } from "./motion";
 
@@ -52,6 +53,7 @@ const Wardrobe = lazy(() => import("./components/wardrobe/Wardrobe"));
 const Atlas = lazy(() => import("./components/atlas/Atlas"));
 const Salon = lazy(() => import("./components/salon/Salon"));
 const Nose = lazy(() => import("./components/nose/Nose"));
+const OrderQueue = lazy(() => import("./components/orders/OrderQueue"));
 const Onboarding = lazy(() => import("./components/Onboarding"));
 
 function prefetchTabs() {
@@ -70,15 +72,19 @@ export default function App() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { tab: param } = useParams();
-  const { pathname } = useLocation();
+  const { pathname, state: navState } = useLocation();
+  useSmoothScroll({ pathname });
   const tab = tabFromPath(pathname, param);
+  // Pour along is full screen only with a batch to pour; opened with nothing it sits in the app (audit L6).
+  const pourScreen = tab === "bench" && hasBenchPlan(navState);
   // cards and account are pages of their own, reached from links, not tabs.
-  const activeTab = TABS.includes(tab) ? tab : tab === "batches" || tab === "cards" || tab === "account" || tab === "labels" || tab === "wardrobe" || tab === "atlas" || tab === "salon" || tab === "nose" ? null : DEFAULT_TAB;
+  const activeTab = TABS.includes(tab) ? tab : tab === "batches" || tab === "cards" || tab === "account" || tab === "labels" || tab === "wardrobe" || tab === "atlas" || tab === "salon" || tab === "nose" || tab === "orders" || tab === "bench" ? null : DEFAULT_TAB;
   const wardrobeOn = flagOn("wardrobe");
   const atlasOn = flagOn("atlas");
   const salonOn = flagOn("salon");
   const noseOn = flagOn("nose");
   const shopOn = flagOn("shop");
+  const ordersOn = flagOn("orders");
   const setActiveTab = (id) => navigate(`${tabPath(id)}${id === "calculator" ? window.location.search : ""}`);
 
   // Start the search tab's popular shelf and wake the catalog functions
@@ -88,10 +94,11 @@ export default function App() {
 
   // Each tab is its own page to screen readers and the tab switcher.
   const page = activeTab ?? tab;
-  const pageHeading = page === "calculator" || page === "journal" || page === "selector" || page === "account" || page === "wardrobe" || page === "atlas" || page === "salon" || page === "nose" ? null
+  // Pages that draw their own h1 (RoomHeader, audit M4) get no hidden one.
+  const pageHeading = ["calculator", "journal", "selector", "account", "wardrobe", "atlas", "salon", "nose", "orders", "inventory", "ask", "batches", "labels"].includes(page) ? null
     : TABS.includes(page) || page === "batches" ? t(`app.tabs.${page}`) : page === "labels" ? t("labels.title") : page === "cards" ? t("cards.open") : null;
   useEffect(() => {
-    const name = TABS.includes(page) || page === "batches" ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : page === "labels" ? t("labels.title") : page === "wardrobe" ? t("wardrobe.title") : page === "atlas" ? t("atlas.title") : page === "salon" ? t("salon.title") : page === "nose" ? t("nose.title") : null;
+    const name = TABS.includes(page) || page === "batches" ? t(`app.tabs.${page}`) : page === "account" ? t("account.title") : page === "labels" ? t("labels.title") : page === "wardrobe" ? t("wardrobe.title") : page === "atlas" ? t("atlas.title") : page === "salon" ? t("salon.title") : page === "nose" ? t("nose.title") : page === "orders" ? t("orders.title") : null;
     document.title = name ? `${name} — ${t("brand")}` : t("brand");
   }, [page, t]);
 
@@ -144,37 +151,27 @@ export default function App() {
         <CountDueCheckIns />
         {/* Paper, bench-top and rule textures for the app (see lib/surfaces.js). */}
         <style>{SURFACE_CSS}</style>
-        {tab === "bench" ? (
+        {pourScreen ? (
           // Bench mode is full screen: no header or tabs at the scale.
           <Suspense fallback={<TabLoading />}><BenchMode /></Suspense>
         ) : (
         <div className="kx-bench-top min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0" style={{ backgroundColor: COLORS.paper }}>
-      <SiteHeader zone="app" active={activeTab === "calculator" ? "calculator" : activeTab === "journal" || tab === "batches" ? "journal" : tab === "wardrobe" ? "wardrobe" : tab === "atlas" ? "atlas" : tab === "salon" ? "salon" : tab === "nose" ? "nose" : undefined}
-        wardrobe={wardrobeOn} atlas={atlasOn} salon={salonOn} nose={noseOn} shop={shopOn}
-        language={<LanguageToggle />}
-        badge={<PlanBadge />}
-        extra={<>
-          <button type="button" onClick={() => navigate("/app/account")}
-            className="text-sm hover:underline underline-offset-4 min-h-[44px]"
-            style={{ color: tab === "account" ? COLORS.forest : COLORS.inkSoft }}
-            aria-current={tab === "account" ? "page" : undefined}>
-            {t("account.link")}
-          </button>
-          <button type="button" onClick={() => signOut()} className="text-sm hover:underline underline-offset-4 min-h-[44px]" style={{ color: COLORS.inkSoft }}>
-            {t("app.signOut")}
-          </button>
-        </>} />
-      <AppNav active={activeTab ?? tab ?? null} tabs={TABS} dueCount={dueCount}
-        flags={{ wardrobe: wardrobeOn, atlas: atlasOn, salon: salonOn, nose: noseOn, shop: shopOn }}
+      <SiteHeader zone="app" badge={<PlanBadge />}
+        extra={<AccountMenu current={tab === "account"} onSignOut={() => signOut()} />} />
+      <AppNav active={activeTab ?? tab ?? null} dueCount={dueCount}
+        flags={{ wardrobe: wardrobeOn, atlas: atlasOn, salon: salonOn, nose: noseOn, shop: shopOn, orders: ordersOn }}
         onSignOut={() => signOut()} />
 
       <Progress />
-      <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-4 empty:hidden"><RenameNotice /></div>
-      <PageTransition as="main" className="pb-16">
+      <div className="max-w-3xl mx-auto px-4 sm:px-8 pt-4 empty:hidden"><RenameNotice createdAt={user?.created_at} /></div>
+      {/* At least one screen tall: a room that is empty for a moment while it loads
+          never pulls the footer up into view (layout shift; motion M2). */}
+      <PageTransition as="main" className="pb-16 min-h-[100svh]">
         {/* One h1 per page for screen readers; Selector and Account title themselves. */}
         {pageHeading && <h1 className="sr-only">{pageHeading}</h1>}
         <Suspense fallback={<TabLoading />}>
         {tab === "cards" && <BenchCards />}
+        {tab === "bench" && <BenchMode />}
         {tab === "atlas" && (atlasOn ? <Atlas /> : <Navigate to="/bench" replace />)}
         {tab === "salon" && (salonOn ? <Salon /> : <Navigate to="/bench" replace />)}
         {tab === "nose" && (noseOn ? <Nose /> : <Navigate to="/bench" replace />)}
@@ -191,6 +188,7 @@ export default function App() {
         )}
         {activeTab === "journal" && <JournalRoom />}
         {tab === "batches" && <Batches />}
+        {tab === "orders" && (ordersOn ? <Gate feature="orders"><OrderQueue /></Gate> : <Navigate to="/bench" replace />)}
         {activeTab === "inventory" && <Gate feature="inventory"><Inventory /></Gate>}
         {/* Kept mounted so the conversation survives switching tabs. */}
         {(chatOpened || activeTab === "ask") && (
@@ -200,7 +198,8 @@ export default function App() {
         )}
         </Suspense>
       </PageTransition>
-      <SiteFooter />
+      {/* The flammability line where blending is talked through (audit M9): Ask; the Bench, Pour along and the Salon carry their own. */}
+      <SiteFooter safety={activeTab === "ask"} />
     </div>
         )}
         </OnboardingGate>
@@ -251,7 +250,7 @@ function CountDueCheckIns() {
     listBatches(100)
       .then((b) => {
         const open = journalOpen(entitlements, b);
-        window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: dueNow(b.filter((x) => open.has(x.id))).length } }));
+        window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: notesDue(b.filter((x) => open.has(x.id))) } }));
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps -- recount when the plan loads or changes
@@ -262,9 +261,10 @@ function CountDueCheckIns() {
 function TabLoading() {
   const { t } = useI18n();
   // With the motion layer on, a still page of slow-sweeping lines; the words stay for screen readers.
+  // Tall enough to keep the footer below the fold, so it does not jump when the page arrives.
   if (motionOn()) {
     return (
-      <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 grid gap-3" role="status">
+      <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 grid gap-3 content-start min-h-[100svh]" role="status">
         <span className="sr-only">{t("app.loading")}</span>
         <Skeleton w="38%" h={28} />
         <Skeleton w="100%" h={14} />
@@ -274,7 +274,7 @@ function TabLoading() {
     );
   }
   return (
-    <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 text-xs font-mono" style={{ color: COLORS.inkSoft }}>
+    <div className="max-w-3xl mx-auto px-6 sm:px-8 py-10 text-xs font-mono min-h-[100svh]" style={{ color: COLORS.inkSoft }}>
       {t("app.loading")}
     </div>
   );

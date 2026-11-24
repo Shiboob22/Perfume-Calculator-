@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   weightRatio,
   weightShare,
-  round2, fmt2, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs,
+  round2, fmt2, fmtMoney, solveBottle, solveFromOil, adjustConcentration, solveRun, checkInputs,
   checkPour, alcoholForOil, labelWeights, measuredDensity, batchCost, costPer, margin, batchEconomics, byVolume, fromWeights,
   concentrationOf, displayed, volumeToWeightFraction, weightToVolumeFraction, toBase,
   isVolumeUnit, gToOz, mlToFlOz, UNITS, type Unit,
@@ -31,6 +31,12 @@ describe("round2", () => {
   it("formats two decimals and rejects non-numbers", () => {
     expect(fmt2(4.275)).toBe("4.28");
     expect(fmt2(3)).toBe("3.00");
+    // Prices drop ".00" (audit M13) but keep real cents and round like fmt2.
+    expect(fmtMoney(400)).toBe("400");
+    expect(fmtMoney(320.5)).toBe("320.50");
+    expect(fmtMoney(4.275)).toBe("4.28");
+    expect(fmtMoney(399.999)).toBe("400");
+    expect(fmtMoney(NaN)).toBe("—");
     expect(fmt2(NaN)).toBe("—");
     expect(Number.isNaN(round2(Infinity))).toBe(true);
   });

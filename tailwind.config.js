@@ -21,6 +21,11 @@ export default {
       ringOpacity: { DEFAULT: "1" },
       // Kyphira board: 2 px corners everywhere (circles only for the ember and avatars).
       borderRadius: { DEFAULT: "2px" },
+      // Motion: Tailwind's own transition and pulse defaults read the same tokens as everything else
+      // (src/motion/config.js; docs/redesign/motion/GRAMMAR.md), so `transition` and `animate-pulse` match the rest.
+      transitionDuration: { DEFAULT: "var(--mo-fast)", fast: "var(--mo-fast)", base: "var(--mo-base)", slow: "var(--mo-slow)" },
+      transitionTimingFunction: { DEFAULT: "var(--mo-ease)", out: "var(--mo-ease)", "in-out": "var(--mo-ease-io)" },
+      animation: { pulse: "pulse var(--mo-ambient) var(--mo-ease-io) infinite" },
       fontFamily: {
         serif: ["'Instrument Serif'", "'Instrument Serif Fallback'", "'Readex Pro Variable'", "Georgia", ...ARABIC_SYSTEM, "serif"],
         sans: ["'Instrument Sans Variable'", "'Instrument Sans Fallback'", "'Readex Pro Variable'", ...ARABIC_SYSTEM, "system-ui", "sans-serif"],

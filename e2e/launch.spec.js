@@ -54,9 +54,13 @@ test("with every flag on, each room opens from the nav", async ({ page }) => {
   await expect(page.getByRole("link", { name: en.site.nav.calculator }).first()).toBeVisible();
   for (const room of ROOMS) {
     // Phones show four rooms on the bottom bar; the rest are behind More.
+    // More lists each room under its page title (audit M12).
     const link = page.getByRole("link", { name: en.site.nav[room.nav], exact: true }).first();
-    if (!(await link.isVisible())) await page.getByRole("button", { name: en.app.more }).click();
-    await link.click();
+    if (await link.isVisible()) await link.click();
+    else {
+      await page.getByRole("button", { name: en.app.more }).click();
+      await page.getByRole("dialog", { name: en.app.more }).getByRole("link", { name: room.title(en), exact: true }).click();
+    }
     await expect(page, room.path).toHaveURL(new RegExp(`${room.path}$`));
     await expect(page.getByRole("heading", { level: 1, name: room.title(en) })).toBeVisible();
   }

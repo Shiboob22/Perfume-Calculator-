@@ -260,7 +260,7 @@ test("editors see the report queue and act on it; others are told it is for edit
   const seen = await fakeApi(page, { admin: true, queue });
   await page.goto("/salon/moderation");
   await expect(page.getByRole("heading", { name: "Buy my oil" })).toBeVisible();
-  await expect(page.getByText(en.salon.mod.reports.replace("{n}", "3"))).toBeVisible();
+  await expect(page.getByText(en.salon.mod.reports.other.replace("{n}", "3"))).toBeVisible();
   await page.getByRole("button", { name: en.salon.mod.hide }).click();
   await expect(page.getByText(en.salon.mod.did.hide)).toBeVisible();
   expect(seen.moderate.at(-1)).toEqual({ p_report: "rep1", p_action: "hide" });

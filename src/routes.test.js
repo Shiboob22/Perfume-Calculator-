@@ -5,8 +5,8 @@ import { REDIRECTS, isAppPath, tabPath, tabFromPath } from "./routes.js";
 
 describe("routes", () => {
   it("serves /app and /bench as the app", () => {
-    expect(["/app", "/app/search", "/bench", "/bench/journal", "/journal", "/ar/journal", "/wardrobe", "/atlas", "/atlas/fragrance/x", "/salon", "/salon/u/ada", "/nose"].every(isAppPath)).toBe(true);
-    expect(["/", "/benchmark", "/library", "/ar/bench"].some(isAppPath)).toBe(false);
+    expect(["/app", "/app/search", "/bench", "/bench/journal", "/journal", "/ar/journal", "/ar/bench", "/wardrobe", "/atlas", "/atlas/fragrance/x", "/salon", "/salon/u/ada", "/nose"].every(isAppPath)).toBe(true);
+    expect(["/", "/benchmark", "/library", "/ar/benchmark"].some(isAppPath)).toBe(false);
   });
 
   it("maps tabs to URLs and back", () => {
@@ -17,6 +17,7 @@ describe("routes", () => {
     expect(tabFromPath("/bench/journal", undefined)).toBe("batches");
     expect(tabFromPath("/journal", undefined)).toBe("journal");
     expect(tabFromPath("/ar/journal", undefined)).toBe("journal");
+    expect(tabFromPath("/ar/bench", undefined)).toBe("calculator");
     expect(tabPath("journal")).toBe("/journal");
     expect(tabFromPath("/app/inventory", "inventory")).toBe("inventory");
     expect(tabFromPath("/app", undefined)).toBeUndefined();
@@ -49,6 +50,7 @@ describe("routes", () => {
     expect(to("/nose")).toBe("/app/index.html");
     expect(to("/journal")).toBe("/app/index.html");
     expect(to("/ar/journal")).toBe("/app/index.html");
+    expect(to("/ar/bench")).toBe("/app/index.html");
   });
 
   it("serves the public Shop pages from the shell, in both languages", () => {

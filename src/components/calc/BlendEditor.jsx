@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useLayoutEffect, useReducer, useRef } from "react";
 import { COLORS, INGREDIENT_SWATCH } from "../../lib/theme";
 import { INGREDIENT_KEYS, balanceShares, blendMix, ingredientAmounts, fmt2 } from "../../lib/calc";
+import { useSceneCtx } from "../../motion/gsap/index.js";
+import { rowIn, rowOut } from "./scene.js";
 
 // A blend: the concentrate made of several materials, each a share of the
 // concentrate by weight (Bench SaaS). The arithmetic is in lib/calc/mixture;
@@ -26,6 +28,35 @@ export default function BlendEditor({ rows, onChange, concentrateG, canAdd, cap,
   const off = isOffHundred(rows);
   const grams = ingredientAmounts(concentrateG, rows);
   const set = (i, patch) => onChange(rows.map((r, n) => (n === i ? { ...r, ...patch } : r)));
+  const root = useRef(null);
+  const scene = useSceneCtx(root);
+  const added = useRef(null); // id of a row the user just added
+  const latest = useRef(rows);
+  latest.current = rows;
+  const leaving = useRef(new Set());
+  const [, bump] = useReducer((n) => n + 1, 0);
+  const lastOne = rows.length - leaving.current.size <= 1; // rows still leaving are as good as gone
+  useLayoutEffect(() => () => leaving.current.clear(), []);
+  useLayoutEffect(() => {
+    const id = added.current;
+    added.current = null;
+    const el = id && root.current?.querySelector(`[data-row-id="${id}"]`);
+    if (el) scene?.add(() => rowIn(scene, el));
+  }, [rows]); // eslint-disable-line react-hooks/exhaustive-deps
+  const addRow = () => {
+    const row = newIngredient();
+    added.current = row.id;
+    onChange([...rows, row]);
+  };
+  const removeRow = (id, el) => {
+    if (leaving.current.has(id) || latest.current.length - leaving.current.size <= 1) return;
+    leaving.current.add(id);
+    bump();
+    rowOut(scene, el).then(() => {
+      leaving.current.delete(id);
+      onChange(latest.current.filter((r) => r.id !== id));
+    });
+  };
   const move = (i, d) => {
     const next = rows.slice();
     [next[i], next[i + d]] = [next[i + d], next[i]];
@@ -35,7 +66,7 @@ export default function BlendEditor({ rows, onChange, concentrateG, canAdd, cap,
   const field = { borderColor: COLORS.field, color: COLORS.ink };
 
   return (
-    <fieldset className="mb-5 min-w-0">
+    <fieldset ref={root} className="mb-5 min-w-0">
       <legend className="w-full mb-2">
         <span className="flex items-baseline justify-between gap-3 text-sm font-semibold" style={{ color: COLORS.ink }}>
           <span>{t("calc.blend.ingredients")}</span>
@@ -45,7 +76,7 @@ export default function BlendEditor({ rows, onChange, concentrateG, canAdd, cap,
       </legend>
       <ol className="flex flex-col gap-2">
         {rows.map((r, i) => (
-          <li key={r.id} className="p-2.5 rounded flex flex-col gap-2" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.cardHi }}>
+          <li key={r.id} data-row-id={r.id} className="p-2.5 rounded flex flex-col gap-2" style={{ border: `1px solid ${COLORS.line}`, background: COLORS.cardHi }}>
             <div className="flex items-center gap-2">
               <span aria-hidden="true" className="w-1.5 self-stretch shrink-0" style={{ background: INGREDIENT_SWATCH[r.type] ?? INGREDIENT_SWATCH.eo }} />
               <input type="text" value={r.name} onChange={(e) => set(i, { name: e.target.value })}
@@ -57,7 +88,7 @@ export default function BlendEditor({ rows, onChange, concentrateG, canAdd, cap,
                   className="w-14 ps-2 pe-1 text-[15px] text-end bg-transparent tabular-nums outline-none" style={{ color: COLORS.ink }} />
                 <span className="pe-2 text-[13px]" style={{ color: COLORS.dim }}>%</span>
               </span>
-              <button type="button" onClick={() => onChange(rows.filter((_, n) => n !== i))} disabled={rows.length === 1}
+              <button type="button" onClick={(e) => removeRow(r.id, e.currentTarget.closest("li"))} disabled={lastOne}
                 aria-label={t("calc.blend.removeN", { n: i + 1 })}
                 className="w-11 h-11 shrink-0 inline-flex items-center justify-center disabled:opacity-40" style={{ color: COLORS.inkSoft }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
@@ -88,7 +119,7 @@ export default function BlendEditor({ rows, onChange, concentrateG, canAdd, cap,
         ))}
       </ol>
       <div className="flex flex-wrap items-center gap-3 mt-2.5">
-        <button type="button" onClick={() => (canAdd ? onChange([...rows, newIngredient()]) : onLocked())}
+        <button type="button" onClick={() => (canAdd ? addRow() : onLocked())}
           aria-describedby={canAdd ? undefined : "calc-blend-limit"}
           className="min-h-[44px] px-3.5 inline-flex items-center gap-2 text-sm rounded"
           style={{ border: `1px dashed ${COLORS.field}`, color: COLORS.ink }}>

@@ -53,6 +53,6 @@ for (const [path, lang] of [["/", "en"], ["/ar", "ar"], ["/library/the-calculati
 
 test("Arabic home: the bench in Arabic, numbers left to right", async ({ page }) => {
   await page.goto("/ar");
-  await expect(page.getByText(ar.site.home.bench.label)).toBeVisible();
+  await expect(page.getByText(ar.site.home.bench.label, { exact: true })).toBeVisible();
   await expect(readout(page).first()).toHaveAttribute("dir", "ltr");
 });

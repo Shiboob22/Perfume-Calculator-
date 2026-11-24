@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { addBottle, deleteBottle, updateBottle } from "../../lib/wardrobeApi";
@@ -6,6 +6,7 @@ import { costPerWear, wearCounts } from "../../lib/wardrobe/stats";
 import Button from "../kx/Button";
 import Confirm from "../kx/Confirm";
 import { Reveal, Stagger } from "../../motion";
+import { useFlipList } from "../../motion/gsap/index.js";
 import BottleForm from "./BottleForm";
 import { catalogueNumber } from "../kx/Card";
 import { roman } from "../../content/kyphi";
@@ -38,6 +39,8 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
   const [status, setStatus] = useState("");
   const counts = wearCounts(wear);
   const owned = bottles.filter((b) => b.status === "owned");
+  const gridRef = useRef(null);
+  useFlipList(gridRef, owned.map((b) => b.id).join());
 
   async function save(row, id) {
     const saved = id ? await updateBottle(id, row) : await addBottle({ ...row, status: "owned" });
@@ -75,12 +78,13 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
       {owned.length === 0 && mode !== "add" && (
         <p className="mt-6 p-6 text-sm text-center" style={{ background: COLORS.card, border: `1px dashed ${COLORS.line}`, color: COLORS.inkSoft }}>{t("wardrobe.collection.empty")}</p>
       )}
+      <div ref={gridRef}>
       <Stagger as="ul" eager className="mt-6 grid gap-4 sm:grid-cols-2">
         {owned.map((b, i) => {
           const wears = counts.get(b.id) ?? 0;
           const per = costPerWear(b, wears);
           return (
-            <li key={b.id} className={`p-5 flex flex-col ${mode === b.id ? "sm:col-span-2" : ""}`} style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
+            <li key={b.id} data-flip data-flip-id={b.id} className={`p-5 flex flex-col ${mode === b.id ? "sm:col-span-2" : ""}`} style={{ background: COLORS.card, border: `1px solid ${COLORS.line}` }}>
               {mode === b.id ? (
                 <BottleForm initial={b} today={today} onSave={(row) => save(row, b.id)} onCancel={() => setMode(null)} />
               ) : (
@@ -96,7 +100,7 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
                     {b.size_ml != null && <Chip><span className="font-mono tabular-nums" dir="ltr">{Number(b.size_ml)} mL</span></Chip>}
                   </div>
                   <ul className="text-sm mt-3 font-mono tabular-nums list-none p-0" style={{ color: COLORS.inkSoft }}>
-                    <li>{wears === 0 ? t("wardrobe.collection.neverWorn") : wears === 1 ? t("wardrobe.collection.wearsOne") : t("wardrobe.collection.wears", { n: wears })}</li>
+                    <li>{wears === 0 ? t("wardrobe.collection.neverWorn") : wears === 1 ? t("wardrobe.collection.wearsOne") : t("wardrobe.collection.wears", { n: wears, count: wears })}</li>
                     {b.size_ml != null && <li dir="ltr">{t("wardrobe.leftOf", { left: (Number(b.size_ml) * Number(b.fill_pct ?? 100) / 100).toFixed(0), size: Number(b.size_ml) })}</li>}
                     {per != null && <li>{t("wardrobe.collection.perWear", { amount: money(per, b.currency) })}</li>}
                   </ul>
@@ -104,7 +108,7 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
                     <span className="mo-gauge block h-full w-full origin-left rtl:origin-right" style={{ background: COLORS.resin, transform: `scaleX(${Number(b.fill_pct ?? 100) / 100})` }} />
                   </div>
                   <div className="mt-1"><Fill bottle={b} onCommit={(pct) => setFill(b, pct)} /></div>
-                  {b.note && <p className="text-sm mt-1" style={{ color: COLORS.inkSoft }}>{b.note}</p>}
+                  {b.note && <p dir="auto" className="text-sm mt-1" style={{ color: COLORS.inkSoft }}>{b.note}</p>}
                   <div className="flex flex-wrap gap-3 mt-auto pt-3">
                     <Button variant="secondary" onClick={() => { setMode(b.id); setStatus(""); }} aria-label={t("wardrobe.collection.edit", { name: b.name })}>{t("wardrobe.collection.editShort")}</Button>
                     {confirming === b.id ? (
@@ -120,6 +124,7 @@ export default function Collection({ bottles, wear, today, setBottles, onGone })
           );
         })}
       </Stagger>
+      </div>
     </section>
   );
 }

@@ -1,9 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { buildUserProfile, familyBars, hasSignal, identityOf, recommend, signatureOf } from "../../lib/selector";
 import { targetAccords } from "../../lib/selector";
 import { fetchCandidates } from "../../lib/selector/api";
+import { useSceneCtx } from "../../motion/gsap/index.js";
+import { resultsIn } from "./scene.js";
 
 const pct = (v) => (v === null || v === undefined ? null : Math.round(v * 100));
 const avg = (list) => { const v = list.filter((x) => typeof x === "number"); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
@@ -65,6 +67,19 @@ export default function Results({ answers, known, onEdit, onRestart, onSelectPer
   }, [user, signal, attempt]);
 
   const outcome = useMemo(() => (load.status === "done" ? recommend(user, load.pool) : null), [user, load]);
+  const rootRef = useRef(null);
+  const olRef = useRef(null);
+  const scene = useSceneCtx(rootRef);
+  const doneKey = useRef("");
+  const matchKey = outcome?.status === "ok" ? outcome.matches.map((m) => m.profile.id).join(",") : "";
+  // Once per new set of matches: the rows only, never the aria-live region above them.
+  useLayoutEffect(() => {
+    if (!matchKey || doneKey.current === matchKey) return;
+    doneKey.current = matchKey; // shown without motion counts as shown: never hidden and replayed later
+    if (!scene) return;
+    const rows = olRef.current ? Array.from(olRef.current.children) : [];
+    scene.add(() => resultsIn(scene, rows));
+  }, [matchKey, scene]);
   const list = (items) => new Intl.ListFormat(locale, { style: "long", type: "conjunction" }).format(items);
 
   const identity = identityOf(user);
@@ -90,7 +105,7 @@ export default function Results({ answers, known, onEdit, onRestart, onSelectPer
   if (!signal) return <Notice title={t("selector.noSignal.title")} text={t("selector.noSignal.text")} action={t("selector.noSignal.action")} onAction={onEdit} />;
 
   return (
-    <div>
+    <div ref={rootRef}>
       <h2 className="font-serif italic text-3xl" style={{ color: COLORS.ink }}>{t("selector.results.title")}</h2>
       <div className="mt-4">
         <Block title={t("selector.results.identity")} note={t("selector.results.identityNote")}>{identityName || t("selector.results.notStated")}</Block>
@@ -129,7 +144,7 @@ export default function Results({ answers, known, onEdit, onRestart, onSelectPer
           : <Notice title={t("selector.noSignal.title")} text={t("selector.noSignal.text")} action={t("selector.noSignal.action")} onAction={onEdit} />
       )}
       {outcome?.status === "ok" && (
-        <ol className="grid gap-4">
+        <ol ref={olRef} className="grid gap-4">
           {outcome.matches.map((m, i) => (
             <li key={m.profile.id} className="p-5 border" style={{ borderColor: COLORS.ink, background: COLORS.card }}>
               <div className="flex items-start justify-between gap-4">

@@ -13,17 +13,19 @@ import { errorText } from "../i18n/errorText";
 import { useEntitlements } from "../lib/useEntitlements";
 import EmptyState from "./EmptyState";
 import { refusedBatches, dismissRefused } from "../lib/outbox";
-import { Stagger, useNavigate } from "../motion";
+import { Link, Stagger, useNavigate } from "../motion";
+import { useFlipList } from "../motion/gsap/index.js";
 import { can, journalOpen } from "../lib/entitlements";
-import { dueNow, JOURNAL_CHANGED, restTimeline } from "../lib/journal";
+import { JOURNAL_CHANGED, notesDue, restTimeline } from "../lib/journal";
 import { IconHourglass, IconSeal, IconDrop, IconToday, IconPlus } from "./icons";
-import JournalDue from "./journal/JournalDue";
 import JournalPatterns from "./journal/JournalPatterns";
 import BatchJournal from "./journal/BatchJournal";
 import SharePanel from "./SharePanel";
 import BatchEdit from "./BatchEdit";
 import WaitlistButton from "./WaitlistButton";
 import { makeAgainHref } from "../lib/oilHistory";
+import ListSkeleton from "./kx/ListSkeleton";
+import RoomHeader from "./kx/RoomHeader";
 
 // The engine's rounding, so a stored batch reads as the calculator showed it.
 function round2(n) {
@@ -62,8 +64,10 @@ function BatchTiming({ batch }) {
 function BatchList({ batches, selectedId, onSelect }) {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const ref = useRef(null);
+  useFlipList(ref, batches.map((b) => b.id).join());
   return (
-    <nav aria-label={t("journal.listTitle")} style={{ border: `1px solid ${COLORS.ink}`, background: COLORS.card }}>
+    <nav ref={ref} aria-label={t("journal.listTitle")} style={{ border: `1px solid ${COLORS.ink}`, background: COLORS.card }}>
       <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid ${COLORS.ink}` }}>
         <span className="text-[11px] uppercase tracking-[0.15em] rtl:tracking-normal" style={{ color: COLORS.dim }}>{t("journal.listTitle")}</span>
         <span dir="ltr" className="font-mono text-xs" style={{ color: COLORS.dim }}>{batches.length}</span>
@@ -73,7 +77,7 @@ function BatchList({ batches, selectedId, onSelect }) {
           const tl = restTimeline(b);
           const on = b.id === selectedId;
           return (
-            <li key={b.id} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+            <li key={b.id} data-flip data-flip-id={b.id} style={{ borderBottom: `1px solid ${COLORS.line}` }}>
               <button type="button" onClick={() => onSelect(b.id)} aria-current={on ? "true" : undefined}
                 className="w-full grid grid-cols-[36px_minmax(0,1fr)_auto] gap-3 items-center px-4 py-3 text-start min-h-[60px]"
                 style={{ background: on ? COLORS.sand : "transparent", borderInlineStart: `3px solid ${on ? COLORS.forest : "transparent"}` }}>
@@ -185,12 +189,13 @@ export default function Batches() {
   // Free keeps notes on its newest 3 batches, Pro on all (journalOpen); the
   // check-in API refuses the rest on its own.
   const journalIds = journalOpen(entitlements, batches);
-  const due = loading || error ? [] : dueNow(batches.filter((b) => journalIds.has(b.id)));
 
-  // The app header shows how many check-ins are due; keep it in step.
+  // The nav badge counts what the Journal room counts (notesDue: milestones in
+  // the last week), not this page's older check-in schedule; keep it in step.
+  const badge = loading || error ? null : notesDue(batches.filter((b) => journalIds.has(b.id)));
   useEffect(() => {
-    if (!loading && !error) window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: due.length } }));
-  }, [due.length, loading, error]);
+    if (badge !== null) window.dispatchEvent(new CustomEvent(JOURNAL_CHANGED, { detail: { due: badge } }));
+  }, [badge]);
 
   // A check-in saved (or queued offline) on one batch: show it straight
   // away, replacing an earlier answer to the same point.
@@ -282,6 +287,10 @@ export default function Batches() {
               </div>
               <div className="flex flex-wrap items-center gap-3 shrink-0 sm:ms-3">
                 <BatchEdit batch={b} onSaved={handleEdited} onStatus={setStatus} />
+                <button type="button" onClick={() => navigate(`${locale === "ar" ? "/ar" : ""}/journal?batch=${b.id}`)}
+                  className="text-xs font-mono underline min-h-[24px]" style={{ color: COLORS.forest }}>
+                  {t("batches.openJournal")}
+                </button>
                 <button type="button" onClick={() => navigate(makeAgainHref(b))}
                   className="text-xs font-mono underline min-h-[24px]" style={{ color: COLORS.forest }}>
                   {t("batches.again")}
@@ -353,7 +362,7 @@ export default function Batches() {
               </div>
             )}
             {b.notes && (
-              <div className="text-sm italic mt-2" style={{ color: COLORS.inkSoft }}>{b.notes}</div>
+              <div dir="auto" className="text-sm italic mt-2" style={{ color: COLORS.inkSoft }}>{b.notes}</div>
             )}
             <BatchJournal batch={b} canAdd={journalIds.has(b.id)} onDone={handleCheckIn} onRemoved={handleCheckInRemoved} />
             <div className="mt-2">
@@ -365,10 +374,9 @@ export default function Batches() {
   return (
     <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14 py-8" style={{ backgroundColor: COLORS.paper, color: COLORS.ink }}>
       <RoomBeam at={0} />
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 mb-6">
-        <h2 ref={headingRef} tabIndex={-1} className="font-serif font-light text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.1] rtl:leading-[1.5] tracking-[-0.01em] rtl:tracking-normal" style={{ color: COLORS.ink }}>{t("batches.title")}</h2>
+      <RoomHeader name={t("batches.title")} headingRef={headingRef}>
         {batches.length > 0 && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 mt-3">
             <span className="text-xs" style={{ color: COLORS.inkSoft }}>
               {t("batches.summary", { count: batches.length, cost: round2(totalOilCost) })}
             </span>
@@ -383,7 +391,7 @@ export default function Batches() {
             </button>}
           </div>
         )}
-      </div>
+      </RoomHeader>
 
       {capped && (
         <p className="text-xs font-mono mb-4" style={{ color: batches.length >= entitlements.batchCap ? COLORS.danger : COLORS.inkSoft }}>
@@ -429,10 +437,11 @@ export default function Batches() {
         </div>
       )}
 
-      <JournalDue due={due} onDone={handleCheckIn} />
+      {/* Notes live in the Journal (audit M3, owner 2026-11-22): this page keeps the records, not a second check-in strip. */}
+      <p className="mb-6 text-sm"><Link to="/journal" data-notes-in-journal className="underline underline-offset-4 inline-flex min-h-[44px] items-center" style={{ color: COLORS.actionText }}>{t("batches.notesInJournal")}</Link></p>
       {!loading && batches.length > 0 && <JournalPatterns version={patternsVersion} />}
 
-      {loading && <p className="text-sm font-mono" style={{ color: COLORS.inkSoft }}>{t("app.loading")}</p>}
+      {loading && <ListSkeleton label={t("app.loading")} rows={5} bar className="max-w-[22rem]" />}
       {error && <p className="text-sm font-mono" style={{ color: COLORS.danger }}>{error}</p>}
       {!loading && !error && batches.length === 0 && (
         <EmptyState text={t("batches.empty")} action={t("batches.emptyAction")} to="/bench" />

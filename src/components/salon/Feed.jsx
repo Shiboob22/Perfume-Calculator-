@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Link, Stagger } from "../../motion";
 import { COLORS } from "../../lib/theme";
@@ -6,6 +6,8 @@ import { useI18n } from "../../i18n/I18nProvider";
 import { getFeed } from "../../lib/salonApi";
 import Button from "../kx/Button";
 import PostCard from "./PostCard";
+import { useRoomScene } from "../../motion/gsap/index.js";
+import { pagesIn } from "./scene.js";
 
 const TABS = ["all", "recipe", "review", "following"];
 const PAGE = 20;
@@ -21,6 +23,8 @@ export default function Feed({ handle = null, emptyKey = "salon.feed.empty" }) {
   const [more, setMore] = useState(false);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  const ref = useRef(null);
+  useRoomScene(ref, pagesIn, [tab, rows?.length ?? -1]);
 
   const load = useCallback(async (before = null) => {
     const page = await getFeed({ handle, kind: tab === "recipe" || tab === "review" ? tab : null, following: tab === "following", before, limit: PAGE });
@@ -43,7 +47,7 @@ export default function Feed({ handle = null, emptyKey = "salon.feed.empty" }) {
   }
 
   return (
-    <section aria-labelledby="salon-feed-h">
+    <section ref={ref} aria-labelledby="salon-feed-h">
       <h2 id="salon-feed-h" className="sr-only">{t("salon.feed.label")}</h2>
       {!handle && (
         <div role="group" aria-label={t("salon.feed.tabsLabel")} className="flex flex-wrap gap-2 mb-5">
@@ -66,7 +70,7 @@ export default function Feed({ handle = null, emptyKey = "salon.feed.empty" }) {
       )}
       <Stagger as="ul" eager key={tab} className="grid gap-4 list-none p-0 m-0">
         {(rows ?? []).map((p) => (
-          <li key={p.id}><PostCard post={p} onRemoved={(id) => setRows((r) => r.filter((x) => x.id !== id))} /></li>
+          <li key={p.id} data-page><PostCard post={p} onRemoved={(id) => setRows((r) => r.filter((x) => x.id !== id))} /></li>
         ))}
       </Stagger>
       {more && <div className="mt-6"><Button variant="secondary" loading={busy} onClick={loadMore}>{t("salon.more")}</Button></div>}

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  cleanPrefs, cleanQuestion, dailyCap, groundAnswer, killSwitchOn, preRedirect, rankCandidates, rankShelf, reasonOk,
+  cleanPrefs, cleanQuestion, dailyCap, groundAnswer, inFamily, killSwitchOn, preRedirect, rankCandidates, rankShelf, reasonOk,
   MAX_QUESTION_CHARS, DEFAULT_DAILY_CAP, type Row,
 } from './nose.js';
 
@@ -149,3 +149,27 @@ describe('rankShelf', () => {
   });
 });
 
+
+describe('the fougère family', () => {
+  it('is a family the Nose can read', () => {
+    expect(cleanPrefs({ intent: 'recommend', accords: ['Woody'], avoid: [], notes: [], family: 'fougere' }, vocab).family).toBe('fougere');
+  });
+  it('matches by tier or by the catalog text, either spelling, Aromatic or Amber', () => {
+    expect(inFamily({ tier: 'fougere', olfactory_family: null }, 'fougere')).toBe(true);
+    expect(inFamily({ tier: 'fresh', olfactory_family: 'Aromatic Fougère' }, 'fougere')).toBe(true);
+    expect(inFamily({ tier: 'woody', olfactory_family: 'Aromatic Fougere' }, 'fougere')).toBe(true);
+    expect(inFamily({ tier: 'amber', olfactory_family: 'Amber Fougere' }, 'fougere')).toBe(true);
+    expect(inFamily({ tier: 'fresh', olfactory_family: 'Aromatic' }, 'fougere')).toBe(false);
+    expect(inFamily({ tier: 'woody', olfactory_family: 'Woody' }, 'fougere')).toBe(false);
+  });
+  it('other families still need the exact family', () => {
+    expect(inFamily({ tier: 'fresh', olfactory_family: 'Woody' }, 'woody')).toBe(true);
+    expect(inFamily({ tier: 'fresh', olfactory_family: 'Woody Aromatic' }, 'woody')).toBe(false);
+  });
+  it('puts a fougère ahead of an equal non-fougère, and on the shelf', () => {
+    const rows = [row('a', 'Plain', ['Woody']), row('b', 'Barbershop', ['Woody'], { tier: 'fresh', olfactory_family: 'Aromatic Fougère' })];
+    expect(rankCandidates(rows, { accords: ['Woody'], avoid: [], family: 'fougere' }).map((c) => c.id)).toEqual(['b', 'a']);
+    const shelf = rankShelf([{ id: 'k', name: 'Kouros-type', family: 'fougere', accords: null }], { accords: ['Lavender'], avoid: [], family: 'fougere' });
+    expect(shelf.map((b) => b.id)).toEqual(['k']);
+  });
+});

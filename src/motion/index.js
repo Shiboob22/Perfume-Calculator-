@@ -2,8 +2,13 @@ import { flagOn } from "../lib/flags.js";
 import { syncEnv } from "./env.js";
 
 export { TOKENS, motionVars, staggerIndex, splitWords, countValue } from "./config.js";
-export { motionOn, reduced, lowPower, supportsViewTransitions } from "./env.js";
+export { motionOn, reduced, calm, lowPower, supportsViewTransitions } from "./env.js";
+export { LEVELS, setLevel, currentLevel, pageLevel } from "./level.js";
 export { Reveal, Stagger, TextReveal, DrawLine, Pin, CountUp, Skeleton, PageTransition, Link, useNavigate } from "./components.jsx";
+export { startNav, carry } from "./nav.js";
+export { navDirection } from "./carry.js";
+export { useFlip, flipDeltas, flipEntered } from "./flip.js";
+export { fileBatch, canSign, SIGNATURE_MS } from "./signature.js";
 export { useExit } from "./useExit.js";
 export { Light, Magnetic, Tilt, pointerMotion } from "./pointer.jsx";
 export { Progress } from "./Progress.jsx";

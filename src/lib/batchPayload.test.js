@@ -36,6 +36,9 @@ describe("buildBatch", () => {
     expect(buildBatch(base)).not.toHaveProperty("recipe_version_id");
     expect(buildBatch({ ...base, recipeVersionId: "" })).not.toHaveProperty("recipe_version_id");
     expect(buildBatch({ ...base, recipeVersionId: "v-1" }).recipe_version_id).toBe("v-1");
+    expect(buildBatch(base)).not.toHaveProperty("order_ids");
+    expect(buildBatch({ ...base, orderIds: [] })).not.toHaveProperty("order_ids");
+    expect(buildBatch({ ...base, orderIds: ["o-1"] }).order_ids).toEqual(["o-1"]);
   });
   it("sends seller fields only when given, blanks as null", () => {
     expect(buildBatch(base)).not.toHaveProperty("sale_price");

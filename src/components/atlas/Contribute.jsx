@@ -40,7 +40,7 @@ export default function Contribute() {
   const list = (key, label) => (
     <div>
       <label htmlFor={`c-${key}`} className="block text-sm mb-1.5" style={{ color: COLORS.inkSoft }}>{label}</label>
-      <textarea id={`c-${key}`} rows={2} value={form[key]} onChange={(e) => set({ [key]: e.target.value })} className={`${inputClass} py-2`} style={inputStyle} aria-describedby="c-list-hint" />
+      <textarea dir="auto" id={`c-${key}`} rows={2} value={form[key]} onChange={(e) => set({ [key]: e.target.value })} className={`${inputClass} py-2`} style={inputStyle} aria-describedby="c-list-hint" />
     </div>
   );
 

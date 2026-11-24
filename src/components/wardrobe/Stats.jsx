@@ -47,7 +47,7 @@ export default function Stats({ bottles, wear }) {
       {rows.map((x) => (
         <li key={x.bottle.id} className="flex justify-between gap-3">
           <span>{x.bottle.name}</span>
-          <span className="font-mono tabular-nums" dir="ltr" style={{ color: COLORS.inkSoft }}>{x.wears === 0 ? t("wardrobe.stats.never") : t("wardrobe.stats.times", { n: x.wears })}</span>
+          <span className="font-mono tabular-nums" dir="ltr" style={{ color: COLORS.inkSoft }}>{x.wears === 0 ? t("wardrobe.stats.never") : t("wardrobe.stats.times", { n: x.wears, count: x.wears })}</span>
         </li>
       ))}
     </ol>
@@ -65,7 +65,7 @@ export default function Stats({ bottles, wear }) {
   return (
     <section aria-labelledby="stats-h">
       <h2 id="stats-h" className="font-serif italic text-2xl mb-1" style={{ color: COLORS.ink }}>{t("wardrobe.stats.title")}</h2>
-      <p className="text-sm mb-5 font-mono tabular-nums" style={{ color: COLORS.inkSoft }}>{t("wardrobe.stats.total", { wearings: wear.length, bottles: counts.size })}</p>
+      <p className="text-sm mb-5 font-mono tabular-nums" style={{ color: COLORS.inkSoft }}>{t("wardrobe.stats.total", { wearings: wear.length, bottles: counts.size, count: wear.length })}</p>
       <div className="grid gap-4 md:grid-cols-2">
         <Block title={t("wardrobe.stats.most")}>{most.length ? list(most) : <p className="text-sm" style={{ color: COLORS.inkSoft }}>{t("wardrobe.stats.never")}</p>}</Block>
         <Block title={t("wardrobe.stats.least")}>{list(least)}</Block>
