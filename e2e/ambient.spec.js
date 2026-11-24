@@ -48,7 +48,7 @@ test("one press plays (the first press, on a fresh page), the second stops", asy
   expect(fetched).toEqual([]); // nothing before the press
   await button.click();
   await expect(button).toHaveAttribute("aria-pressed", "true");
-  await expect(button).toHaveText(/Stop the sound/);
+  await expect(button).toHaveText(/Stop the music/);
   await expect.poll(() => level(page), { timeout: 8000 }).toBeGreaterThan(-40); // real sound, not silence
   expect(await page.evaluate(() => window.__contexts)).toBe(1);
   expect(fetched).toHaveLength(1);
