@@ -1,36 +1,40 @@
 /* global window, OfflineAudioContext */
-// The kyphi band's music, composed for Kyphira (owner, 2026-11-24): original,
-// in the style of a modern "Egyptian desert" groove (no other track's melody,
-// recording or samples). Rendered once by scripts/make-kyphi-music.mjs in a
-// headless browser (OfflineAudioContext), never in the reader's browser.
-// A plain script: defines window.renderKyphiMusic(seed) → base64 WAV.
+// The kyphi band's music, composed for Kyphira: "The rite" (owner's brief,
+// 2026-11-25: a sound that conveys the ancient Egyptian kyphi rituals).
+// Original; no other recording or samples. Rendered once by
+// scripts/make-kyphi-music.mjs in a headless browser (OfflineAudioContext),
+// never in the reader's browser. A plain script: defines
+// window.renderKyphiMusic(seed) → base64 WAV.
 //
-// 107 bpm, D harmonic minor (Hijaz on A): D E F G A B♭ C♯. Chords per bar:
-// Dm, B♭, A, Dm. Bars 1–4 oud and pad; 5–8 + bass and darbuka; 9–16 the full
-// groove (maqsum, low drum, a qanun run); 17–24 + the ney's melody; 25–26
-// breakdown; 27–28 nothing new, only the ring of the last notes, which the
-// player overlaps with the next copy's start, so the loop has no seam.
+// 66 bpm, a temple at dusk. D pentatonic (D E G A C: the five-note scale is a
+// reconstruction, not known from the sources). Under everything: the incense
+// fire crackling, smoke-like air and the priests' low hum on D and A.
+// Bars 1–4 hum, crackle, the sistrum and one drum stroke a bar; 5–8 + frame drum and the angled
+// harp; 9–12 + the chant; 13–16 + the flute over all; 17–18 nothing new, only
+// the ring, which the player overlaps with the next copy's start (no seam).
 (() => {
-  const BPM = 107, BEAT = 60 / BPM, BAR = BEAT * 4, E8 = BEAT / 2, E16 = BEAT / 4;
-  const BARS = 26, TAIL = 2, SR = 44100;
-  const NOTE = { A1: 33, D2: 38, E2: 40, F2: 41, G2: 43, A2: 45, Bb2: 46, B2: 47, C3: 48, Cs3: 49, D3: 50, E3: 52, F3: 53, G3: 55, A3: 57, Bb3: 58, Cs4: 61, D4: 62, E4: 64, F4: 65, G4: 67, A4: 69, Bb4: 70, Cs5: 73, D5: 74 };
+  const BPM = 66, BEAT = 60 / BPM, BAR = BEAT * 4, E8 = BEAT / 2;
+  const BARS = 16, TAIL = 2, SR = 44100;
+  const NOTE = { A1: 33, D2: 38, A2: 45, C3: 48, D3: 50, E3: 52, G3: 55, A3: 57, C4: 60, D4: 62, E4: 64, G4: 67, A4: 69, C5: 72, D5: 74 };
   const hz = (m) => 440 * 2 ** ((m - 69) / 12);
   const n = (name) => NOTE[name];
 
-  // The four-bar cycle: chord, bass root and fifth, pad voicing, oud riff (eighths; null = rest).
-  const CYCLE = [
-    { root: "D2", fifth: "A1", pad: ["D3", "F3", "A3"], riff: ["D3", null, "F3", "E3", "D3", "A2", "Bb2", "A2"] },
-    { root: "Bb2", fifth: "F2", pad: ["D3", "F3", "Bb3"], riff: ["D3", null, "F3", "E3", "D3", "Bb2", "A2", "Bb2"] },
-    { root: "A2", fifth: "E2", pad: ["Cs3", "E3", "A3"], riff: ["Cs3", null, "E3", "D3", "Cs3", "A2", "Bb2", "A2"] },
-    { root: "D2", fifth: "A1", pad: ["D3", "F3", "A3"], riff: ["D3", "E3", "F3", "E3", "D3", "Cs3", "D3", null] },
+  // Harp arpeggios, eighths, a four-bar cycle on D, C, A, D.
+  const HARP = [
+    ["D3", "A3", "D4", "E4", "A4", "E4", "D4", "A3"],
+    ["C3", "G3", "C4", "D4", "G4", "D4", "C4", "G3"],
+    ["A2", "E3", "A3", "C4", "E4", "C4", "A3", "E3"],
+    ["D3", "A3", "D4", "E4", "G4", "A4", "D5", "A4"],
   ];
-  // The ney's melody: two four-bar phrases of [beat, note, beats].
-  const NEY = [
-    [[0, "A4", 2], [2, "Bb4", 1], [3, "A4", 1], [4, "F4", 2], [6, "E4", 1], [7, "D4", 1], [8, "E4", 1.5], [9.5, "F4", 0.5], [10, "E4", 1], [11, "Cs4", 1], [12, "D4", 3.5]],
-    [[0, "D5", 1.5], [1.5, "Cs5", 0.5], [2, "Bb4", 1], [3, "A4", 1], [4, "Bb4", 1], [5, "A4", 1], [6, "G4", 1], [7, "F4", 1], [8, "E4", 2], [10, "F4", 1], [11, "E4", 0.5], [11.5, "Cs4", 0.5], [12, "D4", 3.5]],
-  ];
-  // Darbuka maqsum, eighths: Doum, Tek, rest.
-  const MAQSUM = "DT.TD.T.";
+  // The chant (bars 9–16) and the flute (13–16): [beat, note, beats] from the phrase's start.
+  const CHANT = [[0, "D3", 4], [4, "E3", 2], [6, "G3", 2], [8, "A3", 3], [11, "G3", 1], [12, "E3", 2], [14, "D3", 2],
+    [16, "A3", 4], [20, "G3", 2], [22, "A3", 2], [24, "C4", 2], [26, "A3", 2], [28, "G3", 1.5], [29.5, "E3", 0.5], [30, "D3", 2]];
+  const FLUTE = [[0, "A4", 3], [3, "G4", 1], [4, "E4", 2], [6, "D4", 2], [8, "E4", 1], [9, "G4", 1], [10, "A4", 2],
+    [12, "C5", 1.5], [13.5, "A4", 0.5], [14, "G4", 2]];
+  // Frame drum, eighths: D deep, d soft, t rim, . rest. A slow procession.
+  const DRUM = "D...d.t.";
+  // Vowels for the hum and chant (male formants, Hz): "oo" under everything, the chant opens to "ah".
+  const OO = [330, 700, 2400], AH = [700, 1150, 2600];
 
   function mulberry32(a) {
     return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -38,19 +42,19 @@
 
   window.renderKyphiMusic = async (seed = 7) => {
     const rand = mulberry32(seed);
-    const len = (BARS + TAIL) * BAR;
+    const len = (BARS + TAIL) * BAR, END = BARS * BAR;
     const ac = new OfflineAudioContext(2, Math.ceil(len * SR), SR);
 
-    // Bus: warm lowpass (the style has little above 2 kHz), glue compressor, a modest hall.
+    // Bus: gentle top (the sistrum lives up there), glue compressor, a long stone hall.
     const comp = ac.createDynamicsCompressor();
-    comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = 0.01; comp.release.value = 0.25;
-    const warm = ac.createBiquadFilter(); warm.type = "lowpass"; warm.frequency.value = 3000; warm.Q.value = 0.5;
-    const bus = ac.createGain(); bus.connect(warm).connect(comp).connect(ac.destination);
+    comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 2.5; comp.attack.value = 0.02; comp.release.value = 0.3;
+    const top = ac.createBiquadFilter(); top.type = "lowpass"; top.frequency.value = 9000; top.Q.value = 0.5;
+    const bus = ac.createGain(); bus.connect(top).connect(comp).connect(ac.destination);
     const hall = ac.createConvolver();
-    const irLen = Math.floor(SR * 2.2), ir = ac.createBuffer(2, irLen, SR);
-    for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < irLen; i++) d[i] = (rand() * 2 - 1) * (1 - i / irLen) ** 4; }
+    const irLen = Math.floor(SR * 3.6), ir = ac.createBuffer(2, irLen, SR);
+    for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < irLen; i++) d[i] = (rand() * 2 - 1) * (1 - i / irLen) ** 3; }
     hall.buffer = ir;
-    const hallOut = ac.createGain(); hallOut.gain.value = 0.35; hall.connect(hallOut).connect(bus);
+    const hallOut = ac.createGain(); hallOut.gain.value = 0.4; hall.connect(hallOut).connect(bus);
     const channel = (pan, gain, send) => {
       const g = ac.createGain(), p = ac.createStereoPanner(); g.gain.value = gain; p.pan.value = pan;
       g.connect(p).connect(bus);
@@ -58,11 +62,39 @@
       return g;
     };
     const ch = {
-      oud: channel(-0.2, 0.9, 0.25), qanun: channel(0.3, 0.55, 0.4), ney: channel(0.2, 0.5, 0.45),
-      pad: channel(0, 0.34, 0.5), bass: channel(0, 0.75, 0.05), drum: channel(0.08, 0.8, 0.15), low: channel(0, 0.9, 0.05),
+      hum: channel(0, 1.1, 0.5), chant: channel(-0.1, 0.55, 0.6), harp: channel(-0.3, 0.45, 0.45), flute: channel(0.25, 0.4, 0.6),
+      drum: channel(0.05, 0.7, 0.25), sistrum: channel(0.35, 0.7, 0.4), bell: channel(-0.2, 0.25, 0.7), fire: channel(0, 0.5, 0.1),
     };
-    const noise = ac.createBuffer(1, SR, SR); { const d = noise.getChannelData(0); for (let i = 0; i < SR; i++) d[i] = rand() * 2 - 1; }
+    const noise = ac.createBuffer(1, SR * 2, SR); { const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = rand() * 2 - 1; }
     const env = (g, t, peak, attack, dur) => { g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(peak, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); };
+    const burst = (out, t, dur, type, f, q, amp, attack = 0.002) => {
+      const s = ac.createBufferSource(), flt = ac.createBiquadFilter(), g = ac.createGain();
+      s.buffer = noise; flt.type = type; flt.frequency.value = f; flt.Q.value = q;
+      env(g, t, amp, attack, dur); s.connect(flt).connect(g).connect(out); s.start(t, rand() * 1.5); s.stop(t + dur + 0.02);
+    };
+
+    // Voices: detuned sawtooths through three formant filters; the vowel can move between two shapes.
+    const voices = (out, t0, t1, steps, { count = 4, spread = 14, vowel = OO, open = null, level = 0.2, fadeIn = 1.5, fadeOut = 2 } = {}) => {
+      const g = ac.createGain(); g.connect(out);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(level, t0 + fadeIn);
+      g.gain.setValueAtTime(level, t1 - fadeOut); g.gain.linearRampToValueAtTime(0.0001, t1);
+      const forms = vowel.map((f, i) => {
+        const bp = ac.createBiquadFilter(), fg = ac.createGain(); bp.type = "bandpass"; bp.frequency.value = f; bp.Q.value = 6 + i * 2;
+        fg.gain.value = [1, 0.45, 0.12][i]; bp.connect(fg).connect(g); return bp;
+      });
+      const src = ac.createGain(); src.gain.value = 1 / count; forms.forEach((bp) => src.connect(bp));
+      const lfo = ac.createOscillator(), vib = ac.createGain(); lfo.frequency.value = 4.6; vib.gain.value = 7; lfo.connect(vib);
+      for (let v = 0; v < count; v++) {
+        const o = ac.createOscillator(); o.type = "sawtooth"; o.detune.value = (v / (count - 1) - 0.5) * 2 * spread;
+        vib.connect(o.detune);
+        o.frequency.setValueAtTime(hz(n(steps[0][1])), t0);
+        for (const [at, note] of steps) o.frequency.setTargetAtTime(hz(n(note)), at, 0.09);
+        o.connect(src); o.start(t0); o.stop(t1 + 0.05);
+      }
+      lfo.start(t0); lfo.stop(t1 + 0.05);
+      // The chant opens toward "ah" on each note's start and closes back while it holds.
+      if (open) for (const at of open) forms.forEach((bp, i) => { bp.frequency.setTargetAtTime(AH[i], at, 0.12); bp.frequency.setTargetAtTime(vowel[i], at + BEAT * 1.2, 0.5); });
+    };
 
     // Plucked strings: Karplus–Strong, tuned with a first-order allpass for the fractional part of the period.
     const ksCache = new Map();
@@ -73,123 +105,115 @@
       const period = SR / f - 0.5, p = Math.floor(period), frac = period - p, C = (1 - frac) / (1 + frac);
       const line = new Float32Array(p);
       let lp = 0;
-      for (let i = 0; i < p; i++) { lp += 0.3 * ((rand() * 2 - 1) - lp); line[i] = lp; } // a soft pick: lowpassed noise
+      for (let i = 0; i < p; i++) { lp += 0.5 * ((rand() * 2 - 1) - lp); line[i] = lp; } // a fingertip pluck: softened noise
       let idx = 0, apX = 0, apY = 0, prev = 0;
       for (let i = 0; i < len; i++) {
         const x = line[idx];
         const avg = damp * 0.5 * (x + prev); prev = x;
-        const ap = C * avg + apX - C * apY; apX = avg; apY = ap; // fine tuning
+        const ap = C * avg + apX - C * apY; apX = avg; apY = ap;
         line[idx] = ap; y[i] = x; idx = (idx + 1) % p;
       }
       ksCache.set(key, out);
       return out;
     };
-    const pluck = (out, t, note, amp, dur = 1.6, damp = 0.996) => {
-      const s = ac.createBufferSource(), g = ac.createGain(), body = ac.createBiquadFilter();
-      s.buffer = ks(hz(n(note)), dur, damp); body.type = "peaking"; body.frequency.value = 250; body.gain.value = 7; body.Q.value = 1;
-      const soft = ac.createBiquadFilter(); soft.type = "lowpass"; soft.frequency.value = 1600;
-      g.gain.value = amp; s.connect(body).connect(soft).connect(g).connect(out); s.start(t);
+    // The angled harp: gut strings, a light wooden body, long ring.
+    const harp = (t, note, amp) => {
+      const s = ac.createBufferSource(), g = ac.createGain(), body = ac.createBiquadFilter(), soft = ac.createBiquadFilter();
+      s.buffer = ks(hz(n(note)), 3, 0.998); body.type = "peaking"; body.frequency.value = 420; body.gain.value = 5; body.Q.value = 1;
+      soft.type = "lowpass"; soft.frequency.value = 3200;
+      g.gain.value = amp; s.connect(body).connect(soft).connect(g).connect(ch.harp); s.start(t);
     };
 
-    // Darbuka: doum (low, round), tek (rim crack), ka (soft rim).
-    const doum = (t, a) => {
+    // Frame drum: a deep skin, a softer stroke, a dry rim.
+    const skin = (t, a) => {
       const o = ac.createOscillator(), g = ac.createGain();
-      o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.12);
-      env(g, t, 0.8 * a, 0.002, 0.35); o.connect(g).connect(ch.drum); o.start(t); o.stop(t + 0.4);
+      o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(52, t + 0.3);
+      env(g, t, a, 0.004, 0.9); o.connect(g).connect(ch.drum); o.start(t); o.stop(t + 1);
+      burst(ch.drum, t, 0.12, "lowpass", 500, 0.7, 0.35 * a);
     };
-    const rim = (t, a, f) => {
-      const s = ac.createBufferSource(), bp = ac.createBiquadFilter(), g = ac.createGain();
-      s.buffer = noise; bp.type = "bandpass"; bp.frequency.value = f; bp.Q.value = 3;
-      env(g, t, a, 0.001, 0.07); s.connect(bp).connect(g).connect(ch.drum); s.start(t, rand() * 0.5); s.stop(t + 0.1);
-      const o = ac.createOscillator(), og = ac.createGain(); o.frequency.value = f / 4;
-      env(og, t, a * 0.5, 0.001, 0.05); o.connect(og).connect(ch.drum); o.start(t); o.stop(t + 0.06);
-    };
-    const tek = (t, a) => rim(t, 0.5 * a, 1300);
-    const ka = (t, a) => rim(t, 0.2 * a, 1000);
-    // The low drum under the groove (the style's weight is in the sub-bass).
-    const low = (t, a) => {
-      const o = ac.createOscillator(), g = ac.createGain();
-      o.frequency.setValueAtTime(75, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.25);
-      env(g, t, a, 0.003, 0.6); o.connect(g).connect(ch.low); o.start(t); o.stop(t + 0.65);
-    };
-    const bass = (t, note, dur) => {
-      const f = hz(n(note)), g = ac.createGain(), lp = ac.createBiquadFilter();
-      lp.type = "lowpass"; lp.frequency.setValueAtTime(900, t); lp.frequency.exponentialRampToValueAtTime(220, t + 0.25); lp.Q.value = 2;
-      for (const [type, a] of [["sawtooth", 0.5], ["sine", 0.8]]) {
-        const o = ac.createOscillator(), og = ac.createGain(); o.type = type; o.frequency.value = f; og.gain.value = a;
-        o.connect(og).connect(lp); o.start(t); o.stop(t + dur + 0.1);
-      }
-      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.5, t + 0.01); g.gain.setTargetAtTime(0.3, t + 0.05, 0.1); g.gain.setTargetAtTime(0.0001, t + dur, 0.04);
-      lp.connect(g).connect(ch.bass);
-    };
-    const pad = (t, notes, dur) => {
-      const lp = ac.createBiquadFilter(), g = ac.createGain();
-      lp.type = "lowpass"; lp.frequency.value = 900; lp.connect(g).connect(ch.pad);
-      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.25, t + 0.8); g.gain.setValueAtTime(0.25, t + dur - 0.3); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.6);
-      for (const note of notes) for (const cents of [-9, -3, 4, 10]) {
-        const o = ac.createOscillator(); o.type = "sawtooth"; o.frequency.value = hz(n(note)); o.detune.value = cents;
-        o.connect(lp); o.start(t); o.stop(t + dur + 0.7);
+    const rim = (t, a) => burst(ch.drum, t, 0.08, "bandpass", 900, 2.5, 0.45 * a, 0.001);
+
+    // Sistrum: metal discs rattling on their rods: a run of tiny hits, each ringing a little.
+    const PARTIALS = [3100, 4370, 5830, 7210];
+    const sistrum = (t, a, hits = 7) => {
+      let at = t;
+      for (let k = 0; k < hits; k++) {
+        const amp = a * (1 - k / hits) ** 1.3;
+        burst(ch.sistrum, at, 0.04, "bandpass", PARTIALS[Math.floor(rand() * PARTIALS.length)], 4, amp);
+        const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = PARTIALS[k % PARTIALS.length] * (0.98 + rand() * 0.04);
+        env(g, at, amp * 0.08, 0.001, 0.35); o.connect(g).connect(ch.sistrum); o.start(at); o.stop(at + 0.4);
+        at += 0.016 + rand() * 0.012;
       }
     };
-    // Ney: breathy, a little vibrato that opens on long notes, notes sliding into each other.
-    const ney = (t0, phrase) => {
+    // Finger cymbals: a few inharmonic partials, long ring into the hall.
+    const cymbal = (t, a) => {
+      for (const [f, d, amp] of [[2380, 2.4, 1], [3710, 1.8, 0.6], [5120, 1.2, 0.35], [6890, 0.8, 0.2]]) {
+        const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = f;
+        env(g, t, a * amp * 0.12, 0.002, d); o.connect(g).connect(ch.bell); o.start(t); o.stop(t + d + 0.05);
+      }
+    };
+    // Flute: breathy, vibrato that opens on long notes, notes sliding into each other.
+    const flute = (t0, phrase) => {
       const o = ac.createOscillator(), g = ac.createGain(), vib = ac.createGain(), lfo = ac.createOscillator(), lp = ac.createBiquadFilter();
-      o.type = "triangle"; lfo.frequency.value = 5.3; lfo.connect(vib).connect(o.detune); vib.gain.value = 0;
-      lp.type = "lowpass"; lp.frequency.value = 3000; o.connect(lp).connect(g).connect(ch.ney);
+      o.type = "triangle"; lfo.frequency.value = 5; lfo.connect(vib).connect(o.detune); vib.gain.value = 0;
+      lp.type = "lowpass"; lp.frequency.value = 2800; o.connect(lp).connect(g).connect(ch.flute);
       const breath = ac.createBufferSource(), bp = ac.createBiquadFilter(), bg = ac.createGain();
-      breath.buffer = noise; breath.loop = true; bp.type = "bandpass"; bp.frequency.value = 1500; bp.Q.value = 1.2;
-      breath.connect(bp).connect(bg).connect(ch.ney);
+      breath.buffer = noise; breath.loop = true; bp.type = "bandpass"; bp.frequency.value = 1400; bp.Q.value = 1;
+      breath.connect(bp).connect(bg).connect(ch.flute);
       g.gain.setValueAtTime(0, t0); bg.gain.setValueAtTime(0, t0);
       o.frequency.setValueAtTime(hz(n(phrase[0][1])), t0);
       let end = t0;
       for (const [beat, note, beats] of phrase) {
         const t = t0 + beat * BEAT, d = beats * BEAT;
-        o.frequency.setTargetAtTime(hz(n(note)), t, 0.025);
-        g.gain.setTargetAtTime(0.32, t, 0.03); g.gain.setTargetAtTime(0.22, t + d * 0.6, 0.08);
-        bg.gain.setTargetAtTime(0.025, t, 0.03); bg.gain.setTargetAtTime(0.012, t + d * 0.5, 0.1);
-        vib.gain.setValueAtTime(0, t); vib.gain.linearRampToValueAtTime(d > BEAT * 1.2 ? 18 : 6, t + d);
+        o.frequency.setTargetAtTime(hz(n(note)), t, 0.04);
+        g.gain.setTargetAtTime(0.3, t, 0.05); g.gain.setTargetAtTime(0.2, t + d * 0.6, 0.12);
+        bg.gain.setTargetAtTime(0.035, t, 0.04); bg.gain.setTargetAtTime(0.018, t + d * 0.5, 0.12);
+        vib.gain.setValueAtTime(0, t); vib.gain.linearRampToValueAtTime(d > BEAT * 1.5 ? 16 : 5, t + d);
         end = t + d;
       }
-      g.gain.setTargetAtTime(0, end - 0.05, 0.12); bg.gain.setTargetAtTime(0, end - 0.05, 0.1);
-      for (const s of [o, lfo, breath]) { s.start(t0); s.stop(end + 1); }
-    };
-    const qanunRun = (t) => {
-      const run = ["A2", "Bb2", "Cs3", "D3", "E3", "F3", "G3", "A3", "Bb3", "Cs4", "D4", "E4", "F4", "A4", "D5"];
-      run.forEach((note, i) => { pluck(ch.qanun, t + i * E16 * 0.5, note, 0.5, 1.2, 0.997); pluck(ch.qanun, t + i * E16 * 0.5 + 0.012, note, 0.2, 1, 0.997); });
+      g.gain.setTargetAtTime(0, end - 0.1, 0.25); bg.gain.setTargetAtTime(0, end - 0.1, 0.2);
+      for (const s of [o, lfo, breath]) { s.start(t0); s.stop(end + 1.5); }
     };
 
-    for (let b = 0; b < BARS; b++) {
-      const t = b * BAR, c = CYCLE[b % 4], bar1 = b + 1;
-      const intro = bar1 <= 4, full = bar1 >= 9 && bar1 <= 24, breakdown = bar1 >= 25;
-      pad(t, c.pad, BAR);
-      // Oud: the riff every bar, a touch softer under the ney, sometimes doubled an octave up for lift.
-      c.riff.forEach((note, i) => {
-        if (!note || (intro && i % 2)) return; // the intro keeps to the beats
-        const accent = i === 0 ? 1 : i % 2 ? 0.7 : 0.85, under = bar1 >= 17 && bar1 <= 24 ? 0.75 : 1;
-        pluck(ch.oud, t + i * E8 + rand() * 0.006, note, 0.9 * accent * under, 1.4);
-        if (full && bar1 >= 13 && bar1 <= 16 && i % 2 === 0) pluck(ch.oud, t + i * E8 + 0.01, note.replace(/\d/, (d) => +d + 1), 0.25, 1);
-      });
-      // Bass: root, the fifth, a pickup back to the root.
-      if (!intro) {
-        bass(t, c.root, E8 * 2.5); bass(t + 3 * E8, c.root, E8 * 0.8); bass(t + 4 * E8, c.fifth, E8 * 1.8); bass(t + 6 * E8, c.root, E8 * 1.6);
+    // The incense fire: a soft roar, crackles at random, and air moving like smoke.
+    {
+      const roar = ac.createBufferSource(), lp = ac.createBiquadFilter(), rg = ac.createGain();
+      roar.buffer = noise; roar.loop = true; lp.type = "lowpass"; lp.frequency.value = 260; rg.gain.value = 0.35;
+      roar.connect(lp).connect(rg).connect(ch.fire); roar.start(0); roar.stop(len);
+      const air = ac.createBufferSource(), bp = ac.createBiquadFilter(), ag = ac.createGain(), sway = ac.createOscillator(), sg = ac.createGain();
+      air.buffer = noise; air.loop = true; bp.type = "bandpass"; bp.frequency.value = 650; bp.Q.value = 0.8; ag.gain.value = 0.05;
+      sway.frequency.value = 0.07; sg.gain.value = 0.035; sway.connect(sg).connect(ag.gain);
+      air.connect(bp).connect(ag).connect(ch.fire); air.start(0); air.stop(len); sway.start(0); sway.stop(len);
+      for (let t = rand() * 0.2; t < len; t += -Math.log(1 - rand()) / 5) {
+        burst(ch.fire, t, 0.004 + rand() * 0.01, "highpass", 1800 + rand() * 2500, 0.7, 0.08 + rand() * 0.25, 0.0005);
       }
-      // Drums.
-      if (intro || breakdown) {
-        doum(t, intro ? 0.5 : 0.8);
-        if (breakdown) doum(t + 4 * E8, 0.6);
-      } else {
-        [...MAQSUM].forEach((s, i) => { const at = t + i * E8; if (s === "D") doum(at, i === 0 ? 1 : 0.8); else if (s === "T") tek(at, 0.9); });
-        if (full) {
-          for (let i = 0; i < 16; i += 2) if (rand() < 0.55) ka(t + (i + 1) * E16, 0.8); // ghost notes between
-          low(t, 0.9); low(t + 2 * BEAT, 0.75);
-        }
-        // A roll into each eighth bar.
-        if (bar1 % 8 === 0) for (let i = 8; i < 16; i++) (i % 2 ? ka : tek)(t + i * E16, 0.6 + i * 0.03);
-      }
-      if (bar1 === 9 || bar1 === 17) qanunRun(t - BEAT);
-      if (bar1 === 17 || bar1 === 21) ney(t, NEY[bar1 === 17 ? 0 : 1]);
-      if (breakdown && bar1 === BARS) pluck(ch.oud, t + 3 * BEAT, "D3", 0.8, 3, 0.998);
     }
+    // The priests' hum, the whole piece: D and A, "oo", fading over the tail into the next copy's start.
+    voices(ch.hum, 0, len, [[0, "D2"]], { count: 5, spread: 12, level: 0.22, fadeIn: BAR * 1.5, fadeOut: BAR * 2 });
+    voices(ch.hum, 0, len, [[0, "A2"]], { count: 4, spread: 10, level: 0.12, fadeIn: BAR * 2, fadeOut: BAR * 2 });
+
+    for (let b = 0; b < BARS; b++) {
+      const t = b * BAR, bar1 = b + 1;
+      // Sistrum: on 1 and 3 while the rite gathers, then on 2 and 4, with a double shake every other bar.
+      if (bar1 <= 4) { sistrum(t, 0.7); sistrum(t + 2 * BEAT, 0.45, 5); skin(t, 0.55); } // a heartbeat while it gathers
+      else { sistrum(t + BEAT, 0.55, 5); sistrum(t + 3 * BEAT, 0.7); if (bar1 % 2 === 0) sistrum(t + 3.5 * BEAT, 0.4, 4); }
+      if (bar1 >= 5) {
+        [...DRUM].forEach((s, i) => { const at = t + i * E8 + rand() * 0.008; if (s === "D") skin(at, 0.9); else if (s === "d") skin(at, 0.5); else if (s === "t") rim(at, 0.7); });
+        // Harp: quarters while it enters, then every eighth, softer on the off-beats.
+        HARP[b % 4].forEach((note, i) => {
+          if (bar1 <= 8 && i % 2) return;
+          harp(t + i * E8 + rand() * 0.01, note, (i === 0 ? 0.8 : i % 2 ? 0.45 : 0.6) * (bar1 >= 13 ? 0.8 : 1));
+        });
+      }
+      if (bar1 === 9 || bar1 === 13) cymbal(t, 1);
+    }
+    // The chant, bars 9–16, opening its vowel on each note.
+    const c0 = 8 * BAR;
+    voices(ch.chant, c0, END + BEAT * 2, CHANT.map(([b, note]) => [c0 + b * BEAT, note]),
+      { count: 6, spread: 16, level: 0.3, fadeIn: 0.6, fadeOut: BEAT * 2.5, open: CHANT.map(([b]) => c0 + b * BEAT) });
+    flute(12 * BAR, FLUTE);
+    // The end of the rite: one last shake, the cymbal and the harp's low D ringing into the tail.
+    sistrum(END, 0.6); cymbal(END, 0.8); harp(END, "D3", 0.7);
 
     const out = await ac.startRendering();
     // 16-bit stereo WAV, as base64 for the Node side.

@@ -1,20 +1,21 @@
-// The kyphi band's music: an original piece composed for Kyphira (owner,
-// 2026-11-24; no licence needed), in the style of a modern Egyptian desert
-// groove: 107 bpm, D harmonic minor, oud, qanun, ney, darbuka, bass, strings.
+// The kyphi band's music: "The rite", an original piece composed for Kyphira
+// (owner's brief, 2026-11-25: the ancient Egyptian kyphi rituals; no licence
+// needed): 66 bpm, D pentatonic, the incense fire, the priests' hum, sistrum,
+// frame drum, angled harp, a chant, a flute, finger cymbals.
 // Made by `node scripts/make-kyphi-music.mjs` (scripts/kyphi-music/compose.js)
-// → public/media/kyphi-music.m4a (96 kbps AAC, -16 LUFS, ~0.75 MB): 26 bars of
-// music and 2 bars where the last notes ring out. Loaded only when the reader
-// presses Listen (src/site/Ambient.jsx); the service worker never precaches /media.
+// → public/media/kyphi-music.m4a (96 kbps AAC, -16 LUFS, ~0.8 MB): 16 bars of
+// music and 2 bars where the last notes ring out. Plays by default from
+// src/site/Ambient.jsx; the service worker never precaches /media.
 
 export const SRC = "/media/kyphi-music.m4a";
 export const LEVEL = 0.7;
 export const FADE_IN = 2;
 export const FADE_OUT = 1.5;
-export const BAR = 240 / 107;
-export const LOOP_END = 28 * BAR; // the whole file...
+export const BAR = 240 / 66;
+export const LOOP_END = 18 * BAR; // the whole file...
 export const XFADE = 2 * BAR; // ...whose ringing tail overlaps the next copy's first bars, on the beat
 
-/** When copy n starts, in seconds after the first: every 26 bars. Pure. */
+/** When copy n starts, in seconds after the first: every 16 bars. Pure. */
 export const loopStart = (n) => n * (LOOP_END - XFADE);
 
 /**
