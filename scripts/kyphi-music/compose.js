@@ -10,9 +10,10 @@
 // little high and the F♯ a little low, as Arab tuning places them (the
 // ancient scales are not known; Hijaz is how Egypt sounds to the ear now).
 // Under everything: the incense fire crackling, smoke-like air and the
-// priests' low hum on D and A. Bars 1–4 an oud taqsim over the hum, the
+// priests' humming on D and A. Bars 1–4 an oud taqsim over the hum, the
 // sistrum and one drum stroke a bar; 5–8 + baladi on darbuka and riq, and the
-// angled harp; 9–12 + the chant, sliding through its runs; 13–16 + the arghul
+// angled harp, and one priest hums an answer to the oud; 9–12 + the whole
+// choir hums the chant, sliding through its runs, a lower octave under it; 13–16 + the arghul
 // (the double reed pipe: melody over its own drone); 17–18 nothing new, only
 // the ring, which the player overlaps with the next copy's start (no seam).
 (() => {
@@ -21,7 +22,7 @@
   // Fractional MIDI: Hijaz's E♭ 15 cents high, its F♯ 15 cents low.
   const NOTE = { A1: 33, D2: 38, A2: 45, C3: 48, D3: 50, Eb3: 51.15, Fs3: 53.85, G3: 55, A3: 57, Bb3: 58, C4: 60, D4: 62, Eb4: 63.15, Fs4: 65.85, G4: 67, A4: 69, Bb4: 70, C5: 72, D5: 74 };
   const hz = (m) => 440 * 2 ** ((m - 69) / 12);
-  const n = (name) => NOTE[name];
+  const n = (x) => (typeof x === "number" ? x : NOTE[x]); // a name, or a MIDI number
 
   // Harp arpeggios, eighths, a four-bar cycle on D, E♭, Cm, D (Hijaz's own chords).
   const HARP = [
@@ -45,8 +46,11 @@
     [11.5, "Bb4", 0.25], [11.75, "A4", 0.25], [12, "G4", 1], [13, "Fs4", 0.5], [13.5, "Eb4", 0.5], [14, "D4", 2]];
   // Baladi, eighths: D doum (deep), T tek (rim), . rest; the riq's jingles shake on every tek.
   const DRUM = "DD.TD.T.";
-  // Vowels for the hum and chant (male formants, Hz): "oo" under everything, the chant opens to "ah".
-  const OO = [330, 700, 2400], AH = [700, 1150, 2600];
+  // Vowels (male formants, Hz): the closed-mouth hum "mm" (almost all its energy low, the nose's
+  // resonance near 1 kHz faint) and a half-open "oo" the chant leans toward on each new note.
+  const MM = { f: [260, 1050, 2300], g: [1, 0.16, 0.04], top: 1500 }, OO = { f: [340, 750, 2400], g: [1, 0.4, 0.1], top: 2800 };
+  // The lead hummer's answer to the oud, bars 5–8.
+  const HUM = [[0, "A3", 3], [3, "G3", 1], [4, "Fs3", 2], [6, "Eb3", 1], [7, "Fs3", 1], [8, "G3", 2], [10, "Fs3", 1], [11, "Eb3", 1], [12, "D3", 4]];
 
   function mulberry32(a) {
     return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -74,7 +78,7 @@
       return g;
     };
     const ch = {
-      hum: channel(0, 1.1, 0.5), chant: channel(-0.1, 0.55, 0.6), harp: channel(-0.3, 0.45, 0.45), arghul: channel(0.25, 0.35, 0.55), oud: channel(-0.15, 0.5, 0.35), riq: channel(0.4, 0.4, 0.3),
+      hum: channel(0, 1.1, 0.5), chant: channel(-0.1, 0.55, 0.6), harp: channel(-0.3, 0.45, 0.45), arghul: channel(0.25, 0.35, 0.55), oud: channel(-0.15, 0.4, 0.35), riq: channel(0.4, 0.4, 0.3),
       drum: channel(0.05, 0.7, 0.25), sistrum: channel(0.35, 0.7, 0.4), bell: channel(-0.2, 0.25, 0.7), fire: channel(0, 0.5, 0.1),
     };
     const noise = ac.createBuffer(1, SR * 2, SR); { const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = rand() * 2 - 1; }
@@ -85,27 +89,33 @@
       env(g, t, amp, attack, dur); s.connect(flt).connect(g).connect(out); s.start(t, rand() * 1.5); s.stop(t + dur + 0.02);
     };
 
-    // Voices: detuned sawtooths through three formant filters; the vowel can move between two shapes.
-    const voices = (out, t0, t1, steps, { count = 4, spread = 14, vowel = OO, open = null, level = 0.2, fadeIn = 1.5, fadeOut = 2 } = {}) => {
-      const g = ac.createGain(); g.connect(out);
+    // Voices: a choir of sawtooths through three formant filters. Each singer drifts on their own: own
+    // tuning, vibrato, glide and breaths taken at their own moments, so the hum never stops all at once.
+    const voices = (out, t0, t1, steps, { count = 4, spread = 14, vowel = MM, open = null, level = 0.2, fadeIn = 1.5, fadeOut = 2 } = {}) => {
+      const g = ac.createGain(), lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = vowel.top; lp.connect(g).connect(out);
       g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(level, t0 + fadeIn);
       g.gain.setValueAtTime(level, t1 - fadeOut); g.gain.linearRampToValueAtTime(0.0001, t1);
-      const forms = vowel.map((f, i) => {
-        const bp = ac.createBiquadFilter(), fg = ac.createGain(); bp.type = "bandpass"; bp.frequency.value = f; bp.Q.value = 6 + i * 2;
-        fg.gain.value = [1, 0.45, 0.12][i]; bp.connect(fg).connect(g); return bp;
+      const forms = vowel.f.map((f, i) => {
+        const bp = ac.createBiquadFilter(), fg = ac.createGain(); bp.type = "bandpass"; bp.frequency.value = f; bp.Q.value = 5 + i * 2;
+        fg.gain.value = vowel.g[i]; bp.connect(fg).connect(lp); return bp;
       });
       const src = ac.createGain(); src.gain.value = 1 / count; forms.forEach((bp) => src.connect(bp));
-      const lfo = ac.createOscillator(), vib = ac.createGain(); lfo.frequency.value = 4.6; vib.gain.value = 7; lfo.connect(vib);
       for (let v = 0; v < count; v++) {
-        const o = ac.createOscillator(); o.type = "sawtooth"; o.detune.value = (v / (count - 1) - 0.5) * 2 * spread;
-        vib.connect(o.detune);
+        const o = ac.createOscillator(), vg = ac.createGain(), lfo = ac.createOscillator(), vib = ac.createGain();
+        o.type = "sawtooth"; o.detune.value = (v / Math.max(1, count - 1) - 0.5) * 2 * spread + (rand() - 0.5) * 6;
+        lfo.frequency.value = 4.2 + rand() * 1.2; vib.gain.value = 5 + rand() * 5; lfo.connect(vib).connect(o.detune);
+        const glide = 0.06 + rand() * 0.09;
         o.frequency.setValueAtTime(hz(n(steps[0][1])), t0);
-        for (const [at, note] of steps) o.frequency.setTargetAtTime(hz(n(note)), at, 0.09);
-        o.connect(src); o.start(t0); o.stop(t1 + 0.05);
+        for (const [at, note] of steps) o.frequency.setTargetAtTime(hz(n(note)), at + rand() * 0.04, glide);
+        vg.gain.setValueAtTime(1, t0);
+        for (let at = t0 + 4 + rand() * 5; at < t1 - 2; at += 6 + rand() * 5) { // a breath
+          vg.gain.setTargetAtTime(0.05, at, 0.08); vg.gain.setTargetAtTime(1, at + 0.45, 0.25);
+        }
+        o.connect(vg).connect(src);
+        for (const x of [o, lfo]) { x.start(t0); x.stop(t1 + 0.05); }
       }
-      lfo.start(t0); lfo.stop(t1 + 0.05);
-      // The chant opens toward "ah" on each note's start and closes back while it holds.
-      if (open) for (const at of open) forms.forEach((bp, i) => { bp.frequency.setTargetAtTime(AH[i], at, 0.12); bp.frequency.setTargetAtTime(vowel[i], at + BEAT * 1.2, 0.5); });
+      // A chant line opens a little on each note's start and closes back to the hum while it holds.
+      if (open) for (const at of open) forms.forEach((bp, i) => { bp.frequency.setTargetAtTime(open.f[i], at, 0.12); bp.frequency.setTargetAtTime(vowel.f[i], at + BEAT * 0.8, 0.4); });
     };
 
     // Plucked strings: Karplus–Strong, tuned with a first-order allpass for the fractional part of the period.
@@ -216,8 +226,11 @@
       }
     }
     // The priests' hum, the whole piece: D and A, "oo", fading over the tail into the next copy's start.
-    voices(ch.hum, 0, len, [[0, "D2"]], { count: 5, spread: 12, level: 0.22, fadeIn: BAR * 1.5, fadeOut: BAR * 2 });
-    voices(ch.hum, 0, len, [[0, "A2"]], { count: 4, spread: 10, level: 0.12, fadeIn: BAR * 2, fadeOut: BAR * 2 });
+    voices(ch.hum, 0, len, [[0, "D2"]], { count: 8, spread: 12, level: 0.5, fadeIn: BAR * 1.5, fadeOut: BAR * 2 });
+    voices(ch.hum, 0, len, [[0, "A2"]], { count: 6, spread: 10, level: 0.28, fadeIn: BAR * 2, fadeOut: BAR * 2 });
+    // One priest hums an answer to the oud, bars 5–8.
+    const h0 = 4 * BAR;
+    voices(ch.chant, h0, 8 * BAR + BEAT, HUM.map(([b, note]) => [h0 + b * BEAT, note]), { count: 2, spread: 6, level: 0.55, fadeIn: 0.8, fadeOut: BEAT * 2 });
 
     for (let b = 0; b < BARS; b++) {
       const t = b * BAR, bar1 = b + 1;
@@ -239,10 +252,11 @@
       }
       if (bar1 === 9 || bar1 === 13) cymbal(t, 1);
     }
-    // The chant, bars 9–16, opening its vowel on each note.
-    const c0 = 8 * BAR;
-    voices(ch.chant, c0, END + BEAT * 2, CHANT.map(([b, note]) => [c0 + b * BEAT, note]),
-      { count: 6, spread: 16, level: 0.3, fadeIn: 0.6, fadeOut: BEAT * 2.5, open: CHANT.map(([b]) => c0 + b * BEAT) });
+    // The chant, bars 9–16: the whole choir hums it, leaning open on each note, with a lower octave under it.
+    const c0 = 8 * BAR, cSteps = CHANT.map(([b, note]) => [c0 + b * BEAT, note]);
+    const opens = Object.assign(CHANT.map(([b]) => c0 + b * BEAT), { f: OO.f });
+    voices(ch.chant, c0, END + BEAT * 2, cSteps, { count: 8, spread: 16, level: 0.6, fadeIn: 0.6, fadeOut: BEAT * 2.5, open: opens });
+    voices(ch.chant, c0, END + BEAT * 2, cSteps.map(([at, note]) => [at, n(note) - 12]), { count: 5, spread: 12, level: 0.35, fadeIn: 0.8, fadeOut: BEAT * 2.5 });
     TAQSIM.forEach(([b, note, beats]) => oud(b * BEAT + rand() * 0.01, note, 0.75, beats));
     arghul(12 * BAR, ARGHUL);
     // The end of the rite: one last shake, the cymbal and the harp's low D ringing into the tail.
