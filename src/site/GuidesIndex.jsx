@@ -11,7 +11,7 @@ import MethodSequence from "./MethodSequence";
 import { Folio } from "./editorial";
 import Chip from "../components/kx/Chip";
 import { GLOSSARY_ENTRIES, glossaryTerm } from "../content/glossary";
-import { Film, useImagery } from "./Imagery";
+import { Film, Photo, useImagery } from "./Imagery";
 
 // The two sections are different kinds of reading, so they look different:
 // Blending is one method in order (numbered steps); Wearing is a set of
@@ -120,7 +120,7 @@ export default function GuidesIndex() {
             style={{ "--i": TABS.indexOf(tab), background: COLORS.actionText }} />
         </div>
       </div>
-      {tab === "glossary" ? <div key="glossary" className={`mt-10 mb-16 ${settle}`}><Glossary /></div> : (<div key="essays" className={settle}>
+      {tab === "glossary" ? <div key="glossary" className={`mt-10 mb-16 ${settle}`}>{imagery && <Photo name="temple" ratio="21 / 9" sizes="(min-width: 1024px) 64rem, 100vw" className="mb-10" />}<Glossary /></div> : (<div key="essays" className={settle}>
       <div className="mt-8 mb-12 flex flex-col md:flex-row md:items-center gap-4">
         <label htmlFor="guide-search" className="sr-only">{t("site.guides.search")}</label>
         <input id="guide-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("site.guides.search")}

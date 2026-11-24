@@ -120,7 +120,7 @@ export default function Home() {
       {/* Pricing teaser band */}
       <Reveal as="section" className="reveal" style={{ background: COLORS.sand, borderBlock: `1px solid ${COLORS.line}` }}>
         <div className={`${WRAP} py-10 flex flex-wrap items-center gap-6`}>
-          <IconTile icon={IconSeal} size={56} />
+          {imagery ? <Photo name="bottles" ratio="16 / 9" sizes="10rem" className="w-40 shrink-0" /> : <IconTile icon={IconSeal} size={56} />}
           <div className="flex-1 min-w-[14rem]">
             <h2 className="text-2xl font-medium tracking-[-0.02em] rtl:tracking-normal">{t("site.home.pricingBand")}</h2>
             <p className="font-serif mt-1" style={{ color: COLORS.inkSoft }}>{t("site.home.pricingLead")}</p>

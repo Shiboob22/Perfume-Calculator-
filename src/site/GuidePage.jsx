@@ -196,6 +196,9 @@ function Contents({ sections, label }) {
   );
 }
 
+// The margin photo rotates through three per section, by the guide's place in it.
+const GUIDE_PHOTOS = { blending: ["measuring", "bench-dropper", "drop"], wearing: ["spraying", "strip-pass", "incense"] };
+
 export default function GuidePage() {
   useSmoothScroll({ pathname: typeof window === "undefined" ? "" : window.location.pathname });
   const { slug } = useParams();
@@ -267,7 +270,7 @@ export default function GuidePage() {
           <IconBalance size={18} /> {t("site.guides.tryBench")}
         </a>
         {/* Small and in the margin on wide screens only, so it never becomes the page's largest paint. */}
-        {imagery && <Photo name={guide.section === "blending" ? "measuring" : "spraying"} ratio="4 / 5" sizes="15rem" className="hidden lg:block" />}
+        {imagery && <Photo name={GUIDE_PHOTOS[guide.section === "blending" ? "blending" : "wearing"][at % 3]} ratio="4 / 5" sizes="15rem" className="hidden lg:block" />}
       </aside>
       <div className="max-w-[37rem]">
       <div className="guide-body">{g.body.map((b, i) => <Block key={i} block={b} rule={ruleOf(b)} defs={defs} marked={marks[i]?.length > 1 ? marks[i] : null} />)}</div>
