@@ -37,13 +37,17 @@ export function Photo({ name, alt = "", sizes = "100vw", ratio, className = "", 
  * holds it carries `kx-dark` (the dark palette, contrast-tested) so the text
  * reads on the photo in both themes; the scrim darkens the reading side.
  */
+export const HERO_SIZES = "(max-width: 1023px) 215vw, 100vw";
 export const HERO_PHOTO = "hero"; // the measuring photo, lighter (scripts/make-imagery.mjs)
 export function HeroPhoto() {
   return (
-    <div aria-hidden="true" className="absolute inset-0">
-      <Photo name={HERO_PHOTO} priority ratio="auto" sizes="100vw" className="w-full h-full" />
-      <div className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-[#15120F]/95 via-[#15120F]/60 to-[#15120F]/5" />
-      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#15120F]/70 to-transparent" />
+    // Below lg the hero stacks into a tall column: covering all of it blew the
+    // landscape photo up ~3x (pixelated). There it is 120vw high (drawn ~215vw
+    // wide) and fades into the ground. HERO_SIZES must match the prerender's preload.
+    <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[120vw] lg:h-auto lg:bottom-0">
+      <Photo name={HERO_PHOTO} priority ratio="auto" sizes={HERO_SIZES} className="w-full h-full" />
+      <div className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-[#15120F]/95 via-[#15120F]/75 to-[#15120F]/55 lg:via-[#15120F]/60 lg:to-[#15120F]/5" />
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#15120F] lg:from-[#15120F]/70 to-transparent" />
     </div>
   );
 }

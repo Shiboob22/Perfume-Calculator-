@@ -35,8 +35,9 @@ const PHOTOS = {
   temple: ["Carved_Egyptian_temple_wall_relief", "abe3f60b_2K.jpg"],
   "raw-slate": ["Raw_perfumery_materials_on_slate", "e04b07d4_2K.jpg"],
   // The home hero: the largest paint, so its own lighter set. It sits under a
-  // dark scrim, where q30 shows no loss; 800 px is what a phone asks for.
-  hero: ["Perfumer_measuring_liquid", "00ce2076_2K.jpg", { widths: [800, 1200, 1600, 2000], q: 30 }],
+  // dark scrim, where q30 shows no loss. A phone draws it ~2x its width (a
+  // landscape photo over a tall box), so the full 2752 px is in the set.
+  hero: ["Perfumer_measuring_liquid", "00ce2076_2K.jpg", { widths: [800, 1200, 1600, 2000, 2752], q: 30 }],
 };
 const FILMS = {
   incense: ["Incense_smoke_rising_from_burner", "52e338ab.mp4"],

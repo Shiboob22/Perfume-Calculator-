@@ -51,7 +51,7 @@ const arabicHead = [
 // paint: start it from the head, before the fonts, at the width the page will pick.
 const heroMedia = JSON.parse(readFileSync("src/site/media.json", "utf8")).photos.hero;
 const heroPreload = heroMedia
-  ? `<link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesizes="100vw" imagesrcset="${heroMedia.widths.map((w) => `/media/hero-${w}.avif ${w}w`).join(", ")}" />\n    `
+  ? `<link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesizes="(max-width: 1023px) 215vw, 100vw" imagesrcset="${heroMedia.widths.map((w) => `/media/hero-${w}.avif ${w}w`).join(", ")}" />\n    `
   : "";
 
 function page(url, head) {
