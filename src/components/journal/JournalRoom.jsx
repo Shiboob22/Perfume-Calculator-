@@ -36,6 +36,7 @@ import BatchRecord from "./BatchRecord";
 import PushToggle from "./PushToggle";
 import SaveState from "../kx/SaveState";
 import RatingRow from "../kx/RatingRow";
+import { play } from "../../lib/sound";
 
 // The note editor's status, in the shared save-state language (kx/SaveState).
 const SAVE_STATE = { saved: "saved", queued: "queued", error: "failed", empty: "failed" };
@@ -377,6 +378,7 @@ function BatchDetail({ b, day, pro, canRemind, oilBatches, canCompare, promised,
   const [readyMoment] = useState(() => {
     try { return readyMomentDue(JSON.parse(localStorage.getItem(READY_SEEN_KEY) ?? "[]"), b.id, p.ready); } catch { return false; }
   });
+  useEffect(() => { if (readyMoment) play("ready"); }, [readyMoment]);
   useEffect(() => {
     if (!p.ready) return;
     try { localStorage.setItem(READY_SEEN_KEY, JSON.stringify(markReadySeen(JSON.parse(localStorage.getItem(READY_SEEN_KEY) ?? "[]"), b.id))); } catch { /* storage off */ }
@@ -530,8 +532,10 @@ function NoteEditor({ b, m, day, note, onSaved, compact = false, t }) {
       });
       onSaved(checkin);
       setStatus(queued ? "queued" : "saved");
+      play("note");
     } catch {
       setStatus("error");
+      play("fail");
     }
   }
 

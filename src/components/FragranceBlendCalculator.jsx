@@ -56,6 +56,7 @@ import { can, limit, canAddIngredient } from "../lib/entitlements";
 import { flagOn } from "../lib/flags";
 import { friendOrderLink } from "../lib/orders";
 import { blendTips } from "../lib/aiApi";
+import { play } from "../lib/sound";
 
 function todayISO() {
   const d = new Date();
@@ -592,6 +593,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
     const r = flacon?.getBoundingClientRect();
     const seen = r && r.bottom > 0 && r.top < window.innerHeight && r.width > 0;
     fileBatch({ from: seen ? flacon : logBtn.current, label });
+    play("log");
   };
 
   async function handleLogBatch() {
@@ -636,6 +638,7 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
         return;
       }
       setLogStatus("error");
+      if (e.code !== "batch_cap") play("fail");
       setCapHit(e.code === "batch_cap");
       setLogError(e.code === "batch_cap"
         ? t("plan.batchCap", { plan: t(`plan.names.${entitlements.plan}`), cap: e.detail?.cap ?? entitlements.batchCap })

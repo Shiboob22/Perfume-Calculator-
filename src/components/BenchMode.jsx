@@ -16,6 +16,7 @@ import { useEntitlements } from "../lib/useEntitlements";
 import { can } from "../lib/entitlements";
 import { enqueue, isOffline } from "../lib/outbox";
 import ScaleDisplay from "./kx/ScaleDisplay";
+import { play } from "../lib/sound";
 
 // The handbook's Bench Workflow, one step per screen, big numbers, for a
 // phone next to the scale. The batch comes from the Calculator (router
@@ -117,6 +118,10 @@ function Scale({ label, value, target, onChange, overText }) {
     timer.current = setInterval(() => { n += 1; set(reading.current + step(n)); }, 60);
   };
   const btn = { minHeight: 56, borderColor: COLORS.onInk, color: COLORS.onInk };
+  // Sound: a glass note when the pour reaches its band, two knocks when it goes past.
+  const state = pourProgress(reading.current, target, POUR_BAND).state;
+  const was = useRef(state);
+  useEffect(() => { if (state !== was.current && state !== "under") play(state === "ok" ? "band" : "over"); was.current = state; }, [state]);
   return (
     <div className="mt-4">
       <ScaleDisplay label={label} grams={reading.current} target={target} tolerance={POUR_BAND}
@@ -292,6 +297,7 @@ export default function BenchMode({ demo = null }) {
     try {
       const logged = await logBatch(batch);
       // The product's signature (motion M4): the batch is filed into the Journal tab.
+      if (!logged?.duplicate) play("log");
       if (!logged?.duplicate) fileBatch({ from: logBtn.current, label: logged?.batch_no ? t("journal.page.no", { no: String(logged.batch_no).padStart(3, "0") }) : "" });
       setStatus("saved");
       if (logged?.batch_no) setBatchNo(logged.batch_no);
@@ -302,9 +308,11 @@ export default function BenchMode({ demo = null }) {
       if (isOffline(e)) {
         enqueue(batch);
         fileBatch({ from: logBtn.current, label: "" });
+        play("log");
         setStatus("queued");
       } else {
         setStatus("error");
+        play("fail");
         setError(errorText(t, e, "calc.saveFailedGeneric"));
       }
     }
@@ -360,7 +368,7 @@ export default function BenchMode({ demo = null }) {
             <p className="mt-6 text-lg leading-relaxed">{t("bench.tare.text")}</p>
             <div className="mt-4">
               <ScaleDisplay label={t("bench.pour.sim")} grams={Number(practiceTare) || 0}>
-                <button type="button" onClick={() => setPracticeTare("0")} className="px-5 rounded border text-sm"
+                <button type="button" onClick={() => { setPracticeTare("0"); play("tare"); }} className="px-5 rounded border text-sm"
                   style={{ minHeight: 48, borderColor: COLORS.onInk, color: COLORS.onInk }}>{t("bench.pour.tare")}</button>
               </ScaleDisplay>
             </div>

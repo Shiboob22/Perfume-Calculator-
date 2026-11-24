@@ -6,6 +6,7 @@ import { saveNote, TAGS } from "../../lib/journalNotes";
 import Sheet from "../kx/Sheet";
 import SaveState from "../kx/SaveState";
 import RatingRow from "../kx/RatingRow";
+import { play } from "../../lib/sound";
 
 // "Smell today": what is due, one card per batch, oldest window first, and a
 // quick note in a sheet (rating, tags, one line, Save: three taps). The full
@@ -72,9 +73,11 @@ export default function TodayStrip({ items, onSaved, onUndo, onOpen, noOf, local
               setTarget(null);
               saveNote(draft).then(({ checkin, queued }) => {
                 onSaved(item.b, checkin);
+                play("note");
                 setDone({ state: queued ? "queued" : "saved", text: t(queued ? "journal.page.savedOffline" : "journal.page.todayStrip.saved", words) });
               }, () => {
                 onUndo?.(item.b, draft.id);
+                play("fail");
                 setDrafts((d) => ({ ...d, [slot]: kept }));
                 setDone({ state: "failed", text: t("journal.page.todayStrip.failed", words) });
               });
