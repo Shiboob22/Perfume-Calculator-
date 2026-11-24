@@ -38,6 +38,8 @@ export default {
       ":root": { ...light, colorScheme: "light", ...motionVars() },
       "@media (prefers-color-scheme: dark)": { ':root:not([data-theme="light"])': { ...dark, colorScheme: "dark" } },
       ':root[data-theme="dark"]': { ...dark, colorScheme: "dark" },
+      // One section in the dark edition whatever the theme: the photo hero (src/site/Imagery.jsx).
+      ".kx-dark": { ...dark, colorScheme: "dark" },
     })),
   ],
 };

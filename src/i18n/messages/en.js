@@ -1456,6 +1456,7 @@ export default {
     theme: { label: "Switch between light and dark", light: "Light", dark: "Dark" },
   },
   site: {
+    imagery: { pause: "Pause the film", play: "Play the film" },
     nav: { shop: "Shop", main: "Main", atlas: "Atlas", salon: "Salon", nose: "Nose", wardrobe: "Wardrobe", calculator: "Calculator", journal: "Journal", privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "Kyphira, home", language: "العربية", languageLabel: "Read this page in Arabic" },
     legal: { draft: "Draft — not yet reviewed. This page may change before launch.", updated: "Last updated {date}" },
     safety: { title: "Safety", text: "Perfumer's alcohol is flammable: blend away from flame and heat, in a ventilated room, out of reach of children. Fragrance oils can irritate skin and eyes — wear gloves and read each material's safety data sheet. The numbers here are starting points; check every weight on your own scale.", more: "Safety and responsibility" },
@@ -1481,6 +1482,7 @@ export default {
       },
     },
     home: {
+      kyphi: { label: "The name", title: "Named for kyphi", text: "Kyphi was the compound incense of ancient Egypt; its recipes were cut into the walls of the laboratory at the Temple of Edfu. Kyphira is a name on that root." },
       metaTitle: "Kyphira — a fragrance blending calculator by weight",
       metaDescription: "Dilute fragrance oil with 96% ethanol by weight. Exact grams for a 0.01 g scale, the bench method step by step, and a free library of guides.",
       title: "Blend your own fragrance by weight.",
