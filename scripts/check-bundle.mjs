@@ -75,6 +75,12 @@ for (const file of files.filter((f) => /assets\/index-[^/]+\.js$/.test(f))) {
   }
 }
 
+// The brand photographs and films (public/media, about 10 MB) load only where
+// a page shows them: the service worker must never precache them.
+try {
+  if (/["']\/?media\//.test(readFileSync(join(DIST, "sw.js"), "utf8"))) problems.push("dist/sw.js: precaches /media (photos and films)");
+} catch { /* no service worker built yet: nothing to judge */ }
+
 if (problems.length) {
   console.error("Secret check failed:\n" + problems.map((p) => "  - " + p).join("\n"));
   process.exit(1);
