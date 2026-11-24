@@ -18,6 +18,7 @@ export default function Ambient() {
   const { t } = useI18n();
   const [shown, setShown] = useState(false); // not in the prerender: Motion Off is read on the device
   const [playing, setPlaying] = useState(false);
+  const [failed, setFailed] = useState(false);
   const stop = useRef(null);
   const loading = useRef(false);
   const gone = useRef(false);
@@ -29,6 +30,8 @@ export default function Ambient() {
   }, []);
 
   const toggle = async () => {
+    // A failed load is nearly always a page left open across a deploy (its code chunks are gone): load the live release.
+    if (failed) { window.location.reload(); return; }
     if (stop.current) { stop.current(); stop.current = null; setPlaying(false); return; }
     if (loading.current) return; // still loading: a second press must not start a second copy
     // Make the context inside the press itself (iOS allows audio only there), then build on it once loaded.
@@ -45,7 +48,7 @@ export default function Ambient() {
       const halt = await (await import("./templeSound.js")).startAmbient(ac, session);
       if (gone.current) halt(); else stop.current = halt; // the page was left while it loaded
     }
-    catch { ac.close().catch(() => {}); setPlaying(false); }
+    catch { ac.close().catch(() => {}); setPlaying(false); setFailed(true); }
     finally { loading.current = false; }
   };
 
@@ -56,8 +59,9 @@ export default function Ambient() {
         className="inline-flex items-center gap-2 px-4 min-h-[44px] text-sm font-medium mo-press"
         style={{ border: `1px solid ${COLORS.ink}` }}>
         {playing ? <IconPause size={18} /> : <IconPlay size={18} />}
-        {t(playing ? "site.ambient.stop" : "site.ambient.listen")}
+        {t(failed ? "site.ambient.reload" : playing ? "site.ambient.stop" : "site.ambient.listen")}
       </button>
+      {failed && <p role="status" data-ambient-failed className="text-sm mt-2" style={{ color: COLORS.ink }}>{t("site.ambient.failed")}</p>}
       <p className="text-sm mt-2" style={{ color: COLORS.dim }}>{t("site.ambient.hint")}</p>
     </div>
   );

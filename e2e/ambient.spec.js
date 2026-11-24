@@ -81,3 +81,18 @@ test("Motion Off: no Listen button", async ({ page }) => {
   await page.waitForTimeout(500);
   await expect(page.locator("[data-ambient]")).toHaveCount(0);
 });
+
+test("a failed load says so and offers a reload (a page left open across a deploy)", async ({ page }) => {
+  await setup(page);
+  await page.route("**/media/kyphi-music.m4a", (r) => r.fulfill({ status: 404, body: "" }));
+  await page.goto("/");
+  const button = page.locator("[data-ambient]");
+  await button.scrollIntoViewIfNeeded();
+  await button.click();
+  await expect(page.locator("[data-ambient-failed]")).toHaveText("Couldn’t load the music.");
+  await expect(button).toHaveText(/Reload and try again/);
+  await expect(button).toHaveAttribute("aria-pressed", "false");
+  await page.unroute("**/media/kyphi-music.m4a");
+  await Promise.all([page.waitForEvent("load"), button.click()]); // reloads onto the live release
+  await expect(page.locator("[data-ambient]")).toHaveText(/Listen/);
+});
