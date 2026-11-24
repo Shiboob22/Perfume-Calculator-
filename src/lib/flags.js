@@ -3,7 +3,8 @@
 // hero ("hero3d", needs "compounding" too) and for the
 // site-wide motion layer ("motion", src/motion), its GSAP layer in the
 // app rooms ("roommotion", needs "motion" too) and the brand photographs
-// and films on the public pages ("imagery", src/site/Imagery.jsx). Off unless
+// and films on the public pages ("imagery", src/site/Imagery.jsx), the kyphi
+// band's ambient sound ("ambient", src/site/Ambient.jsx). Off unless
 // its flag is on:
 //   - at build time: VITE_FLAG_<NAME>=1 (a preview or production build),
 //   - or on one device: localStorage "kyphira.flag.<name>" = "1", set by
@@ -12,7 +13,7 @@
 // A flag only decides what is *shown*. Every room's data is private behind
 // row-level security whatever the flag says, so turning one on in the
 // browser exposes nothing. Pure: env and storage are passed in for tests.
-export const FLAGS = ["wardrobe", "atlas", "salon", "nose", "compounding", "motion", "shop", "hero3d", "orders", "roommotion", "imagery"];
+export const FLAGS = ["wardrobe", "atlas", "salon", "nose", "compounding", "motion", "shop", "hero3d", "orders", "roommotion", "imagery", "ambient"];
 
 // On unless switched off: the order queue (owner, 2026-11-13: switched on in
 // code because the connected Vercel account can't reach the team's settings).

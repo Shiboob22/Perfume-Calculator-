@@ -10,6 +10,7 @@ import { Folio } from "./editorial";
 import Compounding from "@compounding-scene";
 import { useCompounding } from "./compounding/useCompounding";
 import { Film, HeroPhoto, Photo, useImagery } from "./Imagery";
+import Ambient, { useAmbient } from "./Ambient";
 import { IconArrow, IconBook, IconFlacon, IconPlus, IconScaleDrop, IconSeal, IconSteps, IconTile } from "../components/icons";
 
 const PRINCIPLE_ICONS = [IconScaleDrop, IconSteps, IconFlacon];
@@ -29,6 +30,7 @@ export default function Home() {
   const faq = t.raw("site.home.faq") || [];
   const compounding = useCompounding();
   const imagery = useImagery();
+  const ambient = useAmbient();
   useSmoothScroll(); // wheel smoothing on the home page only; off for reduced motion, low power, or the flag off
 
   return (
@@ -113,6 +115,7 @@ export default function Home() {
             <p className={`${TYPE.label} mb-3`} style={{ color: COLORS.dim }}>{t("site.home.kyphi.label")}</p>
             <h2 id="kyphi-h" className={`${TYPE.title} mb-4`}>{t("site.home.kyphi.title")}</h2>
             <p className="font-serif text-lg leading-relaxed measure" style={{ color: COLORS.inkSoft }}>{t("site.home.kyphi.text")}</p>
+            {ambient && <Ambient />}
           </div>
         </Reveal>
       )}
