@@ -11,45 +11,73 @@ export function useAmbient() {
   return on;
 }
 
-// Listen / Stop for the kyphi band's music (src/site/templeSound.js, its own chunk,
-// and the track, fetched on the first press). Never starts by itself (WCAG 1.4.2), never
-// remembered: every visit starts silent. Not offered under Motion Off.
+// Listen / Stop for the kyphi band's music (src/site/templeSound.js, its own chunk, and the track).
+// Plays by default (owner, 2026-11-25): it starts when the home page opens; where the browser
+// holds sound until the first tap or key press (nearly all of them), that first press anywhere
+// on the page lets it in. Stop is remembered on the device (STOPPED), and Listen clears it.
+// Not offered under Motion Off; silent with the tab hidden (templeSound.js).
+const STOPPED = "kyphira.ambientStopped";
+const GESTURES = ["pointerdown", "keydown", "touchend"];
+
 export default function Ambient() {
   const { t } = useI18n();
   const [shown, setShown] = useState(false); // not in the prerender: Motion Off is read on the device
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(false); // started, and audible (not waiting for a first press)
   const [failed, setFailed] = useState(false);
   const stop = useRef(null);
+  const ctx = useRef(null);
   const loading = useRef(false);
   const gone = useRef(false);
 
-  useEffect(() => {
-    gone.current = false; // StrictMode mounts twice in dev: reset on every mount
-    setShown(document.documentElement.getAttribute("data-mo-level") !== "off");
-    return () => { gone.current = true; stop.current?.(); stop.current = null; };
-  }, []);
-
-  const toggle = async () => {
-    // A failed load is nearly always a page left open across a deploy (its code chunks are gone): load the live release.
-    if (failed) { window.location.reload(); return; }
-    if (stop.current) { stop.current(); stop.current = null; setPlaying(false); return; }
-    if (loading.current) return; // still loading: a second press must not start a second copy
-    // Make the context inside the press itself (iOS allows audio only there), then build on it once loaded.
+  const start = async () => {
+    if (loading.current || stop.current) return; // never a second copy
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     const session = navigator.audioSession; // iPhone: "playback" is not muted by the ringer switch
     try { if (session) session.type = "playback"; } catch { /* older Safari */ }
     let ac;
     try { ac = new AC({ latencyHint: "playback" }); } catch { ac = new AC(); }
-    ac.resume().catch(() => {});
-    setPlaying(true);
+    ctx.current = ac;
+    const sync = () => setPlaying(ac.state === "running");
+    ac.onstatechange = sync;
+    // Until the browser lets sound in, the first press anywhere wakes the context.
+    // The button's own press is left to toggle(), or it would wake the music and then stop it.
+    const unlock = (e) => e?.target?.closest?.("[data-ambient]") ? undefined : ac.resume().then(() => {
+      if (ac.state === "running") GESTURES.forEach((e) => document.removeEventListener(e, unlock, true));
+    }).catch(() => {});
+    GESTURES.forEach((e) => document.addEventListener(e, unlock, true));
+    unlock();
     loading.current = true;
     try {
       const halt = await (await import("./templeSound.js")).startAmbient(ac, session);
-      if (gone.current) halt(); else stop.current = halt; // the page was left while it loaded
+      const end = () => { GESTURES.forEach((e) => document.removeEventListener(e, unlock, true)); ac.onstatechange = null; halt(); };
+      if (gone.current) end(); else { stop.current = end; sync(); }
     }
-    catch { ac.close().catch(() => {}); setPlaying(false); setFailed(true); }
+    catch { GESTURES.forEach((e) => document.removeEventListener(e, unlock, true)); ac.close().catch(() => {}); setPlaying(false); setFailed(true); }
     finally { loading.current = false; }
+  };
+
+  useEffect(() => {
+    gone.current = false; // StrictMode mounts twice in dev: reset on every mount
+    const off = document.documentElement.getAttribute("data-mo-level") === "off";
+    setShown(!off);
+    let stopped = false;
+    try { stopped = localStorage.getItem(STOPPED) === "1"; } catch { /* private mode */ }
+    if (!off && !stopped) start();
+    return () => { gone.current = true; stop.current?.(); stop.current = null; };
+  }, []);
+
+  const toggle = () => {
+    // A failed load is nearly always a page left open across a deploy (its code chunks are gone): load the live release.
+    if (failed) { window.location.reload(); return; }
+    if (stop.current && playing) {
+      stop.current(); stop.current = null; setPlaying(false);
+      try { localStorage.setItem(STOPPED, "1"); } catch { /* private mode */ }
+      return;
+    }
+    try { localStorage.removeItem(STOPPED); } catch { /* private mode */ }
+    if (stop.current || loading.current) { ctx.current?.resume().catch(() => {}); return; } // waiting for a press: this is it
+    start();
   };
 
   if (!shown) return null;
