@@ -13,6 +13,7 @@ import { Gauge, LiveGauge } from "./parts";
 import Weigh from "./Weigh";
 import { useHero3D } from "./hero3d/gate";
 import "./rooms.css";
+import { HeroPhoto, Photo, useImagery } from "../Imagery";
 import { M, V, sceneVars, useScrollFallback } from "./motion";
 
 const WRAP = "max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14";
@@ -31,13 +32,17 @@ const ROOMS = [
   { id: "salon", href: "/salon", flag: "salon" },
   { id: "nose", href: "/nose", flag: "nose" },
 ];
+// One brand photograph per room (imagery flag).
+const ROOM_PHOTOS = { bench: "lab-table", wardrobe: "cellar", library: "books", atlas: "materials-map", salon: "strip-candle", nose: "raw-slate" };
 
 // One stage: a section that is its own timeline box, with the gauge's static reading.
-function Stage({ id, children, className = "", bg = COLORS.paper, grams }) {
+function Stage({ id, children, className = "", bg = COLORS.paper, grams, behind = null }) {
   return (
-    <section data-stage={id} data-vt="" aria-labelledby={`st-${id}`} className={`relative overflow-clip ${className}`} style={{ background: bg, color: COLORS.ink }}>
+    <section data-stage={id} data-vt="" aria-labelledby={`st-${id}`} className={`relative overflow-clip ${className}`}
+      style={{ background: bg, color: COLORS.ink, ...(behind ? { "--st-accent": "var(--c-action-text)" } : null) }}>
+      {behind}
       <Gauge stage={id} grams={grams} />
-      <div className={BODY}>{children(`st-${id}`)}</div>
+      <div className={`${BODY} relative`}>{children(`st-${id}`)}</div>
     </section>
   );
 }
@@ -97,6 +102,7 @@ export default function Compounding() {
   const scene = useRef(null);
   useScrollFallback(scene);
   const pour = usePour();
+  const imagery = useImagery();
   // The bench card's total once a visitor changes it: the handoff's still gauge reads it.
   const [benchTotal, setBenchTotal] = useState(null);
   const nums = { oil: fmt2(oil), alcohol: fmt2(alcohol), total: fmt2(total) };
@@ -110,7 +116,7 @@ export default function Compounding() {
       {/* I · The reading. The headline never fades or moves (it is the LCP); light and depth sit behind it.
           Where the 3D pour may run, it takes this stage's place once its first frame is ready. */}
       {pour ? <pour.Hero3D createScene={pour.createScene} onFail={pour.fail} /> : (
-      <Stage id="reading" className="mo-grain pt-10 pb-14 lg:pt-14 lg:pb-20 min-h-[88svh] flex items-center">
+      <Stage id="reading" behind={imagery ? <HeroPhoto /> : null} className={`${imagery ? "kx-dark" : "mo-grain"} pt-10 pb-14 lg:pt-14 lg:pb-20 min-h-[88svh] flex items-center`}>
         {(h) => (
           <div className="w-full">
             <Light />
@@ -168,6 +174,7 @@ export default function Compounding() {
                 const open = !room.flag || flagOn(room.flag);
                 const body = (
                   <>
+                    {imagery && <Photo name={ROOM_PHOTOS[room.id]} ratio="16 / 9" sizes="(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw" className="mb-5" />}
                     <span className="block font-serif ar-display text-[clamp(2rem,4vw,3rem)] leading-none tabular-nums rs-fig">{fig(room.id)}</span>
                     <span className="block mt-4 text-lg font-medium">{t(`site.compounding.rooms.${room.id}.name`)}</span>
                     <span className="block mt-1 text-sm" style={{ color: COLORS.dim }}>{open ? t(`site.compounding.rooms.${room.id}.line`) : t("site.compounding.closed")}</span>

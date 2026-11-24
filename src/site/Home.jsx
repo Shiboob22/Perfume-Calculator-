@@ -9,9 +9,12 @@ import { GuideRows } from "./GuideRows";
 import { Folio } from "./editorial";
 import Compounding from "@compounding-scene";
 import { useCompounding } from "./compounding/useCompounding";
+import { Film, HeroPhoto, Photo, useImagery } from "./Imagery";
 import { IconArrow, IconBook, IconFlacon, IconPlus, IconScaleDrop, IconSeal, IconSteps, IconTile } from "../components/icons";
 
 const PRINCIPLE_ICONS = [IconScaleDrop, IconSteps, IconFlacon];
+// Weigh (the scale), the method one drop at a time, the record (the notebook).
+const PRINCIPLE_PHOTOS = ["bench-scale", "drop", "notebook"];
 const WRAP = "max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-14";
 
 function SectionTitle({ children }) {
@@ -25,14 +28,15 @@ export default function Home() {
   const benefits = t.raw("site.home.benefits") || [];
   const faq = t.raw("site.home.faq") || [];
   const compounding = useCompounding();
+  const imagery = useImagery();
   useSmoothScroll(); // wheel smoothing on the home page only; off for reduced motion, low power, or the flag off
 
   return (
     <div>
       {/* Hero: the scroll scene when its flag is on, else the bench hero */}
       {compounding ? <Compounding /> : (
-      <div className="relative overflow-hidden">
-      <SmokeField className="absolute inset-0 w-full h-full" />
+      <div className={`relative overflow-hidden ${imagery ? "kx-dark" : ""}`} style={imagery ? { background: COLORS.paper, color: COLORS.ink } : undefined}>
+      {imagery ? <HeroPhoto /> : <SmokeField className="absolute inset-0 w-full h-full" />}
       <section className={`${WRAP} relative grid grid-cols-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-center pt-12 pb-20`}>
         <div>
           <p className={`${TYPE.label} mb-6`} style={{ color: COLORS.dim }}>{t("site.home.eyebrow")}</p>
@@ -67,6 +71,7 @@ export default function Home() {
               const I = PRINCIPLE_ICONS[i] ?? IconFlacon;
               return (
                 <li key={b.title} className="kv grid gap-4 content-start">
+                  {imagery && <Photo name={PRINCIPLE_PHOTOS[i]} ratio="4 / 3" sizes="(min-width: 768px) 30vw, 100vw" className="mb-2" />}
                   <div className="flex items-center gap-4">
                     <IconTile icon={I} size={60} />
                     <span aria-hidden="true" dir="ltr" className={`${TYPE.numeral} text-4xl`} style={{ color: COLORS.brass }}>{["I", "II", "III"][i] ?? i + 1}</span>
@@ -81,9 +86,12 @@ export default function Home() {
       </Reveal>
 
       {/* Quote */}
-      <Reveal as="blockquote" className={`${WRAP} reveal py-16 text-center`}>
-        <p className="font-serif italic text-[clamp(1.6rem,3.6vw,2.5rem)] max-w-3xl mx-auto leading-snug">“{t("site.home.quote")}”</p>
-        <footer className={`kv-fade mt-5 ${TYPE.label}`} style={{ color: COLORS.dim }}>{t("site.home.quoteSource")}</footer>
+      <Reveal as="blockquote" className={`${WRAP} reveal py-16 ${imagery ? "grid lg:grid-cols-2 gap-10 lg:gap-16 items-center" : "text-center"}`}>
+        {imagery && <Film name="incense" ratio="16 / 9" />}
+        <div>
+          <p className={`font-serif italic text-[clamp(1.6rem,3.6vw,2.5rem)] max-w-3xl leading-snug ${imagery ? "" : "mx-auto"}`}>“{t("site.home.quote")}”</p>
+          <footer className={`kv-fade mt-5 ${TYPE.label}`} style={{ color: COLORS.dim }}>{t("site.home.quoteSource")}</footer>
+        </div>
       </Reveal>
 
       {/* Guide library */}
@@ -96,6 +104,18 @@ export default function Home() {
           {t("site.home.allGuides")} <IconArrow size={18} />
         </Link>
       </Reveal>
+
+      {/* The name: kyphi (src/brand.js) */}
+      {imagery && (
+        <Reveal as="section" aria-labelledby="kyphi-h" className={`${WRAP} reveal py-14 grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-10 lg:gap-16 items-center`} style={{ borderTop: `1px solid ${COLORS.line}` }}>
+          <Film name="sandstone" ratio="16 / 9" />
+          <div>
+            <p className={`${TYPE.label} mb-3`} style={{ color: COLORS.dim }}>{t("site.home.kyphi.label")}</p>
+            <h2 id="kyphi-h" className={`${TYPE.title} mb-4`}>{t("site.home.kyphi.title")}</h2>
+            <p className="font-serif text-lg leading-relaxed measure" style={{ color: COLORS.inkSoft }}>{t("site.home.kyphi.text")}</p>
+          </div>
+        </Reveal>
+      )}
 
       {/* Pricing teaser band */}
       <Reveal as="section" className="reveal" style={{ background: COLORS.sand, borderBlock: `1px solid ${COLORS.line}` }}>

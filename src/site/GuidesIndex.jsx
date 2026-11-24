@@ -10,6 +10,7 @@ import MethodSequence from "./MethodSequence";
 import { Folio } from "./editorial";
 import Chip from "../components/kx/Chip";
 import { GLOSSARY_ENTRIES, glossaryTerm } from "../content/glossary";
+import { Film, useImagery } from "./Imagery";
 
 // The two sections are different kinds of reading, so they look different:
 // Blending is one method in order (numbered steps); Wearing is a set of
@@ -83,6 +84,7 @@ export default function GuidesIndex() {
   const [tab, setTab] = useState("essays");
   const found = useMemo(() => searchGuides(GUIDES, locale, query), [locale, query]);
   const shown = section === "all" ? found : found.filter((g) => g.section === section);
+  const imagery = useImagery();
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-10">
@@ -138,6 +140,7 @@ export default function GuidesIndex() {
           </Reveal>
         );
       })}
+      {imagery && <Film name="perfumery" ratio="21 / 9" className="mb-16" />}
       </>)}
       <Folio><span>{t("brand")}</span><span>{t("site.guides.by")}</span></Folio>
     </div>

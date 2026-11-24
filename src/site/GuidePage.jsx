@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { DrawLine, Link, Reveal, TextReveal } from "../motion";
 import { COLORS, TYPE } from "../lib/theme";
 import { ChapterMark, Folio } from "./editorial";
+import { Photo, useImagery } from "./Imagery";
 import { useI18n } from "../i18n/I18nProvider";
 import { guideBySlug, GUIDES } from "../content/guides";
 import { readingMinutes } from "../content/search";
@@ -188,6 +189,7 @@ export default function GuidePage() {
   const { t, locale } = useI18n();
   const guide = guideBySlug(slug);
   const to = (p) => localePath(locale, p);
+  const imagery = useImagery();
 
   if (!guide) {
     return (
@@ -249,6 +251,8 @@ export default function GuidePage() {
         <a href={bench} className="inline-flex items-center gap-2 px-4 min-h-[48px] text-sm font-medium" style={{ background: COLORS.amber, color: COLORS.onAmber }}>
           <IconBalance size={18} /> {t("site.guides.tryBench")}
         </a>
+        {/* Small and in the margin on wide screens only, so it never becomes the page's largest paint. */}
+        {imagery && <Photo name={guide.section === "blending" ? "measuring" : "spraying"} ratio="4 / 5" sizes="15rem" className="hidden lg:block" />}
       </aside>
       <div className="max-w-[37rem]">
       <div className="guide-body">{g.body.map((b, i) => <Block key={i} block={b} rule={ruleOf(b)} defs={defs} marked={marks[i]?.length > 1 ? marks[i] : null} />)}</div>
