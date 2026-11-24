@@ -6,33 +6,45 @@
 // never in the reader's browser. A plain script: defines
 // window.renderKyphiMusic(seed) → base64 WAV.
 //
-// 66 bpm, a temple at dusk. D pentatonic (D E G A C: the five-note scale is a
-// reconstruction, not known from the sources). Under everything: the incense
-// fire crackling, smoke-like air and the priests' low hum on D and A.
-// Bars 1–4 hum, crackle, the sistrum and one drum stroke a bar; 5–8 + frame drum and the angled
-// harp; 9–12 + the chant; 13–16 + the flute over all; 17–18 nothing new, only
+// 66 bpm, a temple at dusk, in maqam Hijaz on D: D E♭ F♯ G A B♭ C, the E♭ a
+// little high and the F♯ a little low, as Arab tuning places them (the
+// ancient scales are not known; Hijaz is how Egypt sounds to the ear now).
+// Under everything: the incense fire crackling, smoke-like air and the
+// priests' low hum on D and A. Bars 1–4 an oud taqsim over the hum, the
+// sistrum and one drum stroke a bar; 5–8 + baladi on darbuka and riq, and the
+// angled harp; 9–12 + the chant, sliding through its runs; 13–16 + the arghul
+// (the double reed pipe: melody over its own drone); 17–18 nothing new, only
 // the ring, which the player overlaps with the next copy's start (no seam).
 (() => {
   const BPM = 66, BEAT = 60 / BPM, BAR = BEAT * 4, E8 = BEAT / 2;
   const BARS = 16, TAIL = 2, SR = 44100;
-  const NOTE = { A1: 33, D2: 38, A2: 45, C3: 48, D3: 50, E3: 52, G3: 55, A3: 57, C4: 60, D4: 62, E4: 64, G4: 67, A4: 69, C5: 72, D5: 74 };
+  // Fractional MIDI: Hijaz's E♭ 15 cents high, its F♯ 15 cents low.
+  const NOTE = { A1: 33, D2: 38, A2: 45, C3: 48, D3: 50, Eb3: 51.15, Fs3: 53.85, G3: 55, A3: 57, Bb3: 58, C4: 60, D4: 62, Eb4: 63.15, Fs4: 65.85, G4: 67, A4: 69, Bb4: 70, C5: 72, D5: 74 };
   const hz = (m) => 440 * 2 ** ((m - 69) / 12);
   const n = (name) => NOTE[name];
 
-  // Harp arpeggios, eighths, a four-bar cycle on D, C, A, D.
+  // Harp arpeggios, eighths, a four-bar cycle on D, E♭, Cm, D (Hijaz's own chords).
   const HARP = [
-    ["D3", "A3", "D4", "E4", "A4", "E4", "D4", "A3"],
-    ["C3", "G3", "C4", "D4", "G4", "D4", "C4", "G3"],
-    ["A2", "E3", "A3", "C4", "E4", "C4", "A3", "E3"],
-    ["D3", "A3", "D4", "E4", "G4", "A4", "D5", "A4"],
+    ["D3", "A3", "D4", "Fs4", "A4", "Fs4", "D4", "A3"],
+    ["Eb3", "Bb3", "Eb4", "G4", "Bb4", "G4", "Eb4", "Bb3"],
+    ["C3", "G3", "C4", "Eb4", "G4", "Eb4", "C4", "G3"],
+    ["D3", "A3", "D4", "Fs4", "G4", "A4", "D5", "A4"],
   ];
-  // The chant (bars 9–16) and the flute (13–16): [beat, note, beats] from the phrase's start.
-  const CHANT = [[0, "D3", 4], [4, "E3", 2], [6, "G3", 2], [8, "A3", 3], [11, "G3", 1], [12, "E3", 2], [14, "D3", 2],
-    [16, "A3", 4], [20, "G3", 2], [22, "A3", 2], [24, "C4", 2], [26, "A3", 2], [28, "G3", 1.5], [29.5, "E3", 0.5], [30, "D3", 2]];
-  const FLUTE = [[0, "A4", 3], [3, "G4", 1], [4, "E4", 2], [6, "D4", 2], [8, "E4", 1], [9, "G4", 1], [10, "A4", 2],
-    [12, "C5", 1.5], [13.5, "A4", 0.5], [14, "G4", 2]];
-  // Frame drum, eighths: D deep, d soft, t rim, . rest. A slow procession.
-  const DRUM = "D...d.t.";
+  // The oud's taqsim, bars 1–4: [beat, note, beats]; notes of two beats or more are tremolo.
+  const TAQSIM = [[0, "D3", 1], [1, "Eb3", 0.5], [1.5, "Fs3", 0.5], [2, "G3", 2], [4, "A3", 1], [5, "G3", 0.5], [5.5, "Fs3", 0.5],
+    [6, "Eb3", 1], [7, "D3", 1], [8, "A3", 0.5], [8.5, "Bb3", 0.5], [9, "A3", 0.5], [9.5, "G3", 0.5], [10, "Fs3", 1],
+    [11, "G3", 0.5], [11.5, "Fs3", 0.5], [12, "Eb3", 0.5], [12.5, "D3", 3.5]];
+  // The chant, bars 9–16, sliding through its runs: [beat, note, beats] from the phrase's start.
+  const CHANT = [[0, "D3", 3], [3, "Eb3", 0.5], [3.5, "Fs3", 0.5], [4, "G3", 2], [6, "Fs3", 1], [7, "Eb3", 1], [8, "D3", 2],
+    [10, "Fs3", 1], [11, "G3", 1], [12, "A3", 3], [15, "G3", 0.5], [15.5, "Fs3", 0.5],
+    [16, "A3", 2], [18, "Bb3", 1], [19, "A3", 1], [20, "G3", 1], [21, "Fs3", 0.5], [21.5, "G3", 0.5], [22, "A3", 2],
+    [24, "G3", 1], [25, "Fs3", 1], [26, "Eb3", 1.5], [27.5, "Fs3", 0.5], [28, "D3", 4]];
+  // The arghul's melody, bars 13–16, with its turns and grace notes written out.
+  const ARGHUL = [[0, "A4", 2], [2, "Bb4", 0.5], [2.5, "A4", 0.5], [3, "G4", 0.5], [3.5, "Fs4", 0.5], [4, "G4", 1], [5, "Fs4", 0.5],
+    [5.5, "Eb4", 0.5], [6, "Fs4", 2], [8, "D4", 0.5], [8.5, "Eb4", 0.5], [9, "Fs4", 0.5], [9.5, "G4", 0.5], [10, "A4", 1.5],
+    [11.5, "Bb4", 0.25], [11.75, "A4", 0.25], [12, "G4", 1], [13, "Fs4", 0.5], [13.5, "Eb4", 0.5], [14, "D4", 2]];
+  // Baladi, eighths: D doum (deep), T tek (rim), . rest; the riq's jingles shake on every tek.
+  const DRUM = "DD.TD.T.";
   // Vowels for the hum and chant (male formants, Hz): "oo" under everything, the chant opens to "ah".
   const OO = [330, 700, 2400], AH = [700, 1150, 2600];
 
@@ -62,7 +74,7 @@
       return g;
     };
     const ch = {
-      hum: channel(0, 1.1, 0.5), chant: channel(-0.1, 0.55, 0.6), harp: channel(-0.3, 0.45, 0.45), flute: channel(0.25, 0.4, 0.6),
+      hum: channel(0, 1.1, 0.5), chant: channel(-0.1, 0.55, 0.6), harp: channel(-0.3, 0.45, 0.45), arghul: channel(0.25, 0.35, 0.55), oud: channel(-0.15, 0.5, 0.35), riq: channel(0.4, 0.4, 0.3),
       drum: channel(0.05, 0.7, 0.25), sistrum: channel(0.35, 0.7, 0.4), bell: channel(-0.2, 0.25, 0.7), fire: channel(0, 0.5, 0.1),
     };
     const noise = ac.createBuffer(1, SR * 2, SR); { const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = rand() * 2 - 1; }
@@ -124,6 +136,21 @@
       g.gain.value = amp; s.connect(body).connect(soft).connect(g).connect(ch.harp); s.start(t);
     };
 
+    // Oud: a fretless short-necked lute, a deep round body; long notes played as tremolo with the plectrum.
+    const oud = (t, note, amp, beats = 1) => {
+      const strike = (at, a) => {
+        const s = ac.createBufferSource(), g = ac.createGain(), body = ac.createBiquadFilter(), soft = ac.createBiquadFilter();
+        s.buffer = ks(hz(n(note)), 1.6, 0.996); body.type = "peaking"; body.frequency.value = 250; body.gain.value = 7; body.Q.value = 1;
+        soft.type = "lowpass"; soft.frequency.value = 1800;
+        g.gain.value = a; s.connect(body).connect(soft).connect(g).connect(ch.oud); s.start(at);
+      };
+      if (beats < 2) { strike(t, amp); return; }
+      const step = BEAT / 6; // the risha's tremolo
+      for (let k = 0; k * step < beats * BEAT - step; k++) strike(t + k * step + rand() * 0.006, amp * (k ? 0.5 + 0.15 * Math.sin(k) : 1) * (1 - 0.4 * k * step / (beats * BEAT)));
+    };
+    // Riq: the tambourine's small cymbals, a bright short shake.
+    const riq = (t, a) => { burst(ch.riq, t, 0.06, "bandpass", 6500, 3, a, 0.001); burst(ch.riq, t + 0.012, 0.05, "bandpass", 8800, 4, 0.6 * a, 0.001); };
+
     // Frame drum: a deep skin, a softer stroke, a dry rim.
     const skin = (t, a) => {
       const o = ac.createOscillator(), g = ac.createGain();
@@ -152,27 +179,27 @@
         env(g, t, a * amp * 0.12, 0.002, d); o.connect(g).connect(ch.bell); o.start(t); o.stop(t + d + 0.05);
       }
     };
-    // Flute: breathy, vibrato that opens on long notes, notes sliding into each other.
-    const flute = (t0, phrase) => {
-      const o = ac.createOscillator(), g = ac.createGain(), vib = ac.createGain(), lfo = ac.createOscillator(), lp = ac.createBiquadFilter();
-      o.type = "triangle"; lfo.frequency.value = 5; lfo.connect(vib).connect(o.detune); vib.gain.value = 0;
-      lp.type = "lowpass"; lp.frequency.value = 2800; o.connect(lp).connect(g).connect(ch.flute);
-      const breath = ac.createBufferSource(), bp = ac.createBiquadFilter(), bg = ac.createGain();
-      breath.buffer = noise; breath.loop = true; bp.type = "bandpass"; bp.frequency.value = 1400; bp.Q.value = 1;
-      breath.connect(bp).connect(bg).connect(ch.flute);
-      g.gain.setValueAtTime(0, t0); bg.gain.setValueAtTime(0, t0);
-      o.frequency.setValueAtTime(hz(n(phrase[0][1])), t0);
+    // Arghul: two cane pipes with single reeds, nasal and buzzing: the melody pipe over a drone pipe on D.
+    const arghul = (t0, phrase) => {
+      const reed = (f0, level) => {
+        const o = ac.createOscillator(), g = ac.createGain(), nasal = ac.createBiquadFilter(), lp = ac.createBiquadFilter();
+        o.type = "square"; o.frequency.setValueAtTime(f0, t0);
+        nasal.type = "bandpass"; nasal.frequency.value = 1250; nasal.Q.value = 1.4; lp.type = "lowpass"; lp.frequency.value = 3500;
+        o.connect(nasal).connect(lp).connect(g).connect(ch.arghul); g.gain.setValueAtTime(0, t0); g.gain.setTargetAtTime(level, t0, 0.08);
+        return { o, g };
+      };
+      const lead = reed(hz(n(phrase[0][1])), 0.55), drone = reed(hz(n("D3")), 0.22);
+      const lfo = ac.createOscillator(), vib = ac.createGain(); lfo.frequency.value = 5.5; vib.gain.value = 0; lfo.connect(vib).connect(lead.o.detune);
       let end = t0;
       for (const [beat, note, beats] of phrase) {
         const t = t0 + beat * BEAT, d = beats * BEAT;
-        o.frequency.setTargetAtTime(hz(n(note)), t, 0.04);
-        g.gain.setTargetAtTime(0.3, t, 0.05); g.gain.setTargetAtTime(0.2, t + d * 0.6, 0.12);
-        bg.gain.setTargetAtTime(0.035, t, 0.04); bg.gain.setTargetAtTime(0.018, t + d * 0.5, 0.12);
-        vib.gain.setValueAtTime(0, t); vib.gain.linearRampToValueAtTime(d > BEAT * 1.5 ? 16 : 5, t + d);
+        lead.o.frequency.setTargetAtTime(hz(n(note)), t, 0.018); // quick slides: the ornaments stay crisp
+        lead.g.gain.setTargetAtTime(0.55, t, 0.02); lead.g.gain.setTargetAtTime(0.42, t + d * 0.7, 0.1);
+        vib.gain.setValueAtTime(0, t); vib.gain.linearRampToValueAtTime(d > BEAT * 1.5 ? 14 : 0, t + d);
         end = t + d;
       }
-      g.gain.setTargetAtTime(0, end - 0.1, 0.25); bg.gain.setTargetAtTime(0, end - 0.1, 0.2);
-      for (const s of [o, lfo, breath]) { s.start(t0); s.stop(end + 1.5); }
+      for (const v of [lead, drone]) { v.g.gain.setTargetAtTime(0, end - 0.1, 0.25); v.o.start(t0); v.o.stop(end + 1.5); }
+      lfo.start(t0); lfo.stop(end + 1.5);
     };
 
     // The incense fire: a soft roar, crackles at random, and air moving like smoke.
@@ -198,7 +225,12 @@
       if (bar1 <= 4) { sistrum(t, 0.7); sistrum(t + 2 * BEAT, 0.45, 5); skin(t, 0.55); } // a heartbeat while it gathers
       else { sistrum(t + BEAT, 0.55, 5); sistrum(t + 3 * BEAT, 0.7); if (bar1 % 2 === 0) sistrum(t + 3.5 * BEAT, 0.4, 4); }
       if (bar1 >= 5) {
-        [...DRUM].forEach((s, i) => { const at = t + i * E8 + rand() * 0.008; if (s === "D") skin(at, 0.9); else if (s === "d") skin(at, 0.5); else if (s === "t") rim(at, 0.7); });
+        [...DRUM].forEach((s, i) => {
+          const at = t + i * E8 + rand() * 0.008;
+          if (s === "D") skin(at, i === 0 ? 0.95 : 0.75);
+          else if (s === "T") { rim(at, 0.75); riq(at, 0.5); }
+          else if (rand() < 0.5) riq(at, 0.18); // the riq's ghost shakes between
+        });
         // Harp: quarters while it enters, then every eighth, softer on the off-beats.
         HARP[b % 4].forEach((note, i) => {
           if (bar1 <= 8 && i % 2) return;
@@ -211,7 +243,8 @@
     const c0 = 8 * BAR;
     voices(ch.chant, c0, END + BEAT * 2, CHANT.map(([b, note]) => [c0 + b * BEAT, note]),
       { count: 6, spread: 16, level: 0.3, fadeIn: 0.6, fadeOut: BEAT * 2.5, open: CHANT.map(([b]) => c0 + b * BEAT) });
-    flute(12 * BAR, FLUTE);
+    TAQSIM.forEach(([b, note, beats]) => oud(b * BEAT + rand() * 0.01, note, 0.75, beats));
+    arghul(12 * BAR, ARGHUL);
     // The end of the rite: one last shake, the cymbal and the harp's low D ringing into the tail.
     sistrum(END, 0.6); cymbal(END, 0.8); harp(END, "D3", 0.7);
 
