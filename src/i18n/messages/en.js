@@ -1244,6 +1244,7 @@ export default {
         oil: "Oil on hand (g)",
         bottle: "Bottle size to fill (mL, optional)",
         fills: "Fills {count} × {size} mL, with {left} mL left over.",
+        useInBottle: "Open in Bottle with these numbers",
       },
       adjust: {
         intro: "Move an existing blend to a new strength by adding material only. The handbook: do not correct a large overshoot by removing material unless you have a controlled procedure for it.",

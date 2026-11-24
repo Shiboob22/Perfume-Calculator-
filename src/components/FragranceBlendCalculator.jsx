@@ -792,7 +792,8 @@ function Calculator({ selectedPerfume, onClearSelection, fresh, onStartOver }) {
           <p className="text-[11px] font-mono mb-5" style={{ color: COLORS.inkSoft }}>
             {t(measuredDensityValue != null ? "calc.densitiesUsedMeasured" : "calc.densitiesUsed", { oil: result.densities.oil, ethanol: result.densities.ethanol })}
           </p>
-          {mode === "fromOil" && <FromOil densities={result.densities} defaultPct={concPct} />}
+          {mode === "fromOil" && <FromOil densities={result.densities} defaultPct={concPct}
+            onUseInBottle={({ amount, unit, concPct: c }) => { chosen.current.conc = true; setBatchSize(amount); setBatchUnit(unit); setConcPct(c); setMode("bottle"); }} />}
           {mode === "adjust" && <Adjust densities={result.densities} defaultPct={concPct} defaultBasis={result.basis} />}
           {mode === "run" && <Run densities={result.densities} defaultPct={concPct} defaultBasis={result.basis} />}
           <aside role="note" className="mt-6 p-4 flex gap-3 text-sm" style={{ background: COLORS.dangerBg, border: `1px solid ${COLORS.dangerLine}`, color: COLORS.ink }}>

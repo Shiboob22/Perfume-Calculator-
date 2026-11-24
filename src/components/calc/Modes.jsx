@@ -3,6 +3,7 @@ import { COLORS } from "../../lib/theme";
 import { useI18n } from "../../i18n/I18nProvider";
 import { solveFromOil, adjustConcentration, solveRun, solveBottle, weightToVolumeFraction, fmt2 } from "../../lib/calc";
 import { STRENGTHS } from "../../lib/formulation";
+import Button from "../kx/Button";
 
 // Calculator modes b, c and d. All arithmetic is in src/lib/calc; these only
 // collect inputs and show results. `densities` = { oil, ethanol } in use.
@@ -66,7 +67,7 @@ function Row({ label, value, strong }) {
 const valid = (...xs) => xs.every((x) => Number(x) > 0);
 
 // ------------------------------------------------ mode b: oil on hand
-export function FromOil({ densities, defaultPct }) {
+export function FromOil({ densities, defaultPct, onUseInBottle }) {
   const { t } = useI18n();
   const [oilG, setOilG] = useState("");
   const [pct, setPct] = useState(defaultPct);
@@ -89,6 +90,15 @@ export function FromOil({ densities, defaultPct }) {
             <p className="mt-3 text-sm" style={{ color: COLORS.actionText }}>
               {t("calc.modes.fromOil.fills", { count: r.bottles, size: Number(bottleMl), left: fmt2(r.leftoverMl) })}
             </p>
+          )}
+          {onUseInBottle && (
+            // The bottle view takes the whole batch: by volume in mL, by weight in g (its basis follows the unit).
+            <Button variant="secondary" className="mt-4 w-full" data-from-oil-bottle
+              onClick={() => onUseInBottle(basis === "volume"
+                ? { amount: String(r.shown.totalMl), unit: "ml", concPct: String(pct) }
+                : { amount: String(r.shown.totalG), unit: "g", concPct: String(pct) })}>
+              {t("calc.modes.fromOil.useInBottle")}
+            </Button>
           )}
         </div>
       )}
