@@ -1,19 +1,20 @@
-// The kyphi band's music (owner, 2026-11-24): "Egyptian Desert" by hitslab,
-// Pixabay (ID 502005; Pixabay Content License: commercial use, no credit
-// required; the owner confirmed the source). Cut at 59.5 s, before the
-// track's own fade-out, and encoded to 96 kbps AAC (public/media/kyphi-desert.m4a,
-// ~0.7 MB) with `ffmpeg -t 59.5 -c:a aac -b:a 96k -movflags +faststart`.
-// Loaded only when the reader presses Listen (src/site/Ambient.jsx); the
-// service worker never precaches /media.
+// The kyphi band's music: an original piece composed for Kyphira (owner,
+// 2026-11-24; no licence needed), in the style of a modern Egyptian desert
+// groove: 107 bpm, D harmonic minor, oud, qanun, ney, darbuka, bass, strings.
+// Made by `node scripts/make-kyphi-music.mjs` (scripts/kyphi-music/compose.js)
+// → public/media/kyphi-music.m4a (96 kbps AAC, -16 LUFS, ~0.75 MB): 26 bars of
+// music and 2 bars where the last notes ring out. Loaded only when the reader
+// presses Listen (src/site/Ambient.jsx); the service worker never precaches /media.
 
-export const SRC = "/media/kyphi-desert.m4a";
-export const LEVEL = 0.45; // a mastered track (-11.8 LUFS): bring it down to a background
+export const SRC = "/media/kyphi-music.m4a";
+export const LEVEL = 0.7;
 export const FADE_IN = 2;
 export const FADE_OUT = 1.5;
-export const LOOP_END = 59; // each copy plays to here...
-export const XFADE = 3; // ...and the next starts this much earlier, the two crossfading: no dip, no gap
+export const BAR = 240 / 107;
+export const LOOP_END = 28 * BAR; // the whole file...
+export const XFADE = 2 * BAR; // ...whose ringing tail overlaps the next copy's first bars, on the beat
 
-/** When copy n starts, in seconds after the first. Pure. */
+/** When copy n starts, in seconds after the first: every 26 bars. Pure. */
 export const loopStart = (n) => n * (LOOP_END - XFADE);
 
 /**
@@ -36,8 +37,7 @@ export async function startAmbient(ac, session) {
     const at = t0 + loopStart(n), end = at + LOOP_END;
     const src = ac.createBufferSource(), g = ac.createGain();
     src.buffer = track;
-    g.gain.setValueAtTime(n ? 0 : 1, at);
-    if (n) g.gain.linearRampToValueAtTime(1, at + XFADE);
+    g.gain.setValueAtTime(1, at); // each copy enters whole, on the beat; only the ringing tail fades
     g.gain.setValueAtTime(1, end - XFADE);
     g.gain.linearRampToValueAtTime(0, end);
     src.connect(g).connect(master);

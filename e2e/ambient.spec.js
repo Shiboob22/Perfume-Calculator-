@@ -31,7 +31,7 @@ const level = (page) => page.evaluate(() => {
 test("flag off: no Listen button, no track fetched", async ({ page }) => {
   await setup(page, { names: ["imagery"] });
   const fetched = [];
-  page.on("request", (r) => r.url().includes("kyphi-desert") && fetched.push(r.url()));
+  page.on("request", (r) => r.url().includes("kyphi-music") && fetched.push(r.url()));
   await page.goto("/");
   await expect(page.locator("#kyphi-h")).toBeVisible();
   await expect(page.locator("[data-ambient]")).toHaveCount(0);
@@ -41,7 +41,7 @@ test("flag off: no Listen button, no track fetched", async ({ page }) => {
 test("one press plays (the first press, on a fresh page), the second stops", async ({ page }) => {
   await setup(page);
   const fetched = [];
-  page.on("request", (r) => r.url().includes("kyphi-desert") && fetched.push(r.url()));
+  page.on("request", (r) => r.url().includes("kyphi-music") && fetched.push(r.url()));
   await page.goto("/");
   const button = page.locator("[data-ambient]");
   await button.scrollIntoViewIfNeeded();

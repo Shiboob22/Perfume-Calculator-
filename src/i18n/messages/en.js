@@ -1716,7 +1716,7 @@ export default {
     },
   },
   site: {
-    ambient: { listen: "Listen", stop: "Stop the music", hint: "Music: “Egyptian Desert” by hitslab, from Pixabay." },
+    ambient: { listen: "Listen", stop: "Stop the music", hint: "Music composed for Kyphira." },
     imagery: { pause: "Pause the film", play: "Play the film" },
     nav: { signIn: "Sign in", openBench: "Open the Bench", shop: "Shop", main: "Main", atlas: "Atlas", salon: "Salon", nose: "Nose", wardrobe: "Wardrobe", calculator: "Calculator", journal: "Journal", privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "Kyphira, home", language: "العربية", languageLabel: "Read this page in Arabic" },
     legal: { draft: "Draft — not yet reviewed. This page may change before launch.", updated: "Last updated {date}" },
