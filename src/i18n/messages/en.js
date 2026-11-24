@@ -1691,6 +1691,17 @@ export default {
   },
   settings: {
     theme: { label: "Switch between light and dark", light: "Light", dark: "Dark" },
+    sound: {
+      label: "Sound",
+      off: "Off",
+      soft: "Soft",
+      on: "On",
+      hint: {
+        off: "Kyphira makes no sound.",
+        soft: "Quiet cues at the bench: a tick on tare, a glass note on target, a chime when a batch is logged.",
+        on: "The same cues, a little louder, for a noisy room.",
+      },
+    },
     motion: {
       label: "Motion",
       full: "Full",

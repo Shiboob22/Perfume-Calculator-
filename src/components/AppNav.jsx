@@ -7,6 +7,7 @@ import { tabPath } from "../routes";
 import LanguageToggle from "./LanguageToggle";
 import ThemeToggle from "./ThemeToggle";
 import MotionSetting from "./MotionSetting";
+import SoundSetting from "./SoundSetting";
 import { useProfile } from "../lib/useProfile";
 import { useReadyToBottle } from "./orders/OrdersCard";
 import { useMinWidth } from "../lib/useMinWidth";
@@ -278,6 +279,7 @@ function MoreSheet({ items, active, to, onGo, onSignOut, onClose: close }) {
           <LanguageToggle className="min-h-[44px] text-sm" />
           <ThemeToggle />
           <MotionSetting compact className="basis-full order-last pt-2" />
+          <SoundSetting compact className="basis-full order-last pt-2" />
           <button type="button" onClick={onSignOut}
             className="ms-auto inline-flex items-center gap-2 min-h-[44px] text-sm" style={{ color: COLORS.inkSoft }}>
             <IconExit size={18} />{t("app.signOut")}
@@ -342,6 +344,7 @@ export function AccountMenu({ current, onSignOut }) {
             <ThemeToggle />
           </div>
           <MotionSetting compact className="px-4 pb-2" />
+          <SoundSetting compact className="px-4 pb-2" />
           <button type="button" onClick={() => { close(); onSignOut(); }}
             className="min-h-[44px] px-4 flex items-center gap-3 text-sm text-start" style={{ color: COLORS.inkSoft, borderTop: `1px solid ${COLORS.line}` }}>
             <IconExit size={18} />{t("app.signOut")}
