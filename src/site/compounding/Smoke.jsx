@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import { createGovernor, particlesAt } from "../../lib/fpsGovernor.js";
+import { pulse } from "../pulse.js";
 
 // Ember and smoke behind the weighing panel. Canvas 2D at half resolution
 // (smoke is soft; the browser scales it up), about 2 KB, no library, loaded
 // only when the stage is near. Reads the pinned stretch's progress straight
 // from the page (a pure function of scroll) and the scroll velocity: the smoke
-// thickens while the alcohol goes in and leans with the scroll direction.
+// thickens while the alcohol goes in and leans with the scroll direction,
+// and swells with the kyphi music while it plays (src/site/pulse.js).
 //   · off-screen or in a hidden tab: the loop stops;
 //   · a frame-rate governor halves it, then stops it (the CSS glow stays);
 //   · decorative: aria-hidden, no pointer events.
@@ -49,7 +51,7 @@ export default function Smoke() {
       vel += (dy / Math.max(dt, 1) - vel) * 0.15;
       lean += (Math.sign(vel) * Math.min(1, Math.abs(vel) / 2) - lean) * 0.05;
       const dusk = smooth(0.38, 0.5, p) * (1 - smooth(0.7, 0.86, p));
-      const gain = dusk * (0.75 + Math.min(0.5, Math.abs(vel) / 4));
+      const gain = dusk * (0.75 + Math.min(0.5, Math.abs(vel) / 4)) * (1 + pulse.v * 0.9);
       ctx.clearRect(0, 0, w, h);
       if (n && gain > 0.01) {
         const t = now / 1000;
@@ -58,7 +60,7 @@ export default function Smoke() {
           const life = (t * 0.06 * s.sp + s.ph) % 1;
           const x = (s.x + Math.sin(t * 0.4 * s.sp + s.ph * 6.28) * 0.04 + lean * life * 0.12) * w;
           const y = h * (1.02 - life * 0.95);
-          const rad = (s.r + life * 0.14) * w;
+          const rad = (s.r + life * 0.14) * (1 + pulse.v * 0.25) * w;
           const a = gain * Math.sin(life * Math.PI) * 0.16;
           const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
           g.addColorStop(0, `rgba(212,146,74,${a})`);

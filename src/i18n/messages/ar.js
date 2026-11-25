@@ -1716,7 +1716,7 @@ export default {
     },
   },
   site: {
-    ambient: { listen: "استمع", stop: "أوقف الموسيقى", failed: "تعذّر تحميل الموسيقى.", reload: "أعد تحميل الصفحة وحاول مجددًا", hint: "موسيقى أُلّفت لكيفيرا." },
+    ambient: { listen: "استمع", stop: "أوقف الموسيقى", failed: "تعذّر تحميل الموسيقى.", reload: "أعد تحميل الصفحة وحاول مجددًا", hint: "ترتيلة معبد، يتنفّس الدخان معها." },
     imagery: { pause: "أوقف الفيلم", play: "شغّل الفيلم" },
     nav: { signIn: "تسجيل الدخول", openBench: "افتح طاولة الخلط", shop: "المتجر", main: "التنقل الرئيسي", atlas: "الأطلس", salon: "الصالون", nose: "الأنف", wardrobe: "الخزانة", calculator: "الحاسبة", journal: "الدفتر", privacy: "الخصوصية", terms: "الشروط", guides: "الأدلة", pricing: "الخطط", openApp: "افتح التطبيق", home: "كيفيرا، الصفحة الرئيسية", language: "English", languageLabel: "اقرأ هذه الصفحة بالإنجليزية" },
     legal: { draft: "مسودة لم تُراجَع بعد. قد تتغير هذه الصفحة قبل الإطلاق.", updated: "آخر تحديث {date}" },

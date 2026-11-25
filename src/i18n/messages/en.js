@@ -1716,7 +1716,7 @@ export default {
     },
   },
   site: {
-    ambient: { listen: "Listen", stop: "Stop the music", failed: "Couldn\u2019t load the music.", reload: "Reload and try again", hint: "Music composed for Kyphira." },
+    ambient: { listen: "Listen", stop: "Stop the music", failed: "Couldn\u2019t load the music.", reload: "Reload and try again", hint: "A temple chant, in time with the smoke." },
     imagery: { pause: "Pause the film", play: "Play the film" },
     nav: { signIn: "Sign in", openBench: "Open the Bench", shop: "Shop", main: "Main", atlas: "Atlas", salon: "Salon", nose: "Nose", wardrobe: "Wardrobe", calculator: "Calculator", journal: "Journal", privacy: "Privacy", terms: "Terms", guides: "Guides", pricing: "Pricing", openApp: "Open the app", home: "Kyphira, home", language: "العربية", languageLabel: "Read this page in Arabic" },
     legal: { draft: "Draft — not yet reviewed. This page may change before launch.", updated: "Last updated {date}" },

@@ -31,7 +31,7 @@ const level = (page) => page.evaluate(() => {
 test("flag off: no Listen button, no track fetched", async ({ page }) => {
   await setup(page, { names: ["imagery"] });
   const fetched = [];
-  page.on("request", (r) => r.url().includes("kyphi-music") && fetched.push(r.url()));
+  page.on("request", (r) => r.url().includes("/media/kyphi-") && fetched.push(r.url()));
   await page.goto("/");
   await expect(page.locator("#kyphi-h")).toBeVisible();
   await expect(page.locator("[data-ambient]")).toHaveCount(0);
@@ -41,7 +41,7 @@ test("flag off: no Listen button, no track fetched", async ({ page }) => {
 test("plays by default: starts on load (or the first press anywhere), Stop is remembered, Listen clears it", async ({ page }) => {
   await setup(page);
   const fetched = [];
-  page.on("request", (r) => r.url().includes("kyphi-music") && fetched.push(r.url()));
+  page.on("request", (r) => r.url().includes("/media/kyphi-") && fetched.push(r.url()));
   await page.goto("/");
   await expect.poll(() => fetched.length, { timeout: 8000 }).toBe(1); // no press needed to load
   await page.mouse.click(5, 5); // a first press elsewhere lets the sound in where the browser holds it
@@ -103,13 +103,13 @@ test("Motion Off: no Listen button, nothing plays", async ({ page }) => {
 
 test("a failed load says so and offers a reload (a page left open across a deploy)", async ({ page }) => {
   await setup(page);
-  await page.route("**/media/kyphi-music.m4a", (r) => r.fulfill({ status: 404, body: "" }));
+  await page.route("**/media/kyphi-chant.m4a", (r) => r.fulfill({ status: 404, body: "" }));
   await page.goto("/");
   const button = page.locator("[data-ambient]");
   await expect(page.locator("[data-ambient-failed]")).toHaveText("Couldn’t load the music.");
   await expect(button).toHaveText(/Reload and try again/);
   await expect(button).toHaveAttribute("aria-pressed", "false");
-  await page.unroute("**/media/kyphi-music.m4a");
+  await page.unroute("**/media/kyphi-chant.m4a");
   await Promise.all([page.waitForEvent("load"), button.click()]); // reloads onto the live release
   await expect(page.locator("[data-ambient]")).toHaveText(/Stop the music|Listen/);
 });

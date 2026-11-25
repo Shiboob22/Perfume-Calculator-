@@ -45,7 +45,8 @@
 .wg-rows dd { margin: .25rem 0 0; font-size: 1.75rem; font-variant-numeric: tabular-nums; }
 .wg-glow { position: absolute; inset: -30% -20% auto auto; width: 90%; aspect-ratio: 1; border-radius: 50%; pointer-events: none; opacity: .6; z-index: 0;
   background: radial-gradient(closest-side, color-mix(in srgb, var(--c-oil) 55%, transparent), color-mix(in srgb, var(--c-oil) 16%, transparent) 55%, transparent 74%);
-  transform: translate(calc(var(--lx, 0) * 40px), calc(var(--ly, 0) * 30px)); }
+  transform: translate(calc(var(--lx, 0) * 40px), calc(var(--ly, 0) * 30px));
+  scale: calc(1 + var(--kx-pulse, 0) * .16); } /* breathes with the kyphi music (src/site/pulse.js); 0 when silent */
 .wg-panel > :not(.wg-glow, .sr-only) { position: relative; z-index: 1; }
 
 /* Keyframes: p is progress through the pinned stretch. */
