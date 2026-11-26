@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { loadEntitlements } from './_lib/entitlements.js';
+import { ownerDashboard } from './_lib/ownerDashboard.js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -14,7 +15,8 @@ function timedFetch(input: Parameters<typeof fetch>[0], init: RequestInit = {}) 
 // show (Ask tab, inventory, "18 of 25 batches"). The server re-checks every
 // gated action itself; this only drives the UI.
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  const dashboard = req.query?.owner === '1';
+  if (req.method !== (dashboard ? 'POST' : 'GET')) return res.status(405).json({ error: 'Method not allowed' });
   res.setHeader('Cache-Control', 'private, no-store');
 
   const authHeader = req.headers.authorization;
@@ -31,6 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!user) return res.status(401).json({ error: 'Unauthorized: Missing or invalid session token.' });
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey, { global: { fetch: timedFetch } });
+    if (dashboard) return await ownerDashboard(req, res, user.id, supabase);
     const entitlements = await loadEntitlements(supabase, user.id);
     const { count, error } = await supabase
       .from('batches')
@@ -40,6 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({ ...entitlements, batchesUsed: count ?? 0 });
   } catch (err: any) {
+    if (dashboard) return res.status(503).json({ error: 'Dashboard unavailable. Please retry.' });
     if (/TimeoutError/.test(String(err?.message ?? ''))) {
       return res.status(503).json({ error: 'Database is slow to respond — please try again.' });
     }

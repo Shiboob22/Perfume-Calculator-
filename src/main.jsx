@@ -86,6 +86,7 @@ if (import.meta.env.PROD) {
   inject({
     beforeSend(event) {
       const url = new URL(event.url);
+      if (/^\/admin(?:\/|$)/.test(url.pathname)) return null;
       url.hash = "";
       if (isAppPath(url.pathname)) url.search = "";
       return { ...event, url: url.toString() };

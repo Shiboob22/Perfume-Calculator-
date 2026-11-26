@@ -14,6 +14,7 @@ import { flagOn } from "./lib/flags";
 
 // The signed-in app is its own chunk: public pages (prerendered, crawlable)
 // never load Supabase, the catalog search or the calculator.
+const OwnerDashboard = lazy(() => import("./components/owner/OwnerDashboard"));
 const App = lazy(() => import("./App"));
 // The Shop is public (no sign-in) but loaded on demand: the cart, checkout and image code stay out of the home page.
 const ShopRoutes = lazy(() => import("./site/shop/ShopRoutes"));
@@ -65,6 +66,7 @@ const arAppElement = (
 export default function Root() {
   return (
     <Routes>
+      <Route path="/admin/:userId?" element={<Suspense fallback={<AppLoading />}><OwnerDashboard /></Suspense>} />
       <Route path="/app/:tab?" element={appElement} />
       <Route path="/bench" element={appElement} />
       <Route path="/bench/journal" element={appElement} />

@@ -153,3 +153,16 @@ git push
 - **GitHub**: free for public or private repos at this scale.
 
 Nothing here requires a credit card.
+
+### Owner dashboard
+
+Apply migration `0043_owner_dashboard.sql` and set the server-only Vercel variable
+`KYPHIRA_OWNER_USER_ID` to the verified Supabase Auth UUID for the owner in that
+environment. Redeploy the app, sign in through the Bench, and visit `/admin`.
+An unset variable denies dashboard access. The staging and production UUIDs
+must be verified independently.
+
+Run `supabase/tests/owner_dashboard.sql` on staging to check grants, trial
+entitlements, session revocation and request replay. It uses temporary fixture
+accounts inside a rolled-back transaction. Dashboard actions and their outcomes
+are recorded in `owner_support_actions`; the down migration removes this history.

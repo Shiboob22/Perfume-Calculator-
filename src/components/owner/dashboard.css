@@ -1,0 +1,19 @@
+.owner-dashboard { margin: auto; max-width: 76rem; padding: 2rem clamp(1rem, 4vw, 4rem); color: #28231d; background: #faf7f0; min-height: 100vh; font-family: "Instrument Sans Variable", sans-serif; }
+.owner-dashboard header { border-bottom: 1px solid #aa9b85; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+.owner-dashboard h1, .owner-dashboard h2 { font-family: "Instrument Serif", Georgia, serif; }
+.owner-dashboard h1 { font-size: clamp(2.5rem, 5vw, 4rem); }
+.owner-dashboard h2 { font-size: 2rem; margin-bottom: .7rem; }
+.owner-dashboard section { padding: 1.5rem 0; border-bottom: 1px solid #cfc3b2; }
+.owner-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); gap: 1rem; }
+.owner-fields dt, .owner-dashboard time { color: #645745; font-size: .9rem; }
+.owner-fields dd { overflow-wrap: anywhere; margin: .25rem 0; }
+.owner-dashboard a { text-decoration: underline; }
+.owner-dashboard form { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; margin: 1rem 0; }
+.owner-dashboard label { display: grid; gap: .4rem; }
+.owner-dashboard input, .owner-dashboard select, .owner-dashboard button { padding: .5rem .8rem; border: 1px solid #82745e; border-radius: .3rem; background: #fffdf8; color: #28231d; }
+.owner-dashboard button:disabled { opacity: .5; }
+.owner-dashboard button, .owner-dashboard summary { cursor: pointer; }
+.owner-dashboard summary, .owner-dashboard li { padding: .5rem 0; overflow-wrap: anywhere; }
+.owner-table { overflow-x: auto; margin: 1rem 0; }
+.owner-dashboard table { border-collapse: collapse; width: 100%; text-align: left; }
+.owner-dashboard td, .owner-dashboard th { padding: .6rem; border-bottom: 1px solid #cfc3b2; }

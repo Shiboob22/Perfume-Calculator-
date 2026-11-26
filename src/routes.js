@@ -6,7 +6,7 @@
 // rooms are built. The Library replaces /guides.
 
 // Paths that serve the signed-in app shell.
-export const APP_PREFIXES = ["/app", "/bench", "/journal", "/ar/journal", "/ar/bench", "/ar/bench/orders", "/wardrobe", "/atlas", "/salon", "/nose"];
+export const APP_PREFIXES = ["/admin", "/app", "/bench", "/journal", "/ar/journal", "/ar/bench", "/ar/bench/orders", "/wardrobe", "/atlas", "/salon", "/nose"];
 
 export function isAppPath(pathname) {
   return APP_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));

@@ -42,6 +42,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/admin/:path*", "destination": "/app/index.html" },
     {
       "source": "/r/:slug",
       "destination": "/api/recipe?slug=:slug&lang=en"
