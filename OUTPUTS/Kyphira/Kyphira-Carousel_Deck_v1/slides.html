@@ -1,0 +1,200 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=Hanken+Grotesk:wght@400;500;600;700&display=block" rel="stylesheet">
+<style>
+:root{--paper:#F4F1EA;--sand:#EBE6DA;--ink:#1B1814;--soft:#3A352D;--dim:#5A544A;--resin:#B8893A;--resinT:#7A581B;--verd:#2F6F62;--haze:#EADFCE;--ash:#A89B8B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#888;font-family:"Hanken Grotesk",sans-serif;color:var(--ink)}
+.s{width:1080px;height:1350px;position:relative;overflow:hidden;background:var(--paper);padding:96px 96px}
+.s::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.09;mix-blend-mode:multiply;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+.dark{background:var(--ink);color:var(--haze)}
+.sand{background:var(--sand)}
+.serif{font-family:"Newsreader",serif}
+.eyebrow{font-size:30px;font-weight:600;color:var(--resinT);letter-spacing:.02em}
+.dark .eyebrow{color:var(--resin)}
+.rule{height:2px;background:var(--ink);width:100%}
+.dark .rule{background:#3B332B}
+.tab{font-variant-numeric:tabular-nums}
+
+/* 1 cover */
+#s1 .logo{width:330px}
+#s1 h1{font-family:"Newsreader";font-weight:400;font-size:136px;line-height:.98;letter-spacing:-.025em;margin-top:110px}
+#s1 h1 .x{position:relative;white-space:nowrap;color:var(--dim)}
+#s1 h1 .x::after{content:"";position:absolute;left:-6px;right:-6px;top:54%;height:10px;background:var(--resin);transform:rotate(-4deg)}
+#s1 .w{display:inline-block;background:var(--ink);color:var(--paper);padding:0 24px 10px;margin-top:22px;font-style:italic}
+#s1 p{position:absolute;left:96px;bottom:110px;font-size:40px;line-height:1.3;color:var(--soft);max-width:640px}
+#s1 .swipe{position:absolute;right:96px;bottom:118px;font-size:30px;font-weight:600;color:var(--resinT)}
+
+/* 2 proof */
+#s2 .q{font-size:46px;color:var(--soft);margin-top:24px;line-height:1.25}
+#s2 .big{font-family:"Newsreader";font-size:330px;line-height:.9;letter-spacing:-.04em;margin-top:70px}
+#s2 .big span{font-size:120px;color:var(--resinT)}
+#s2 .rows{margin-top:70px}
+#s2 .row{display:flex;justify-content:space-between;align-items:baseline;font-size:56px;padding:40px 0;border-top:2px solid var(--ink)}
+#s2 .row b{font-weight:600}
+#s2 .row:last-child{border-bottom:2px solid var(--ink)}
+#s2 .note{position:absolute;left:96px;right:96px;bottom:96px;font-family:"Newsreader";font-style:italic;font-size:44px;line-height:1.3;color:var(--soft)}
+
+/* 3 bench */
+#s3 h2{font-family:"Newsreader";font-weight:400;font-size:100px;line-height:1;letter-spacing:-.02em;margin-top:30px}
+#s3 h2 em{color:var(--resin)}
+#s3 .lead{font-size:40px;line-height:1.35;color:var(--ash);margin-top:40px;max-width:820px}
+#s3 .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:56px}
+#s3 .t{border:2px solid #3B332B;padding:30px 34px;border-radius:2px}
+#s3 .t .p{font-family:"Newsreader";font-size:110px;line-height:1;color:var(--haze)}
+#s3 .t .n{font-size:34px;color:var(--ash);margin-top:10px;font-weight:500}
+#s3 .t.on{border-color:var(--resin);background:#2A2219}
+#s3 .t.on .p{color:var(--resin)}
+#s3 .steps{position:absolute;left:96px;right:96px;bottom:96px;display:flex;gap:18px;font-size:34px;font-weight:600;align-items:center}
+#s3 .steps .k{color:var(--ash);font-weight:400}
+
+/* 4 journal */
+#s4 h2{font-family:"Newsreader";font-weight:400;font-size:120px;line-height:1;letter-spacing:-.02em;margin-top:30px}
+#s4 .lead{font-size:42px;line-height:1.35;color:var(--soft);margin-top:40px;max-width:840px}
+#s4 .track{position:relative;margin-top:120px;height:560px}
+#s4 .line{position:absolute;left:30px;top:0;bottom:0;width:4px;background:var(--sand)}
+#s4 .fill{position:absolute;left:30px;top:0;height:62%;width:4px;background:var(--resin)}
+#s4 .m{position:absolute;left:0;display:flex;align-items:center;gap:44px;font-size:46px}
+#s4 .dot{width:64px;height:64px;border-radius:50%;border:4px solid var(--ink);background:var(--paper);flex:none}
+#s4 .m.done .dot{background:var(--resin);border-color:var(--resin)}
+#s4 .m.ready .dot{background:var(--verd);border-color:var(--verd)}
+#s4 .m .d{font-weight:600;width:250px}
+#s4 .m .c{color:var(--dim);font-family:"Newsreader";font-style:italic}
+#s4 .m.ready .c{color:var(--verd);font-style:normal;font-family:"Hanken Grotesk";font-weight:600}
+
+/* 5 cheat sheet */
+#s5 .pill{display:inline-block;background:var(--ink);color:var(--paper);font-size:28px;font-weight:600;padding:12px 24px;border-radius:2px}
+#s5 h2{font-family:"Newsreader";font-weight:400;font-size:108px;line-height:1;letter-spacing:-.02em;margin-top:44px}
+#s5 h2 em{color:var(--resinT)}
+#s5 table{width:100%;border-collapse:collapse;margin-top:76px;font-size:44px}
+#s5 th{text-align:right;font-size:28px;font-weight:600;color:var(--dim);padding:0 0 22px;letter-spacing:.06em}
+#s5 th:first-child,#s5 td:first-child{text-align:left}
+#s5 td{text-align:right;padding:34px 0;border-top:2px solid var(--ink)}
+#s5 tr:last-child td{border-bottom:2px solid var(--ink)}
+#s5 td .nm{display:block;font-size:28px;color:var(--dim);margin-top:4px;font-weight:500}
+#s5 td b{font-weight:700}
+#s5 .foot{position:absolute;left:96px;right:96px;bottom:96px;font-size:32px;line-height:1.4;color:var(--soft)}
+#s5 .foot b{color:var(--ink)}
+
+/* 6 library */
+#s6 .num{font-family:"Newsreader";font-size:400px;line-height:.8;letter-spacing:-.05em;margin-top:90px;color:var(--ink)}
+#s6 h2{font-family:"Newsreader";font-weight:400;font-size:84px;line-height:1.05;margin-top:30px}
+#s6 h2 em{color:var(--resinT)}
+#s6 .lead{font-size:40px;line-height:1.35;color:var(--soft);margin-top:30px;max-width:860px}
+#s6 .badges{position:absolute;left:96px;right:96px;bottom:96px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+#s6 .b{border:2px solid var(--ink);padding:24px 28px;font-size:30px;font-weight:700;letter-spacing:.1em}
+#s6 .b span{display:block;font-weight:400;letter-spacing:0;font-size:30px;color:var(--soft);margin-top:8px}
+#s6 .b.sci{background:var(--verd);border-color:var(--verd);color:var(--paper)}
+#s6 .b.sci span{color:#E3EEEA}
+#s6 .b.myth s{text-decoration-color:var(--resin);text-decoration-thickness:4px}
+
+/* 7 free */
+#s7 h2{font-family:"Newsreader";font-weight:400;font-size:150px;line-height:.95;letter-spacing:-.03em;margin-top:30px}
+#s7 h2 em{color:var(--resinT)}
+#s7 ul{list-style:none;margin-top:90px}
+#s7 li{display:flex;align-items:center;gap:36px;font-size:54px;padding:30px 0;border-top:2px solid var(--ink)}
+#s7 li:last-child{border-bottom:2px solid var(--ink)}
+#s7 li svg{flex:none}
+#s7 .foot{position:absolute;left:96px;bottom:96px;font-family:"Newsreader";font-style:italic;font-size:48px;color:var(--soft)}
+
+/* 8 cta */
+#s8{display:flex;flex-direction:column}
+#s8 .logo{width:300px}
+#s8 .c1{font-size:52px;color:var(--ash);margin-top:auto}
+#s8 .kw{font-family:"Hanken Grotesk";font-weight:700;font-size:250px;letter-spacing:-.02em;line-height:1;margin:20px 0 0 -8px;color:var(--resin)}
+#s8 .c2{font-family:"Newsreader";font-size:68px;line-height:1.15;margin-top:40px;max-width:860px}
+#s8 .c3{font-size:34px;color:var(--ash);margin-top:70px;padding-top:36px;border-top:2px solid #3B332B}
+</style></head><body>
+
+<section class="s" id="s1">
+  <img class="logo" src="kyphira-horizontal.svg" alt="">
+  <h1>Stop measuring your perfume in <span class="x">mL.</span><br><span class="w">Weigh it.</span></h1>
+  <p>Kyphira works out every gram for the scale.</p>
+  <div class="swipe">Swipe →</div>
+</section>
+
+<section class="s" id="s2">
+  <div class="eyebrow">100 mL at 25%</div>
+  <div class="q">What actually goes on the scale:</div>
+  <div class="big tab">84.50<span> g</span></div>
+  <div class="rows">
+    <div class="row"><span>Fragrance oil</span><b class="tab">23.75 g</b></div>
+    <div class="row"><span>Perfumer’s alcohol</span><b class="tab">60.75 g</b></div>
+  </div>
+  <div class="note">Oil and alcohol don’t weigh the same per mL. A syringe guesses. A scale doesn’t.</div>
+</section>
+
+<section class="s dark" id="s3">
+  <div class="eyebrow">The Bench</div>
+  <h2>Pick a size and a strength. <em>Get the grams.</em></h2>
+  <div class="lead">Four named strengths, from a light EDT to an Extrait.</div>
+  <div class="grid">
+    <div class="t"><div class="p tab">15%</div><div class="n">EDT</div></div>
+    <div class="t"><div class="p tab">20%</div><div class="n">EDP</div></div>
+    <div class="t on"><div class="p tab">25%</div><div class="n">EDP Intense</div></div>
+    <div class="t"><div class="p tab">30%</div><div class="n">Extrait</div></div>
+  </div>
+  <div class="steps"><span>Pour along:</span><span class="k">tare</span>→<span class="k">pour</span>→<span class="k">check</span>→<span class="k">log</span></div>
+</section>
+
+<section class="s" id="s4">
+  <div class="eyebrow">The Journal</div>
+  <h2>A blend changes while it rests.</h2>
+  <div class="lead">Write down how it smells at five points, and see when it was at its best.</div>
+  <div class="track">
+    <div class="line"></div><div class="fill"></div>
+    <div class="m done" style="top:0"><div class="dot"></div><div class="d">Day 0</div><div class="c">sharp, boozy</div></div>
+    <div class="m done" style="top:124px"><div class="dot"></div><div class="d">Week 1</div><div class="c">opening up</div></div>
+    <div class="m done" style="top:248px"><div class="dot"></div><div class="d">Week 2</div><div class="c">rounder</div></div>
+    <div class="m" style="top:372px"><div class="dot"></div><div class="d">Month 1</div><div class="c">note due</div></div>
+    <div class="m ready" style="top:496px"><div class="dot"></div><div class="d">Month 3</div><div class="c">Ready</div></div>
+  </div>
+</section>
+
+<section class="s sand" id="s5">
+  <div class="pill">SAVE THIS</div>
+  <h2>100 mL, <em>by weight.</em></h2>
+  <table class="tab">
+    <tr><th>STRENGTH</th><th>OIL</th><th>ALCOHOL</th><th>TOTAL</th></tr>
+    <tr><td><b>15%</b><span class="nm">EDT</span></td><td>14.25 g</td><td>68.85 g</td><td><b>83.10 g</b></td></tr>
+    <tr><td><b>20%</b><span class="nm">EDP</span></td><td>19.00 g</td><td>64.80 g</td><td><b>83.80 g</b></td></tr>
+    <tr><td><b>25%</b><span class="nm">EDP Intense</span></td><td>23.75 g</td><td>60.75 g</td><td><b>84.50 g</b></td></tr>
+    <tr><td><b>30%</b><span class="nm">Extrait</span></td><td>28.50 g</td><td>56.70 g</td><td><b>85.20 g</b></td></tr>
+  </table>
+  <div class="foot">Using <b>0.95 g/mL</b> for oil and <b>0.81 g/mL</b> for 96% alcohol. If you’ve measured your oil’s density, use that instead.</div>
+</section>
+
+<section class="s" id="s6">
+  <div class="eyebrow">The Library</div>
+  <div class="num tab">15</div>
+  <h2>guides from <em>The Scent Handbook.</em></h2>
+  <div class="lead">How to blend, where to spray, how climate changes a scent. Each claim says how sure we are.</div>
+  <div class="badges">
+    <div class="b sci">SCIENTIFIC<span>Backed by research</span></div>
+    <div class="b">PLAUSIBLE<span>Makes sense, not proven</span></div>
+    <div class="b">ANECDOTAL<span>Some people report it</span></div>
+    <div class="b myth"><s>MYTH</s><span>Skip it</span></div>
+  </div>
+</section>
+
+<section class="s" id="s7">
+  <div class="eyebrow">Free to start</div>
+  <h2>No card. <em>Just blend.</em></h2>
+  <ul>
+    <li><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#2F6F62" stroke-width="2.4"><path d="M4 12.5l5 5L20 6.5"/></svg>The calculator</li>
+    <li><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#2F6F62" stroke-width="2.4"><path d="M4 12.5l5 5L20 6.5"/></svg>Saved formulas</li>
+    <li><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#2F6F62" stroke-width="2.4"><path d="M4 12.5l5 5L20 6.5"/></svg>Bottle labels</li>
+    <li><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#2F6F62" stroke-width="2.4"><path d="M4 12.5l5 5L20 6.5"/></svg>The Library</li>
+  </ul>
+  <div class="foot">In English and Arabic.</div>
+</section>
+
+<section class="s dark" id="s8">
+  <img class="logo" src="kyphira-horizontal-reversed.svg" alt="">
+  <div class="c1">Comment</div>
+  <div class="kw">BENCH</div>
+  <div class="c2">and I’ll send you the link to the calculator.</div>
+  <div class="c3">Every drop, weighed with care.</div>
+</section>
+</body></html>
